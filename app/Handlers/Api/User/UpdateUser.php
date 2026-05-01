@@ -46,7 +46,7 @@ final class UpdateUser
         $updated = $repository->updateWithRoles(
             $userId,
             $username,
-            trim((string) ($data['password'] ?? '')) !== '' ? (string) $data['password'] : null,
+            null,
             (string) ($data['firstname'] ?? ''),
             (string) ($data['lastname'] ?? ''),
             is_array($data['roles'] ?? null) ? $data['roles'] : [],

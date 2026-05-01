@@ -2,6 +2,7 @@
 
 use NixCMS\Enums\Language;
 use function NixPHP\Form\csrf;
+use function NixPHP\I18n\t;
 use function NixPHP\request;
 use function NixPHP\route;
 use function NixPHP\View\s;
@@ -15,11 +16,11 @@ $articleId = (int) ($articleId ?? ($article['id'] ?? 0));
 $articleVersionId = $mode === 'version' || $mode === 'translation' ? 0 : (int) ($article['article_version_id'] ?? 0);
 $selectedLanguage = strtolower((string) ($language ?? ($article['language'] ?? Language::DE->value)));
 $languageLabels = [
-    Language::DE->value => 'Deutsch',
-    Language::EN->value => 'English',
-    Language::FR->value => 'Français',
-    Language::ES->value => 'Español',
-    Language::IT->value => 'Italiano',
+    Language::DE->value => t('de'),
+    Language::EN->value => t('en'),
+    Language::FR->value => t('fr'),
+    Language::ES->value => t('es'),
+    Language::IT->value => t('it'),
 ];
 $languageOptions = [
     Language::DE->value => $languageLabels[Language::DE->value],
@@ -38,32 +39,32 @@ $publishDateValue = $publishDate !== '' ? date('Y-m-d\TH:i', strtotime($publishD
 ?>
 <?php $this->setLayout('layouts.admin') ?>
 
-<?php $pageTitle = (string) ($title ?? 'Artikel erstellen'); ?>
-<?php $pageSubtitle = 'Create and edit article content, metadata, and publishing details.'; ?>
+<?php $pageTitle = (string) ($title ?? t('Create article')); ?>
+<?php $pageSubtitle = (string) ($pageSubtitle ?? t('Create and edit article content, metadata, and publishing details.')); ?>
 
 <?php if ($mode !== 'create'): ?>
     <?php $this->block('adminTop'); ?>
-    <div class="article-form-topbar">
-        <a href="<?= s(route('admin.articles')) ?>" class="article-form-back" title="Back to article list" aria-label="Back to article list">
+    <div class="flex items-center gap-3.5">
+        <a href="<?= s(route('admin.articles')) ?>" class="inline-flex h-[52px] w-[52px] items-center justify-center rounded-[14px] border text-[34px] leading-none text-accent [background:linear-gradient(135deg,color-mix(in_srgb,var(--admin-page-accent)_28%,transparent),color-mix(in_srgb,var(--admin-page-accent)_14%,transparent))] [border-color:color-mix(in_srgb,var(--admin-page-accent)_32%,transparent)]" title="<?= s(t('Back to article list')) ?>" aria-label="<?= s(t('Back to article list')) ?>">
             <span aria-hidden="true">&lsaquo;</span>
         </a>
-        <div class="article-form-topbar-copy">
-            <strong><?= s($pageTitle) ?></strong>
-            <span><?= $articleId > 0 ? 'Article #' . $articleId : 'Draft' ?></span>
+        <div class="grid gap-0.5">
+            <strong class="text-[15px]"><?= s($pageTitle) ?></strong>
+            <span class="text-[13px] text-slate-500"><?= $articleId > 0 ? s(t('Article #:id', ['id' => (string) $articleId])) : s(t('Draft')) ?></span>
         </div>
     </div>
     <?php $this->endBlock('adminTop'); ?>
 <?php endif; ?>
 
 <?php $this->block('content'); ?>
-<div class="article-form-shell">
-    <form action="<?= s(request()->getUri()->getPath()) ?>" method="post" id="articleForm" class="article-form">
+<div class="grid gap-6">
+    <form action="<?= s(request()->getUri()->getPath()) ?>" method="post" id="articleForm" class="flex flex-col gap-0">
         <input type="hidden" name="_csrf" value="<?= s(csrf()->generate()) ?>">
-        <div class="article-form-layout">
-            <div class="article-form-main">
+        <div class="grid gap-[46px] shell:grid-cols-[minmax(0,1fr)_410px]">
+            <div class="min-w-0 px-[22px] pb-0 pt-[22px]">
                 <?= view('components.admin.form.input', [
                     'name' => 'title',
-                    'label' => 'Title',
+                    'label' => t('Title'),
                     'value' => (string) ($article['title'] ?? ''),
                 ]) ?>
 
@@ -71,7 +72,7 @@ $publishDateValue = $publishDate !== '' ? date('Y-m-d\TH:i', strtotime($publishD
                     <hr>
                     <?= view('components.admin.form.text', [
                         'name' => 'teaser',
-                        'label' => 'Teaser',
+                        'label' => t('Teaser'),
                         'rows' => 6,
                         'value' => (string) ($article['teaser'] ?? ''),
                     ]) ?>
@@ -80,108 +81,121 @@ $publishDateValue = $publishDate !== '' ? date('Y-m-d\TH:i', strtotime($publishD
                 <hr>
                 <?= view('components.admin.form.editor', [
                     'name' => 'content',
-                    'label' => 'Content',
+                    'label' => t('Content'),
                     'value' => $content !== '' ? $content : null,
                     'uploadUrl' => route('admin.articles.image'),
                 ]) ?>
             </div>
 
-            <aside class="article-form-meta">
-                <h2>Metadata</h2>
-                <hr>
+            <aside class="px-[22px] pt-6 shell:pr-[22px]">
+                <h2 class="m-0 text-[28px] font-bold leading-tight text-slate-50"><?= s(t('Metadata')) ?></h2>
+                <hr class="my-[22px] border-0 border-t border-slate-400/20">
 
-                <div class="article-form-field-row">
+                <div class="flex items-center gap-2">
                     <?= view('components.admin.form.input', [
                         'name' => 'slug',
-                        'label' => 'Slug',
+                        'label' => t('Slug'),
                         'value' => (string) ($article['slug'] ?? ''),
                     ]) ?>
-                    <button id="slug-reset" type="button" class="hidden">Reset</button>
+                    <button id="slug-reset" type="button" class="hidden"><?= s(t('Reset')) ?></button>
                 </div>
 
-                <hr>
+                <hr class="my-[22px] border-0 border-t border-slate-400/20">
 
-                <label class="article-form-field">
-                    <span>Veröffentlichungsdatum</span>
-                    <input name="publish_date" value="<?= s($publishDateValue) ?>" type="datetime-local" class="wow-input">
+                <label class="grid gap-3">
+                    <span class="text-base font-semibold text-slate-100"><?= s(t('Publish date')) ?></span>
+                    <?= view('components.admin.form.input', [
+                        'name' => 'publish_date',
+                        'label' => t('Publish date'),
+                        'type' => 'datetime-local',
+                        'value' => $publishDateValue,
+                    ]) ?>
                 </label>
 
-                <hr>
+                <hr class="my-[22px] border-0 border-t border-slate-400/20">
 
-                <label class="article-form-field">
-                    <span>Category</span>
+                <label class="grid gap-3">
+                    <span class="text-base font-semibold text-slate-100"><?= s(t('Category')) ?></span>
                     <div class="relative">
-                        <input
-                            id="category-input"
-                            name="category"
-                            value="<?= s((string) ($article['category_name'] ?? '')) ?>"
-                            placeholder="Choose or type category"
-                            type="text"
-                            autocomplete="off"
-                            class="wow-input"
-                        >
-                        <div id="category-suggestions" class="wow-suggestions hidden"></div>
+                        <?= view('components.admin.form.input', [
+                            'id' => 'category-input',
+                            'name' => 'category',
+                            'label' => t('Category'),
+                            'value' => (string) ($article['category_name'] ?? ''),
+                            'placeholder' => t('Choose or type category'),
+                            'attributes' => ['autocomplete' => 'off'],
+                        ]) ?>
+                        <div id="category-suggestions" class="absolute left-0 right-0 top-[calc(100%+6px)] z-30 hidden max-h-[220px] overflow-auto rounded-lg border border-[var(--border)] bg-white p-1.5 shadow-[0_18px_44px_rgba(15,23,42,.14)] dark:bg-slate-900 dark:shadow-[0_20px_70px_rgba(0,0,0,.38)]"></div>
                     </div>
                 </label>
 
-                <hr>
+                <hr class="my-[22px] border-0 border-t border-slate-400/20">
 
-                <div class="article-form-field">
-                    <span>Tags</span>
+                <div class="grid gap-3">
+                    <span class="text-base font-semibold text-slate-100"><?= s(t('Tags')) ?></span>
                     <div class="relative">
-                        <input id="tag-input" type="text" placeholder="Type tag and press comma" autocomplete="off" class="wow-input">
-                        <div id="tag-suggestions" class="wow-suggestions hidden"></div>
+                        <?= view('components.admin.form.input', [
+                            'id' => 'tag-input',
+                            'name' => '',
+                            'label' => t('Tags'),
+                            'placeholder' => t('Type tag and press comma'),
+                            'attributes' => ['autocomplete' => 'off'],
+                            'useMemory' => false,
+                        ]) ?>
+                        <div id="tag-suggestions" class="absolute left-0 right-0 top-[calc(100%+6px)] z-30 hidden max-h-[220px] overflow-auto rounded-lg border border-[var(--border)] bg-white p-1.5 shadow-[0_18px_44px_rgba(15,23,42,.14)] dark:bg-slate-900 dark:shadow-[0_20px_70px_rgba(0,0,0,.38)]"></div>
                     </div>
                     <input id="tags-hidden" name="tags" type="hidden" value="">
-                    <div id="tag-items" class="article-tag-items"></div>
-                    <small>Separate tags with comma. Use backspace or x to remove.</small>
+                    <div id="tag-items" class="flex min-h-[46px] flex-wrap items-start gap-2 rounded-md border border-dashed border-[rgba(148,163,184,.18)] bg-[rgba(31,41,58,.45)] p-2"></div>
+                    <small class="text-sm text-slate-400"><?= s(t('Separate tags with comma. Use backspace or x to remove.')) ?></small>
                 </div>
 
-                <hr>
+                <hr class="my-[22px] border-0 border-t border-slate-400/20">
 
-                <label class="article-form-field">
-                    <span>Sprache</span>
-                    <div class="article-language-row">
+                <label class="grid gap-3">
+                    <span class="text-base font-semibold text-slate-100"><?= s(t('Language')) ?></span>
+                    <div class="grid grid-cols-[minmax(0,1fr)_110px] items-center gap-3 shell:grid-cols-1">
                         <?= view('components.admin.form.select', [
                             'name' => 'language',
-                            'label' => 'Sprache',
+                            'label' => t('Language'),
                             'selected' => $selectedLanguage,
                             'options' => $languageOptions,
                         ]) ?>
-                        <div class="version-info wow-inline-info hidden"></div>
+                        <div class="version-info hidden min-h-[52px] min-w-20 rounded-lg border border-[rgba(148,163,184,.18)] bg-[rgba(31,41,58,.66)] px-2.5 py-2 text-center text-xs font-bold text-slate-100 [&_div]:text-[11px] [&_div]:font-medium [&_div]:text-slate-400"></div>
                     </div>
                 </label>
 
-                <hr>
+                <hr class="my-[22px] border-0 border-t border-slate-400/20">
 
-                <label class="article-toggle">
-                    <input name="hide_lead_image_in_content" type="checkbox" value="1" <?= $hideLeadImageInContent ? 'checked' : '' ?>>
-                    <span>Hide first image in article body</span>
-                </label>
+                <?= view('components.admin.form.checkbox', [
+                    'name' => 'hide_lead_image_in_content',
+                    'label' => t('Hide first image in article body'),
+                    'checked' => $hideLeadImageInContent,
+                    'class' => 'w-max min-w-[296px] border-transparent bg-[rgba(24,32,49,.76)] text-slate-100',
+                ]) ?>
 
-                <label class="article-toggle">
-                    <input name="show_teaser" type="checkbox" value="1" <?= $showTeaser ? 'checked' : '' ?>>
-                    <span>Teaser anzeigen</span>
-                </label>
+                <?= view('components.admin.form.checkbox', [
+                    'name' => 'show_teaser',
+                    'label' => t('Show teaser?'),
+                    'checked' => $showTeaser,
+                    'class' => 'w-max min-w-[296px] border-transparent bg-[rgba(24,32,49,.76)] text-slate-100',
+                ]) ?>
             </aside>
         </div>
 
         <input type="hidden" name="article_id" value="<?= $articleId > 0 ? $articleId : '' ?>">
         <input type="hidden" name="article_version_id" value="<?= $articleVersionId > 0 ? $articleVersionId : '' ?>">
 
-        <hr>
+        <hr class="my-[22px] border-0 border-t border-slate-400/20">
 
-        <div class="article-form-actions">
-            <?= view('components.admin.form.button', ['label' => 'Save', 'id' => 'articleSaveBtn', 'className' => 'admin-submit-primary']) ?>
+        <div class="mt-[70px] flex justify-end border-t border-slate-400/25 pt-[22px]">
+            <?= view('components.admin.form.button', ['label' => t('Save'), 'id' => 'articleSaveBtn']) ?>
         </div>
-        <button id="articleStickySave" type="submit" class="btn admin-submit admin-submit-primary article-sticky-save" aria-hidden="true">Save</button>
+        <button id="articleStickySave" type="submit" class="pointer-events-none fixed bottom-[22px] right-7 z-50 inline-flex min-h-11 translate-y-3 items-center justify-center rounded-lg border border-transparent bg-accent px-4 font-bold text-white opacity-0 shadow-[0_18px_45px_rgba(15,23,42,.22)] transition aria-hidden:pointer-events-none" aria-hidden="true"><?= s(t('Save')) ?></button>
     </form>
 </div>
 
 <script src="/js/components/formFieldErrors.js"></script>
 <script type="module">
-    import { initStyledSelect } from '/js/components/styledSelect.js';
-
     const articleId = <?= $articleId > 0 ? $articleId : 'null' ?>;
     const categoryNames = <?= json_encode(array_values($categories), JSON_UNESCAPED_UNICODE) ?>;
     const availableTagSuggestions = <?= json_encode(array_values($tagSuggestions), JSON_UNESCAPED_UNICODE) ?>;
@@ -248,7 +262,7 @@ $publishDateValue = $publishDate !== '' ? date('Y-m-d\TH:i', strtotime($publishD
                 hide();
                 return;
             }
-            box.innerHTML = matches.map((name) => `<button type="button" class="wow-suggestion-item">${escapeHtml(name)}</button>`).join('');
+            box.innerHTML = matches.map((name) => `<button type="button" class="block min-h-8 w-full rounded-md px-2.5 text-left text-sm text-[var(--text)] hover:bg-surface-soft">${escapeHtml(name)}</button>`).join('');
             box.classList.remove('hidden');
         }
 
@@ -301,7 +315,7 @@ $publishDateValue = $publishDate !== '' ? date('Y-m-d\TH:i', strtotime($publishD
             tagItems.innerHTML = '';
             for (const tag of tags) {
                 const chip = document.createElement('span');
-                chip.className = 'article-tag-chip';
+                chip.className = 'inline-flex min-h-6 max-w-36 items-center gap-1.5 overflow-hidden rounded-full px-2 py-0.5 text-xs font-bold text-slate-50 [background:rgba(88,111,149,.48)]';
                 chip.textContent = tag;
                 const removeButton = document.createElement('button');
                 removeButton.type = 'button';
@@ -346,7 +360,6 @@ $publishDateValue = $publishDate !== '' ? date('Y-m-d\TH:i', strtotime($publishD
 
     const selectedLang = document.querySelector('select[name="language"]');
     if (selectedLang) {
-        initStyledSelect(selectedLang);
         selectedLang.addEventListener('change', getVersion);
     }
 
@@ -424,7 +437,9 @@ $publishDateValue = $publishDate !== '' ? date('Y-m-d\TH:i', strtotime($publishD
     function syncSaveButtons() {
         mainSaveButton.classList.toggle('is-dirty', isDirty);
         const showSticky = !isSubmitting && baselineReady && isDirty && !isMainSaveVisible;
-        stickySaveButton.classList.toggle('is-visible', showSticky);
+        stickySaveButton.classList.toggle('pointer-events-auto', showSticky);
+        stickySaveButton.classList.toggle('translate-y-0', showSticky);
+        stickySaveButton.classList.toggle('opacity-100', showSticky);
         stickySaveButton.setAttribute('aria-hidden', showSticky ? 'false' : 'true');
     }
     async function updateDirtyState() {

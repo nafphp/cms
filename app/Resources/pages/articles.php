@@ -9,6 +9,7 @@ use NixCMS\Handlers\Page\Article\StoreArticleDraft;
 use NixCMS\Page\Page;
 use NixCMS\Models\Article;
 use function NixPHP\redirect;
+use function NixPHP\I18n\t;
 use function NixPHP\request;
 use function NixPHP\route;
 use function NixPHP\View\render;
@@ -28,21 +29,23 @@ return [
         ->setTitle('Article management')
         ->setLayout('admin')
         ->requirePermission(Permission::ARTICLES_VIEW)
+        ->setAdminNavigation('Articles', parent: 'content', icon: 'article', order: 10, key: 'articles')
         ->setContent(static fn() => render('admin.articles.index', [
-            'title' => 'Article management',
-            'pageSubtitle' => 'Manage article drafts, versions, translations, and publishing state.',
+            'title' => t('Article management'),
+            'pageSubtitle' => t('Manage article drafts, versions, translations, and publishing state.'),
             'overview' => $articles()->catalog()->overview(),
         ])),
 
     Page::create('admin.articles.create')
         ->setPath('/admin/articles/create')
-        ->setTitle('Artikel erstellen')
+        ->setTitle('Create article')
         ->setLayout('admin')
         ->requirePermission(Permission::ARTICLES_CREATE)
         ->setDataHandler(StoreArticleDraft::class, 'POST', Permission::ARTICLES_CREATE)
+        ->hideFromAdminNavigation('articles')
         ->setContent(static fn() => render('admin.articles.form', [
-            'title' => 'Artikel erstellen',
-            'pageSubtitle' => 'Create and edit article content, metadata, and publishing details.',
+            'title' => t('Create article'),
+            'pageSubtitle' => t('Create and edit article content, metadata, and publishing details.'),
             'mode' => 'create',
             'categories' => $articles()->form()->categoryNames(),
             'tagSuggestions' => $articles()->form()->tagNames(),
@@ -54,6 +57,7 @@ return [
         ->setLayout('admin')
         ->requirePermission(Permission::ARTICLES_CREATE)
         ->setDataHandler(StoreArticleDraft::class, 'POST', Permission::ARTICLES_CREATE)
+        ->hideFromAdminNavigation('articles')
         ->setContent(static function (string $articleId) use ($articles) {
             $service = $articles()->form();
             $queryParams = request()->getQueryParams();
@@ -69,8 +73,8 @@ return [
             }
 
             return render('admin.articles.form', [
-                'title' => 'Create version',
-                'pageSubtitle' => 'Create and edit article content, metadata, and publishing details.',
+                'title' => t('Create version'),
+                'pageSubtitle' => t('Create and edit article content, metadata, and publishing details.'),
                 'mode' => 'version',
                 'articleId' => (int) $articleId,
                 'language' => $requestedLanguage !== '' ? $requestedLanguage : null,
@@ -86,6 +90,7 @@ return [
         ->setLayout('admin')
         ->requirePermission(Permission::ARTICLES_CREATE)
         ->setDataHandler(StoreArticleDraft::class, 'POST', Permission::ARTICLES_CREATE)
+        ->hideFromAdminNavigation('articles')
         ->setContent(static function (string $articleId, string $language) use ($articles) {
             $service = $articles()->form();
             $article = $service->findArticleForForm((int) $articleId, $language);
@@ -107,8 +112,8 @@ return [
             }
 
             return render('admin.articles.form', [
-                'title' => 'Create translation',
-                'pageSubtitle' => 'Create and edit article content, metadata, and publishing details.',
+                'title' => t('Create translation'),
+                'pageSubtitle' => t('Create and edit article content, metadata, and publishing details.'),
                 'mode' => 'translation',
                 'articleId' => (int) $articleId,
                 'language' => strtolower(trim($language)),
@@ -124,6 +129,7 @@ return [
         ->setLayout('admin')
         ->requirePermission(Permission::ARTICLES_EDIT)
         ->setDataHandler(StoreArticleDraft::class, 'POST', Permission::ARTICLES_EDIT)
+        ->hideFromAdminNavigation('articles')
         ->setContent(static function (string $articleId, string $language) use ($articles) {
             $service = $articles()->form();
             $article = $service->findArticleForForm((int) $articleId, $language);
@@ -141,8 +147,8 @@ return [
             }
 
             return render('admin.articles.form', [
-                'title' => 'Edit draft',
-                'pageSubtitle' => 'Create and edit article content, metadata, and publishing details.',
+                'title' => t('Edit draft'),
+                'pageSubtitle' => t('Create and edit article content, metadata, and publishing details.'),
                 'mode' => 'edit',
                 'articleId' => (int) $articleId,
                 'language' => strtolower(trim($language)),
@@ -158,6 +164,7 @@ return [
         ->setLayout('admin')
         ->requirePermission(Permission::ARTICLES_EDIT)
         ->setDataHandler(StoreArticleDraft::class, 'POST', Permission::ARTICLES_EDIT)
+        ->hideFromAdminNavigation('articles')
         ->setContent(static function (string $articleId, string $language, string $version) use ($articles) {
             $service = $articles()->form();
             $article = $service->findArticleForForm((int) $articleId, $language, (int) $version);
@@ -173,8 +180,8 @@ return [
             }
 
             return render('admin.articles.form', [
-                'title' => 'Edit version',
-                'pageSubtitle' => 'Create and edit article content, metadata, and publishing details.',
+                'title' => t('Edit version'),
+                'pageSubtitle' => t('Create and edit article content, metadata, and publishing details.'),
                 'mode' => 'edit',
                 'articleId' => (int) $articleId,
                 'language' => strtolower(trim($language)),
@@ -190,6 +197,7 @@ return [
         ->setTitle('Preview article')
         ->setLayout('admin')
         ->requirePermission(Permission::ARTICLES_EDIT)
+        ->hideFromAdminNavigation('articles')
         ->setContent(static function (string $articleId, string $language) use ($articles) {
             $type = $articles();
             $service = $type->form();
@@ -201,8 +209,8 @@ return [
             $renderer = $type->renderer($article);
 
             return render('admin.articles.preview', [
-                'title' => 'Preview article',
-                'pageSubtitle' => 'Review the article exactly before publishing decisions.',
+                'title' => t('Preview article'),
+                'pageSubtitle' => t('Review the article exactly before publishing decisions.'),
                 'article' => $renderer,
                 'reviewActions' => $service->reviewActions($renderer->versionId()),
                 'canReview' => \user()?->can(Permission::ARTICLES_REVIEW) === true

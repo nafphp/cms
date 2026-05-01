@@ -1,0 +1,209 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Services\Admin;
+
+use NixCMS\Navigation\NavigationItem;
+use NixCMS\Navigation\NavigationRegistry;
+use NixCMS\Page\Page;
+use NixCMS\Page\PageRegistry;
+use NixCMS\Services\Admin\AdminNavigationService;
+use PHPUnit\Framework\TestCase;
+
+final class AdminNavigationServiceTest extends TestCase
+{
+    public function testServiceBuildsNestedNavigationFromRegistryAndPages(): void
+    {
+        $navigation = new NavigationRegistry();
+        $navigation->addMany([
+            NavigationItem::create('content')->setLabel('Content')->setOrder(20)->setScope('admin'),
+            NavigationItem::create('content.reports')->setLabel('Reports')->setParent('content')->setOrder(20)->setScope('admin'),
+        ]);
+
+        $pages = new PageRegistry();
+        $pages->addMany([
+            Page::create('admin.dashboard')
+                ->setPath('/admin')
+                ->setAdminNavigation('Dashboard', order: 10, key: 'dashboard'),
+            Page::create('admin.articles')
+                ->setPath('/admin/articles')
+                ->setAdminNavigation('Articles', parent: 'content', order: 10, key: 'articles'),
+            Page::create('admin.articles.edit')
+                ->setPath('/admin/articles/{articleId}/edit')
+                ->hideFromAdminNavigation('articles'),
+            Page::create('admin.reports')
+                ->setPath('/admin/reports')
+                ->setAdminNavigation('Monthly', parent: 'content.reports', order: 10, key: 'content.reports.monthly'),
+        ]);
+
+        $items = (new AdminNavigationService($navigation, $pages, includeConfiguredItems: false))->items();
+
+        self::assertSame('dashboard', $items[0]['key']);
+        self::assertSame('content', $items[1]['key']);
+        self::assertSame('articles', $items[1]['children'][0]['key']);
+        self::assertSame(['admin.articles', 'admin.articles.edit'], $items[1]['children'][0]['routeNames']);
+        self::assertSame('content.reports', $items[1]['children'][1]['key']);
+        self::assertSame('content.reports.monthly', $items[1]['children'][1]['children'][0]['key']);
+        self::assertSame(['admin.articles', 'admin.articles.edit', 'admin.reports'], $items[1]['routeNames']);
+    }
+
+    public function testServiceCreatesMissingParentPlaceholdersForPluginChildren(): void
+    {
+        $pages = new PageRegistry();
+        $pages->add(
+            Page::create('admin.plugin')
+                ->setPath('/admin/plugin')
+                ->setAdminNavigation('Plugin Home', parent: 'plugins.analytics', key: 'plugins.analytics.home')
+        );
+
+        $items = (new AdminNavigationService(new NavigationRegistry(), $pages, includeConfiguredItems: false))->items();
+
+        self::assertSame('plugins', $items[0]['key']);
+        self::assertSame('Analytics', $items[0]['children'][0]['label']);
+        self::assertSame('plugins.analytics.home', $items[0]['children'][0]['children'][0]['key']);
+    }
+
+    public function testServiceIgnoresFrontendNavigationItems(): void
+    {
+        $navigation = new NavigationRegistry();
+        $navigation->addMany([
+            NavigationItem::create('frontend.docs')->setLabel('Docs'),
+            NavigationItem::create('admin.tools')->setLabel('Tools')->setScope('admin'),
+        ]);
+
+        $pages = new PageRegistry();
+        $pages->addMany([
+            Page::create('home')
+                ->setPath('/')
+                ->setNavigation('Home', key: 'home'),
+            Page::create('admin.tools')
+                ->setPath('/admin/tools')
+                ->setAdminNavigation('Tools', key: 'admin.tools'),
+        ]);
+
+        $items = (new AdminNavigationService($navigation, $pages, includeConfiguredItems: false))->items();
+
+        self::assertCount(1, $items);
+        self::assertSame('admin.tools', $items[0]['key']);
+        self::assertSame(['admin.tools'], $items[0]['routeNames']);
+    }
+
+    public function testServiceBuildsArbitrarilyDeepTreeAndPropagatesDescendantRoutes(): void
+    {
+        $navigation = new NavigationRegistry();
+        $navigation->addMany([
+            NavigationItem::create('plugins')
+                ->setLabel('Plugins')
+                ->setOrder(50)
+                ->setScope('admin'),
+            NavigationItem::create('plugins.analytics')
+                ->setLabel('Analytics')
+                ->setParent('plugins')
+                ->setOrder(10)
+                ->setScope('admin'),
+            NavigationItem::create('plugins.analytics.reports')
+                ->setLabel('Reports')
+                ->setParent('plugins.analytics')
+                ->setOrder(20)
+                ->setScope('admin'),
+        ]);
+
+        $pages = new PageRegistry();
+        $pages->addMany([
+            Page::create('admin.analytics.daily')
+                ->setPath('/admin/plugins/analytics/reports/daily')
+                ->setAdminNavigation('Daily', parent: 'plugins.analytics.reports', order: 10, key: 'plugins.analytics.reports.daily'),
+            Page::create('admin.analytics.daily.detail')
+                ->setPath('/admin/plugins/analytics/reports/daily/{id}')
+                ->hideFromAdminNavigation('plugins.analytics.reports.daily'),
+            Page::create('admin.analytics.monthly')
+                ->setPath('/admin/plugins/analytics/reports/monthly')
+                ->setAdminNavigation('Monthly', parent: 'plugins.analytics.reports', order: 20, key: 'plugins.analytics.reports.monthly'),
+        ]);
+
+        $tree = (new AdminNavigationService($navigation, $pages, includeConfiguredItems: false))->items();
+        $plugins = $this->findNode($tree, 'plugins');
+        $reports = $this->findNode($tree, 'plugins.analytics.reports');
+        $daily = $this->findNode($tree, 'plugins.analytics.reports.daily');
+
+        self::assertNotNull($plugins);
+        self::assertNotNull($reports);
+        self::assertNotNull($daily);
+        self::assertSame('plugins.analytics', $plugins['children'][0]['key']);
+        self::assertSame('plugins.analytics.reports', $plugins['children'][0]['children'][0]['key']);
+        self::assertSame('plugins.analytics.reports.daily', $reports['children'][0]['key']);
+        self::assertSame('plugins.analytics.reports.monthly', $reports['children'][1]['key']);
+        self::assertSame([
+            'admin.analytics.daily',
+            'admin.analytics.daily.detail',
+            'admin.analytics.monthly',
+        ], $reports['routeNames']);
+        self::assertSame([
+            'admin.analytics.daily',
+            'admin.analytics.daily.detail',
+        ], $daily['routeNames']);
+        self::assertSame($reports['routeNames'], $plugins['routeNames']);
+    }
+
+    public function testServiceSortsSiblingsByOrderThenLabel(): void
+    {
+        $navigation = new NavigationRegistry();
+        $navigation->addMany([
+            NavigationItem::create('tools.zebra')->setLabel('Zebra')->setParent('tools')->setOrder(20)->setScope('admin'),
+            NavigationItem::create('tools.alpha')->setLabel('Alpha')->setParent('tools')->setOrder(20)->setScope('admin'),
+            NavigationItem::create('tools.first')->setLabel('First')->setParent('tools')->setOrder(10)->setScope('admin'),
+            NavigationItem::create('tools')->setLabel('Tools')->setOrder(10)->setScope('admin'),
+        ]);
+
+        $items = (new AdminNavigationService($navigation, new PageRegistry(), includeConfiguredItems: false))->items();
+
+        self::assertSame('tools', $items[0]['key']);
+        self::assertSame([
+            'tools.first',
+            'tools.alpha',
+            'tools.zebra',
+        ], array_column($items[0]['children'], 'key'));
+    }
+
+    public function testServiceKeepsAdminAndFrontendPlaceholderBranchesSeparated(): void
+    {
+        $pages = new PageRegistry();
+        $pages->addMany([
+            Page::create('docs.install')
+                ->setPath('/docs/install')
+                ->setNavigation('Install', parent: 'docs.guides', key: 'docs.guides.install'),
+            Page::create('admin.docs')
+                ->setPath('/admin/docs')
+                ->setAdminNavigation('Admin Docs', parent: 'docs.admin', key: 'docs.admin.index'),
+        ]);
+
+        $items = (new AdminNavigationService(new NavigationRegistry(), $pages, includeConfiguredItems: false))->items();
+
+        self::assertCount(1, $items);
+        self::assertSame('docs', $items[0]['key']);
+        self::assertSame('docs.admin', $items[0]['children'][0]['key']);
+        self::assertSame('docs.admin.index', $items[0]['children'][0]['children'][0]['key']);
+        self::assertSame(['admin.docs'], $items[0]['routeNames']);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $nodes
+     * @return array<string, mixed>|null
+     */
+    private function findNode(array $nodes, string $key): ?array
+    {
+        foreach ($nodes as $node) {
+            if (($node['key'] ?? null) === $key) {
+                return $node;
+            }
+
+            $match = $this->findNode(is_array($node['children'] ?? null) ? $node['children'] : [], $key);
+            if ($match !== null) {
+                return $match;
+            }
+        }
+
+        return null;
+    }
+}

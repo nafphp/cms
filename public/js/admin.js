@@ -1,23 +1,29 @@
 import prompt from './lib/notifyJs/Modules/Prompt.js';
 import toast from './lib/notifyJs/Modules/Toast.js';
+import { initDatePickers } from './components/datePicker.js';
+import { initMultiSelects } from './components/multiSelect.js';
+import { initStyledSelects } from './components/styledSelect.js';
+
+const nativeFetch = window.fetch.bind(window);
+const configuredCsrfToken = window.NixCMS?.csrfToken;
+const configuredCsrfHeader = window.NixCMS?.csrfHeader || 'X-CSRF-Token';
 
 const csrfToken = () => {
-    const configured = window.NixCMS?.csrfToken;
-    if (typeof configured === 'function') {
-        return String(configured() || '');
+    if (typeof configuredCsrfToken === 'function') {
+        return String(configuredCsrfToken() || '');
     }
 
-    return String(configured || document.querySelector('input[name="_csrf"]')?.value || '');
+    return String(configuredCsrfToken || document.querySelector('input[name="_csrf"]')?.value || '');
 };
 
 const csrfFetch = (input, init = {}) => {
     const headers = new Headers(init.headers || {});
     const token = csrfToken();
-    if (token !== '' && !headers.has(window.NixCMS?.csrfHeader || 'X-CSRF-Token')) {
-        headers.set(window.NixCMS?.csrfHeader || 'X-CSRF-Token', token);
+    if (token !== '' && !headers.has(configuredCsrfHeader)) {
+        headers.set(configuredCsrfHeader, token);
     }
 
-    return fetch(input, {...init, headers});
+    return nativeFetch(input, {...init, headers});
 };
 
 window.NixCMS = {
@@ -57,10 +63,45 @@ if (menu && trigger && layout) {
     });
 }
 
+document.querySelectorAll('.admin-menu-group[data-menu-key]').forEach((group) => {
+    if (!(group instanceof HTMLDetailsElement)) {
+        return;
+    }
+
+    const key = group.dataset.menuKey || '';
+    if (key === '') {
+        return;
+    }
+
+    const storageKey = `admin_submenu_${key}`;
+    const isActive = group.classList.contains('active') || group.querySelector('.admin-submenu-link.active') !== null;
+
+    if (isActive) {
+        group.open = true;
+    } else {
+        try {
+            const stored = localStorage.getItem(storageKey);
+            if (stored === 'open') {
+                group.open = true;
+            } else if (stored === 'closed') {
+                group.open = false;
+            }
+        } catch (error) {}
+    }
+
+    group.addEventListener('toggle', () => {
+        try {
+            localStorage.setItem(storageKey, group.open ? 'open' : 'closed');
+        } catch (error) {}
+    });
+});
+
 document.getElementById('darkmode-toggle')?.addEventListener('click', () => {
     root.classList.toggle('dark');
     const theme = root.classList.contains('dark') ? 'dark' : 'light';
-    localStorage.setItem('theme', theme);
+    try {
+        localStorage.setItem('theme', theme);
+    } catch (error) {}
     root.style.colorScheme = theme;
 });
 
@@ -69,6 +110,10 @@ document.querySelectorAll('[data-toast]').forEach((element) => {
         toast(element.getAttribute('data-toast') || 'Done');
     });
 });
+
+initStyledSelects('select[data-styled-select]');
+initMultiSelects('select[data-multiselect]');
+initDatePickers('[data-date-picker]');
 
 document.querySelectorAll('[data-open-role-prompt]').forEach((element) => {
     element.addEventListener('click', () => {

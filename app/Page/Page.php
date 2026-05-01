@@ -225,4 +225,54 @@ final class Page
         $this->meta = is_array($meta) ? PageMeta::fromArray($meta) : $meta;
         return $this;
     }
+
+    public function setNavigation(
+        ?string $label,
+        ?string $parent = null,
+        ?string $icon = null,
+        int $order = 100,
+        ?string $key = null,
+        ?string $href = null,
+        bool $visible = true,
+        string $scope = 'frontend',
+    ): self {
+        $this->meta->navigation->label = $label;
+        $this->meta->navigation->parent = $parent;
+        $this->meta->navigation->icon = $icon;
+        $this->meta->navigation->order = $order;
+        $this->meta->navigation->key = $key;
+        $this->meta->navigation->href = $href;
+        $this->meta->navigation->visible = $visible;
+        $this->meta->navigation->scope = $scope;
+
+        return $this;
+    }
+
+    public function setAdminNavigation(
+        ?string $label,
+        ?string $parent = null,
+        ?string $icon = null,
+        int $order = 100,
+        ?string $key = null,
+        ?string $href = null,
+        bool $visible = true,
+    ): self {
+        return $this->setNavigation($label, $parent, $icon, $order, $key, $href, $visible, 'admin');
+    }
+
+    public function hideFromNavigation(?string $parent = null, string $scope = 'frontend'): self
+    {
+        $this->meta->navigation->visible = false;
+        if ($parent !== null) {
+            $this->meta->navigation->parent = $parent;
+        }
+        $this->meta->navigation->scope = $scope;
+
+        return $this;
+    }
+
+    public function hideFromAdminNavigation(?string $parent = null): self
+    {
+        return $this->hideFromNavigation($parent, 'admin');
+    }
 }

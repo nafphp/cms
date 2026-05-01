@@ -1,0 +1,25 @@
+<?php
+
+use function NixPHP\View\s;
+use function NixPHP\View\view;
+
+$section = is_array($section ?? null) ? $section : [];
+$fields = is_array($section['fields'] ?? null) ? $section['fields'] : [];
+$customView = trim((string) ($section['view'] ?? ''));
+$sectionId = trim((string) ($section['id'] ?? ''));
+
+?>
+<section class="settings-section-card"<?= $sectionId !== '' ? ' id="settings-section-' . s($sectionId) . '"' : '' ?>>
+    <div class="mb-5">
+        <h2 class="m-0 text-base font-semibold text-slate-950 dark:text-white"><?= s((string) ($section['label'] ?? '')) ?></h2>
+        <?php if (trim((string) ($section['description'] ?? '')) !== ''): ?>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400"><?= s((string) $section['description']) ?></p>
+        <?php endif; ?>
+    </div>
+
+    <?php if ($customView !== ''): ?>
+        <?= view($customView, ['section' => $section, 'fields' => $fields]) ?>
+    <?php else: ?>
+        <?= view('admin.settings.partials.fields', ['fields' => $fields]) ?>
+    <?php endif; ?>
+</section>

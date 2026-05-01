@@ -1,15 +1,29 @@
 <?php
 
 use function NixPHP\View\s;
+use function NixCMS\View\Admin\Form\attributes;
+use function NixCMS\View\Admin\Form\classes;
+
+require_once __DIR__ . '/_helpers.php';
 
 $label = (string) ($label ?? 'Save');
 $id = isset($id) ? trim((string) $id) : '';
-$className = isset($className) ? trim((string) $className) : '';
-$classes = trim('btn admin-submit w-full sm:w-auto ' . $className);
+$type = (string) ($type ?? 'submit');
+$variant = (string) ($variant ?? 'primary');
+$attributes = is_array($attributes ?? null) ? $attributes : [];
+$className = isset($className) ? trim((string) $className) : trim((string) ($class ?? ''));
+$baseClass = 'inline-flex min-h-11 w-full items-center justify-center rounded-lg border px-4 font-semibold transition focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950 sm:w-auto';
+$variantClass = match ($variant) {
+    'secondary' => 'border-[var(--border)] bg-surface-soft text-inherit hover:bg-surface-strong',
+    'danger' => 'border-transparent bg-rose-600 text-white hover:bg-rose-700',
+    default => 'border-transparent bg-accent text-white hover:brightness-95',
+};
+$classes = classes($baseClass, $variantClass, $className);
 
 ?>
 <button
-    type="submit"
+    type="<?= s($type) ?>"
     <?= $id !== '' ? 'id="' . s($id) . '"' : '' ?>
     class="<?= s($classes) ?>"
+    <?= attributes($attributes) ?>
 ><?= s($label) ?></button>

@@ -2,6 +2,8 @@
 
 use NixCMS\Services\Admin\AdminNavigationService;
 use function NixPHP\Form\csrf;
+use function NixPHP\I18n\lang;
+use function NixPHP\I18n\t;
 use function NixPHP\request;
 use function NixPHP\Session\session;
 use function NixPHP\View\s;
@@ -11,6 +13,8 @@ $navigationService = new AdminNavigationService();
 $path = request()->getUri()->getPath();
 $accent = $navigationService->accentForPath($path);
 $navItems = $navigationService->items();
+$settings = cms()->settings();
+$currentLanguage = $settings->currentLanguage();
 $csrfToken = session()->get('_csrf');
 if (!is_string($csrfToken) || $csrfToken === '') {
     $csrfToken = csrf()->generate();
@@ -24,17 +28,19 @@ $assetWithVersion = static function (string $publicPath): string {
 
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="<?= s($currentLanguage ?: (lang() ?? 'en')) ?>" class="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= s($title ?? 'Admin') ?> | NixCMS</title>
+    <title><?= s($settings->pageTitle((string) ($title ?? t('Admin')))) ?></title>
     <script>
         (function () {
             const root = document.documentElement;
-            const storedTheme = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const useDark = storedTheme === 'dark' || (storedTheme !== 'light' && prefersDark);
+            let storedTheme = null;
+            try {
+                storedTheme = localStorage.getItem('theme');
+            } catch (e) {}
+            const useDark = storedTheme !== 'light';
             root.classList.toggle('dark', useDark);
             root.style.colorScheme = useDark ? 'dark' : 'light';
         })();
@@ -67,24 +73,24 @@ $assetWithVersion = static function (string $publicPath): string {
         };
     </script>
 </head>
-<body class="admin-app">
-<div class="admin-layout">
-    <?= view('components.admin.layout.sidebar', ['items' => $navItems]) ?>
+<body class="admin-app min-h-screen text-[var(--admin-text)] [background:radial-gradient(circle_at_11%_15%,color-mix(in_srgb,var(--admin-page-accent)_10%,transparent),transparent_30rem),linear-gradient(115deg,#f8fafe_0%,#eef3f9_44%,#f9fbff_100%)] dark:[background:radial-gradient(circle_at_11%_15%,color-mix(in_srgb,var(--admin-page-accent)_17%,transparent),transparent_30rem),linear-gradient(115deg,#070b12_0%,#0b1220_42%,#10182a_100%)]" style="--admin-page-accent: <?= s($accent) ?>;">
+<div class="admin-layout group grid min-h-screen grid-cols-1 transition-[grid-template-columns] duration-200 admin:grid-cols-[260px_minmax(0,1fr)] admin:[&.is-menu-collapsed]:grid-cols-[86px_minmax(0,1fr)]">
+        <?= view('components.admin.layout.sidebar', ['items' => $navItems]) ?>
 
-    <div class="admin-main-shell" style="--admin-page-accent: <?= s($accent) ?>;">
+    <div class="min-w-0" style="--admin-page-accent: <?= s($accent) ?>;">
         <?= view('components.admin.layout.topbar', [
-            'title' => (string) ($pageTitle ?? $title ?? 'Admin'),
+            'title' => (string) ($pageTitle ?? $title ?? t('Admin')),
             'subtitle' => (string) ($pageSubtitle ?? ''),
         ]) ?>
 
-        <main class="admin-content">
+        <main class="px-6 pb-[18px] pt-[22px] admin:px-[22px] admin:pb-3.5 admin:pt-5">
             <?php $adminTop = trim((string) $this->renderBlock('adminTop')); ?>
             <?php if ($adminTop !== ''): ?>
-                <section class="admin-panel admin-panel-compact">
+                <section class="mb-[18px] min-h-0 rounded-lg border border-slate-300/60 bg-white/95 px-4 py-3 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-[rgba(118,142,177,.34)] dark:bg-[rgba(15,24,40,.95)] dark:shadow-[0_34px_90px_rgba(0,0,0,.26)]">
                     <?= $adminTop ?>
                 </section>
             <?php endif; ?>
-            <section class="admin-panel">
+            <section class="min-h-[calc(100vh-96px)] rounded-lg border border-slate-300/60 bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--admin-page-accent)_13%,transparent),transparent_29rem),radial-gradient(circle_at_92%_0%,rgba(120,200,255,.10),transparent_27rem),linear-gradient(180deg,rgba(255,255,255,.98),rgba(248,250,252,.96))] p-5 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-[rgba(118,142,177,.34)] dark:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--admin-page-accent)_20%,transparent),transparent_30rem),radial-gradient(circle_at_92%_0%,rgba(120,200,255,.12),transparent_27rem),linear-gradient(115deg,rgba(37,47,74,.68),rgba(15,24,40,.95)_42%,rgba(8,15,27,.98))] dark:shadow-[0_34px_90px_rgba(0,0,0,.26)]">
                 <?= $this->renderBlock('content') ?>
             </section>
         </main>

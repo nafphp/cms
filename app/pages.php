@@ -9,4 +9,7 @@ return [
     ...require __DIR__ . '/Resources/pages/articles.php',
     ...require __DIR__ . '/Resources/pages/users.php',
     ...require __DIR__ . '/Resources/pages/roles.php',
+    ...require __DIR__ . '/Resources/pages/settings.php',
+    ...require __DIR__ . '/Resources/pages/translations.php',
+    ...require __DIR__ . '/Resources/pages/audit.php',
 ];

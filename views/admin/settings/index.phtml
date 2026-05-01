@@ -1,0 +1,133 @@
+<?php
+
+use function NixPHP\I18n\t;
+use function NixPHP\route;
+use function NixPHP\View\s;
+use function NixPHP\View\view;
+
+$sections = is_array($sections ?? null) ? $sections : [];
+$activeGroup = (string) ($activeGroup ?? 'general');
+
+?>
+<?php $this->setLayout('layouts.admin') ?>
+
+<?php $pageTitle = (string) ($pageTitle ?? t('Settings')); ?>
+<?php $pageSubtitle = (string) ($pageSubtitle ?? t('Manage application defaults and plugin-provided settings.')); ?>
+
+<?php $this->block('content'); ?>
+<?= view('admin.settings.partials.tabs', ['active' => $activeGroup]) ?>
+
+<form id="settings-form" class="settings-workspace">
+    <?php if (count($sections) > 1): ?>
+        <aside class="settings-section-nav" aria-label="<?= s(t('Sections')) ?>">
+            <?php foreach ($sections as $section): ?>
+                <?php $sectionId = (string) ($section['id'] ?? ''); ?>
+                <a href="#settings-section-<?= s($sectionId) ?>"><?= s((string) ($section['label'] ?? $sectionId)) ?></a>
+            <?php endforeach; ?>
+        </aside>
+    <?php endif; ?>
+
+    <div class="settings-sections">
+        <?php foreach ($sections as $section): ?>
+            <?= view('admin.settings.partials.section', ['section' => $section]) ?>
+        <?php endforeach; ?>
+
+        <div class="settings-save-bar">
+            <div>
+                <strong><?= s(t('Save changes')) ?></strong>
+                <span data-save-state><?= s(t('No unsaved changes.')) ?></span>
+            </div>
+            <?= view('components.admin.form.button', ['label' => t('Save settings')]) ?>
+        </div>
+    </div>
+</form>
+
+<script type="module">
+    import toast from '/js/lib/notifyJs/Modules/Toast.js';
+
+    const form = document.getElementById('settings-form');
+    const endpoint = <?= json_encode(route('api.admin.settings.update')) ?>;
+    const saveState = form.querySelector('[data-save-state]');
+    const labels = <?= json_encode([
+        'couldNotSave' => t('Could not save settings.'),
+        'dirty' => t('Unsaved changes.'),
+        'clean' => t('No unsaved changes.'),
+        'saved' => t('Settings saved.'),
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+
+    const clearErrors = () => {
+        form.querySelectorAll('[data-setting-error]').forEach((node) => {
+            node.textContent = '';
+            node.classList.add('hidden');
+        });
+    };
+
+    const showErrors = (errors) => {
+        Object.entries(errors || {}).forEach(([key, messages]) => {
+            const field = form.querySelector(`[data-setting-field="${CSS.escape(key)}"]`);
+            const target = field?.querySelector('[data-setting-error]');
+            if (!target) return;
+            target.textContent = Array.isArray(messages) ? messages.join(' ') : String(messages || '');
+            target.classList.remove('hidden');
+        });
+    };
+
+    const payloadFromForm = () => {
+        const payload = {};
+        for (const [key, value] of new FormData(form).entries()) {
+            if (key.endsWith('[]')) {
+                const normalizedKey = key.slice(0, -2);
+                if (!Array.isArray(payload[normalizedKey])) payload[normalizedKey] = [];
+                payload[normalizedKey].push(value);
+                continue;
+            }
+
+            payload[key] = value;
+        }
+
+        return payload;
+    };
+
+    const stableValue = (value) => {
+        if (Array.isArray(value)) return value;
+        if (value && typeof value === 'object') {
+            return Object.fromEntries(Object.keys(value).sort().map((key) => [key, stableValue(value[key])]));
+        }
+        return value;
+    };
+    const stableJson = (value) => JSON.stringify(stableValue(value));
+    let initialPayload = stableJson(payloadFromForm());
+
+    const updateSaveState = () => {
+        if (!saveState) return;
+        saveState.textContent = stableJson(payloadFromForm()) === initialPayload ? labels.clean : labels.dirty;
+    };
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        clearErrors();
+
+        const payload = payloadFromForm();
+
+        const response = await (window.NixCMS?.json || fetch)(endpoint, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok || !result.success) {
+            showErrors(result.errors || {});
+            toast(result.reason || labels.couldNotSave);
+            return;
+        }
+
+        toast(labels.saved);
+        initialPayload = stableJson(payloadFromForm());
+        updateSaveState();
+        window.location.reload();
+    });
+
+    form.addEventListener('input', updateSaveState);
+    form.addEventListener('change', updateSaveState);
+</script>
+<?php $this->endBlock('content'); ?>

@@ -2,6 +2,7 @@
 
 use function NixPHP\route;
 use function NixPHP\Form\csrf;
+use function NixPHP\I18n\t;
 use function NixPHP\View\s;
 
 $roles = is_array($roles ?? null) ? $roles : [];
@@ -10,40 +11,40 @@ $permissions = is_array($permissions ?? null) ? $permissions : [];
 ?>
 <?php $this->setLayout('layouts.admin') ?>
 
-<?php $pageTitle = 'Rollenverwaltung'; ?>
-<?php $pageSubtitle = 'Rollen verwalten und Berechtigungen zuweisen.'; ?>
+<?php $pageTitle = t('Role management'); ?>
+<?php $pageSubtitle = t('Manage roles and assign permissions.'); ?>
 
 <?php $this->block('content'); ?>
 <div
-    class="rounded-xl border border-slate-300/40 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,.16),transparent_30%),linear-gradient(145deg,rgba(30,41,59,.92),rgba(15,23,42,.98))] p-4 shadow-2xl shadow-slate-950/20 dark:border-slate-700"
+    class="rbac-shell h-[calc(100dvh-220px)] min-h-[38.75rem] min-w-0"
     data-rbac-manager
 >
     <input type="hidden" name="_csrf" value="<?= s(csrf()->generate()) ?>">
-    <div class="grid gap-4 xl:grid-cols-[minmax(320px,45%)_minmax(420px,55%)]">
-        <div class="grid content-start gap-4">
-            <section class="overflow-hidden rounded-lg border border-slate-600/70 bg-slate-950/20 shadow-sm">
-                <div class="flex items-center justify-between border-t-4 border-amber-500 px-5 pb-3 pt-4">
-                    <h2 class="m-0 text-xl font-bold text-white">Rollen</h2>
-                    <button class="rounded bg-slate-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-400" type="button" id="create-role-btn">Hinzufügen</button>
+    <div class="rbac-layout grid h-full min-h-0 gap-4 xl:grid-cols-[minmax(320px,45%)_minmax(420px,55%)]">
+        <div class="rbac-left grid min-h-0 grid-rows-[minmax(13.75rem,.38fr)_minmax(0,.62fr)] gap-4 overflow-hidden">
+            <section class="rbac-card rbac-roles-card grid min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-lg border border-slate-600/70 bg-slate-950/20 shadow-sm">
+                <div class="flex items-center justify-between border-t-4 border-accent px-5 pb-3 pt-4">
+                    <h2 class="m-0 text-xl font-bold text-white"><?= s(t('Roles')) ?></h2>
+                    <button class="rounded bg-slate-500 px-2 py-1 !text-xs font-semibold leading-tight text-white hover:bg-slate-400" type="button" id="create-role-btn"><?= s(t('Add')) ?></button>
                 </div>
-                <div class="max-h-80 overflow-auto px-5 pb-5">
+                <div class="rbac-card-scroll h-full max-h-full min-h-0 overflow-y-auto overscroll-contain px-5 pb-5 [scrollbar-gutter:stable]">
                     <div id="roles-list" class="grid gap-2"></div>
                 </div>
             </section>
 
-            <section class="overflow-hidden rounded-lg border border-slate-600/70 bg-slate-950/20 shadow-sm">
-                <div class="flex items-center justify-between border-t-4 border-amber-500 px-5 pb-3 pt-4">
-                    <h2 class="m-0 text-xl font-bold text-white">Berechtigungen</h2>
-                    <button class="rounded bg-slate-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-400" type="button" id="create-permission-btn">Hinzufügen</button>
+            <section class="rbac-card rbac-permissions-card grid min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-lg border border-slate-600/70 bg-slate-950/20 shadow-sm">
+                <div class="flex items-center justify-between border-t-4 border-accent px-5 pb-3 pt-4">
+                    <h2 class="m-0 text-xl font-bold text-white"><?= s(t('Permissions')) ?></h2>
+                    <button class="rounded bg-slate-500 px-2 py-1 !text-xs font-semibold leading-tight text-white hover:bg-slate-400" type="button" id="create-permission-btn"><?= s(t('Add')) ?></button>
                 </div>
-                <div class="max-h-[32rem] overflow-auto px-5 pb-5">
+                <div class="rbac-card-scroll h-full max-h-full min-h-0 overflow-y-auto overscroll-contain px-5 pb-5 [scrollbar-gutter:stable]">
                     <table class="w-full border-collapse text-left text-sm text-slate-100">
                         <thead>
                         <tr class="border-b border-slate-700 text-slate-300">
                             <th class="px-2 py-3 font-bold">#</th>
-                            <th class="px-2 py-3 font-bold">Name</th>
-                            <th class="px-2 py-3 font-bold">Rollen</th>
-                            <th class="px-2 py-3 text-right font-bold">Aktionen</th>
+                            <th class="px-2 py-3 font-bold"><?= s(t('Name')) ?></th>
+                            <th class="px-2 py-3 font-bold"><?= s(t('Roles')) ?></th>
+                            <th class="px-2 py-3 text-right font-bold"><?= s(t('Actions')) ?></th>
                         </tr>
                         </thead>
                         <tbody id="permissions-tbody"></tbody>
@@ -52,24 +53,24 @@ $permissions = is_array($permissions ?? null) ? $permissions : [];
             </section>
         </div>
 
-        <section class="overflow-hidden rounded-lg border border-slate-600/70 bg-slate-950/20 shadow-sm">
-            <div class="border-t-4 border-amber-500 px-5 pb-4 pt-4">
-                <h2 class="m-0 text-xl font-bold text-white">Berechtigungen zuweisen</h2>
-                <p id="selected-role-label" class="mt-2 text-sm font-medium text-slate-300">Wähle eine Rolle, um Zuweisungen zu bearbeiten.</p>
+        <section class="rbac-card rbac-assignment-card grid min-h-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-lg border border-slate-600/70 bg-slate-950/20 shadow-sm">
+            <div class="border-t-4 border-accent px-5 pb-4 pt-4">
+                <h2 class="m-0 text-xl font-bold text-white"><?= s(t('Assign permissions')) ?></h2>
+                <p id="selected-role-label" class="mt-2 text-sm font-medium text-slate-300"><?= s(t('Select a role to manage assignments.')) ?></p>
             </div>
 
-            <div class="grid gap-5 px-5 pb-5 lg:grid-cols-2">
-                <div class="grid content-start gap-2">
-                    <h3 class="m-0 text-lg font-bold text-white">Verfügbar</h3>
-                    <ul id="available-permissions" class="min-h-[28rem] rounded-md border border-dashed border-slate-700 p-3"></ul>
+            <div class="rbac-assignment-grid grid h-full min-h-0 gap-5 overflow-hidden px-5 pb-5 lg:grid-cols-2">
+                <div class="rbac-assignment-column grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-2 overflow-hidden">
+                    <h3 class="m-0 text-lg font-bold text-white"><?= s(t('Available')) ?></h3>
+                    <ul id="available-permissions" class="rbac-permission-list h-full max-h-full min-h-0 overflow-y-auto overscroll-contain rounded-md border border-dashed border-slate-700 p-3 [scrollbar-gutter:stable]"></ul>
                 </div>
-                <div class="grid content-start gap-2">
-                    <h3 class="m-0 text-lg font-bold text-white">Zugewiesen</h3>
-                    <ul id="assigned-permissions" class="min-h-[28rem] rounded-md border border-dashed border-slate-700 p-3"></ul>
+                <div class="rbac-assignment-column grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-2 overflow-hidden">
+                    <h3 class="m-0 text-lg font-bold text-white"><?= s(t('Assigned')) ?></h3>
+                    <ul id="assigned-permissions" class="rbac-permission-list h-full max-h-full min-h-0 overflow-y-auto overscroll-contain rounded-md border border-dashed border-slate-700 p-3 [scrollbar-gutter:stable]"></ul>
                 </div>
             </div>
 
-            <p class="px-5 pb-5 text-sm text-slate-400">Tipp: Ziehe Berechtigungen zwischen den Listen oder nutze die Hinzufügen-/Entfernen-Buttons.</p>
+            <p class="px-5 pb-5 text-sm text-slate-400"><?= s(t('Tip: Drag permissions between the lists or use the add/remove buttons.')) ?></p>
         </section>
     </div>
 </div>
@@ -92,43 +93,44 @@ $permissions = is_array($permissions ?? null) ? $permissions : [];
     };
 
     const i18n = {
-        add: 'Hinzufügen',
-        remove: 'Entfernen',
-        rename: 'Umbenennen',
-        delete: 'Löschen',
-        save: 'Speichern',
-        cancel: 'Abbrechen',
-        create: 'Erstellen',
-        noRolesAvailable: 'Keine Rollen vorhanden.',
-        noPermissionsAvailable: 'Keine Berechtigungen vorhanden.',
-        selectRoleToManageAssignments: 'Wähle eine Rolle, um Zuweisungen zu bearbeiten.',
-        selectedRole: 'Ausgewählte Rolle:',
-        couldNotUpdateRolePermissions: 'Berechtigungen konnten nicht aktualisiert werden.',
-        dropHere: 'Hier ablegen',
-        createRole: 'Rolle erstellen',
-        newRoleName: 'Name der neuen Rolle',
-        validRoleNameRequired: 'Bitte gib einen gültigen Rollennamen ein.',
-        couldNotCreateRole: 'Rolle konnte nicht erstellt werden.',
-        invalidRoleData: 'Ungültige Rollen-Daten.',
-        roleCreated: 'Rolle erstellt.',
-        createPermission: 'Berechtigung erstellen',
-        newPermissionName: 'Name der neuen Berechtigung',
-        validPermissionNameRequired: 'Bitte gib einen gültigen Berechtigungsnamen ein.',
-        couldNotCreatePermission: 'Berechtigung konnte nicht erstellt werden.',
-        invalidPermissionData: 'Ungültige Berechtigungs-Daten.',
-        permissionCreated: 'Berechtigung erstellt.',
-        renameRole: 'Rolle umbenennen',
-        couldNotRenameRole: 'Rolle konnte nicht umbenannt werden.',
-        roleRenamed: 'Rolle umbenannt.',
-        deleteRole: 'Rolle löschen',
-        couldNotDeleteRole: 'Rolle konnte nicht gelöscht werden.',
-        roleDeleted: 'Rolle gelöscht.',
-        renamePermission: 'Berechtigung umbenennen',
-        couldNotRenamePermission: 'Berechtigung konnte nicht umbenannt werden.',
-        permissionRenamed: 'Berechtigung umbenannt.',
-        deletePermission: 'Berechtigung löschen',
-        couldNotDeletePermission: 'Berechtigung konnte nicht gelöscht werden.',
-        permissionDeleted: 'Berechtigung gelöscht.',
+        add: <?= json_encode(t('Add')) ?>,
+        remove: <?= json_encode(t('Remove')) ?>,
+        rename: <?= json_encode(t('Rename')) ?>,
+        delete: <?= json_encode(t('Delete')) ?>,
+        save: <?= json_encode(t('Save')) ?>,
+        cancel: <?= json_encode(t('Cancel')) ?>,
+        create: <?= json_encode(t('Create')) ?>,
+        noRolesAvailable: <?= json_encode(t('No roles available.')) ?>,
+        noPermissionsAvailable: <?= json_encode(t('No permissions available.')) ?>,
+        selectRoleToManageAssignments: <?= json_encode(t('Select a role to manage assignments.')) ?>,
+        selectedRole: <?= json_encode(t('Selected role:')) ?>,
+        couldNotUpdateRolePermissions: <?= json_encode(t('Could not update role permissions.')) ?>,
+        roleSaved: <?= json_encode(t('Role saved.')) ?>,
+        dropHere: <?= json_encode(t('Drop here')) ?>,
+        createRole: <?= json_encode(t('Create role')) ?>,
+        newRoleName: <?= json_encode(t('New role name')) ?>,
+        validRoleNameRequired: <?= json_encode(t('Please enter a valid role name.')) ?>,
+        couldNotCreateRole: <?= json_encode(t('Could not create role.')) ?>,
+        invalidRoleData: <?= json_encode(t('Invalid role data.')) ?>,
+        roleCreated: <?= json_encode(t('Role created.')) ?>,
+        createPermission: <?= json_encode(t('Create permission')) ?>,
+        newPermissionName: <?= json_encode(t('New permission name')) ?>,
+        validPermissionNameRequired: <?= json_encode(t('Please enter a valid permission name.')) ?>,
+        couldNotCreatePermission: <?= json_encode(t('Could not create permission.')) ?>,
+        invalidPermissionData: <?= json_encode(t('Invalid permission data.')) ?>,
+        permissionCreated: <?= json_encode(t('Permission created.')) ?>,
+        renameRole: <?= json_encode(t('Rename role')) ?>,
+        couldNotRenameRole: <?= json_encode(t('Could not rename role.')) ?>,
+        roleRenamed: <?= json_encode(t('Role renamed.')) ?>,
+        deleteRole: <?= json_encode(t('Delete role')) ?>,
+        couldNotDeleteRole: <?= json_encode(t('Could not delete role.')) ?>,
+        roleDeleted: <?= json_encode(t('Role deleted.')) ?>,
+        renamePermission: <?= json_encode(t('Rename permission')) ?>,
+        couldNotRenamePermission: <?= json_encode(t('Could not rename permission.')) ?>,
+        permissionRenamed: <?= json_encode(t('Permission renamed.')) ?>,
+        deletePermission: <?= json_encode(t('Delete permission')) ?>,
+        couldNotDeletePermission: <?= json_encode(t('Could not delete permission.')) ?>,
+        permissionDeleted: <?= json_encode(t('Permission deleted.')) ?>,
     };
 
     let selectedRoleId = null;
@@ -193,13 +195,13 @@ $permissions = is_array($permissions ?? null) ? $permissions : [];
 
     function permissionItemMarkup(permission, assigned) {
         return `
-            <li class="mb-2 flex min-h-12 cursor-grab items-center gap-2 rounded-md border border-slate-700 bg-slate-800/70 px-3 py-2 text-sm text-slate-100"
+            <li class="group/assignment mb-2 flex min-h-12 cursor-grab items-center gap-2 rounded-md border border-slate-700 bg-slate-800/70 px-3 py-2 text-sm text-slate-100"
                 draggable="true"
                 data-permission-id="${Number(permission.id)}">
                 <span class="min-w-0 flex-1 truncate font-semibold">${escapeHtml(permission.name)}</span>
                 <button
                     type="button"
-                    class="permission-move-btn rounded ${assigned ? 'bg-rose-600 hover:bg-rose-500' : 'bg-slate-500 hover:bg-slate-400'} px-2 py-1 text-xs font-semibold text-white"
+                    class="permission-move-btn rounded ${assigned ? 'bg-rose-600 hover:bg-rose-500' : 'bg-slate-500 hover:bg-slate-400'} px-2 py-1 !text-xs font-semibold leading-tight text-white opacity-0 transition group-hover/assignment:opacity-100 group-focus-within/assignment:opacity-100"
                     data-permission-id="${Number(permission.id)}"
                     data-target="${assigned ? 'available' : 'assigned'}"
                 >${assigned ? i18n.remove : i18n.add}</button>
@@ -217,11 +219,11 @@ $permissions = is_array($permissions ?? null) ? $permissions : [];
         container.innerHTML = roleState.map((role) => {
             const isActive = Number(role.id) === Number(selectedRoleId);
             return `
-                <div class="group flex min-h-14 items-center gap-2 rounded-md border ${isActive ? 'border-blue-500 bg-slate-800' : 'border-slate-700 bg-slate-900/50'} px-3 py-2" data-role-id="${Number(role.id)}">
-                    <button type="button" class="role-select min-w-0 flex-1 truncate text-left text-sm font-bold text-white">${escapeHtml(role.name)}</button>
-                    <div class="flex gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
-                        <button type="button" class="rename-role rounded bg-slate-500 px-2 py-1 text-xs font-semibold text-white hover:bg-slate-400">${i18n.rename}</button>
-                        <button type="button" class="delete-role rounded bg-rose-600 px-2 py-1 text-xs font-semibold text-white hover:bg-rose-500">${i18n.delete}</button>
+                <div class="group/role flex min-h-14 items-center gap-2 rounded-md border ${isActive ? 'border-blue-500 bg-slate-800' : 'border-slate-700 bg-slate-900/50'} px-3 py-2" data-role-id="${Number(role.id)}">
+                    <button type="button" class="role-select self-stretch min-w-0 flex-1 truncate text-left text-sm font-bold text-white">${escapeHtml(role.name)}</button>
+                    <div class="flex gap-1 opacity-0 transition group-hover/role:opacity-100 group-focus-within/role:opacity-100">
+                        <button type="button" class="rename-role rounded bg-slate-500 px-2 py-1 !text-xs font-semibold leading-tight text-white hover:bg-slate-400">${i18n.rename}</button>
+                        <button type="button" class="delete-role rounded bg-rose-600 px-2 py-1 !text-xs font-semibold leading-tight text-white hover:bg-rose-500">${i18n.delete}</button>
                     </div>
                 </div>
             `;
@@ -236,14 +238,14 @@ $permissions = is_array($permissions ?? null) ? $permissions : [];
         }
 
         tbody.innerHTML = permissionState.map((permission) => `
-            <tr class="group border-b border-slate-800" data-permission-id="${Number(permission.id)}">
+            <tr class="group/permission border-b border-slate-800" data-permission-id="${Number(permission.id)}">
                 <td class="px-2 py-3">${Number(permission.id)}</td>
                 <td class="px-2 py-3 font-semibold">${escapeHtml(permission.name)}</td>
                 <td class="px-2 py-3">${Number(permission.role_count || 0)}</td>
                 <td class="px-2 py-3">
-                    <div class="flex justify-end gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
-                        <button type="button" class="rename-permission rounded bg-slate-500 px-2 py-1 text-xs font-semibold text-white hover:bg-slate-400">${i18n.rename}</button>
-                        <button type="button" class="delete-permission rounded bg-rose-600 px-2 py-1 text-xs font-semibold text-white hover:bg-rose-500">${i18n.delete}</button>
+                    <div class="flex justify-end gap-1 opacity-0 transition group-hover/permission:opacity-100 group-focus-within/permission:opacity-100">
+                        <button type="button" class="rename-permission rounded bg-slate-500 px-2 py-1 !text-xs font-semibold leading-tight text-white hover:bg-slate-400">${i18n.rename}</button>
+                        <button type="button" class="delete-permission rounded bg-rose-600 px-2 py-1 !text-xs font-semibold leading-tight text-white hover:bg-rose-500">${i18n.delete}</button>
                     </div>
                 </td>
             </tr>
@@ -303,6 +305,7 @@ $permissions = is_array($permissions ?? null) ? $permissions : [];
         recalculatePermissionRoleCounts();
         renderPermissionsTable();
         renderAssignment();
+        toast(i18n.roleSaved);
     }
 
     async function movePermission(permissionId, target) {
@@ -462,16 +465,14 @@ $permissions = is_array($permissions ?? null) ? $permissions : [];
             confirmButtonText: value ? i18n.save : i18n.create,
             showCancelButton: true,
             cancelButtonText: i18n.cancel,
-            confirmCallback: async (promptInstance) => {
+            confirmCallback: (promptInstance) => {
                 const input = promptInstance.container.querySelector('#rbac-name-input');
                 name = (input?.value ?? '').trim();
                 if (!name) {
                     toast(value ? i18n.validRoleNameRequired : i18n.validPermissionNameRequired);
-                    return false;
+                    return true;
                 }
-                promptInstance.promise.resolve();
-                promptInstance.remove();
-                return true;
+                return false;
             }
         });
 

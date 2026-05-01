@@ -2,8 +2,10 @@
 
 use NixCMS\Services\Content\ArticleRenderer;
 use function NixPHP\Form\csrf;
+use function NixPHP\I18n\t;
 use function NixPHP\route;
 use function NixPHP\View\s;
+use function NixPHP\View\view;
 
 /** @var ArticleRenderer $article */
 $reviewActions = is_array($reviewActions ?? null) ? $reviewActions : [];
@@ -12,73 +14,89 @@ $csrfToken = csrf()->generate();
 ?>
 <?php $this->setLayout('layouts.admin') ?>
 
-<?php $pageTitle = 'Preview article'; ?>
-<?php $pageSubtitle = 'Review the article exactly before publishing decisions.'; ?>
+<?php $pageTitle = t('Preview article'); ?>
+<?php $pageSubtitle = t('Review the article exactly before publishing decisions.'); ?>
 
 <?php $this->block('adminTop'); ?>
-<div class="article-preview-toolbar">
-    <a class="article-grid-primary-action" href="<?= s(route('admin.articles')) ?>">Back to articles</a>
-    <a class="admin-submit" href="<?= s(route('admin.articles.edit', [
+<div class="flex flex-wrap items-center gap-2.5">
+    <a class="inline-flex min-h-12 items-center justify-center rounded-lg border border-[rgba(169,201,247,.38)] bg-[linear-gradient(180deg,#6895d4,#4f7fbd)] px-4 text-sm font-bold text-white" href="<?= s(route('admin.articles')) ?>"><?= s(t('Back to articles')) ?></a>
+    <a class="inline-flex min-h-11 items-center justify-center rounded-lg border border-[var(--border)] bg-surface-soft px-4 font-bold text-inherit hover:bg-surface-strong" href="<?= s(route('admin.articles.edit', [
         'articleId' => $article->articleId(),
         'language' => $article->language(),
-    ])) ?>">Edit draft</a>
+    ])) ?>"><?= s(t('Edit draft')) ?></a>
 </div>
 <?php $this->endBlock('adminTop'); ?>
 
 <?php $this->block('content'); ?>
-<div class="article-preview-layout">
-    <article class="article-preview-document">
-        <div class="article-preview-meta">
-            <span><?= s(strtoupper($article->language())) ?></span>
-            <span><?= s($article->status()) ?></span>
+<div class="grid items-start gap-6 wide:grid-cols-[minmax(0,1fr)_340px]">
+    <article class="max-w-[820px]">
+        <div class="flex flex-wrap gap-2 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
+            <span class="rounded-full bg-surface-soft px-2 py-1"><?= s(strtoupper($article->language())) ?></span>
+            <span class="rounded-full bg-surface-soft px-2 py-1"><?= s($article->status()) ?></span>
             <?php if ($article->publishedAt() !== ''): ?>
-                <span><?= s($article->publishedAt()) ?></span>
+                <span class="rounded-full bg-surface-soft px-2 py-1"><?= s($article->publishedAt()) ?></span>
             <?php endif; ?>
         </div>
-        <h1><?= s($article->title()) ?></h1>
+        <h1 class="my-[18px] mb-3.5 text-[38px] font-bold leading-[1.08] text-slate-950 dark:text-slate-50"><?= s($article->title()) ?></h1>
         <?php if ($article->showTeaser() && $article->teaser() !== ''): ?>
-            <p class="article-preview-teaser"><?= s($article->teaser()) ?></p>
+            <p class="mb-6 mt-0 text-lg leading-relaxed text-slate-600 dark:text-slate-300"><?= s($article->teaser()) ?></p>
         <?php endif; ?>
-        <div class="article-preview-content">
+        <div class="text-base leading-7 text-slate-800 dark:text-slate-200 [&_blockquote]:border-l-[3px] [&_blockquote]:border-accent [&_blockquote]:pl-4 [&_blockquote]:text-slate-600 dark:[&_blockquote]:text-slate-300 [&_figure]:mb-[18px] [&_h2]:mb-2.5 [&_h2]:mt-7 [&_h2]:text-[28px] [&_h2]:font-bold [&_h2]:leading-tight [&_h3]:mb-2.5 [&_h3]:mt-7 [&_h3]:text-[23px] [&_h3]:font-bold [&_h3]:leading-tight [&_h4]:mb-2.5 [&_h4]:mt-7 [&_h4]:text-[19px] [&_h4]:font-bold [&_h4]:leading-tight [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:rounded-lg [&_iframe]:border-0 [&_img]:max-w-full [&_img]:rounded-lg [&_ol]:mb-[18px] [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mb-[18px] [&_pre]:mb-[18px] [&_pre]:overflow-auto [&_pre]:rounded-lg [&_pre]:border [&_pre]:border-[var(--border)] [&_pre]:bg-surface-soft [&_pre]:p-3 [&_table]:mb-[18px] [&_table]:overflow-auto [&_table]:rounded-lg [&_table]:border [&_table]:border-[var(--border)] [&_table]:bg-surface-soft [&_table]:p-3 [&_ul]:mb-[18px] [&_ul]:list-disc [&_ul]:pl-6">
             <?= $article->html() ?>
         </div>
     </article>
 
-    <aside class="article-review-panel">
-        <h2>Review</h2>
+    <aside class="grid gap-4 rounded-lg border border-[var(--border)] bg-surface-soft p-4 wide:sticky wide:top-6">
+        <h2 class="m-0 font-bold"><?= s(t('Review')) ?></h2>
 
         <?php if (($canReview ?? false) && ($isReviewable ?? false)): ?>
-            <form id="articleReviewForm" class="article-review-form">
+            <form id="articleReviewForm" class="grid gap-3">
                 <input type="hidden" name="_csrf" value="<?= s($csrfToken) ?>">
-                <textarea name="comment" class="wow-input wow-textarea" rows="4" placeholder="Review comment"></textarea>
-                <label class="article-toggle">
-                    <input name="publish_article" type="checkbox" value="1" <?= ($canDirectPublish ?? false) ? '' : 'disabled' ?>>
-                    <span>Publish directly on approval</span>
-                </label>
-                <div class="article-review-actions">
-                    <button type="button" class="admin-submit admin-submit-primary" data-review-action="approve">Approve</button>
-                    <button type="button" class="admin-submit" data-review-action="decline">Decline</button>
+                <?= view('components.admin.form.text', [
+                    'name' => 'comment',
+                    'label' => t('Review comment'),
+                    'rows' => 4,
+                ]) ?>
+                <?= view('components.admin.form.checkbox', [
+                    'name' => 'publish_article',
+                    'label' => t('Publish directly on approval'),
+                    'class' => 'article-toggle',
+                    'attributes' => ['disabled' => !($canDirectPublish ?? false)],
+                    'useMemory' => false,
+                ]) ?>
+                <div class="flex flex-wrap gap-2">
+                    <?= view('components.admin.form.button', [
+                        'label' => t('Approve'),
+                        'type' => 'button',
+                        'attributes' => ['data-review-action' => 'approve'],
+                    ]) ?>
+                    <?= view('components.admin.form.button', [
+                        'label' => t('Decline'),
+                        'type' => 'button',
+                        'variant' => 'secondary',
+                        'attributes' => ['data-review-action' => 'decline'],
+                    ]) ?>
                 </div>
             </form>
         <?php else: ?>
-            <p class="article-review-muted">No review action available for this version.</p>
+            <p class="m-0 text-[13px] text-slate-500"><?= s(t('No review action available for this version.')) ?></p>
         <?php endif; ?>
 
-        <div class="article-review-history">
-            <h3>History</h3>
+        <div class="grid gap-3">
+            <h3 class="m-0 font-bold"><?= s(t('History')) ?></h3>
             <?php if ($reviewActions === []): ?>
-                <p class="article-review-muted">No review actions yet.</p>
+                <p class="m-0 text-[13px] text-slate-500"><?= s(t('No review actions yet.')) ?></p>
             <?php endif; ?>
             <?php foreach ($reviewActions as $action): ?>
                 <?php
                 $name = trim((string) ($action['firstname'] ?? '') . ' ' . (string) ($action['lastname'] ?? ''));
                 $name = $name !== '' ? $name : (string) ($action['username'] ?? 'System');
                 ?>
-                <div class="article-review-entry">
+                <div class="grid gap-1 rounded-lg border border-[var(--border)] bg-panel p-2.5">
                     <strong><?= s((string) ($action['action'] ?? '')) ?></strong>
-                    <span><?= s($name) ?> · <?= s((string) ($action['reviewed_at'] ?? '')) ?></span>
+                    <span class="text-xs text-slate-500"><?= s($name) ?> · <?= s((string) ($action['reviewed_at'] ?? '')) ?></span>
                     <?php if (trim((string) ($action['comment'] ?? '')) !== ''): ?>
-                        <p><?= s((string) $action['comment']) ?></p>
+                        <p class="mb-0 mt-1 text-[13px]"><?= s((string) $action['comment']) ?></p>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
@@ -115,7 +133,7 @@ $csrfToken = csrf()->generate();
 
         const payload = await response.json().catch(() => ({}));
         if (!response.ok || payload.success === false) {
-            toast(payload.reason || 'Review could not be saved.');
+            toast(payload.reason || <?= json_encode(t('Review could not be saved.')) ?>);
             return;
         }
 

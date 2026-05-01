@@ -6,6 +6,7 @@ use NixCMS\Enums\Permission;
 use NixCMS\Page\Page;
 use NixCMS\Repositories\RoleRepository;
 use NixCMS\Repositories\UserRepository;
+use function NixPHP\I18n\t;
 use function NixPHP\ORM\repo;
 use function NixPHP\redirect;
 use function NixPHP\View\render;
@@ -18,8 +19,11 @@ return [
         ->setTitle('Users')
         ->setLayout('admin')
         ->requirePermission(Permission::USERS_VIEW)
+        ->setAdminNavigation('Users', icon: 'user', order: 30, key: 'users')
         ->setContent(static fn() => render('admin.users.index', [
-            'title' => 'Users',
+            'title' => t('Users'),
+            'pageTitle' => t('Users'),
+            'pageSubtitle' => t('Invite users and manage roles.'),
             'users' => repo(UserRepository::class)->findAllWithRolesAndPermissions(),
             'roleDefinitions' => $roleDefinitions(),
         ])),
@@ -29,8 +33,11 @@ return [
         ->setTitle('Create user')
         ->setLayout('admin')
         ->requirePermission(Permission::USERS_CREATE)
+        ->hideFromAdminNavigation('users')
         ->setContent(static fn() => render('admin.users.form', [
-            'title' => 'Create user',
+            'title' => t('Create user'),
+            'pageTitle' => t('Create user'),
+            'pageSubtitle' => t('Create an account and assign initial roles.'),
             'roleDefinitions' => $roleDefinitions(),
             'user' => null,
         ])),
@@ -40,6 +47,7 @@ return [
         ->setTitle('Edit user')
         ->setLayout('admin')
         ->requirePermission(Permission::USERS_EDIT)
+        ->hideFromAdminNavigation('users')
         ->setContent(static function (string $userId) use ($roleDefinitions) {
             $user = repo(UserRepository::class)->findOneForForm((int) $userId);
             if ($user === null) {
@@ -47,7 +55,9 @@ return [
             }
 
             return render('admin.users.form', [
-                'title' => 'Edit user',
+                'title' => t('Edit user'),
+                'pageTitle' => t('Edit user'),
+                'pageSubtitle' => t('Update account details and role assignments.'),
                 'roleDefinitions' => $roleDefinitions(),
                 'user' => $user,
             ]);

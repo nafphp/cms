@@ -9,6 +9,7 @@ use NixCMS\Handlers\Api\User\DeleteUser;
 use NixCMS\Handlers\Api\User\ListUsers;
 use NixCMS\Handlers\Api\User\StoreUser;
 use NixCMS\Handlers\Api\User\UpdateUser;
+use NixCMS\Handlers\Api\User\UpdateUserPassword;
 use NixCMS\Handlers\Api\User\UpdateUserRoles;
 
 return [
@@ -23,6 +24,10 @@ return [
     ApiEndpoint::post('api.admin.users.update', '/api/admin/users/update')
         ->requirePermission(Permission::USERS_EDIT)
         ->setHandler(UpdateUser::class),
+
+    ApiEndpoint::post('api.admin.users.password', '/api/admin/users/password')
+        ->requirePermission(Permission::USERS_EDIT)
+        ->setHandler(UpdateUserPassword::class),
 
     ApiEndpoint::post('api.admin.users.roles', '/api/admin/users/roles')
         ->requirePermission(Permission::USERS_EDIT)

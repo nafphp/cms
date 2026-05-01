@@ -144,9 +144,22 @@ class Prompt extends Notify {
         this.container = (new DOMParser()).parseFromString(content, 'text/html').body.firstElementChild;
         document.body.appendChild(this.container);
 
-        if (this.options.showInput) {
-            this.container.querySelector('.input').focus();
-        }
+        const focusFirstField = () => {
+            const autofocusTarget = this.container?.querySelector('[autofocus]')
+                || this.container?.querySelector('input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled]), [contenteditable="true"], button:not([disabled])');
+
+            if (autofocusTarget instanceof HTMLElement) {
+                autofocusTarget.focus({preventScroll: true});
+                if (autofocusTarget instanceof HTMLInputElement || autofocusTarget instanceof HTMLTextAreaElement) {
+                    autofocusTarget.select();
+                }
+            }
+        };
+
+        requestAnimationFrame(() => {
+            focusFirstField();
+            window.setTimeout(focusFirstField, 80);
+        });
 
     }
 

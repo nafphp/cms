@@ -12,6 +12,10 @@ final class PageNavigationMeta
         public ?string $icon = null,
         public int $order = 100,
         public bool $visible = true,
+        public ?string $key = null,
+        public ?string $parent = null,
+        public ?string $href = null,
+        public string $scope = 'frontend',
     ) {
     }
 
@@ -23,7 +27,16 @@ final class PageNavigationMeta
             icon: isset($data['icon']) ? (string) $data['icon'] : null,
             order: (int) ($data['order'] ?? 100),
             visible: (bool) ($data['visible'] ?? true),
+            key: isset($data['key']) ? (string) $data['key'] : null,
+            parent: isset($data['parent']) ? (string) $data['parent'] : null,
+            href: isset($data['href']) ? (string) $data['href'] : null,
+            scope: (string) ($data['scope'] ?? 'frontend'),
         );
+    }
+
+    public function parentKey(): ?string
+    {
+        return $this->parent ?? $this->group;
     }
 
     public function toArray(): array
@@ -34,6 +47,10 @@ final class PageNavigationMeta
             'icon' => $this->icon,
             'order' => $this->order,
             'visible' => $this->visible,
+            'key' => $this->key,
+            'parent' => $this->parent,
+            'href' => $this->href,
+            'scope' => $this->scope,
         ];
     }
 }

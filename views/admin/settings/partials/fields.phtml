@@ -1,0 +1,87 @@
+<?php
+
+use function NixPHP\View\s;
+use function NixPHP\View\view;
+use function NixPHP\I18n\t;
+
+$fields = is_array($fields ?? null) ? $fields : [];
+$sourceLabels = [
+    'database' => t('Database'),
+    'config' => t('config.php'),
+    'default' => t('Default'),
+];
+
+?>
+<div class="grid gap-4 lg:grid-cols-2">
+    <?php foreach ($fields as $field): ?>
+        <?php
+        $key = (string) ($field['key'] ?? '');
+        $type = (string) ($field['type'] ?? 'text');
+        $value = (string) ($field['value'] ?? '');
+        $options = is_array($field['options'] ?? null) ? $field['options'] : [];
+        $label = (string) ($field['label'] ?? $key);
+        $source = (string) ($field['source'] ?? 'default');
+        $sourceLabel = (string) ($sourceLabels[$source] ?? $sourceLabels['default']);
+        ?>
+        <div class="settings-field" data-setting-field="<?= s($key) ?>">
+            <div class="settings-field-head">
+                <span class="settings-field-label"><?= s($label) ?></span>
+                <span class="settings-source-chip settings-source-<?= s($source) ?>">
+                    <?= s(t('Source:')) ?> <?= s($sourceLabel) ?>
+                </span>
+            </div>
+            <?php if ($type === 'textarea'): ?>
+                <?= view('components.admin.form.text', [
+                    'name' => $key,
+                    'label' => $label,
+                    'value' => $value,
+                    'rows' => 3,
+                    'hideLabel' => true,
+                    'class' => 'min-h-24',
+                ]) ?>
+            <?php elseif ($type === 'select'): ?>
+                <?= view('components.admin.form.select', [
+                    'name' => $key,
+                    'label' => $label,
+                    'selected' => $value,
+                    'options' => $options,
+                    'hideLabel' => true,
+                ]) ?>
+            <?php elseif ($type === 'multiselect'): ?>
+                <?php
+                $selectedValues = array_values(array_filter(array_map(
+                    static fn(string $entry): string => strtolower(trim($entry)),
+                    preg_split('/[,\s]+/', $value) ?: [],
+                )));
+                ?>
+                <fieldset class="grid gap-2">
+                    <legend class="sr-only"><?= s($label) ?></legend>
+                    <input type="hidden" name="<?= s($key) ?>" value="">
+                    <div class="grid gap-2 sm:grid-cols-2">
+                        <?php foreach ($options as $optionValue => $optionLabel): ?>
+                            <?php $optionValue = (string) $optionValue; ?>
+                            <?= view('components.admin.form.checkbox', [
+                                'name' => $key . '[]',
+                                'label' => (string) $optionLabel,
+                                'value' => $optionValue,
+                                'checked' => in_array($optionValue, $selectedValues, true),
+                                'useMemory' => false,
+                            ]) ?>
+                        <?php endforeach; ?>
+                    </div>
+                </fieldset>
+            <?php else: ?>
+                <?= view('components.admin.form.input', [
+                    'name' => $key,
+                    'label' => $label,
+                    'value' => $value,
+                    'hideLabel' => true,
+                ]) ?>
+            <?php endif; ?>
+            <?php if (trim((string) ($field['description'] ?? '')) !== ''): ?>
+                <small class="text-xs text-slate-500 dark:text-slate-400"><?= s((string) $field['description']) ?></small>
+            <?php endif; ?>
+            <small class="hidden text-xs font-semibold text-rose-600 dark:text-rose-300" data-setting-error></small>
+        </div>
+    <?php endforeach; ?>
+</div>

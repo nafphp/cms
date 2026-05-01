@@ -1,22 +1,26 @@
 <?php
 
 use function NixPHP\View\s;
+use function NixPHP\I18n\t;
+
+$settings = cms()->settings();
+$currentLanguage = $settings->currentLanguage();
 
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="<?= s($currentLanguage) ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= s($title ?? 'NixCMS') ?></title>
+    <title><?= s($settings->pageTitle((string) ($title ?? ''))) ?></title>
     <link rel="stylesheet" href="/css/nixcms.css">
 </head>
-<body class="welcome-shell">
-    <main class="welcome-main">
-        <p class="eyebrow">Bare-metal first</p>
-        <h1>NixCMS</h1>
-        <p>Lightweight CMS groundwork built on NixPHP.</p>
-        <a class="button" href="/admin">Open admin</a>
+<body class="grid min-h-screen place-items-center bg-slate-50 p-8 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
+    <main class="w-[min(720px,100%)]">
+        <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-accent"><?= s(t('Bare-metal first')) ?></p>
+        <h1 class="m-0 text-[42px] leading-[1.1]"><?= s($settings->name()) ?></h1>
+        <p><?= s(t('Lightweight CMS groundwork built on NixPHP.')) ?></p>
+        <a class="inline-flex min-h-10 items-center justify-center rounded-lg bg-accent px-4 text-sm font-bold text-white" href="/admin"><?= s(t('Open admin')) ?></a>
     </main>
 </body>
 </html>

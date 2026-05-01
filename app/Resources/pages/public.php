@@ -8,8 +8,8 @@ use function NixPHP\View\render;
 return [
     Page::create('home')
         ->setPath('/')
-        ->setTitle('NixCMS')
+        ->setTitle(cms()->settings()->name())
         ->setContent(static fn() => render('welcome.index', [
-            'title' => 'NixCMS',
+            'title' => cms()->settings()->name(),
         ])),
 ];

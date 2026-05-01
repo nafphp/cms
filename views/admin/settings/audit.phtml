@@ -1,0 +1,71 @@
+<?php
+
+use function NixPHP\I18n\t;
+use function NixPHP\View\s;
+use function NixPHP\View\view;
+
+$entries = is_array($entries ?? null) ? $entries : [];
+$formatValue = static function (mixed $value): string {
+    if ($value === null) {
+        return 'null';
+    }
+
+    if (is_scalar($value)) {
+        return (string) $value;
+    }
+
+    return json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '';
+};
+
+?>
+<?php $this->setLayout('layouts.admin') ?>
+
+<?php $pageTitle = (string) ($pageTitle ?? t('Audit log')); ?>
+<?php $pageSubtitle = (string) ($pageSubtitle ?? t('Review settings and translation changes.')); ?>
+
+<?php $this->block('content'); ?>
+<?= view('admin.settings.partials.tabs', ['active' => 'audit']) ?>
+
+<section class="settings-audit-panel">
+    <div class="settings-audit-head">
+        <div>
+            <h2><?= s(t('Recent changes')) ?></h2>
+            <p><?= s(t('Latest audited settings and translation updates.')) ?></p>
+        </div>
+        <span class="settings-audit-count"><?= s((string) count($entries)) ?></span>
+    </div>
+
+    <?php if ($entries === []): ?>
+        <div class="settings-empty-state">
+            <strong><?= s(t('No audit entries yet.')) ?></strong>
+            <span><?= s(t('Changes to settings and translations will appear here.')) ?></span>
+        </div>
+    <?php else: ?>
+        <div class="settings-audit-list">
+            <?php foreach ($entries as $entry): ?>
+                <?php
+                $oldValue = $formatValue($entry['old_value'] ?? null);
+                $newValue = $formatValue($entry['new_value'] ?? null);
+                ?>
+                <article class="settings-audit-row">
+                    <div class="settings-audit-main">
+                        <div class="settings-audit-title">
+                            <strong><?= s((string) ($entry['subject_key'] ?? '')) ?></strong>
+                            <span><?= s(t((string) ($entry['action'] ?? ''))) ?></span>
+                        </div>
+                        <div class="settings-audit-values">
+                            <code><?= s($oldValue) ?></code>
+                            <span aria-hidden="true">&rarr;</span>
+                            <code><?= s($newValue) ?></code>
+                        </div>
+                    </div>
+                    <div class="settings-audit-meta">
+                        <span><?= s((string) ($entry['actor_label'] ?? '')) ?></span>
+                        <time><?= s((string) ($entry['created_at'] ?? '')) ?></time>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</section>
+<?php $this->endBlock('content'); ?>

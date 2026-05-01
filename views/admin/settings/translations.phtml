@@ -1,0 +1,412 @@
+<?php
+
+use function NixPHP\I18n\t;
+use function NixPHP\route;
+use function NixPHP\View\s;
+use function NixPHP\View\view;
+
+$language = strtolower(trim((string) ($language ?? 'en')));
+$languages = is_array($languages ?? null) ? $languages : [];
+$settingSections = is_array($settingSections ?? null) ? $settingSections : [];
+$entries = is_array($entries ?? null) ? $entries : [];
+
+?>
+<?php $this->setLayout('layouts.admin') ?>
+
+<?php $pageTitle = (string) ($pageTitle ?? t('Languages')); ?>
+<?php $pageSubtitle = (string) ($pageSubtitle ?? t('Manage CMS languages and translation JSON files.')); ?>
+
+<?php $this->block('content'); ?>
+<?= view('admin.settings.partials.tabs', ['active' => 'languages']) ?>
+
+<form id="language-settings-form" class="mb-6 grid gap-5">
+    <?php foreach ($settingSections as $section): ?>
+        <?= view('admin.settings.partials.section', ['section' => $section]) ?>
+    <?php endforeach; ?>
+
+    <div class="settings-save-bar">
+        <div>
+            <strong><?= s(t('Save changes')) ?></strong>
+            <span data-language-save-state><?= s(t('No unsaved changes.')) ?></span>
+        </div>
+        <?= view('components.admin.form.button', ['label' => t('Save language settings')]) ?>
+    </div>
+</form>
+
+<form id="translation-form" class="grid gap-4" data-language="<?= s($language) ?>">
+    <div>
+        <h2 class="m-0 text-base font-semibold text-slate-950 dark:text-white"><?= s(t('Translation entries')) ?></h2>
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400"><?= s(t('Edit translation values for the selected language.')) ?></p>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+        <?php foreach ($languages as $entry): ?>
+            <?php $code = (string) ($entry['code'] ?? ''); ?>
+            <a
+                class="inline-flex min-h-10 items-center rounded-lg border px-3 text-sm font-semibold transition <?= $code === $language ? 'border-accent bg-[color-mix(in_srgb,var(--admin-page-accent)_14%,transparent)] text-accent' : 'border-[var(--border)] bg-panel text-slate-500 hover:border-accent hover:text-accent dark:text-slate-400' ?>"
+                href="<?= s(route('admin.translations') . '?language=' . rawurlencode($code)) ?>"
+                <?= $code === $language ? 'aria-current="page"' : '' ?>
+            >
+                <?= s((string) ($entry['label'] ?? strtoupper($code))) ?>
+            </a>
+        <?php endforeach; ?>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <label class="flex min-h-12 w-[min(438px,100%)] items-center gap-2 rounded-lg border border-[var(--border)] bg-admin-field px-3 focus-within:border-accent focus-within:bg-admin-field-focus focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)]">
+            <span class="icon-search text-sm text-slate-400" aria-hidden="true"></span>
+            <input class="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-[var(--text)] outline-none placeholder:text-slate-400" type="search" placeholder="<?= s(t('Search translations...')) ?>" data-translation-search>
+        </label>
+        <button type="button" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-transparent bg-accent px-4 font-semibold text-white shadow-[0_14px_30px_color-mix(in_srgb,var(--admin-page-accent)_20%,transparent)] transition hover:-translate-y-0.5" data-add-translation><?= s(t('Add translation')) ?></button>
+    </div>
+
+    <div class="translation-card-grid" data-translation-rows>
+            <?php foreach ($entries as $key => $value): ?>
+                <div class="translation-card" data-translation-row>
+                    <input type="hidden" name="key[]" value="<?= s((string) $key) ?>">
+                    <textarea class="sr-only" name="value[]" aria-hidden="true" tabindex="-1" data-translation-value><?= s((string) $value) ?></textarea>
+                    <input type="checkbox" class="sr-only" name="delete[]" value="1" tabindex="-1" data-translation-delete>
+                    <button type="button" class="translation-card-main" data-edit-translation>
+                        <strong data-translation-key-label><?= s((string) $key) ?></strong>
+                        <span data-translation-preview><?= s(mb_strimwidth((string) $value, 0, 140, '...')) ?></span>
+                    </button>
+                    <button type="button" class="translation-card-delete" data-delete-translation aria-label="<?= s(t('Delete')) ?>" title="<?= s(t('Delete')) ?>">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            <?php endforeach; ?>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+        <?= view('components.admin.form.button', ['label' => t('Save translations')]) ?>
+    </div>
+</form>
+
+<template id="translation-row-template">
+    <div class="translation-card is-new" data-translation-row>
+        <input type="hidden" name="key[]" value="">
+        <textarea class="sr-only" name="value[]" aria-hidden="true" tabindex="-1" data-translation-value></textarea>
+        <input type="checkbox" class="sr-only" name="delete[]" value="1" tabindex="-1" data-translation-delete>
+        <button type="button" class="translation-card-main" data-edit-translation>
+            <strong data-translation-key-label><?= s(t('New translation')) ?></strong>
+            <span data-translation-preview><?= s(t('Click to edit translation text.')) ?></span>
+        </button>
+        <button type="button" class="translation-card-delete" data-delete-translation aria-label="<?= s(t('Delete')) ?>" title="<?= s(t('Delete')) ?>">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+</template>
+
+<div class="translation-modal hidden" data-translation-modal aria-hidden="true">
+    <div class="translation-modal-backdrop" data-close-translation-modal></div>
+    <div class="translation-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="translation-modal-title">
+        <div class="translation-modal-head">
+            <div>
+                <h3 id="translation-modal-title"><?= s(t('Edit translation')) ?></h3>
+                <p><?= s(t('Change the translation value for the selected key.')) ?></p>
+            </div>
+            <button type="button" class="translation-modal-close" data-close-translation-modal aria-label="<?= s(t('Cancel')) ?>">&times;</button>
+        </div>
+        <div class="translation-modal-body">
+            <label>
+                <span><?= s(t('Key')) ?></span>
+                <input class="translation-modal-control" type="text" data-translation-modal-key>
+            </label>
+            <label>
+                <span><?= s(t('Value')) ?></span>
+                <textarea class="translation-modal-control translation-modal-textarea" rows="8" data-translation-modal-value></textarea>
+            </label>
+        </div>
+        <div class="translation-modal-actions">
+            <button type="button" class="translation-modal-button translation-modal-button-secondary" data-close-translation-modal><?= s(t('Cancel')) ?></button>
+            <button type="button" class="translation-modal-button translation-modal-button-primary" data-save-translation-modal><?= s(t('Apply')) ?></button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import toast from '/js/lib/notifyJs/Modules/Toast.js';
+    import prompt from '/js/lib/notifyJs/Modules/Prompt.js';
+
+    const settingsForm = document.getElementById('language-settings-form');
+    const form = document.getElementById('translation-form');
+    const rows = form.querySelector('[data-translation-rows]');
+    const modal = document.querySelector('[data-translation-modal]');
+    const modalKey = modal.querySelector('[data-translation-modal-key]');
+    const modalValue = modal.querySelector('[data-translation-modal-value]');
+    const modalSave = modal.querySelector('[data-save-translation-modal]');
+    const language = form.dataset.language || 'en';
+    const languageSaveState = settingsForm.querySelector('[data-language-save-state]');
+    const settingsEndpoint = <?= json_encode(route('api.admin.settings.update')) ?>;
+    const endpoint = <?= json_encode('/api/admin/translations/{language}') ?>.replace('{language}', encodeURIComponent(language));
+    const labels = <?= json_encode([
+        'duplicateKey' => t('Duplicate translation key:'),
+        'emptyKey' => t('Translation keys cannot be empty.'),
+        'settingsSaved' => t('Settings saved.'),
+        'settingsCouldNotSave' => t('Could not save settings.'),
+        'dirty' => t('Unsaved changes.'),
+        'clean' => t('No unsaved changes.'),
+        'deleteConfirm' => t('Delete translation?'),
+        'delete' => t('Delete'),
+        'cancel' => t('Cancel'),
+        'saved' => t('Translations saved.'),
+        'couldNotSave' => t('Could not save translations.'),
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    let activeRow = null;
+
+    const payloadFromSettingsForm = (targetForm) => {
+        const payload = {};
+        for (const [key, value] of new FormData(targetForm).entries()) {
+            if (key.endsWith('[]')) {
+                const normalizedKey = key.slice(0, -2);
+                if (!Array.isArray(payload[normalizedKey])) payload[normalizedKey] = [];
+                payload[normalizedKey].push(value);
+                continue;
+            }
+
+            payload[key] = value;
+        }
+
+        return payload;
+    };
+
+    const stableValue = (value) => {
+        if (Array.isArray(value)) return value;
+        if (value && typeof value === 'object') {
+            return Object.fromEntries(Object.keys(value).sort().map((key) => [key, stableValue(value[key])]));
+        }
+        return value;
+    };
+
+    const stableSettingsJson = () => {
+        const payload = payloadFromSettingsForm(settingsForm);
+        return JSON.stringify(stableValue(payload));
+    };
+    let initialSettingsPayload = stableSettingsJson();
+
+    const updateLanguageSaveState = () => {
+        if (!languageSaveState) return;
+        languageSaveState.textContent = stableSettingsJson() === initialSettingsPayload ? labels.clean : labels.dirty;
+    };
+
+    const clearSettingErrors = () => {
+        settingsForm.querySelectorAll('[data-setting-error]').forEach((node) => {
+            node.textContent = '';
+            node.classList.add('hidden');
+        });
+    };
+
+    const showSettingErrors = (errors) => {
+        Object.entries(errors || {}).forEach(([key, messages]) => {
+            const field = settingsForm.querySelector(`[data-setting-field="${CSS.escape(key)}"]`);
+            const target = field?.querySelector('[data-setting-error]');
+            if (!target) return;
+            target.textContent = Array.isArray(messages) ? messages.join(' ') : String(messages || '');
+            target.classList.remove('hidden');
+        });
+    };
+
+    const escapeHtml = (value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+    const preview = (value) => {
+        const normalized = String(value || '').replace(/\s+/g, ' ').trim();
+        return normalized.length > 140 ? `${normalized.slice(0, 137)}...` : normalized;
+    };
+
+    const rowKey = (row) => String(row.querySelector('input[name="key[]"]')?.value || '').trim();
+
+    const rowValue = (row) => String(row.querySelector('[data-translation-value]')?.value || '');
+
+    const setRowValues = (row, key, value) => {
+        row.querySelector('input[name="key[]"]').value = key;
+        row.querySelector('[data-translation-value]').value = value;
+        row.querySelector('[data-translation-key-label]').textContent = key || <?= json_encode(t('New translation')) ?>;
+        row.querySelector('[data-translation-preview]').textContent = preview(value) || <?= json_encode(t('Click to edit translation text.')) ?>;
+        row.classList.remove('is-new');
+    };
+
+    const openModal = (row) => {
+        activeRow = row;
+        const key = rowKey(row);
+        modalKey.value = key;
+        modalKey.readOnly = key !== '';
+        modalValue.value = rowValue(row);
+        modal.classList.remove('hidden');
+        modal.setAttribute('aria-hidden', 'false');
+        (key === '' ? modalKey : modalValue).focus();
+    };
+
+    const closeModal = () => {
+        const shouldRemoveNewRow = activeRow?.classList.contains('is-new') && rowKey(activeRow) === '' && rowValue(activeRow) === '';
+        if (shouldRemoveNewRow) {
+            activeRow.remove();
+        }
+        activeRow = null;
+        modal.classList.add('hidden');
+        modal.setAttribute('aria-hidden', 'true');
+    };
+
+    const duplicateKeyExists = (key, exceptRow) => {
+        for (const row of rows.querySelectorAll('[data-translation-row]')) {
+            if (row === exceptRow || row.querySelector('[data-translation-delete]')?.checked) continue;
+            if (rowKey(row) === key) return true;
+        }
+        return false;
+    };
+
+    document.querySelector('[data-add-translation]')?.addEventListener('click', () => {
+        const template = document.getElementById('translation-row-template');
+        rows.append(template.content.cloneNode(true));
+        openModal(rows.lastElementChild);
+    });
+
+    document.querySelector('[data-translation-search]')?.addEventListener('input', (event) => {
+        const query = String(event.target.value || '').trim().toLowerCase();
+        rows.querySelectorAll('[data-translation-row]').forEach((row) => {
+            const haystack = [
+                rowKey(row),
+                row.querySelector('[data-translation-key-label]')?.textContent || '',
+                rowValue(row),
+            ].join(' ').toLowerCase();
+            row.hidden = query !== '' && !haystack.includes(query);
+        });
+    });
+
+    rows.addEventListener('click', async (event) => {
+        const deleteButton = event.target.closest('[data-delete-translation]');
+        const editButton = event.target.closest('[data-edit-translation]');
+        const row = event.target.closest('[data-translation-row]');
+        if (!row) return;
+
+        if (deleteButton) {
+            const confirmed = await prompt(`<div class="my-5">${escapeHtml(labels.deleteConfirm)}<br><strong>${escapeHtml(rowKey(row))}</strong></div>`, {
+                confirmButtonText: labels.delete,
+                cancelButtonText: labels.cancel,
+                showCancelButton: true,
+            });
+            if (!confirmed) return;
+
+            if (row.classList.contains('is-new')) {
+                row.remove();
+                return;
+            }
+
+            row.querySelector('[data-translation-delete]').checked = true;
+            row.hidden = true;
+            return;
+        }
+
+        if (editButton) {
+            openModal(row);
+        }
+    });
+
+    rows.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        const row = event.target.closest('[data-translation-row]');
+        if (!row) return;
+        event.preventDefault();
+        openModal(row);
+    });
+
+    modal.querySelectorAll('[data-close-translation-modal]').forEach((button) => {
+        button.addEventListener('click', closeModal);
+    });
+
+    modalSave.addEventListener('click', () => {
+        if (!activeRow) return;
+
+        const key = String(modalKey.value || '').trim();
+        const value = String(modalValue.value || '');
+        if (key === '') {
+            toast(labels.emptyKey);
+            modalKey.focus();
+            return;
+        }
+
+        if (duplicateKeyExists(key, activeRow)) {
+            toast(`${escapeHtml(labels.duplicateKey)} ${escapeHtml(key)}`);
+            modalKey.focus();
+            return;
+        }
+
+        setRowValues(activeRow, key, value);
+        closeModal();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+            closeModal();
+        }
+    });
+
+    settingsForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        clearSettingErrors();
+
+        const response = await (window.NixCMS?.json || fetch)(settingsEndpoint, {
+            method: 'POST',
+            body: JSON.stringify(payloadFromSettingsForm(settingsForm)),
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok || !result.success) {
+            showSettingErrors(result.errors || {});
+            toast(result.reason || labels.settingsCouldNotSave);
+            return;
+        }
+
+        toast(labels.settingsSaved);
+        initialSettingsPayload = stableSettingsJson();
+        updateLanguageSaveState();
+        window.location.reload();
+    });
+
+    settingsForm.addEventListener('input', updateLanguageSaveState);
+    settingsForm.addEventListener('change', updateLanguageSaveState);
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const entries = {};
+        for (const row of rows.querySelectorAll('[data-translation-row]')) {
+            if (row.querySelector('[data-translation-delete]')?.checked) {
+                continue;
+            }
+
+            const key = rowKey(row);
+            const value = rowValue(row);
+            if (key === '') {
+                toast(labels.emptyKey);
+                return;
+            }
+
+            if (Object.prototype.hasOwnProperty.call(entries, key)) {
+                toast(`${escapeHtml(labels.duplicateKey)} ${escapeHtml(key)}`);
+                return;
+            }
+
+            entries[key] = value;
+        }
+
+        const response = await (window.NixCMS?.json || fetch)(endpoint, {
+            method: 'POST',
+            body: JSON.stringify({entries}),
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok || !result.success) {
+            toast(result.reason || labels.couldNotSave);
+            return;
+        }
+
+        toast(`${labels.saved} (${Number(result.changed || 0)})`);
+        window.location.reload();
+    });
+</script>
+<?php $this->endBlock('content'); ?>

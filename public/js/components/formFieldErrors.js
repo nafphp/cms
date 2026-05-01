@@ -206,7 +206,7 @@
                 return element.closest('label') ?? element;
             }
 
-            const wrapper = element.closest('.wow-input-wrap');
+            const wrapper = element.closest('[data-form-field-wrap], label');
             return wrapper ?? element;
         }
 

@@ -1,27 +1,30 @@
 <?php
 
 use function NixPHP\View\s;
+use function NixCMS\View\Admin\Form\attributes as renderAttributes;
+use function NixCMS\View\Admin\Form\classes;
+use function NixCMS\View\Admin\Form\field_id;
+use function NixCMS\View\Admin\Form\remembered;
+
+require_once __DIR__ . '/_helpers.php';
 
 $name = (string) ($name ?? '');
 $label = (string) ($label ?? $name);
-$selected = (string) ($selected ?? '');
+$id = ($id ?? null) === false ? '' : field_id($name, isset($id) ? (string) $id : null);
+$selected = remembered($name, $selected ?? ($value ?? ''), (bool) ($useMemory ?? true));
 $options = is_array($options ?? null) ? $options : [];
 $attributes = is_array($attributes ?? null) ? $attributes : [];
-
-$attributeHtml = '';
-foreach ($attributes as $attributeName => $attributeValue) {
-    if ($attributeValue === null || $attributeValue === false) {
-        continue;
-    }
-    $attributeHtml .= ' ' . s((string) $attributeName);
-    if ($attributeValue !== true) {
-        $attributeHtml .= '="' . s((string) $attributeValue) . '"';
-    }
-}
+$hideLabel = (bool) ($hideLabel ?? true);
+$styled = (bool) ($styled ?? true);
+$className = classes('block min-h-11 w-full rounded-lg border border-[var(--border)] bg-admin-field px-3 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-slate-400 focus:border-accent focus:bg-admin-field-focus focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)]', (string) ($class ?? ''));
+$attributes = [
+    ...($styled ? ['data-styled-select' => true] : []),
+    ...$attributes,
+];
 
 ?>
-<label class="hidden" for="<?= s($name) ?>"><?= s($label) ?>:</label>
-<select name="<?= s($name) ?>" id="<?= s($name) ?>" class="wow-input"<?= $attributeHtml ?>>
+<label class="<?= $hideLabel ? 'sr-only' : 'mb-2 inline-block text-[13px] font-semibold text-slate-500 dark:text-slate-400' ?>"<?= $id !== '' ? ' for="' . s($id) . '"' : '' ?>><?= s($label) ?></label>
+<select name="<?= s($name) ?>"<?= $id !== '' ? ' id="' . s($id) . '"' : '' ?> class="<?= s($className) ?>"<?= renderAttributes($attributes) ?>>
     <?php foreach ($options as $value => $optionLabel): ?>
         <?php $value = (string) $value; ?>
         <option value="<?= s($value) ?>" <?= $value === $selected ? 'selected' : '' ?>>

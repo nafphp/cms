@@ -7,4 +7,5 @@ return [
     ...require __DIR__ . '/Resources/api/users.php',
     ...require __DIR__ . '/Resources/api/roles.php',
     ...require __DIR__ . '/Resources/api/articles.php',
+    ...require __DIR__ . '/Resources/api/settings.php',
 ];

@@ -6,7 +6,6 @@ namespace NixCMS\Repositories;
 
 use NixCMS\Models\Role;
 use NixPHP\ORM\Repository\AbstractRepository;
-use function NixPHP\ORM\em;
 
 class RoleRepository extends AbstractRepository
 {
@@ -73,16 +72,19 @@ class RoleRepository extends AbstractRepository
             return null;
         }
 
-        /** @var Role|null $existing */
-        $existing = $this->findOneBy(['name' => $normalized]);
-        if ($existing instanceof Role) {
+        $existingStmt = $this->pdo->prepare('SELECT id FROM roles WHERE name = :name LIMIT 1');
+        $existingStmt->execute(['name' => $normalized]);
+        if ((int) ($existingStmt->fetchColumn() ?: 0) > 0) {
             return null;
         }
 
-        $role = new Role(['name' => $normalized]);
-        em()->save($role);
+        $stmt = $this->pdo->prepare('INSERT INTO roles (name) VALUES (:name)');
+        $stmt->execute(['name' => $normalized]);
 
-        return $role;
+        return new Role([
+            'id' => (int) $this->pdo->lastInsertId(),
+            'name' => $normalized,
+        ]);
     }
 
     public function renameById(int $roleId, string $name): bool

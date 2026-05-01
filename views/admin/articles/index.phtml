@@ -1,6 +1,7 @@
 <?php
 
 use function NixPHP\route;
+use function NixPHP\I18n\t;
 use function NixPHP\View\view;
 
 $overview = is_array($overview ?? null) ? $overview : [];
@@ -8,8 +9,8 @@ $overview = is_array($overview ?? null) ? $overview : [];
 ?>
 <?php $this->setLayout('layouts.admin') ?>
 
-<?php $pageTitle = 'Article management'; ?>
-<?php $pageSubtitle = 'Manage article drafts, versions, translations, and publishing state.'; ?>
+<?php $pageTitle = t('Article management'); ?>
+<?php $pageSubtitle = t('Manage article drafts, versions, translations, and publishing state.'); ?>
 
 <?php $this->block('content'); ?>
 <?= view('components.admin.articles.grid', [

@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'app' => [
         'name' => 'NixCMS',
+        'short_name' => 'NX',
         'env' => 'ENV:APP_ENV',
         'url' => 'ENV:APP_URL',
     ],
@@ -44,11 +45,12 @@ return [
         'setup_mode' => true,
         'admin' => [
             'accent_colors' => [
-                'dashboard' => '#64748b',
-                'articles' => '#8b5cf6',
+                'dashboard' => '#ff3b30',
+                'content' => '#3f7fbd',
+                'articles' => '#3f7fbd',
                 'users' => '#0ea5e9',
                 'roles' => '#f59e0b',
-                'settings' => '#64748b',
+                'settings' => '#8b5cf6',
             ],
         ],
     ],

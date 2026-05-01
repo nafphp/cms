@@ -6,22 +6,22 @@ use function NixPHP\View\s;
 $items = is_array($items ?? null) ? $items : [];
 
 ?>
-<div class="admin-menu open">
-    <div class="admin-menu-stack">
-        <div class="admin-menu-items">
+<div class="admin-menu open flex h-full flex-col justify-between">
+    <div class="grid gap-4">
+        <div class="grid gap-1">
             <?php foreach ($items as $item): ?>
                 <?php
                 $routeNames = is_array($item['routeNames'] ?? null) ? $item['routeNames'] : [];
                 $activeClass = $routeNames !== [] ? route()->active($routeNames) : '';
                 ?>
-                <a href="<?= s((string) ($item['href'] ?? '#')) ?>" class="<?= s($activeClass) ?>" title="<?= s((string) ($item['label'] ?? '')) ?>" aria-label="<?= s((string) ($item['label'] ?? '')) ?>">
-                    <span class="admin-menu-icon admin-menu-icon-<?= s((string) ($item['icon'] ?? 'dot')) ?>" aria-hidden="true"></span>
-                    <span><?= s((string) ($item['label'] ?? '')) ?></span>
+                <a href="<?= s((string) ($item['href'] ?? '#')) ?>" class="flex min-h-11 items-center gap-3 rounded-lg border-l-[3px] px-3 text-slate-300 transition hover:bg-[rgba(86,119,164,.10)] hover:text-slate-100 <?= $activeClass ? 'border-l-blue-300 bg-[linear-gradient(90deg,rgba(96,165,250,.18),rgba(86,119,164,.08))] text-slate-50' : 'border-l-transparent' ?>" title="<?= s((string) ($item['label'] ?? '')) ?>" aria-label="<?= s((string) ($item['label'] ?? '')) ?>">
+                    <span class="grid h-6 w-6 flex-[0_0_24px] place-items-center rounded-md bg-slate-500/20 text-xs font-bold uppercase text-slate-300" aria-hidden="true"><?= s(substr((string) ($item['label'] ?? '•'), 0, 1)) ?></span>
+                    <span class="admin-menu-label truncate text-sm font-bold"><?= s((string) ($item['label'] ?? '')) ?></span>
                 </a>
             <?php endforeach; ?>
         </div>
-        <button class="admin-menu-trigger" type="button" title="Toggle menu" aria-label="Toggle menu">
-            <span aria-hidden="true"></span>
+        <button class="admin-menu-trigger flex min-h-[42px] w-full items-center gap-3 border-l-[3px] border-transparent px-3 text-slate-400 transition hover:bg-[rgba(86,119,164,.10)] hover:text-slate-100" type="button" title="Toggle menu" aria-label="Toggle menu">
+            <span class="block h-4 w-4 rounded-sm border border-current" aria-hidden="true"></span>
         </button>
     </div>
 </div>

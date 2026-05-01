@@ -1,6 +1,7 @@
 <?php
 
 use function NixPHP\route;
+use function NixPHP\I18n\t;
 use function NixPHP\View\s;
 use function NixPHP\View\view;
 
@@ -10,36 +11,42 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
 ?>
 <?php $this->setLayout('layouts.admin') ?>
 
-<?php $pageTitle = 'Benutzerverwaltung'; ?>
-<?php $pageSubtitle = 'Benutzer einladen und Rollen verwalten.'; ?>
+<?php $pageTitle = t('User management'); ?>
+<?php $pageSubtitle = t('Invite users and manage roles.'); ?>
 
 <?php $this->block('content'); ?>
-<div class="admin-table-toolbar">
-    <label class="article-grid-search-wrap admin-table-search">
-        <span class="icon-search article-grid-search-icon" aria-hidden="true"></span>
-        <input class="article-grid-search" type="search" placeholder="Benutzer suchen..." data-admin-table-search>
+<div class="mb-3.5 flex items-center justify-between gap-4 max-admin:flex-col max-admin:items-stretch">
+    <label class="flex min-h-12 w-[min(438px,100%)] items-center gap-2 rounded-lg border border-[var(--border)] bg-admin-field px-3 focus-within:border-accent focus-within:bg-admin-field-focus focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)]">
+        <span class="icon-search text-[13px] text-slate-500" aria-hidden="true"></span>
+        <input class="w-full min-w-0 border-0 bg-transparent text-sm text-inherit outline-none placeholder:text-slate-400" type="search" placeholder="<?= s(t('Search users...')) ?>" data-admin-table-search>
     </label>
-    <div class="admin-table-actions">
-        <?= view('components.admin.button', ['label' => 'Benutzer erstellen', 'href' => route('admin.users.create'), 'variant' => 'primary', 'class' => 'admin-primary-action']) ?>
-        <?= view('components.admin.button', ['label' => 'Einladungslink erstellen', 'attributes' => ['data-create-invite' => true], 'variant' => 'primary', 'class' => 'admin-primary-action']) ?>
+    <div class="flex flex-wrap justify-end gap-2.5 max-admin:justify-start">
+        <?= view('components.admin.button', ['label' => t('Create user'), 'href' => route('admin.users.create'), 'variant' => 'primary', 'class' => 'min-h-12 border-[rgba(169,201,247,.38)] bg-[linear-gradient(180deg,#6895d4,#4f7fbd)] px-4 text-sm']) ?>
+        <?= view('components.admin.button', ['label' => t('Create invite link'), 'attributes' => ['data-create-invite' => true], 'variant' => 'primary', 'class' => 'min-h-12 border-[rgba(169,201,247,.38)] bg-[linear-gradient(180deg,#6895d4,#4f7fbd)] px-4 text-sm']) ?>
     </div>
 </div>
 <?php if ($users === []): ?>
     <?= view('components.admin.empty-state', [
-        'title' => 'Noch keine Benutzer',
-        'text' => 'Erstelle das erste Administrationskonto und weise eine Rolle zu.',
+        'title' => t('No users yet'),
+        'text' => t('Create the first administration account and assign a role.'),
     ]) ?>
 <?php else: ?>
-    <div class="admin-table-frame">
-        <table class="admin-data-table">
+    <div class="relative overflow-x-auto rounded-lg border border-slate-300/70 bg-white/80 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-slate-400/25 dark:bg-slate-950/50 dark:shadow-none">
+        <table class="w-full min-w-[980px] table-fixed border-separate border-spacing-0 text-sm [&_td]:h-[78px] [&_td]:border-b [&_td]:border-slate-900/10 [&_td]:px-[18px] [&_td]:py-4 [&_td]:text-left [&_td]:text-[rgba(48,48,48,.86)] dark:[&_td]:border-slate-400/15 dark:[&_td]:text-slate-100 [&_th]:h-[46px] [&_th]:border-b [&_th]:border-slate-900/10 [&_th]:bg-slate-200/70 [&_th]:px-[18px] [&_th]:py-[11px] [&_th]:text-left [&_th]:text-[13px] [&_th]:font-semibold [&_th]:leading-tight [&_th]:text-slate-700 dark:[&_th]:border-slate-400/15 dark:[&_th]:bg-slate-800/50 dark:[&_th]:text-slate-300">
+            <colgroup>
+                <col class="w-[72px]">
+                <col class="w-[16%]">
+                <col class="w-[38%]">
+                <col class="w-[32%]">
+                <col class="w-[92px]">
+            </colgroup>
             <thead>
             <tr>
                 <th>#</th>
-                <th>Benutzername</th>
+                <th><?= s(t('Username')) ?></th>
                 <th>Name</th>
-                <th>Rollen</th>
-                <th>Berechtigungen</th>
-                <th class="text-right">Aktionen</th>
+                <th><?= s(t('Roles')) ?></th>
+                <th class="text-right"><?= s(t('Actions')) ?></th>
             </tr>
             </thead>
             <tbody id="users-table-body">
@@ -50,12 +57,12 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
                 $permissions = is_array($user['permissions'] ?? null) ? $user['permissions'] : [];
                 $displayName = trim((string) ($user['firstname'] ?? '') . ' ' . (string) ($user['lastname'] ?? ''));
                 ?>
-                <tr data-user-row="<?= $userId ?>">
+                <tr class="hover:[&_td]:bg-slate-900/[.035] dark:hover:[&_td]:bg-white/[.035]" data-user-row="<?= $userId ?>">
                     <td><?= $userId ?></td>
                     <td>
                         <strong><?= s((string) ($user['username'] ?? '')) ?></strong>
                     </td>
-                    <td><?= s($displayName !== '' ? $displayName : 'Kein Profilname') ?></td>
+                    <td><?= s($displayName !== '' ? $displayName : t('No profile name')) ?></td>
                     <td data-user-roles="<?= $userId ?>">
                         <div class="flex flex-wrap gap-1.5">
                             <?php foreach ($roles as $role): ?>
@@ -63,18 +70,38 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
                             <?php endforeach; ?>
                         </div>
                     </td>
-                    <td>
-                        <div class="admin-permission-link" data-user-permissions="<?= $userId ?>" title="<?= s($permissions !== [] ? implode(', ', $permissions) : 'Keine Berechtigungen') ?>">
-                            <?= s($permissions !== [] ? 'Berechtigungen anzeigen' : 'Keine Berechtigungen') ?>
-                        </div>
-                    </td>
                     <td class="text-right">
-                        <div class="flex justify-end gap-2">
-                            <?= view('components.admin.button', [
-                                'label' => 'Rollen ändern',
-                                'size' => 'small',
-                                'class' => 'admin-muted-action',
-                                'attributes' => ['data-edit-roles' => $userId],
+                        <div class="flex justify-end">
+                            <?= view('components.admin.action-menu', [
+                                'label' => t('Actions'),
+                                'actions' => [
+                                    [
+                                        'label' => t('Edit'),
+                                        'href' => route('admin.users.edit', ['userId' => $userId]),
+                                        'icon' => 'icon-user',
+                                    ],
+                                    [
+                                        'label' => t('Change roles'),
+                                        'attributes' => ['data-edit-roles' => $userId],
+                                        'icon' => 'icon-lock',
+                                    ],
+                                    [
+                                        'label' => t('Show permissions'),
+                                        'attributes' => ['data-show-permissions' => $userId],
+                                        'icon' => 'icon-checkmark',
+                                    ],
+                                    [
+                                        'label' => t('Send message'),
+                                        'disabled' => true,
+                                        'icon' => 'icon-circle-right',
+                                    ],
+                                    [
+                                        'label' => t('Delete'),
+                                        'attributes' => ['data-delete-user' => $userId],
+                                        'icon' => 'icon-cross',
+                                        'danger' => true,
+                                    ],
+                                ],
                             ]) ?>
                         </div>
                     </td>
@@ -88,12 +115,47 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
 <script type="module">
     import prompt from '/js/lib/notifyJs/Modules/Prompt.js';
     import toast from '/js/lib/notifyJs/Modules/Toast.js';
+    import {setupActionMenus} from '/js/components/actionMenu.js';
 
     const roles = <?= json_encode($roleDefinitions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     const users = <?= json_encode($users, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     const updateRolesUrl = <?= json_encode(route('api.admin.users.roles')) ?>;
     const deleteUserUrl = <?= json_encode(route('api.admin.users.delete')) ?>;
     const createInviteUrl = <?= json_encode(route('api.admin.users.invite')) ?>;
+    const i18n = <?= json_encode([
+        'cancel' => t('Cancel'),
+        'couldNotCreateInvite' => t('Could not create invite.'),
+        'couldNotUpdateRoles' => t('Could not update roles.'),
+        'createInvite' => t('Create invite'),
+        'done' => t('Done'),
+        'email' => t('Email'),
+        'expiresInDays' => t('Expires in days'),
+        'expiryMustBeBetween' => t('Expiry must be between 1 and 30 days.'),
+        'generateInviteIntro' => t('Generate a one-time registration link for a new account.'),
+        'inviteCreated' => t('Invite created.'),
+        'inviteLinkCopied' => t('Invite link copied.'),
+        'inviteLinkCreated' => t('Invite link created'),
+        'noPermissions' => t('No permissions'),
+        'pleaseProvideValidEmail' => t('Please provide a valid email address.'),
+        'pleaseSelectRole' => t('Please select a role.'),
+        'registrationLink' => t('Registration link'),
+        'role' => t('Role'),
+        'rolesUpdated' => t('Roles updated.'),
+        'save' => t('Save'),
+        'selectOne' => t('Select one'),
+        'showPermissions' => t('Show permissions'),
+        'validUntil' => t('Valid until'),
+        'permissionsFor' => t('Permissions for'),
+        'delete' => t('Delete'),
+        'deleteUserFallback' => t('this user'),
+        'deleteUserIntro' => t('This removes the account and active sessions.'),
+        'couldNotDeleteUser' => t('Could not delete user.'),
+        'userDeleted' => t('User deleted.'),
+        'updateRolesFor' => t('Update roles for'),
+        'roles' => t('Roles'),
+        'selectAtLeastOne' => t('Select at least one'),
+        'pleaseAssignRole' => t('Please assign at least one role.'),
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
 
     const escapeHtml = (value) => String(value)
         .replace(/&/g, '&amp;')
@@ -104,10 +166,47 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
 
     const userById = (userId) => users.find((user) => Number(user.id) === Number(userId));
 
+    setupActionMenus(document);
+
+    const renderPermissionList = (permissions) => {
+        if (!Array.isArray(permissions) || permissions.length === 0) {
+            return `<p class="notify-form-intro">${escapeHtml(i18n.noPermissions)}</p>`;
+        }
+
+        return `
+            <div class="notify-role-list">
+                ${permissions.map((permission) => `
+                    <div class="notify-role-option">
+                        <span class="notify-role-copy">
+                            <span class="notify-role-name">${escapeHtml(permission)}</span>
+                        </span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    };
+
     document.querySelector('[data-admin-table-search]')?.addEventListener('input', (event) => {
         const query = String(event.target.value || '').trim().toLowerCase();
         document.querySelectorAll('[data-user-row]').forEach((row) => {
             row.hidden = query !== '' && !row.textContent.toLowerCase().includes(query);
+        });
+    });
+
+    document.querySelectorAll('[data-show-permissions]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            const userId = Number(button.getAttribute('data-show-permissions') || 0);
+            const selectedUser = userById(userId);
+            if (!selectedUser) {
+                return;
+            }
+
+            await prompt(`
+                <div>${escapeHtml(i18n.permissionsFor)} ${escapeHtml(selectedUser.username || '')}</div>
+                <div class="notify-form">${renderPermissionList(selectedUser.permissions)}</div>
+            `, {
+                confirmButtonText: i18n.done,
+            });
         });
     });
 
@@ -144,32 +243,32 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
                         <input type="radio" name="invite-role" class="invite-role-radio notify-role-check" value="${escapeHtml(roleName)}" ${index === 0 ? 'checked' : ''}>
                         <span class="notify-role-copy">
                             <span class="notify-role-name">${escapeHtml(roleName)}</span>
-                            <span class="notify-role-permissions">${escapeHtml(permissions || 'No permissions')}</span>
+                            <span class="notify-role-permissions">${escapeHtml(permissions || i18n.noPermissions)}</span>
                         </span>
                     </label>
                 `;
             }).join('');
 
             const result = await prompt(`
-                <div>Create invite</div>
+                <div>${escapeHtml(i18n.createInvite)}</div>
                 <div class="notify-form">
-                    <p class="notify-form-intro">Generate a one-time registration link for a new account.</p>
+                    <p class="notify-form-intro">${escapeHtml(i18n.generateInviteIntro)}</p>
                     <div class="notify-form-grid">
                         <label class="notify-field">
-                            <span class="notify-field-label">Email</span>
+                            <span class="notify-field-label">${escapeHtml(i18n.email)}</span>
                             <input id="invite-email" type="email" placeholder="editor@example.com">
                         </label>
                         <label class="notify-field">
-                            <span class="notify-field-label">Expires in days</span>
+                            <span class="notify-field-label">${escapeHtml(i18n.expiresInDays)}</span>
                             <input id="invite-expires-days" type="number" min="1" max="30" value="7">
                         </label>
                     </div>
-                    <div class="notify-section-head"><span>Role</span><span>Select one</span></div>
+                    <div class="notify-section-head"><span>${escapeHtml(i18n.role)}</span><span>${escapeHtml(i18n.selectOne)}</span></div>
                     <div class="notify-role-list">${roleMarkup}</div>
                 </div>
             `, {
-                confirmButtonText: 'Create invite',
-                cancelButtonText: 'Cancel',
+                confirmButtonText: i18n.createInvite,
+                cancelButtonText: i18n.cancel,
                 showCancelButton: true,
                 confirmCallback: async (promptInstance) => {
                     email = String(promptInstance.container.querySelector('#invite-email')?.value || '').trim().toLowerCase();
@@ -177,15 +276,15 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
                     selectedRole = String(promptInstance.container.querySelector('.invite-role-radio:checked')?.value || '');
 
                     if (!email || !email.includes('@')) {
-                        toast('Please provide a valid email address.');
+                        toast(i18n.pleaseProvideValidEmail);
                         return false;
                     }
                     if (!Number.isInteger(expiresInDays) || expiresInDays < 1 || expiresInDays > 30) {
-                        toast('Expiry must be between 1 and 30 days.');
+                        toast(i18n.expiryMustBeBetween);
                         return false;
                     }
                     if (!selectedRole) {
-                        toast('Please select a role.');
+                        toast(i18n.pleaseSelectRole);
                         return false;
                     }
 
@@ -205,7 +304,7 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
                 roles: [selectedRole],
             });
             if (!response.ok || !response.data.success) {
-                toast(response.data.reason || 'Could not create invite.');
+                toast(response.data.reason || i18n.couldNotCreateInvite);
                 return;
             }
 
@@ -213,22 +312,22 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
             const inviteUrl = invitePath.startsWith('http') ? invitePath : `${window.location.origin}${invitePath}`;
             try {
                 await navigator.clipboard.writeText(inviteUrl);
-                toast('Invite link copied.');
+                toast(i18n.inviteLinkCopied);
             } catch (_error) {
-                toast('Invite created.');
+                toast(i18n.inviteCreated);
             }
 
             await prompt(`
-                <div>Invite link created</div>
+                <div>${escapeHtml(i18n.inviteLinkCreated)}</div>
                 <div class="notify-form">
-                    <p class="notify-form-intro">Valid until ${escapeHtml(String(response.data.expiresAt || ''))}</p>
+                    <p class="notify-form-intro">${escapeHtml(i18n.validUntil)} ${escapeHtml(String(response.data.expiresAt || ''))}</p>
                     <label class="notify-field">
-                        <span class="notify-field-label">Registration link</span>
+                        <span class="notify-field-label">${escapeHtml(i18n.registrationLink)}</span>
                         <input type="text" readonly value="${escapeHtml(inviteUrl)}">
                     </label>
                 </div>
             `, {
-                confirmButtonText: 'Done',
+                confirmButtonText: i18n.done,
             });
         });
     });
@@ -252,27 +351,27 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
                         <input type="checkbox" class="role-checkbox notify-role-check" value="${escapeHtml(roleName)}" ${checked}>
                         <span class="notify-role-copy">
                             <span class="notify-role-name">${escapeHtml(roleName)}</span>
-                            <span class="notify-role-permissions">${escapeHtml(permissions || 'No permissions')}</span>
+                            <span class="notify-role-permissions">${escapeHtml(permissions || i18n.noPermissions)}</span>
                         </span>
                     </label>
                 `;
             }).join('');
 
             const result = await prompt(`
-                <div>Update roles for ${escapeHtml(selectedUser.username || '')}</div>
+                <div>${escapeHtml(i18n.updateRolesFor)} ${escapeHtml(selectedUser.username || '')}</div>
                 <div class="notify-form">
-                    <div class="notify-section-head"><span>Roles</span><span>Select at least one</span></div>
+                    <div class="notify-section-head"><span>${escapeHtml(i18n.roles)}</span><span>${escapeHtml(i18n.selectAtLeastOne)}</span></div>
                     <div class="notify-role-list">${roleMarkup}</div>
                 </div>
             `, {
-                confirmButtonText: 'Save',
-                cancelButtonText: 'Cancel',
+                confirmButtonText: i18n.save,
+                cancelButtonText: i18n.cancel,
                 showCancelButton: true,
                 confirmCallback: async (promptInstance) => {
                     selectedRoles = Array.from(promptInstance.container.querySelectorAll('.role-checkbox:checked'))
                         .map((checkbox) => checkbox.value);
                     if (selectedRoles.length === 0) {
-                        toast('Please assign at least one role.');
+                        toast(i18n.pleaseAssignRole);
                         return false;
                     }
                     promptInstance.promise.resolve(true);
@@ -287,7 +386,7 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
 
             const response = await postJson(updateRolesUrl, {userId, roles: selectedRoles});
             if (!response.ok || !response.data.success) {
-                toast(response.data.reason || 'Could not update roles.');
+                toast(response.data.reason || i18n.couldNotUpdateRoles);
                 return;
             }
 
@@ -297,10 +396,10 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
             renderRoleBadges(userId, selectedUser.roles);
             const permissionsTarget = document.querySelector(`[data-user-permissions="${userId}"]`);
             if (permissionsTarget) {
-                permissionsTarget.textContent = selectedUser.permissions.length ? 'Berechtigungen anzeigen' : 'Keine Berechtigungen';
-                permissionsTarget.setAttribute('title', selectedUser.permissions.length ? selectedUser.permissions.join(', ') : 'Keine Berechtigungen');
+                permissionsTarget.textContent = selectedUser.permissions.length ? i18n.showPermissions : i18n.noPermissions;
+                permissionsTarget.setAttribute('title', selectedUser.permissions.length ? selectedUser.permissions.join(', ') : i18n.noPermissions);
             }
-            toast('Roles updated.');
+            toast(i18n.rolesUpdated);
         });
     });
 
@@ -313,8 +412,8 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
             }
 
             const confirmed = await prompt(
-                `<div>Delete ${escapeHtml(selectedUser.username || 'this user')}?</div><p class="mt-2 text-sm text-slate-500">This removes the account and active sessions.</p>`,
-                {confirmButtonText: 'Delete', cancelButtonText: 'Cancel', showCancelButton: true}
+                `<div>${escapeHtml(i18n.delete)} ${escapeHtml(selectedUser.username || i18n.deleteUserFallback)}?</div><p class="mt-2 text-sm text-slate-500">${escapeHtml(i18n.deleteUserIntro)}</p>`,
+                {confirmButtonText: i18n.delete, cancelButtonText: i18n.cancel, showCancelButton: true}
             );
             if (confirmed === false) {
                 return;
@@ -322,12 +421,12 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
 
             const response = await postJson(deleteUserUrl, {userId});
             if (!response.ok || !response.data.success) {
-                toast(response.data.reason || 'Could not delete user.');
+                toast(response.data.reason || i18n.couldNotDeleteUser);
                 return;
             }
 
             document.querySelector(`[data-user-row="${userId}"]`)?.remove();
-            toast('User deleted.');
+            toast(i18n.userDeleted);
         });
     });
 </script>

@@ -45,6 +45,13 @@ It should support:
 
 The UI should be functional and dense enough for real work, not feel like a marketing page.
 
+Admin UI implementation should be Tailwind-first:
+
+- Prefer Tailwind utility classes directly in `.phtml` components and views for layout, spacing, typography, borders, colors, responsive behavior, and common states.
+- Use `app/Resources/css/nixcms.css` primarily as the Tailwind CSS entry point for `@import`, `@source`, `@theme`, dark-mode variants, global tokens, base behavior, and third-party or genuinely complex selectors.
+- Add custom CSS only when Tailwind utility classes would make the markup hard to read or when the behavior needs selectors/pseudo-elements/custom properties that Tailwind utilities cannot express cleanly.
+- Do not add a `tailwind.config.js` by default; keep Tailwind v4 configuration in the CSS entry point unless a real toolchain constraint requires otherwise.
+
 ## Plugin Concept
 
 NixPHP plugins should also be able to extend NixCMS.
@@ -574,7 +581,7 @@ Avoid landing-page or marketing-style admin screens. The first screen should be 
 
 For this NixCMS repository, browser-consumed assets must exist below `public/css` and `public/js`. `app/Resources` is for source/build inputs only.
 
-Admin UI components should be self-contained by default. Prefer Tailwind utility classes and small local class decisions inside `views/components/admin/*`; keep global CSS for tokens, base behavior, menu state helpers, and third-party integration only. A plugin should usually be able to override one component file without also patching global CSS.
+Admin UI components should be self-contained by default. Prefer Tailwind utility classes and small local class decisions inside `views/components/admin/*`; keep global CSS for Tailwind entrypoint concerns, tokens, base behavior, complex selectors, and third-party integration only. A plugin should usually be able to override one component file without also patching global CSS.
 
 ## Operational Notes To Carry Forward
 

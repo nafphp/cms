@@ -3,22 +3,26 @@
 declare(strict_types=1);
 
 use function NixPHP\View\s;
+use function NixPHP\I18n\t;
+
+$settings = cms()->settings();
+$currentLanguage = $settings->currentLanguage();
 
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="<?= s($currentLanguage) ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>403 — Forbidden | NixCMS</title>
+    <title><?= s($settings->pageTitle(t('403 Forbidden'))) ?></title>
     <link rel="stylesheet" href="/css/nixcms.css">
 </head>
-<body class="auth-shell">
-<main class="auth-main">
-    <p class="eyebrow">403</p>
-    <h1>Access denied</h1>
-    <p>You don’t have permission to view this page.</p>
-    <a class="button" href="/admin">Back to admin</a>
+<body class="grid min-h-screen place-items-center bg-slate-50 p-8 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
+<main class="w-[min(420px,100%)] rounded-xl border border-slate-200 bg-white p-6 shadow-[0_18px_48px_rgba(15,23,42,.08)] dark:border-slate-800 dark:bg-slate-900">
+    <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-accent">403</p>
+    <h1><?= s(t('Access denied')) ?></h1>
+    <p><?= s(t('You do not have permission to view this page.')) ?></p>
+    <a class="inline-flex min-h-10 items-center justify-center rounded-lg bg-accent px-4 text-sm font-bold text-white" href="/admin"><?= s(t('Back to admin')) ?></a>
 </main>
 </body>
 </html>

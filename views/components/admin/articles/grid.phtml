@@ -2,6 +2,7 @@
 
 use NixCMS\Enums\Language;
 use function NixPHP\Form\csrf;
+use function NixPHP\I18n\t;
 use function NixPHP\route;
 use function NixPHP\View\s;
 
@@ -25,62 +26,63 @@ $config = [
         'translate' => '/api/admin/articles/{articleId}/translate/enqueue',
     ],
     'labels' => [
-        'actions' => 'Aktionen',
-        'allLanguages' => 'All languages',
-        'autoTranslate' => 'Auto translate',
-        'cancel' => 'Cancel',
-        'chooseLanguage' => 'Choose language',
-        'chooseLanguages' => 'Choose one or more languages',
-        'continue' => 'Continue',
-        'createArticle' => 'Artikel erstellen',
-        'delete' => 'Delete',
-        'deleteConfirm' => 'Really delete?',
-        'edit' => 'Edit',
-        'editDraft' => 'Edit draft',
-        'empty' => 'No articles found.',
-        'language' => 'Language',
-        'languages' => 'Languages',
-        'loading' => 'Loading articles...',
-        'newTranslation' => 'New translation',
-        'newVersion' => 'New version',
-        'noDraft' => 'No editable draft version found.',
-        'noLanguage' => 'No language available.',
-        'noResults' => 'No matching articles found.',
-        'oneLanguage' => 'One language',
-        'preview' => 'Preview',
-        'publish' => 'Publish',
-        'publishConfirm' => 'Really publish?',
-        'publishedAt' => 'Veröffentlichungsdatum',
-        'queue' => 'Queue',
-        'search' => 'Search articles...',
-        'select' => 'Select',
-        'sourceLanguage' => 'Choose source language',
-        'status' => 'Status',
-        'targetLanguage' => 'Choose target language',
-        'targetMode' => 'Choose target mode',
-        'title' => 'Titel',
-        'version' => 'Version',
-        'versions' => 'Versions',
+        'actions' => t('Actions'),
+        'allLanguages' => t('All languages'),
+        'autoTranslate' => t('Auto translate'),
+        'cancel' => t('Cancel'),
+        'chooseLanguage' => t('Choose language'),
+        'chooseLanguages' => t('Choose one or more languages'),
+        'continue' => t('Continue'),
+        'createArticle' => t('Create article'),
+        'delete' => t('Delete'),
+        'deleteConfirm' => t('Really delete?'),
+        'edit' => t('Edit'),
+        'editDraft' => t('Edit draft'),
+        'empty' => t('No articles found.'),
+        'language' => t('Language'),
+        'languages' => t('Languages'),
+        'languageCount' => t('%s languages'),
+        'loading' => t('Loading articles...'),
+        'newTranslation' => t('New translation'),
+        'newVersion' => t('New version'),
+        'noDraft' => t('No editable draft version found.'),
+        'noLanguage' => t('No language available.'),
+        'noResults' => t('No matching articles found.'),
+        'oneLanguage' => t('One language'),
+        'preview' => t('Preview'),
+        'publish' => t('Publish'),
+        'publishConfirm' => t('Really publish?'),
+        'publishedAt' => t('Publish date'),
+        'queue' => t('Queue'),
+        'search' => t('Search articles...'),
+        'select' => t('Select'),
+        'sourceLanguage' => t('Choose source language'),
+        'status' => t('Status'),
+        'targetLanguage' => t('Choose target language'),
+        'targetMode' => t('Choose target mode'),
+        'title' => t('Title'),
+        'version' => t('Version'),
+        'versions' => t('Versions'),
     ],
 ];
 
 ?>
 <div
-    class="article-grid-component"
+    class="grid gap-3.5"
     data-article-grid
     data-config="<?= s(json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '{}') ?>"
 >
-    <div class="article-grid-toolbar">
-        <div class="article-grid-search-wrap">
-            <span class="icon-search article-grid-search-icon" aria-hidden="true"></span>
-            <input class="article-grid-search" type="search" placeholder="Search articles..." data-article-search>
+    <div class="flex items-center justify-between gap-4 max-admin:flex-col max-admin:items-stretch">
+        <div class="flex min-h-12 w-[min(438px,100%)] items-center gap-2 rounded-lg border border-[var(--border)] bg-admin-field px-3 focus-within:border-accent focus-within:bg-admin-field-focus focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)]">
+            <span class="icon-search text-[13px] text-slate-500" aria-hidden="true"></span>
+            <input class="w-full min-w-0 border-0 bg-transparent text-sm text-inherit outline-none placeholder:text-slate-400" type="search" placeholder="<?= s(t('Search articles...')) ?>" data-article-search>
         </div>
-        <a class="article-grid-primary-action" href="<?= s(route('admin.articles.create')) ?>">
-            Artikel erstellen
+        <a class="inline-flex min-h-12 items-center justify-center rounded-lg border border-[rgba(169,201,247,.38)] bg-[linear-gradient(180deg,#6895d4,#4f7fbd)] px-4 text-sm font-bold text-white" href="<?= s(route('admin.articles.create')) ?>">
+            <?= s(t('Create article')) ?>
         </a>
     </div>
-    <div class="article-grid-frame" data-article-grid-frame>
-        <div class="article-grid-state">Loading articles...</div>
+    <div class="relative overflow-x-auto rounded-lg border border-slate-300/70 bg-white/80 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-slate-400/25 dark:bg-slate-950/50 dark:shadow-none" data-article-grid-frame>
+        <div class="py-8 text-center text-sm text-slate-500"><?= s(t('Loading articles...')) ?></div>
     </div>
 </div>
 <script type="module" src="/js/admin/article-grid.js"></script>

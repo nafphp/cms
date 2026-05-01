@@ -14,10 +14,12 @@ use NixCMS\Enums\Permission;
 use NixCMS\Enums\Role;
 use NixCMS\Events\AdminGuardEvent;
 use NixCMS\Events\AuthRedirectEvent;
+use NixCMS\Events\SettingsLocaleEvent;
 use NixCMS\Mcp\Tools\ArticleStatusCountsTool;
 use NixCMS\Mcp\Tools\QueueStatusTool;
 use NixCMS\Mcp\Tools\SystemHealthTool;
 use NixCMS\Models\User;
+use NixCMS\Support\Audit;
 use NixCMS\Repositories\UserRepository;
 use NixCMS\Support\UserHelper;
 use NixPHP\Core\Event;
@@ -31,6 +33,7 @@ use function NixPHP\Session\session;
 const BASE_PATH = __DIR__;
 
 event()->listen(Event::EXCEPTION, [AuthRedirectEvent::class, 'onException'], -100);
+event()->listen(Event::REQUEST_START, [SettingsLocaleEvent::class, 'handle'], -10);
 event()->listen(Event::CONTROLLER_CALLING, [AdminGuardEvent::class, 'handle']);
 
 command()->add(CreateDatabaseCommand::class);
@@ -53,6 +56,11 @@ function cms(): \NixCMS\Support\Cms
     }
 
     return $cache;
+}
+
+function settings(): \NixCMS\Settings\SettingsRegistry
+{
+    return cms()->settingsRegistry();
 }
 
 function user(): ?UserHelper
@@ -97,6 +105,20 @@ function user(): ?UserHelper
     $cachedUserId = $userId;
     $cache = new UserHelper($user);
     return $cache;
+}
+
+/**
+ * @param array<string, mixed> $meta
+ */
+function audit(
+    string $action,
+    string $subjectType,
+    string $subjectKey,
+    mixed $oldValue = null,
+    mixed $newValue = null,
+    array $meta = [],
+): bool {
+    return (new Audit())->record($action, $subjectType, $subjectKey, $oldValue, $newValue, $meta);
 }
 
 if (!defined('PHPUNIT_RUNNING')) {

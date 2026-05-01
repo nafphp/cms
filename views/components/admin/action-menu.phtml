@@ -1,0 +1,66 @@
+<?php
+
+use function NixPHP\I18n\t;
+use function NixPHP\View\s;
+
+$label = (string) ($label ?? t('Actions'));
+$actions = is_array($actions ?? null) ? $actions : [];
+
+$menuClass = 'admin-action-menu relative z-[90] inline-block cursor-pointer open:z-[1000]';
+$summaryClass = 'grid h-[34px] w-[34px] cursor-pointer list-none place-items-center rounded-md border border-slate-900/10 bg-slate-900/[.055] text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,.45)] transition hover:border-sky-400/45 hover:bg-sky-500/10 hover:text-sky-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400 [&::-webkit-details-marker]:hidden dark:border-slate-400/15 dark:bg-slate-500/35 dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,.08)] dark:hover:border-sky-300/45 dark:hover:bg-sky-400/15';
+$panelClass = 'admin-action-menu-panel pointer-events-none fixed z-[1000] grid min-w-[188px] -translate-y-1 scale-[.98] gap-1 rounded-lg border border-[var(--border)] bg-white/95 p-1.5 opacity-0 shadow-[0_18px_44px_rgba(15,23,42,.16)] backdrop-blur transition duration-150 dark:bg-slate-900/96 dark:shadow-[0_20px_70px_rgba(0,0,0,.42)]';
+$itemClass = 'admin-action-menu-item flex min-h-9 w-full items-center gap-2 rounded-md px-2.5 text-left text-sm font-semibold text-[var(--text)] transition hover:bg-surface-soft focus-visible:bg-surface-soft focus-visible:outline-none';
+$iconClass = 'grid h-6 w-6 shrink-0 place-items-center rounded-md border border-slate-900/10 bg-slate-900/[.045] text-[11px] text-slate-500 dark:border-slate-400/15 dark:bg-white/[.045] dark:text-slate-300';
+$dangerClass = 'text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-950/40';
+$disabledClass = 'cursor-not-allowed opacity-45 hover:bg-transparent';
+
+$htmlAttributes = static function (array $attributes): string {
+    $html = '';
+    foreach ($attributes as $name => $value) {
+        if ($value === null || $value === false) {
+            continue;
+        }
+        $html .= ' ' . s((string) $name);
+        if ($value !== true) {
+            $html .= '="' . s((string) $value) . '"';
+        }
+    }
+
+    return $html;
+};
+
+?>
+<details class="<?= s($menuClass) ?>" data-admin-action-menu>
+    <summary class="<?= s($summaryClass) ?>" aria-label="<?= s($label) ?>">
+        <span class="icon-dots-horizontal-triple text-[15px]" aria-hidden="true"></span>
+    </summary>
+    <div class="<?= s($panelClass) ?>">
+        <?php foreach ($actions as $action): ?>
+            <?php
+            $actionLabel = (string) ($action['label'] ?? '');
+            if ($actionLabel === '') {
+                continue;
+            }
+
+            $href = trim((string) ($action['href'] ?? ''));
+            $danger = (bool) ($action['danger'] ?? false);
+            $disabled = (bool) ($action['disabled'] ?? false);
+            $icon = trim((string) ($action['icon'] ?? ''));
+            $attributes = is_array($action['attributes'] ?? null) ? $action['attributes'] : [];
+            $classes = trim($itemClass . ' ' . ($danger ? $dangerClass : '') . ' ' . ($disabled ? $disabledClass : '') . ' ' . (string) ($action['class'] ?? ''));
+            $itemAttributes = $htmlAttributes($attributes);
+            ?>
+            <?php if ($href !== '' && !$disabled): ?>
+                <a class="<?= s($classes) ?>" href="<?= s($href) ?>" data-admin-action-menu-item<?= $itemAttributes ?>>
+                    <span class="<?= s($iconClass) ?>" aria-hidden="true"><?= $icon !== '' ? '<span class="' . s($icon) . '"></span>' : '' ?></span>
+                    <span class="min-w-0 flex-1 truncate"><?= s($actionLabel) ?></span>
+                </a>
+            <?php else: ?>
+                <button class="<?= s($classes) ?>" type="button" <?= $disabled ? 'disabled aria-disabled="true"' : '' ?> data-admin-action-menu-item<?= $itemAttributes ?>>
+                    <span class="<?= s($iconClass) ?>" aria-hidden="true"><?= $icon !== '' ? '<span class="' . s($icon) . '"></span>' : '' ?></span>
+                    <span class="min-w-0 flex-1 truncate"><?= s($actionLabel) ?></span>
+                </button>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </div>
+</details>

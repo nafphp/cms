@@ -1,7 +1,8 @@
 import prompt from '../lib/notifyJs/Modules/Prompt.js';
 import toast from '../lib/notifyJs/Modules/Toast.js';
+import {actionMenuMarkup, setupActionMenus} from '../components/actionMenu.js';
 
-const reviewableStatuses = new Set(['draft', 'review', 'declined']);
+const reviewableStatuses = new Set(['draft', 'declined']);
 const languageTitles = {
     de: 'German (DE)',
     en: 'English (EN)',
@@ -10,12 +11,27 @@ const languageTitles = {
     it: 'Italian (IT)',
 };
 const languageFlags = {
-    de: 'DE',
-    en: 'EN',
-    fr: 'FR',
-    es: 'ES',
-    it: 'IT',
+    de: '🇩🇪',
+    en: '🇬🇧',
+    fr: '🇫🇷',
+    es: '🇪🇸',
+    it: '🇮🇹',
 };
+const tableClass = 'article-grid-table w-full min-w-[980px] table-fixed border-separate border-spacing-0 text-sm';
+const tableCellClass = '[&_td]:h-[78px] [&_td]:border-b [&_td]:border-slate-900/10 [&_td]:px-[18px] [&_td]:py-4 [&_td]:text-left [&_td]:text-[rgba(48,48,48,.86)] dark:[&_td]:border-slate-400/15 dark:[&_td]:text-slate-100 [&_th]:h-[46px] [&_th]:border-b [&_th]:border-slate-900/10 [&_th]:bg-slate-200/70 [&_th]:px-[18px] [&_th]:py-[11px] [&_th]:text-left [&_th]:text-[13px] [&_th]:font-semibold [&_th]:leading-tight [&_th]:text-slate-700 dark:[&_th]:border-slate-400/15 dark:[&_th]:bg-slate-800/50 dark:[&_th]:text-slate-300';
+const rowClass = 'article-grid-row cursor-pointer hover:[&_td]:bg-slate-900/[.035] dark:hover:[&_td]:bg-white/[.035]';
+const titleCellClass = 'font-semibold text-[#303030] dark:text-slate-50';
+const wideCellClass = 'article-grid-wide wide:table-cell max-wide:hidden';
+const sortButtonClass = 'article-grid-sort-button inline-flex min-w-0 cursor-pointer items-center p-0 text-left font-inherit text-inherit';
+const sortMarkClass = 'article-grid-sort-mark text-[11px] font-medium leading-none text-slate-500 dark:text-slate-400';
+const statusClass = 'article-status-chip inline-flex min-h-6 items-center justify-center rounded-md bg-slate-900/5 px-2 text-xs font-bold text-slate-700 dark:bg-transparent dark:text-slate-100';
+const languageBadgeWrapClass = 'article-language-badges inline-flex flex-nowrap items-center gap-1.5';
+const languageFlagClass = 'article-language-flag inline-flex min-h-8 min-w-8 items-center justify-center rounded-md border border-slate-900/10 bg-slate-900/5 px-0 text-xs font-bold text-slate-700 dark:border-slate-400/30 dark:bg-slate-500/30 dark:text-white';
+const languageSummaryClass = 'article-language-summary relative inline-flex min-h-8 items-center justify-center whitespace-nowrap rounded-md border border-slate-900/10 bg-slate-900/5 px-2.5 text-xs font-bold text-slate-700 dark:border-slate-400/30 dark:bg-slate-500/30 dark:text-white';
+const languagePopoverClass = 'article-language-popover pointer-events-none fixed z-[1001] grid min-w-45 -translate-y-0.5 gap-1 rounded-lg border border-slate-300 bg-white p-2 opacity-0 shadow-[0_20px_70px_rgba(0,0,0,.18)] transition dark:border-slate-400/30 dark:bg-slate-900 dark:shadow-[0_20px_70px_rgba(0,0,0,.38)]';
+const detailsClass = 'bg-slate-200/40 px-3 pb-3 pt-0 dark:bg-slate-950/40';
+const nestedTableClass = 'article-version-table w-full min-w-[1240px] table-fixed border-separate border-spacing-0 rounded border border-slate-300/70 bg-white/80 text-sm dark:border-slate-400/15 dark:bg-slate-950/50';
+const stateClass = 'py-8 text-center text-sm text-slate-500';
 
 class ArticleGrid {
     constructor(root) {
@@ -25,12 +41,22 @@ class ArticleGrid {
         this.search = root.querySelector('[data-article-search]');
         this.rows = [];
         this.expanded = new Set();
+        this.sort = {key: 'id', direction: 'asc'};
     }
 
     async init() {
+        setupActionMenus(this.root);
         this.search?.addEventListener('input', () => this.render());
         this.root.addEventListener('click', (event) => this.handleClick(event));
         this.root.addEventListener('click', (event) => this.handleRowClick(event));
+        this.root.addEventListener('click', (event) => this.handleSortClick(event));
+        this.root.addEventListener('mouseover', (event) => this.showLanguagePopover(event));
+        this.root.addEventListener('mouseout', (event) => this.hideLanguagePopover(event));
+        this.root.addEventListener('focusin', (event) => this.showLanguagePopover(event));
+        this.root.addEventListener('focusout', (event) => this.hideLanguagePopover(event));
+        window.addEventListener('resize', () => {
+            this.syncDetailColumnGeometry();
+        });
         await this.refresh();
     }
 
@@ -51,26 +77,27 @@ class ArticleGrid {
     }
 
     render() {
-        const rows = this.filteredRows();
+        const rows = this.sortedRows(this.filteredRows());
         if (rows.length === 0) {
             this.renderState(this.searchTerm() === '' ? this.label('empty') : this.label('noResults'));
             return;
         }
 
         const table = document.createElement('table');
-        table.className = 'article-grid-table';
+        table.className = `${tableClass} ${tableCellClass}`;
         table.innerHTML = `
+            ${tableColumnGroup()}
             <thead>
                 <tr>
-                    <th>${sortableHeader('#')}</th>
-                    <th>${sortableHeader(this.label('title'))}</th>
-                    <th class="article-grid-wide">${sortableHeader('Slug')}</th>
-                    <th>${sortableHeader('Author')}</th>
-                    <th class="article-grid-wide">${sortableHeader(this.label('publishedAt'))}</th>
-                    <th>${sortableHeader(this.label('version'))}</th>
-                    <th>${sortableHeader(this.label('status'))}</th>
+                    <th>${this.sortableHeader('#', 'id')}</th>
+                    <th>${this.sortableHeader(this.label('title'), 'title')}</th>
+                    <th class="${wideCellClass}">${this.sortableHeader('Slug', 'slug')}</th>
+                    <th>${this.sortableHeader('Author', 'author')}</th>
+                    <th class="${wideCellClass}">${this.sortableHeader(this.label('publishedAt'), 'publishedAt')}</th>
+                    <th>${this.sortableHeader(this.label('version'), 'lastVersion')}</th>
+                    <th>${this.sortableHeader(this.label('status'), 'status')}</th>
                     <th>${escapeHtml(this.label('languages'))}</th>
-                    <th class="article-grid-actions-head">${escapeHtml(this.label('actions'))}</th>
+                    <th class="w-[6%] text-right">${escapeHtml(this.label('actions'))}</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -85,18 +112,47 @@ class ArticleGrid {
         });
 
         this.frame.replaceChildren(table);
+        this.syncDetailColumnGeometry();
+        requestAnimationFrame(() => this.syncDetailColumnGeometry());
+    }
+
+    sortableHeader(label, key) {
+        const active = this.sort.key === key;
+        const direction = active ? this.sort.direction : 'none';
+        const mark = active ? (direction === 'asc' ? '↑' : '↓') : '↕';
+        return `<button class="${sortButtonClass} ${active ? 'is-active' : ''}" type="button" data-sort-key="${escapeAttr(key)}" aria-sort="${escapeAttr(direction)}">
+            <span class="inline-flex min-w-0 items-center gap-1">${escapeHtml(label)} <span class="${sortMarkClass} ${active ? 'text-slate-800 dark:text-slate-50' : ''}" aria-hidden="true">${mark}</span></span>
+        </button>`;
+    }
+
+    handleSortClick(event) {
+        const button = event.target.closest('[data-sort-key]');
+        if (!button || !this.root.contains(button)) {
+            return;
+        }
+
+        const key = String(button.dataset.sortKey || '');
+        if (key === '') {
+            return;
+        }
+
+        this.sort = {
+            key,
+            direction: this.sort.key === key && this.sort.direction === 'asc' ? 'desc' : 'asc',
+        };
+        this.render();
     }
 
     renderMainRow(row) {
         const tr = document.createElement('tr');
-        tr.className = 'article-grid-row';
+        tr.className = rowClass;
         tr.dataset.articleId = String(row.id ?? '');
         tr.innerHTML = `
             <td>${escapeHtml(row.id || '-')}</td>
-            <td class="article-grid-title">${escapeHtml(row.title || '-')}</td>
-            <td class="article-grid-wide">${escapeHtml(row.slug || '-')}</td>
+            <td class="${titleCellClass}">${escapeHtml(row.title || '-')}</td>
+            <td class="${wideCellClass}">${escapeHtml(row.slug || '-')}</td>
             <td>${escapeHtml(row.author || '-')}</td>
-            <td class="article-grid-wide">${escapeHtml(formatDate(row.publishedAt))}</td>
+            <td class="${wideCellClass}">${escapeHtml(formatDate(row.publishedAt))}</td>
             <td>${escapeHtml(row.lastVersion ? `v${Number(row.lastVersion)}` : '-')}</td>
             <td>${statusChip(row.status)}</td>
             <td>${this.languageBadges(this.languages(row))}</td>
@@ -131,28 +187,58 @@ class ArticleGrid {
     renderDetailsRow(row) {
         const tr = document.createElement('tr');
         tr.className = 'article-grid-details-row';
+        tr.dataset.articleId = String(row.id ?? '');
         const versions = this.versions(row);
         const cells = versions.length === 0
-            ? `<div class="article-grid-state">${escapeHtml(this.label('versions'))}: 0</div>`
-            : `<table class="article-version-table">
-                <thead>
-                    <tr>
-                        <th>${escapeHtml(this.label('language'))}</th>
-                        <th>${escapeHtml(this.label('title'))}</th>
-                        <th>Slug</th>
-                        <th>${escapeHtml(this.label('version'))}</th>
-                        <th>${escapeHtml(this.label('status'))}</th>
-                        <th>${escapeHtml(this.label('publishedAt'))}</th>
-                        <th>${escapeHtml(this.label('actions'))}</th>
-                    </tr>
-                </thead>
+            ? `<div class="${stateClass}">${escapeHtml(this.label('versions'))}: 0</div>`
+            : `<table class="${nestedTableClass} ${tableCellClass}">
+                ${tableColumnGroup()}
                 <tbody>
                     ${versions.map((version) => this.versionRow(row, version)).join('')}
                 </tbody>
             </table>`;
 
-        tr.innerHTML = `<td colspan="9"><div class="article-grid-details">${cells}</div></td>`;
+        tr.innerHTML = `<td colspan="9"><div class="${detailsClass}">${cells}</div></td>`;
         return tr;
+    }
+
+    syncDetailColumnGeometry() {
+        this.root.querySelectorAll('.article-grid-details-row').forEach((detailRow) => {
+            const id = String(detailRow.dataset.articleId || '');
+            const parentRow = id === '' ? null : this.root.querySelector(`.article-grid-row[data-article-id="${CSS.escape(id)}"]`);
+            const nestedTable = detailRow.querySelector('.article-version-table');
+            if (!parentRow || !nestedTable) {
+                return;
+            }
+
+            this.applyParentColumnGeometry(parentRow, nestedTable);
+        });
+    }
+
+    applyParentColumnGeometry(parentRow, nestedTable) {
+        const parentCells = Array.from(parentRow.children).filter((cell) => cell instanceof HTMLTableCellElement);
+        if (parentCells.length === 0) {
+            return;
+        }
+
+        const detailBox = nestedTable.getBoundingClientRect();
+        const widths = parentCells.map((cell, index) => {
+            const rect = cell.getBoundingClientRect();
+            const nextRect = parentCells[index + 1]?.getBoundingClientRect();
+            const measuredWidth = nextRect ? nextRect.left - rect.left : rect.width;
+            const left = Math.max(rect.left, detailBox.left);
+            const right = Math.min(rect.left + measuredWidth, detailBox.right);
+            return Math.max(index === 0 ? 24 : 64, Math.round(right - left));
+        });
+
+        let colgroup = nestedTable.querySelector('colgroup');
+        if (!colgroup) {
+            colgroup = document.createElement('colgroup');
+            nestedTable.prepend(colgroup);
+        }
+
+        colgroup.innerHTML = widths.map((width) => `<col style="width:${width}px">`).join('');
+        nestedTable.style.tableLayout = 'fixed';
     }
 
     versionRow(row, version) {
@@ -165,18 +251,16 @@ class ArticleGrid {
 
         return `
             <tr>
-                <td>${this.languageBadges([version.language])}</td>
-                <td>${editable ? `<a href="${escapeAttr(editUrl)}">${escapeHtml(version.title || '-')}</a>` : escapeHtml(version.title || '-')}</td>
+                <td>${escapeHtml(version.articleVersionId || version.id || '-')}</td>
+                <td>${editable ? `<a class="font-semibold text-blue-700 hover:text-blue-900 dark:text-slate-50 dark:hover:text-blue-300" href="${escapeAttr(editUrl)}">${escapeHtml(version.title || '-')}</a>` : escapeHtml(version.title || '-')}</td>
                 <td>${escapeHtml(version.slug || '-')}</td>
-                <td>v${Number(version.version || 0)}</td>
-                <td>${statusChip(version.status)}</td>
-                <td>${escapeHtml(formatDate(version.publishedAt))}</td>
-                <td>
-                    <div class="article-inline-actions">
-                        ${editable ? `<button type="button" data-grid-action="edit-version" data-article-id="${escapeAttr(row.id)}" data-language="${escapeAttr(version.language)}" data-version="${escapeAttr(version.version)}">${escapeHtml(this.label('edit'))}</button>` : ''}
-                        <button type="button" data-grid-action="new-version" data-article-id="${escapeAttr(row.id)}" data-language="${escapeAttr(version.language)}" data-version="${escapeAttr(version.version)}">${escapeHtml(this.label('newVersion'))}</button>
-                        ${String(version.status) !== 'published' ? `<button type="button" data-grid-action="delete-version" data-article-id="${escapeAttr(row.id)}" data-language="${escapeAttr(version.language)}" data-version="${escapeAttr(version.version)}" class="danger">${escapeHtml(this.label('delete'))}</button>` : ''}
-                    </div>
+                <td>${escapeHtml(row.author || '-')}</td>
+                <td class="whitespace-nowrap">${escapeHtml(formatDate(version.publishedAt))}</td>
+                <td class="whitespace-nowrap">v${Number(version.version || 0)}</td>
+                <td class="whitespace-nowrap">${statusChip(version.status)}</td>
+                <td class="whitespace-nowrap">${this.languageBadges([version.language])}</td>
+                <td class="text-right">
+                    ${this.versionActionMenu(row, version)}
                 </td>
             </tr>
         `;
@@ -194,14 +278,88 @@ class ArticleGrid {
             ['delete', this.label('delete'), this.languages(row).length > 0],
         ].filter((item) => item[2]);
 
-        return `
-            <details class="article-action-menu">
-                <summary aria-label="${escapeAttr(this.label('actions'))}">...</summary>
-                <div>
-                    ${actions.map(([action, label]) => `<button type="button" data-grid-action="${action}" data-article-id="${id}">${escapeHtml(label)}</button>`).join('')}
-                </div>
-            </details>
-        `;
+        return actionMenuMarkup({
+            label: this.label('actions'),
+            actions: actions.map(([action, label]) => ({
+                action,
+                label,
+                danger: action.includes('delete'),
+                attributes: [`data-article-id="${id}"`],
+                icon: actionIcon(action),
+            })),
+        });
+    }
+
+    versionActionMenu(row, version) {
+        const id = escapeAttr(row.id);
+        const language = escapeAttr(version.language);
+        const versionNumber = escapeAttr(version.version);
+        const actions = [
+            ['edit-version', this.label('edit'), isReviewable(version.status)],
+            ['new-version', this.label('newVersion'), String(version.language || '').trim() !== ''],
+            ['delete-version', this.label('delete'), String(version.language || '').trim() !== ''],
+        ].filter((item) => item[2]);
+
+        if (actions.length === 0) {
+            return '';
+        }
+
+        return actionMenuMarkup({
+            label: this.label('actions'),
+            actions: actions.map(([action, label]) => ({
+                action,
+                label,
+                danger: action.includes('delete'),
+                attributes: [
+                    `data-article-id="${id}"`,
+                    `data-language="${language}"`,
+                    `data-version="${versionNumber}"`,
+                ],
+                icon: actionIcon(action),
+            })),
+        });
+    }
+
+    showLanguagePopover(event) {
+        const summary = event.target.closest?.('.article-language-summary');
+        if (!summary || !this.root.contains(summary)) {
+            return;
+        }
+
+        this.positionLanguagePopover(summary);
+        const popover = summary.querySelector('.article-language-popover');
+        popover?.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
+    }
+
+    hideLanguagePopover(event) {
+        const summary = event.target.closest?.('.article-language-summary');
+        if (!summary || !this.root.contains(summary)) {
+            return;
+        }
+
+        if (event.relatedTarget && summary.contains(event.relatedTarget)) {
+            return;
+        }
+
+        const popover = summary.querySelector('.article-language-popover');
+        popover?.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
+    }
+
+    positionLanguagePopover(summary) {
+        const popover = summary.querySelector('.article-language-popover');
+        if (!popover) {
+            return;
+        }
+
+        const rect = summary.getBoundingClientRect();
+        const width = Math.max(popover.offsetWidth || 180, 180);
+        const left = Math.max(8, Math.min(window.innerWidth - width - 8, rect.left));
+        const top = Math.min(window.innerHeight - 8, rect.bottom + 8);
+
+        summary.style.setProperty('--article-language-popover-left', `${left}px`);
+        summary.style.setProperty('--article-language-popover-top', `${top}px`);
+        popover.style.left = `${left}px`;
+        popover.style.top = `${top}px`;
     }
 
     async handleClick(event) {
@@ -412,10 +570,10 @@ class ArticleGrid {
         const result = await prompt(`
             <div class="notify-form">
                 <div class="notify-field-label">${escapeHtml(title)}</div>
-                <div class="article-language-choice-list">
+                <div class="grid gap-2">
                     ${available.map((language) => `
-                        <label>
-                            <input type="checkbox" value="${escapeAttr(language)}" checked>
+                        <label class="flex min-h-10 items-center gap-2 rounded-lg border border-[var(--border)] bg-admin-field px-3 text-sm font-semibold text-[var(--text)]">
+                            <input class="h-4 w-4 accent-[var(--admin-page-accent)]" type="checkbox" value="${escapeAttr(language)}" checked>
                             <span>${escapeHtml(languageLabel(language))}</span>
                         </label>
                     `).join('')}
@@ -483,6 +641,18 @@ class ArticleGrid {
         ].some((value) => String(value ?? '').toLowerCase().includes(term)));
     }
 
+    sortedRows(rows) {
+        const key = this.sort.key;
+        const direction = this.sort.direction === 'desc' ? -1 : 1;
+        return rows
+            .map((row, index) => ({row, index}))
+            .sort((left, right) => {
+                const result = compareSortValues(sortValue(left.row, key), sortValue(right.row, key));
+                return result === 0 ? left.index - right.index : result * direction;
+            })
+            .map((item) => item.row);
+    }
+
     searchTerm() {
         return String(this.search?.value ?? '').trim();
     }
@@ -517,8 +687,20 @@ class ArticleGrid {
             return '-';
         }
 
-        return `<span class="article-language-badges">
-            ${normalized.map((language) => `<span class="article-language-flag" title="${escapeAttr(languageLabel(language))}">${escapeHtml(languageFlags[language] || language.toUpperCase())}</span>`).join('')}
+        if (normalized.length > 2) {
+            const label = this.label('languageCount').replace('%s', String(normalized.length));
+            return `<span class="${languageBadgeWrapClass}">
+                <span class="${languageSummaryClass}" tabindex="0" aria-label="${escapeAttr(normalized.map(languageLabel).join(', '))}">
+                    ${escapeHtml(label)}
+                    <span class="${languagePopoverClass}">
+                        ${normalized.map((language) => `<span class="flex min-h-[26px] items-center gap-2 whitespace-nowrap text-[13px] font-semibold text-[var(--text)]"><span aria-hidden="true">${escapeHtml(languageFlags[language] || language.toUpperCase())}</span><span>${escapeHtml(languageLabel(language))}</span></span>`).join('')}
+                    </span>
+                </span>
+            </span>`;
+        }
+
+        return `<span class="${languageBadgeWrapClass}">
+            ${normalized.map((language) => `<span class="${languageFlagClass}" title="${escapeAttr(languageLabel(language))}">${escapeHtml(languageFlags[language] || language.toUpperCase())}</span>`).join('')}
         </span>`;
     }
 
@@ -535,7 +717,7 @@ class ArticleGrid {
     }
 
     renderState(message) {
-        this.frame.innerHTML = `<div class="article-grid-state">${escapeHtml(message)}</div>`;
+        this.frame.innerHTML = `<div class="${stateClass}">${escapeHtml(message)}</div>`;
     }
 }
 
@@ -571,7 +753,72 @@ function formatDate(value) {
 function statusChip(status) {
     const value = String(status || '-').trim().toLowerCase();
     const label = escapeHtml(value || '-');
-    return `<span class="article-status-chip" data-status="${escapeAttr(value)}">${label}</span>`;
+    const tone = {
+        draft: 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300',
+        review: 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300',
+        published: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300',
+        declined: 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300',
+        archived: 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300',
+        scheduled: 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300',
+    }[value] || '';
+    return `<span class="${statusClass} ${tone}" data-status="${escapeAttr(value)}">${label}</span>`;
+}
+
+function sortValue(row, key) {
+    if (key === 'id' || key === 'lastVersion') {
+        return Number(row?.[key] ?? 0);
+    }
+
+    if (key === 'publishedAt') {
+        const parsed = Date.parse(String(row?.publishedAt || '').replace(' ', 'T'));
+        return Number.isNaN(parsed) ? 0 : parsed;
+    }
+
+    return String(row?.[key] ?? '').trim().toLowerCase();
+}
+
+function compareSortValues(left, right) {
+    if (typeof left === 'number' && typeof right === 'number') {
+        return left === right ? 0 : (left < right ? -1 : 1);
+    }
+
+    return String(left).localeCompare(String(right), 'de', {
+        numeric: true,
+        sensitivity: 'base',
+    });
+}
+
+function tableColumnGroup() {
+    return `
+        <colgroup>
+            <col class="w-[5%]">
+            <col class="w-[20%]">
+            <col class="w-[18%]">
+            <col class="w-[13%]">
+            <col class="w-[16%]">
+            <col class="w-[7%]">
+            <col class="w-[8%]">
+            <col class="w-[7%]">
+            <col class="w-[6%]">
+        </colgroup>
+    `;
+}
+
+function actionIcon(action) {
+    if (action.includes('delete')) {
+        return 'icon-cross';
+    }
+    if (action.includes('publish') || action.includes('preview')) {
+        return 'icon-circle-right';
+    }
+    if (action.includes('translation') || action.includes('translate')) {
+        return 'icon-earth';
+    }
+    if (action.includes('version')) {
+        return 'icon-file-empty';
+    }
+
+    return 'icon-checkmark';
 }
 
 function escapeHtml(value) {
@@ -581,10 +828,6 @@ function escapeHtml(value) {
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#039;');
-}
-
-function sortableHeader(label) {
-    return `<span class="article-grid-th-content">${escapeHtml(label)} <span class="article-grid-sort-mark" aria-hidden="true">↕</span></span>`;
 }
 
 function escapeAttr(value) {

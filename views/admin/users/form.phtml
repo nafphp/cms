@@ -1,6 +1,7 @@
 <?php
 
 use function NixPHP\route;
+use function NixPHP\I18n\t;
 use function NixPHP\View\s;
 use function NixPHP\View\view;
 
@@ -8,12 +9,22 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
 $user = is_array($user ?? null) ? $user : null;
 $isEdit = $user !== null && (int) ($user['id'] ?? 0) > 0;
 $selectedRoles = is_array($user['roles'] ?? null) ? $user['roles'] : [];
+$roleOptions = [];
+foreach ($roleDefinitions as $role) {
+    $roleName = (string) ($role['name'] ?? '');
+    if ($roleName !== '') {
+        $roleOptions[$roleName] = $roleName;
+    }
+}
+if (!$isEdit && $selectedRoles === [] && $roleOptions !== []) {
+    $selectedRoles = [array_key_first($roleOptions)];
+}
 
 ?>
 <?php $this->setLayout('layouts.admin') ?>
 
-<?php $pageTitle = $isEdit ? 'Edit user' : 'Create user'; ?>
-<?php $pageSubtitle = $isEdit ? 'Update account details and role assignments.' : 'Create an account and assign initial roles.'; ?>
+<?php $pageTitle = $isEdit ? t('Edit user') : t('Create user'); ?>
+<?php $pageSubtitle = $isEdit ? t('Update account details and role assignments.') : t('Create a new account and assign roles.'); ?>
 
 <?php $this->block('content'); ?>
 <form id="user-form" class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)]">
@@ -24,73 +35,109 @@ $selectedRoles = is_array($user['roles'] ?? null) ? $user['roles'] : [];
     <section class="grid content-start gap-4">
         <?= view('components.admin.form.field', [
             'name' => 'username',
-            'label' => 'Username',
+                'label' => t('Username'),
             'value' => (string) ($user['username'] ?? ''),
         ]) ?>
         <?= view('components.admin.form.field', [
             'name' => 'email',
-            'label' => 'Email',
+                'label' => t('Email'),
             'type' => 'email',
             'value' => (string) ($user['email'] ?? ''),
         ]) ?>
         <div class="grid gap-4 md:grid-cols-2">
             <?= view('components.admin.form.field', [
                 'name' => 'firstname',
-                'label' => 'First name',
+                'label' => t('First name'),
                 'value' => (string) ($user['firstname'] ?? ''),
             ]) ?>
             <?= view('components.admin.form.field', [
                 'name' => 'lastname',
-                'label' => 'Last name',
+                'label' => t('Last name'),
                 'value' => (string) ($user['lastname'] ?? ''),
             ]) ?>
         </div>
-        <?= view('components.admin.form.field', [
-            'name' => 'password',
-            'label' => $isEdit ? 'New password' : 'Password',
-            'type' => 'password',
-            'placeholder' => $isEdit ? 'Leave empty to keep current password' : '',
-        ]) ?>
-        <?= view('components.admin.form.field', [
-            'name' => 'password_confirmation',
-            'label' => $isEdit ? 'Repeat new password' : 'Repeat password',
-            'type' => 'password',
-        ]) ?>
+        <?php if ($isEdit): ?>
+            <div class="rounded-lg border border-slate-300/70 bg-white/70 p-4 dark:border-slate-400/15 dark:bg-slate-950/35">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 class="m-0 text-base font-bold text-slate-950 dark:text-white"><?= s(t('Password')) ?></h2>
+                        <p class="m-0 mt-1 text-sm text-slate-500 dark:text-slate-400"><?= s(t('Password changes are saved separately.')) ?></p>
+                    </div>
+                    <?= view('components.admin.button', [
+                        'label' => t('Change password'),
+                        'variant' => 'secondary',
+                        'attributes' => ['data-change-password' => true],
+                    ]) ?>
+                </div>
+            </div>
+        <?php else: ?>
+            <?= view('components.admin.form.field', [
+                'name' => 'password',
+                'label' => t('Password'),
+                'type' => 'password',
+            ]) ?>
+            <?= view('components.admin.form.field', [
+                'name' => 'password_confirmation',
+                'label' => t('Repeat password'),
+                'type' => 'password',
+            ]) ?>
+        <?php endif; ?>
     </section>
 
     <section class="grid content-start gap-3 border-slate-200 dark:border-slate-800 lg:border-l lg:pl-5">
-        <h2 class="m-0 text-lg font-bold text-slate-950 dark:text-white">Roles</h2>
-        <?php foreach ($roleDefinitions as $index => $role): ?>
-            <?php
-            $roleName = (string) ($role['name'] ?? '');
-            $permissions = is_array($role['permission_names'] ?? null) ? $role['permission_names'] : [];
-            ?>
-            <?= view('components.admin.form.role-option', [
-                'value' => $roleName,
-                'label' => $roleName,
-                'description' => $permissions !== [] ? implode(', ', $permissions) : 'No permissions',
-                'checked' => in_array($roleName, $selectedRoles, true) || (!$isEdit && $index === 0),
-            ]) ?>
-        <?php endforeach; ?>
+        <h2 class="m-0 text-lg font-bold text-slate-950 dark:text-white"><?= s(t('Roles')) ?></h2>
+        <?= view('components.admin.form.multiselect', [
+            'name' => 'roles[]',
+            'label' => t('Roles'),
+            'options' => $roleOptions,
+            'selected' => $selectedRoles,
+            'hideLabel' => false,
+            'placeholder' => t('Select roles'),
+            'searchPlaceholder' => t('Search roles...'),
+        ]) ?>
     </section>
 
     <div class="flex flex-wrap gap-2 lg:col-span-2">
         <?= view('components.admin.button', [
-            'label' => 'Save',
+            'label' => t('Save'),
             'variant' => 'primary',
             'type' => 'submit',
         ]) ?>
-        <?= view('components.admin.button', ['label' => 'Cancel', 'href' => route('admin.users')]) ?>
+        <?= view('components.admin.button', ['label' => t('Cancel'), 'href' => route('admin.users')]) ?>
     </div>
 </form>
 
 <script type="module">
+    import prompt from '/js/lib/notifyJs/Modules/Prompt.js';
     import toast from '/js/lib/notifyJs/Modules/Toast.js';
 
     const form = document.getElementById('user-form');
     const isEdit = <?= $isEdit ? 'true' : 'false' ?>;
+    const userId = <?= (int) ($user['id'] ?? 0) ?>;
     const submitUrl = <?= json_encode($isEdit ? route('api.admin.users.update') : route('api.admin.users.store')) ?>;
+    const passwordUrl = <?= json_encode(route('api.admin.users.password')) ?>;
     const usersUrl = <?= json_encode(route('admin.users')) ?>;
+    const labels = <?= json_encode([
+        'cancel' => t('Cancel'),
+        'changePassword' => t('Change password'),
+        'couldNotSaveUser' => t('Could not save user.'),
+        'couldNotUpdatePassword' => t('Could not update password.'),
+        'newPassword' => t('New password'),
+        'passwordChanged' => t('Password changed.'),
+        'passwordMismatch' => t('The password confirmation does not match.'),
+        'passwordMinLength' => t('Please enter a password with at least 8 characters.'),
+        'repeatNewPassword' => t('Repeat new password'),
+        'save' => t('Save'),
+        'userCreated' => t('User created.'),
+        'userUpdated' => t('User updated.'),
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+
+    const escapeHtml = (value) => String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 
     const collectFormData = () => {
         const data = {};
@@ -121,6 +168,71 @@ $selectedRoles = is_array($user['roles'] ?? null) ? $user['roles'] : [];
         return Object.values(errors).flat().map((message) => String(message));
     };
 
+    document.querySelector('[data-change-password]')?.addEventListener('click', async () => {
+        let password = '';
+        let passwordConfirmation = '';
+
+        const result = await prompt(`
+            <div>${escapeHtml(labels.changePassword)}</div>
+            <div class="notify-form">
+                <div class="notify-form-grid">
+                    <label class="notify-field">
+                        <span class="notify-field-label">${escapeHtml(labels.newPassword)}</span>
+                        <input id="user-new-password" type="password" autocomplete="new-password">
+                    </label>
+                    <label class="notify-field">
+                        <span class="notify-field-label">${escapeHtml(labels.repeatNewPassword)}</span>
+                        <input id="user-new-password-confirmation" type="password" autocomplete="new-password">
+                    </label>
+                </div>
+            </div>
+        `, {
+            confirmButtonText: labels.save,
+            cancelButtonText: labels.cancel,
+            showCancelButton: true,
+            confirmCallback: async (promptInstance) => {
+                password = String(promptInstance.container.querySelector('#user-new-password')?.value || '');
+                passwordConfirmation = String(promptInstance.container.querySelector('#user-new-password-confirmation')?.value || '');
+
+                if (password.trim().length < 8) {
+                    toast(labels.passwordMinLength);
+                    return false;
+                }
+
+                if (password !== passwordConfirmation) {
+                    toast(labels.passwordMismatch);
+                    return false;
+                }
+
+                promptInstance.promise.resolve(true);
+                promptInstance.remove();
+                return true;
+            },
+        });
+
+        if (result !== true) {
+            return;
+        }
+
+        const response = await (window.NixCMS?.json || fetch)(passwordUrl, {
+            method: 'POST',
+            body: JSON.stringify({
+                user_id: userId,
+                password,
+                password_confirmation: passwordConfirmation,
+            }),
+        });
+        const payload = await response.json();
+
+        if (!response.ok || !payload.success) {
+            const errors = flattenErrors(payload.errors);
+            toast(errors.length ? errors.join('<br>') : (payload.reason || labels.couldNotUpdatePassword));
+            return;
+        }
+
+        toast(labels.passwordChanged);
+    });
+
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
 
@@ -133,11 +245,11 @@ $selectedRoles = is_array($user['roles'] ?? null) ? $user['roles'] : [];
 
         if (!response.ok || !result.success) {
             const errors = flattenErrors(result.errors);
-            toast(errors.length ? errors.join('<br>') : (result.reason || 'Could not save user.'));
+            toast(errors.length ? errors.join('<br>') : (result.reason || labels.couldNotSaveUser));
             return;
         }
 
-        toast(isEdit ? 'User updated.' : 'User created.');
+        toast(isEdit ? labels.userUpdated : labels.userCreated);
         window.location.href = result.redirect || usersUrl;
     });
 </script>
