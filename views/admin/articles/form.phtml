@@ -1,0 +1,482 @@
+<?php
+
+use Cms\Enums\Language;
+use function NixPHP\Form\csrf;
+use function NixPHP\route;
+use function NixPHP\View\s;
+use function NixPHP\View\view;
+
+$article = is_array($article ?? null) ? $article : [];
+$categories = is_array($categories ?? null) ? $categories : [];
+$tagSuggestions = is_array($tagSuggestions ?? null) ? $tagSuggestions : [];
+$mode = (string) ($mode ?? 'create');
+$articleId = (int) ($articleId ?? ($article['id'] ?? 0));
+$articleVersionId = $mode === 'version' || $mode === 'translation' ? 0 : (int) ($article['article_version_id'] ?? 0);
+$selectedLanguage = strtolower((string) ($language ?? ($article['language'] ?? Language::DE->value)));
+$languageLabels = [
+    Language::DE->value => 'Deutsch',
+    Language::EN->value => 'English',
+    Language::FR->value => 'Français',
+    Language::ES->value => 'Español',
+    Language::IT->value => 'Italiano',
+];
+$languageOptions = [
+    Language::DE->value => $languageLabels[Language::DE->value],
+    Language::EN->value => $languageLabels[Language::EN->value],
+    Language::FR->value => $languageLabels[Language::FR->value],
+    Language::ES->value => $languageLabels[Language::ES->value],
+    Language::IT->value => $languageLabels[Language::IT->value],
+];
+$hideLeadImageInContent = (int) ($article['hide_lead_image_in_content'] ?? 1) === 1;
+$showTeaser = (int) ($article['show_teaser'] ?? 0) === 1;
+$initialTagNames = array_values(array_filter(array_map('strval', $article['tags'] ?? [])));
+$content = (string) ($article['content'] ?? '');
+$publishDate = (string) ($article['publishedAt'] ?? '');
+$publishDateValue = $publishDate !== '' ? date('Y-m-d\TH:i', strtotime($publishDate) ?: time()) : date('Y-m-d\TH:i');
+
+?>
+<?php $this->setLayout('layouts.admin') ?>
+
+<?php $pageTitle = (string) ($title ?? 'Artikel erstellen'); ?>
+<?php $pageSubtitle = 'Create and edit article content, metadata, and publishing details.'; ?>
+
+<?php if ($mode !== 'create'): ?>
+    <?php $this->block('adminTop'); ?>
+    <div class="article-form-topbar">
+        <a href="<?= s(route('admin.articles')) ?>" class="article-form-back" title="Back to article list" aria-label="Back to article list">
+            <span aria-hidden="true">&lsaquo;</span>
+        </a>
+        <div class="article-form-topbar-copy">
+            <strong><?= s($pageTitle) ?></strong>
+            <span><?= $articleId > 0 ? 'Article #' . $articleId : 'Draft' ?></span>
+        </div>
+    </div>
+    <?php $this->endBlock('adminTop'); ?>
+<?php endif; ?>
+
+<?php $this->block('content'); ?>
+<div class="article-form-shell">
+    <form action="<?= s(route('admin.articles.store')) ?>" method="post" id="articleForm" class="article-form">
+        <input type="hidden" name="_csrf" value="<?= s(csrf()->generate()) ?>">
+        <div class="article-form-layout">
+            <div class="article-form-main">
+                <?= view('components.admin.form.input', [
+                    'name' => 'title',
+                    'label' => 'Title',
+                    'value' => (string) ($article['title'] ?? ''),
+                ]) ?>
+
+                <div id="teaserContainer">
+                    <hr>
+                    <?= view('components.admin.form.text', [
+                        'name' => 'teaser',
+                        'label' => 'Teaser',
+                        'rows' => 6,
+                        'value' => (string) ($article['teaser'] ?? ''),
+                    ]) ?>
+                </div>
+
+                <hr>
+                <?= view('components.admin.form.editor', [
+                    'name' => 'content',
+                    'label' => 'Content',
+                    'value' => $content !== '' ? $content : null,
+                    'uploadUrl' => route('admin.articles.image'),
+                ]) ?>
+            </div>
+
+            <aside class="article-form-meta">
+                <h2>Metadata</h2>
+                <hr>
+
+                <div class="article-form-field-row">
+                    <?= view('components.admin.form.input', [
+                        'name' => 'slug',
+                        'label' => 'Slug',
+                        'value' => (string) ($article['slug'] ?? ''),
+                    ]) ?>
+                    <button id="slug-reset" type="button" class="hidden">Reset</button>
+                </div>
+
+                <hr>
+
+                <label class="article-form-field">
+                    <span>Veröffentlichungsdatum</span>
+                    <input name="publish_date" value="<?= s($publishDateValue) ?>" type="datetime-local" class="wow-input">
+                </label>
+
+                <hr>
+
+                <label class="article-form-field">
+                    <span>Category</span>
+                    <div class="relative">
+                        <input
+                            id="category-input"
+                            name="category"
+                            value="<?= s((string) ($article['category_name'] ?? '')) ?>"
+                            placeholder="Choose or type category"
+                            type="text"
+                            autocomplete="off"
+                            class="wow-input"
+                        >
+                        <div id="category-suggestions" class="wow-suggestions hidden"></div>
+                    </div>
+                </label>
+
+                <hr>
+
+                <div class="article-form-field">
+                    <span>Tags</span>
+                    <div class="relative">
+                        <input id="tag-input" type="text" placeholder="Type tag and press comma" autocomplete="off" class="wow-input">
+                        <div id="tag-suggestions" class="wow-suggestions hidden"></div>
+                    </div>
+                    <input id="tags-hidden" name="tags" type="hidden" value="">
+                    <div id="tag-items" class="article-tag-items"></div>
+                    <small>Separate tags with comma. Use backspace or x to remove.</small>
+                </div>
+
+                <hr>
+
+                <label class="article-form-field">
+                    <span>Sprache</span>
+                    <div class="article-language-row">
+                        <?= view('components.admin.form.select', [
+                            'name' => 'language',
+                            'label' => 'Sprache',
+                            'selected' => $selectedLanguage,
+                            'options' => $languageOptions,
+                        ]) ?>
+                        <div class="version-info wow-inline-info hidden"></div>
+                    </div>
+                </label>
+
+                <hr>
+
+                <label class="article-toggle">
+                    <input name="hide_lead_image_in_content" type="checkbox" value="1" <?= $hideLeadImageInContent ? 'checked' : '' ?>>
+                    <span>Hide first image in article body</span>
+                </label>
+
+                <label class="article-toggle">
+                    <input name="show_teaser" type="checkbox" value="1" <?= $showTeaser ? 'checked' : '' ?>>
+                    <span>Teaser anzeigen</span>
+                </label>
+            </aside>
+        </div>
+
+        <input type="hidden" name="article_id" value="<?= $articleId > 0 ? $articleId : '' ?>">
+        <input type="hidden" name="article_version_id" value="<?= $articleVersionId > 0 ? $articleVersionId : '' ?>">
+
+        <hr>
+
+        <div class="article-form-actions">
+            <?= view('components.admin.form.button', ['label' => 'Save', 'id' => 'articleSaveBtn', 'className' => 'admin-submit-primary']) ?>
+        </div>
+        <button id="articleStickySave" type="submit" class="btn admin-submit admin-submit-primary article-sticky-save" aria-hidden="true">Save</button>
+    </form>
+</div>
+
+<script src="/js/components/formFieldErrors.js"></script>
+<script type="module">
+    import { initStyledSelect } from '/js/components/styledSelect.js';
+
+    const articleId = <?= $articleId > 0 ? $articleId : 'null' ?>;
+    const categoryNames = <?= json_encode(array_values($categories), JSON_UNESCAPED_UNICODE) ?>;
+    const availableTagSuggestions = <?= json_encode(array_values($tagSuggestions), JSON_UNESCAPED_UNICODE) ?>;
+    const initialTags = <?= json_encode($initialTagNames, JSON_UNESCAPED_UNICODE) ?>;
+    const editor = window.articleEditor;
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function slugify(text) {
+        return String(text ?? '')
+            .toLowerCase()
+            .replaceAll('ä', 'ae')
+            .replaceAll('ö', 'oe')
+            .replaceAll('ü', 'ue')
+            .replaceAll('ß', 'ss')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    }
+
+    (function initSlug() {
+        let slugModified = false;
+        const title = document.querySelector('input[name="title"]');
+        const slug = document.querySelector('input[name="slug"]');
+        const reset = document.querySelector('#slug-reset');
+        if (!title || !slug || !reset) return;
+
+        reset.addEventListener('click', () => {
+            slug.value = '';
+            slugModified = false;
+            reset.classList.add('hidden');
+            document.getElementById('articleForm')?.dispatchEvent(new Event('input', {bubbles: true}));
+        });
+        slug.addEventListener('input', () => {
+            slugModified = true;
+            if (slug.value.length > 0) {
+                reset.classList.remove('hidden');
+            }
+        });
+        title.addEventListener('input', () => {
+            if (slugModified) return;
+            slug.value = title.value.length !== 0 ? slugify(title.value) : '';
+            slug.scrollLeft = slug.scrollWidth;
+        });
+    })();
+
+    function initSuggestions(input, box, items, onPick) {
+        function hide() {
+            box.classList.add('hidden');
+            box.innerHTML = '';
+        }
+        function show(term = '') {
+            const query = String(term).trim().toLowerCase();
+            const matches = items
+                .filter((name) => query === '' || String(name).toLowerCase().includes(query))
+                .slice(0, 8);
+            if (matches.length === 0) {
+                hide();
+                return;
+            }
+            box.innerHTML = matches.map((name) => `<button type="button" class="wow-suggestion-item">${escapeHtml(name)}</button>`).join('');
+            box.classList.remove('hidden');
+        }
+
+        input.addEventListener('focus', () => show(input.value));
+        input.addEventListener('input', () => show(input.value));
+        box.addEventListener('mousedown', (event) => event.preventDefault());
+        box.addEventListener('click', (event) => {
+            const button = event.target.closest('button');
+            if (!button) return;
+            onPick(button.textContent.trim());
+            hide();
+            input.focus();
+        });
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest(`#${input.id}`) && !event.target.closest(`#${box.id}`)) hide();
+        });
+    }
+
+    initSuggestions(
+        document.getElementById('category-input'),
+        document.getElementById('category-suggestions'),
+        categoryNames,
+        (name) => { document.getElementById('category-input').value = name; }
+    );
+
+    (function initTags() {
+        const tagItems = document.getElementById('tag-items');
+        const tagInput = document.getElementById('tag-input');
+        const tagSuggestions = document.getElementById('tag-suggestions');
+        const hiddenTagsInput = document.getElementById('tags-hidden');
+        const tags = [];
+
+        function normalizeTag(rawValue) {
+            return String(rawValue ?? '').trim().replace(/\s+/g, ' ');
+        }
+        function hasTag(value) {
+            const normalized = value.toLowerCase();
+            return tags.some((tag) => tag.toLowerCase() === normalized);
+        }
+        function syncHiddenInput() {
+            hiddenTagsInput.value = tags.join(', ');
+            hiddenTagsInput.dispatchEvent(new Event('input', {bubbles: true}));
+        }
+        function addTag(rawValue) {
+            const value = normalizeTag(rawValue);
+            if (value === '' || hasTag(value)) return;
+            tags.push(value);
+        }
+        function renderTags() {
+            tagItems.innerHTML = '';
+            for (const tag of tags) {
+                const chip = document.createElement('span');
+                chip.className = 'article-tag-chip';
+                chip.textContent = tag;
+                const removeButton = document.createElement('button');
+                removeButton.type = 'button';
+                removeButton.setAttribute('aria-label', 'Remove tag');
+                removeButton.textContent = 'x';
+                removeButton.addEventListener('click', () => {
+                    tags.splice(tags.indexOf(tag), 1);
+                    renderTags();
+                });
+                chip.appendChild(removeButton);
+                tagItems.appendChild(chip);
+            }
+            syncHiddenInput();
+        }
+        function commitFromInput() {
+            for (const part of tagInput.value.split(',')) addTag(part);
+            tagInput.value = '';
+            renderTags();
+        }
+
+        initialTags.forEach(addTag);
+        renderTags();
+
+        initSuggestions(tagInput, tagSuggestions, availableTagSuggestions, (name) => {
+            addTag(name);
+            tagInput.value = '';
+            renderTags();
+        });
+        tagInput.addEventListener('keydown', (event) => {
+            if (event.key === ',' || event.key === 'Enter') {
+                event.preventDefault();
+                commitFromInput();
+            } else if (event.key === 'Backspace' && tagInput.value === '' && tags.length > 0) {
+                tags.pop();
+                renderTags();
+            }
+        });
+        tagInput.addEventListener('blur', () => {
+            if (tagInput.value.trim() !== '') commitFromInput();
+        });
+    })();
+
+    const selectedLang = document.querySelector('select[name="language"]');
+    if (selectedLang) {
+        initStyledSelect(selectedLang);
+        selectedLang.addEventListener('change', getVersion);
+    }
+
+    async function getVersion() {
+        if (!articleId || !selectedLang) return;
+        const versionInfo = document.querySelector('.version-info');
+        versionInfo.classList.remove('hidden');
+        const response = await fetch(`/api/admin/articles/${articleId}/${selectedLang.value}/next`);
+        if (response.ok) {
+            const nextVersion = await response.json();
+            versionInfo.innerHTML = '<div>Next version</div>v' + nextVersion.version;
+        }
+    }
+    if (articleId) getVersion();
+
+    const teaserContainer = document.querySelector('#teaserContainer');
+    const teaserToggle = document.querySelector('input[name="show_teaser"]');
+    function syncTeaser() {
+        teaserContainer.classList.toggle('hidden', !teaserToggle.checked);
+    }
+    teaserToggle.addEventListener('change', syncTeaser);
+    syncTeaser();
+
+    async function getFormData(form) {
+        if (!editor) {
+            throw new Error('Article editor is not initialized.');
+        }
+        const data = {};
+        for (const input of Array.from(form.elements)) {
+            if (!input.name) continue;
+            if (input instanceof HTMLInputElement && input.type === 'checkbox') {
+                data[input.name] = input.checked ? 1 : 0;
+            } else if (input instanceof HTMLInputElement || input instanceof HTMLTextAreaElement || input instanceof HTMLSelectElement) {
+                data[input.name] = input.value;
+            }
+        }
+        data.content = await editor.save();
+        return data;
+    }
+
+    const form = document.getElementById('articleForm');
+    const mainSaveButton = document.getElementById('articleSaveBtn');
+    const stickySaveButton = document.getElementById('articleStickySave');
+    const fieldErrors = new window.FormFieldErrors(form, {
+        fieldTargets: {content: '#editorjs', tags: '#tag-input', category: '#category-input'},
+    });
+    let initialFormState = '';
+    let initialEditorState = '[]';
+    let isDirty = false;
+    let baselineReady = false;
+    let isSubmitting = false;
+    let isMainSaveVisible = true;
+
+    function comparableFormState() {
+        const state = {};
+        for (const element of Array.from(form.elements)) {
+            if (!element.name) continue;
+            state[element.name] = element instanceof HTMLInputElement && element.type === 'checkbox'
+                ? (element.checked ? 1 : 0)
+                : element.value;
+        }
+        return JSON.stringify(state);
+    }
+    async function comparableEditorState() {
+        try {
+            if (!editor) {
+                return '[]';
+            }
+            const data = await editor.save();
+            return JSON.stringify(data?.blocks ?? []);
+        } catch (_error) {
+            return '[]';
+        }
+    }
+    function syncSaveButtons() {
+        mainSaveButton.classList.toggle('is-dirty', isDirty);
+        const showSticky = !isSubmitting && baselineReady && isDirty && !isMainSaveVisible;
+        stickySaveButton.classList.toggle('is-visible', showSticky);
+        stickySaveButton.setAttribute('aria-hidden', showSticky ? 'false' : 'true');
+    }
+    async function updateDirtyState() {
+        if (!baselineReady) return;
+        isDirty = comparableFormState() !== initialFormState || await comparableEditorState() !== initialEditorState;
+        syncSaveButtons();
+    }
+    async function initDirtyTracking() {
+        if (editor?.isReady) {
+            await editor.isReady;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 80));
+        initialFormState = comparableFormState();
+        initialEditorState = await comparableEditorState();
+        baselineReady = true;
+        await updateDirtyState();
+    }
+    new IntersectionObserver((entries) => {
+        isMainSaveVisible = entries[0]?.isIntersecting === true;
+        syncSaveButtons();
+    }, {threshold: 0.2}).observe(mainSaveButton);
+    form.addEventListener('input', () => void updateDirtyState());
+    form.addEventListener('change', () => void updateDirtyState());
+    void initDirtyTracking();
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        isSubmitting = true;
+        syncSaveButtons();
+        fieldErrors.clearAll();
+
+        const response = await (window.NixCMS?.fetch || fetch)(form.action, {
+            method: 'POST',
+            body: JSON.stringify(await getFormData(form)),
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-Token': String(window.NixCMS?.csrfToken?.() || form.querySelector('input[name="_csrf"]')?.value || ''),
+            },
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (payload.success) {
+            document.location.href = <?= json_encode(route('admin.articles')) ?>;
+            return;
+        }
+
+        if (payload.errors) {
+            fieldErrors.setErrors(payload.errors);
+        } else if (payload.reason) {
+            fieldErrors.setErrors({_form: [String(payload.reason)]});
+        }
+        isSubmitting = false;
+        await updateDirtyState();
+    });
+</script>
+<?php $this->endBlock('content'); ?>

@@ -1,0 +1,51 @@
+<?php
+
+use function NixPHP\View\s;
+
+$name = (string) ($name ?? 'content');
+$label = (string) ($label ?? 'Content');
+$value = $value ?? null;
+$uploadUrl = (string) ($uploadUrl ?? '/admin/articles/image');
+
+?>
+<label class="hidden" for="editorjs"><?= s($label) ?>:</label>
+<div id="editorjs" aria-placeholder="<?= s($label) ?>" class="prose prose-base px-3 dark:prose-invert max-w-none wow-input wow-editor"></div>
+<input type="hidden" name="<?= s($name) ?>" value="">
+
+<script src="/js/editor.js"></script>
+<script>
+    const editor = new EditorJS({
+        holder: 'editorjs',
+        placeholder: <?= json_encode($label) ?>,
+        tools: {
+            header: Header,
+            list: List,
+            quote: Quote,
+            code: Code,
+            table: Table,
+            embed: Embed,
+            image: {
+                class: ImageTool,
+                config: {
+                    endpoints: {
+                        byFile: <?= json_encode($uploadUrl) ?>,
+                        byUrl: '/editor/fetch/image'
+                    },
+                    additionalRequestHeaders: {
+                        'X-CSRF-Token': String(window.NixCMS?.csrfToken?.() || document.querySelector('input[name="_csrf"]')?.value || '')
+                    },
+                    additionalRequestData: {
+                        _csrf: String(window.NixCMS?.csrfToken?.() || document.querySelector('input[name="_csrf"]')?.value || '')
+                    }
+                }
+            }
+        }
+    });
+    window.articleEditor = editor;
+
+    <?php if ($value !== null && trim((string) $value) !== ''): ?>
+        editor.isReady.then(() => {
+            editor.render(<?= (string) $value ?>);
+        });
+    <?php endif; ?>
+</script>

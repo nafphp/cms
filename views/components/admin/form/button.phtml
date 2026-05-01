@@ -1,0 +1,15 @@
+<?php
+
+use function NixPHP\View\s;
+
+$label = (string) ($label ?? 'Save');
+$id = isset($id) ? trim((string) $id) : '';
+$className = isset($className) ? trim((string) $className) : '';
+$classes = trim('btn admin-submit w-full sm:w-auto ' . $className);
+
+?>
+<button
+    type="submit"
+    <?= $id !== '' ? 'id="' . s($id) . '"' : '' ?>
+    class="<?= s($classes) ?>"
+><?= s($label) ?></button>

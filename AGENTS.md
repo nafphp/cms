@@ -1,0 +1,537 @@
+# NixCMS Vision
+
+NixCMS is intended to become a lightweight, extensible CMS built on top of NixPHP. It follows the same philosophy as the framework: pragmatic, low-ceremony, native PHP where possible, and flexible extension through small focused plugins.
+
+## Core Idea
+
+NixCMS is not meant to be a heavy monolithic CMS. It is a management layer on top of NixPHP. The core provides shared CMS building blocks, while domain-specific functionality can be added through plugins.
+
+The system should start small but be able to grow cleanly:
+
+- Articles and content
+- Users, roles, and permissions
+- Media management
+- Localization
+- Workflows such as draft, review, publish, and schedule
+- Jobs, scheduling, and background processing
+- AI and MCP integration
+- Plugin-capable admin interfaces
+
+## Architecture Principles
+
+- NixPHP remains the foundation.
+- NixCMS adds CMS conventions and administration features without making the framework heavy.
+- Features should preferably be implemented as plugins or clearly separated modules.
+- Avoid unnecessary abstractions just because frameworks usually have them.
+- The core should only contain functionality that most CMS installations genuinely share.
+- Extensions should be able to register plain PHP classes, views, commands, migrations, tools, and services.
+
+## Admin UI
+
+The administration area should feel like a modern, calm enterprise application while staying technically lightweight.
+
+It should support:
+
+- Dashboard
+- Resource lists
+- Forms
+- Modals
+- Tables
+- Filters and search
+- Language switching
+- Roles and permissions
+- Plugin navigation
+- Status and health views
+
+The UI should be functional and dense enough for real work, not feel like a marketing page.
+
+## Plugin Concept
+
+NixPHP plugins should also be able to extend NixCMS.
+
+A plugin may optionally provide:
+
+- Routes
+- Controllers
+- Views
+- Assets
+- Migrations
+- Commands
+- Services
+- Admin menu entries
+- Permissions
+- Jobs
+- Scheduler entries
+- MCP tools
+- AI features
+
+The goal: anyone who can write NixPHP plugins should be able to extend CMS functionality.
+
+## MCP and AI
+
+NixCMS should be designed with AI support from the beginning.
+
+MCP tools can expose controlled CMS capabilities, for example:
+
+- Read article status counts
+- Check system health
+- Inspect queue status
+- Create article drafts
+- Translate content
+- Summarize content
+- Suggest review improvements
+- Inspect users or roles
+- Suggest meaningful next actions
+
+Important: MCP tools are concrete executable capabilities. A future capability overview may be derived from them, but information should not be maintained twice.
+
+## Capability Concept
+
+If NixCMS later gets a capability registry, the tool or plugin system should remain the source of truth wherever possible.
+
+Not ideal:
+
+- Register a tool once
+- Describe the same capability again separately in a registry
+
+Better:
+
+- Tools, plugins, or modules may optionally provide metadata
+- `cms_capabilities` can derive an overview from that metadata
+- Admin UI, CLI, docs, and AI clients can use the same information
+
+## Auth and Security
+
+NixCMS should have secure defaults.
+
+- Auth is enabled by default.
+- Internal or open modes may be configurable, but must be explicit.
+- Tokens and API access secrets should not be stored in plaintext.
+- File-based auth can be enough for small installations.
+- Database-backed auth can be added later.
+- Permissions should use clear permission names.
+- MCP tools should support scopes and permissions.
+
+## Development Style
+
+When building NixCMS:
+
+- Build simple real workflows first.
+- Abstract only after patterns become visible.
+- Avoid architecture for its own sake.
+- Work in small, testable steps.
+- Prefer real admin requirements over theoretical elegance.
+- Keep plugin compatibility in mind early.
+- Treat AI support as a native extension, not an afterthought.
+
+## Development Environment Versus Shipped Project
+
+This repository is the NixCMS development environment. It may contain planning notes, local IDE metadata, exploratory docs, and implementation guidance that help build the product.
+
+What gets committed to the actual distributable NixCMS project should be treated as the user-facing product:
+
+- Keep committed files useful for people installing, extending, or auditing NixCMS.
+- Avoid shipping local-only assumptions from this workstation.
+- Do not require Docker for the primary development path.
+- Prefer a bare-metal-first setup using PHP 8.3+, Composer, the built-in PHP server, and local CLI commands.
+- Add Docker as a second setup path later, with a ready-to-run `docker compose up -d` experience.
+- Keep both setup paths behaviorally equivalent: same migrations, same env names, same CLI commands, same public entry point.
+- Do not let Docker-specific paths, hostnames, ports, or service names leak into core application code.
+
+There should eventually be two kinds of project guidance:
+
+- Development guidance for contributors building NixCMS itself.
+- Shipped guidance for users and AI agents working inside an installed NixCMS project.
+
+The shipped project should include its own `AGENTS.md` that explains the application structure, extension points, commands, conventions, and safe editing rules from the perspective of someone using NixCMS, not building the NixCMS source distribution.
+
+## CMS API Surface
+
+NixCMS provides a public API surface through the `cms()` helper function, which returns a singleton `Cms` instance.
+
+### Entry Points
+
+The main entry points are:
+
+- `cms()->articles()` — returns an `ArticleApi` for article-specific operations; daily-use doorway for content workflows.
+- `cms()->content(Article::class)` — returns a `ContentApi<Article>` for generic lifecycle operations; shared foundation for multiple content types later.
+
+### Examples
+
+Create a draft article:
+
+```php
+$result = cms()->articles()->create([
+    'title' => 'My Article',
+    'slug' => 'my-article',
+    'content' => ['blocks' => [...]],
+    'language' => 'de',
+], $authorId);
+
+echo $result['articleId'];
+echo $result['articleVersionId'];
+```
+
+Publish an article:
+
+```php
+cms()->articles()->publish($articleId, 'de');
+```
+
+Get the review queue (drafts and declined articles waiting for action):
+
+```php
+$queue = cms()->articles()->getDraftReviewQueue(limit: 10);
+foreach ($queue as $item) {
+    echo $item['title'];
+    echo $item['author_name'];
+    echo $item['created_at'];
+}
+```
+
+Find reading recommendations for an article:
+
+```php
+$article = cms()->articles()->find($articleId);
+$recommendations = cms()->articles()->findReadingRecommendations($article);
+foreach ($recommendations as $rec) {
+    echo $rec['article']->getTitle();
+}
+```
+
+Use the generic content API to create, restore, and delete versions:
+
+```php
+$contentApi = cms()->content(Article::class);
+
+// Create a new draft
+$result = $contentApi->create(['title' => 'Draft', ...], $authorId);
+
+// Restore a specific version as a new draft
+$restored = $contentApi->restoreVersion($articleId, 'de', $versionNumber);
+
+// List versions
+$versions = $contentApi->versions($articleId);
+
+// Delete a language or specific version
+$contentApi->deleteLocale($articleId, 'de');
+$contentApi->deleteVersion($articleId, 'de', $versionNumber);
+```
+
+### Domain APIs vs. Type Aliases
+
+Follow these rules when extending the CMS API:
+
+**Domain APIs** (e.g. `cms()->articles()`):
+- May expose rich domain-specific behavior.
+- May delegate to repositories, services, content APIs, events, and translators.
+- Not required to be a thin wrapper; may implement article-specific queries, workflows, or aggregations (e.g. getDraftReviewQueue, findReadingRecommendations, getStatusOverview).
+
+**Type aliases** (e.g. a future `cms()->page()`):
+- Purely syntactic sugar for `cms()->content(Page::class)`.
+- Must be thin wrappers that only delegate to ContentApi methods.
+- Do not add separate query logic, repository methods, versioning logic, publishing logic, or translation logic to a type alias.
+- Do not add a type alias before its model exists.
+
+**Key rule:** Abstract ContentApi only after at least two real content types reveal a shared shape. Domain-rich repository methods stay on the repository (or on the domain API) — do not force them into ContentApi to satisfy hypothetical type aliases.
+
+## Service Design Rules
+
+Services should be targeted, reusable, and easy for humans and AI models to understand quickly.
+
+Service rules:
+
+- A service should represent one clear domain action or small cluster of related domain actions.
+- Prefer names that explain the business capability, for example `ArticlePublishingService`, `PasswordResetService`, or `PluginNavigationService`.
+- Avoid generic dumping grounds such as `CmsService`, `AdminService`, `HelperService`, or `Manager` classes unless the surrounding code has made a narrower meaning obvious.
+- Keep services framework-light. Accept plain values, entities, repositories, and small collaborators rather than pulling global state from everywhere.
+- Keep orchestration in services and persistence queries in repositories.
+- Keep controllers thin: validate request shape, call services/repositories, choose response/view.
+- Keep models focused on entity behavior and simple derived state, not multi-step workflows.
+- Keep services reusable across HTTP controllers, CLI commands, queue jobs, scheduler tasks, and MCP tools.
+- Avoid service methods that secretly depend on a current request unless the service is explicitly HTTP-facing.
+- Prefer explicit method arguments over hidden session/config access when it makes behavior easier to test.
+- Return small result objects or arrays when a workflow has meaningful status, warnings, or next actions.
+- Throw domain-specific exceptions for expected failure cases that callers can handle.
+- Do not introduce interfaces until there are multiple implementations, a test boundary needs one, or plugin integration clearly benefits from one.
+
+Good service candidates:
+
+- Article publishing, scheduling, version creation, review decisions, translation enqueueing.
+- User invites, password changes, session revocation, role assignment.
+- Media upload normalization, metadata extraction, public URL generation.
+- Plugin admin menu collection and permission registration.
+- MCP capability/tool summaries derived from registered tools and plugins.
+
+Poor service candidates:
+
+- Thin wrappers around one repository call.
+- Shared bags of unrelated helper functions.
+- Classes named after UI pages rather than reusable capabilities.
+- Services that mix article workflows, user workflows, plugin registration, and rendering concerns.
+
+## AI-Readable Codebase Rules
+
+NixCMS should be easy for AI coding agents to inspect without needing tribal knowledge.
+
+Structure and naming should favor discoverability:
+
+- Keep namespaces aligned with directories.
+- Keep feature folders predictable: Controllers, Models, Repositories, Services, Commands, Jobs, Migrations, Mcp/Tools, Resources, and views.
+- Use explicit class and method names over clever abbreviations.
+- Put domain enums in one obvious place.
+- Put permissions and workflow statuses in typed enums where practical.
+- Keep route names stable and descriptive.
+- Keep config keys documented through defaults and examples.
+- Prefer small files with clear responsibilities over large files with many unrelated concerns.
+- Avoid magic registration that cannot be found with text search.
+- If something registers routes, commands, jobs, scheduler entries, permissions, admin navigation, or MCP tools, make that registration grep-friendly.
+- Add short comments only where they explain non-obvious domain intent, operational constraints, or extension behavior.
+
+Every shipped NixCMS app should make the common AI inspection path obvious:
+
+- Read `AGENTS.md` first.
+- Inspect `composer.json` for packages and autoloading.
+- Inspect `app/config.php` or equivalent config defaults.
+- Inspect `app/routes.php` for HTTP behavior.
+- Inspect `app/Migrations` for schema.
+- Inspect `app/Controllers`, `app/Services`, `app/Repositories`, and `app/Models` for domain behavior.
+- Inspect `app/Mcp/Tools` for AI/MCP capabilities.
+- Inspect `views` and `app/Resources` for admin UI.
+
+## Shipped AGENTS.md Expectations
+
+The `AGENTS.md` shipped with generated or installed NixCMS projects should be concise, practical, and oriented around safe modification.
+
+It should explain:
+
+- What NixCMS is and which parts are core versus plugins.
+- The folder structure and where common changes belong.
+- The bare-metal local run path.
+- The Docker run path once available.
+- Migration, test, asset build, queue, scheduler, and MCP commands.
+- How admin routes, API/action routes, views, services, repositories, and models are organized.
+- How plugins extend routes, views, commands, migrations, jobs, scheduler entries, admin navigation, permissions, and MCP tools.
+- Which files are generated build output and should not be edited manually.
+- Security expectations around auth, permissions, scopes, secrets, and tokens.
+- The rule that MCP tools are executable capabilities and capability overviews should be derived from tool/plugin metadata wherever possible.
+
+It should not include:
+
+- Local workstation paths.
+- Internal planning notes.
+- Experimental ideas that are not present in the shipped code.
+- Instructions that only make sense in this development repository.
+
+## Long-Term Goal
+
+NixCMS should become a standalone product built on NixPHP and powered by its plugin ecosystem.
+
+It should feel:
+
+- Lean like a custom framework project
+- Extensible like a plugin system
+- Productive like a modern CMS
+- AI-ready from day one
+
+Working name: **NixCMS**.
+
+## Researched NixPHP Foundation
+
+NixCMS should start from the official NixPHP package ecosystem instead of copying a full-stack CMS architecture from elsewhere.
+
+Current research sources:
+
+- GitHub/Packagist source package: `nixphp/framework` (`https://github.com/nixphp/framework`, `https://packagist.org/packages/nixphp/framework`)
+- NixPHP package overview: `https://packagist.org/packages/nixphp/`
+- Individual package sources use the `https://github.com/nixphp/<package>` pattern where published, for example `nixphp/database`, `nixphp/view`, and `nixphp/i18n`.
+
+NixPHP core provides routing, dispatching, PSR-oriented infrastructure, plugin loading, configuration merging, view path registration, and bootstrap hooks. Everything beyond the smallest HTTP core should remain optional through Composer packages or NixCMS modules/plugins.
+
+Recommended initial Composer base for NixCMS:
+
+- `nixphp/framework`: required foundation.
+- `nixphp/view`: required for the admin UI and server-rendered CMS screens.
+- `nixphp/database`: required once content, users, sessions, or workflows are persisted.
+- `nixphp/orm`: useful for the first CMS entities and repositories, especially content, users, roles, and permissions.
+- `nixphp/session`: required for admin authentication and account workflows.
+- `nixphp/form`: useful for form memory, validation-adjacent workflows, and admin forms.
+- `nixphp/i18n`: required early because NixCMS should support localized content and a multilingual admin UI.
+- `nixphp/cli`: required for migrations, user creation, maintenance commands, and operational tooling.
+- `nixphp/queue`: required for translation, AI, media processing, publication tasks, and async maintenance.
+- `nixphp/schedule`: required for scheduled publishing, recurring maintenance, and queue ticker workflows.
+- `nixphp/mail`: useful for invites, password reset, workflow notifications, and publication/review notifications.
+- `nixphp/client`: useful for external APIs, AI providers, webhooks, and integration plugins.
+- `nixphp/mcp`: used successfully in WeOnlyWalk for concrete AI/MCP tools; keep it in scope for NixCMS even if its public package metadata is less visible than the other packages.
+
+Recommended dependency phases:
+
+1. Bootstrap phase: `framework`, `view`, `form`.
+2. CMS core phase: `database`, `orm`, `session`, `i18n`, `cli`.
+3. Operational phase: `queue`, `schedule`, `mail`.
+4. AI/integration phase: `client`, `mcp`.
+
+## NixPHP Plugin Rules For NixCMS
+
+NixPHP plugins are Composer packages with package type `nixphp-plugin`. A plugin can provide a `bootstrap.php`, app configuration, views, routes, services, commands, tools, and other app-like files.
+
+For NixCMS, preserve that model:
+
+- A NixCMS feature should be a plugin or clearly isolated module unless it is truly shared CMS core.
+- Plugins should register capabilities through executable code, not duplicated static registries.
+- Plugin configuration should merge cleanly into app config.
+- Plugin views should be added to the view search path rather than copied into the app.
+- Plugin bootstrap code may register routes, commands, events, scheduler entries, queue jobs, MCP tools, admin navigation, and permissions.
+- NixCMS-specific plugin metadata may be added later, but executable plugin/tool definitions should remain the source of truth wherever possible.
+
+## WeOnlyWalk As Reference Material
+
+The project `/Users/flo/PhpStormProjects/weonlywalk` is the main reference implementation. It should be mined for proven patterns, not copied wholesale.
+
+Useful WeOnlyWalk elements:
+
+- Composer stack: uses `nixphp/framework`, `form`, `database`, `view`, `i18n`, `orm`, `session`, `cli`, `schedule`, `mail`, and `mcp`.
+- Project shape: `app/app` for application classes, `app/views` for `.phtml` templates, `app/public` for webroot/build output, `app/app/Resources` for CSS, JS, language files, HTTP snippets, and prompts.
+- MVC organization: Controllers for Web/Admin/API, Models for ORM entities, Repositories for query logic, Services for orchestration, Commands for CLI, Jobs for queue tasks, Migrations for schema.
+- Admin routing split: `/admin/...` for screens and `/api/...` or POST admin routes for actions.
+- Content model: `articles` plus `article_versions`, where versions carry language, version number, workflow status, slug, title, teaser, content JSON, publish timestamp, and created timestamp.
+- Localization model: language exists at the article-version level; WeOnlyWalk currently uses `de`, `en`, `fr`, `es`, and `it`.
+- Workflow statuses: `draft`, `review`, `declined`, `published`, `scheduled`, and `archived`.
+- Taxonomy model: `categories`, `tags`, and pivot table `article_tags`.
+- RBAC model: `users`, `roles`, `permissions`, `user_role`, and `role_permissions`.
+- Session model: database-backed `sessions` table is useful for admin account management and system health visibility.
+- Invite/account pattern: `user_invites` is useful as a simple file-light onboarding flow for early installations.
+- Admin UI pattern: layout, header, side menu, dashboard, dense tables, forms, settings pages, dark mode, and reusable form components.
+- Frontend build pattern: Tailwind CSS plus semantic CSS in `app/app/Resources/css/nixphp.css`; built output in `app/public/css/nixphp.css`.
+- Editor pattern: Editor.js-based content JSON is useful as a starting point for article content blocks.
+- MCP pattern: tools are small PHP classes implementing `ToolInterface`; scope-aware tools implement `ScopedToolInterface`; schemas are defined with `NixPHP\MCP\Support\Schema`.
+- Existing MCP ideas: `article_status_counts`, `system_health`, and `queue_status` are directly relevant to NixCMS.
+- Operational learning: scheduled jobs may enqueue work while queue workers execute it; health views and MCP tools should expose pending/deadletter job counts.
+
+Avoid carrying over WeOnlyWalk-specific features into NixCMS core:
+
+- YouTube publishing and channel statistics.
+- WeOnlyWalk-specific prompt files and generated YouTube metadata rules.
+- Route/location-specific web research logic.
+- Project branding, copy, and editorial assumptions.
+
+These can later become example plugins or separate integration plugins.
+
+## Suggested NixCMS Core Modules
+
+Start with small modules that match real admin needs:
+
+- `Cms\Admin`: dashboard, navigation, layout, health/status panels.
+- `Cms\Auth`: login, logout, sessions, password hashing, invites, explicit auth modes.
+- `Cms\Users`: users, roles, permissions, account management.
+- `Cms\Content`: articles, versions, statuses, preview, publish, schedule, archive.
+- `Cms\Taxonomy`: categories and tags.
+- `Cms\Localization`: languages, translation helpers, language switching.
+- `Cms\Media`: uploads, media metadata, image handling.
+- `Cms\Jobs`: queue and scheduler integration.
+- `Cms\Mcp`: scope-aware tools exposing concrete CMS operations.
+- `Cms\Plugins`: admin navigation, permission, route, migration, command, job, scheduler, asset, and MCP registration points.
+
+Keep module boundaries plain PHP at first. Extract to Composer plugins when the seams are proven by use.
+
+## Suggested Initial Schema
+
+Use WeOnlyWalk as a schema reference, but make names and columns product-neutral:
+
+- `users`: provider/provider_id optional, username, email, password hash, names, timestamps.
+- `roles`: unique role name.
+- `permissions`: unique permission name.
+- `user_role`: user-role pivot.
+- `role_permissions`: role-permission pivot.
+- `sessions`: database-backed session storage for admin visibility.
+- `articles`: author, category, featured flag or priority fields, created timestamp.
+- `article_versions`: article id, language, version, status, slug, title, teaser, content JSON, publish/schedule timestamps, created timestamp.
+- `article_review_actions`: optional audit trail for review, decline, publish, and archive decisions.
+- `categories`: title/name, slug, timestamps.
+- `tags`: title/name, slug, timestamps.
+- `article_tags`: article-tag pivot.
+- `media`: file path, public URL, mime type, size, dimensions, alt text, owner, timestamps.
+- `jobs` or file-backed queue storage, depending on the selected NixPHP queue driver.
+
+Prefer migrations over schema dumps. Keep first migrations readable and reversible.
+
+## Suggested Permission Names
+
+Use clear dotted permission names:
+
+- `admin.access`
+- `system.read`
+- `plugins.manage`
+- `users.view`
+- `users.create`
+- `users.edit`
+- `users.delete`
+- `roles.manage`
+- `permissions.manage`
+- `articles.view`
+- `articles.create`
+- `articles.edit`
+- `articles.review`
+- `articles.publish`
+- `articles.schedule`
+- `articles.archive`
+- `articles.delete`
+- `media.view`
+- `media.upload`
+- `media.edit`
+- `media.delete`
+- `queue.read`
+- `mcp.tools.call`
+
+MCP scopes should intentionally map to permissions where possible, for example `articles:read`, `system:read`, `queue:read`, and future write scopes such as `articles:write`.
+
+## Suggested First MCP Tools
+
+Build MCP support as concrete capabilities from day one:
+
+- `cms_system_health`: database, storage, PHP version, loaded plugins, session storage, and writable paths.
+- `cms_queue_status`: pending jobs, deadletter jobs, active workers, channels.
+- `cms_article_status_counts`: status counts by language based on latest article versions.
+- `cms_plugin_overview`: loaded NixPHP/NixCMS plugins and their declared admin/capability metadata.
+- `cms_user_role_summary`: role and permission counts, optionally scoped to admin-readable users.
+
+Do not maintain a separate static capability list unless it is derived from tool/plugin metadata.
+
+## Admin UI Direction From WeOnlyWalk
+
+The NixCMS admin should use the dense enterprise direction already proven in WeOnlyWalk:
+
+- Server-rendered `.phtml` views first.
+- Calm layout with persistent admin navigation.
+- Tables for resources, filters, search, status chips, and bulk-friendly actions.
+- Forms and modals for common actions.
+- Semantic CSS for reusable admin structures; Tailwind utilities for local one-off layout details.
+- Dark mode support through a root `dark` class.
+- Build assets from `app/app/Resources` into `app/public`; do not manually edit build output.
+
+Avoid landing-page or marketing-style admin screens. The first screen should be useful as an operational dashboard.
+
+For this NixCMS repository, browser-consumed assets must exist below `public/css` and `public/js`. `app/Resources` is for source/build inputs only.
+
+Admin UI components should be self-contained by default. Prefer Tailwind utility classes and small local class decisions inside `views/components/admin/*`; keep global CSS for tokens, base behavior, menu state helpers, and third-party integration only. A plugin should usually be able to override one component file without also patching global CSS.
+
+## Operational Notes To Carry Forward
+
+- Treat queue deadletter state as first-class observability.
+- Long-lived workers can hold stale database connections; support worker lifecycle limits such as max jobs and max runtime.
+- Scheduled tasks should be visible separately from queued jobs when possible.
+- Health checks should cover database connectivity, storage writability, loaded plugins, session backend, queue state, and MCP token/auth status.
+- Auth should be on by default; open/internal modes must be explicit.
+- Tokens and external API credentials must not be stored in plaintext.
+
+## First Build Target
+
+The first useful NixCMS milestone should be:
+
+1. NixPHP app skeleton with admin layout.
+2. Database migrations for users, roles, permissions, sessions, articles, article versions, categories, tags, and pivots.
+3. Login/logout plus a CLI command to create the first admin user.
+4. Admin dashboard with health, content status counts, queue status, and loaded plugin overview.
+5. Article list, create/edit draft, preview, review, publish, schedule, archive.
+6. Language-aware article versions.
+7. Three MCP tools: system health, queue status, article status counts.

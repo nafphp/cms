@@ -1,0 +1,14 @@
+<?php
+
+use function NixPHP\View\s;
+
+$title = (string) ($title ?? '');
+$text = (string) ($text ?? '');
+
+?>
+<div class="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-950/40">
+    <strong class="block text-sm font-extrabold text-slate-900 dark:text-white"><?= s($title) ?></strong>
+    <?php if ($text !== ''): ?>
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400"><?= s($text) ?></p>
+    <?php endif; ?>
+</div>

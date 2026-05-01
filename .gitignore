@@ -1,0 +1,12 @@
+/vendor/
+/node_modules/
+/composer.phar
+/.env
+/.env.local
+/logs/*.log
+/storage/mcp/tokens.json
+/storage/queue/**/*.job
+/storage/queue/**/*.lock
+/.phpunit.cache/
+/.phpunit.result.cache
+.claude/

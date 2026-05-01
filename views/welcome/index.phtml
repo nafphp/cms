@@ -1,0 +1,22 @@
+<?php
+
+use function NixPHP\View\s;
+
+?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?= s($title ?? 'NixCMS') ?></title>
+    <link rel="stylesheet" href="/css/nixcms.css">
+</head>
+<body class="welcome-shell">
+    <main class="welcome-main">
+        <p class="eyebrow">Bare-metal first</p>
+        <h1>NixCMS</h1>
+        <p>Lightweight CMS groundwork built on NixPHP.</p>
+        <a class="button" href="/admin">Open admin</a>
+    </main>
+</body>
+</html>

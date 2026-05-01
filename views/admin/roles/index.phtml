@@ -1,0 +1,674 @@
+<?php
+
+use function NixPHP\route;
+use function NixPHP\Form\csrf;
+use function NixPHP\View\s;
+
+$roles = is_array($roles ?? null) ? $roles : [];
+$permissions = is_array($permissions ?? null) ? $permissions : [];
+
+?>
+<?php $this->setLayout('layouts.admin') ?>
+
+<?php $pageTitle = 'Rollenverwaltung'; ?>
+<?php $pageSubtitle = 'Rollen verwalten und Berechtigungen zuweisen.'; ?>
+
+<?php $this->block('content'); ?>
+<div
+    class="rounded-xl border border-slate-300/40 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,.16),transparent_30%),linear-gradient(145deg,rgba(30,41,59,.92),rgba(15,23,42,.98))] p-4 shadow-2xl shadow-slate-950/20 dark:border-slate-700"
+    data-rbac-manager
+>
+    <input type="hidden" name="_csrf" value="<?= s(csrf()->generate()) ?>">
+    <div class="grid gap-4 xl:grid-cols-[minmax(320px,45%)_minmax(420px,55%)]">
+        <div class="grid content-start gap-4">
+            <section class="overflow-hidden rounded-lg border border-slate-600/70 bg-slate-950/20 shadow-sm">
+                <div class="flex items-center justify-between border-t-4 border-amber-500 px-5 pb-3 pt-4">
+                    <h2 class="m-0 text-xl font-bold text-white">Rollen</h2>
+                    <button class="rounded bg-slate-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-400" type="button" id="create-role-btn">Hinzufügen</button>
+                </div>
+                <div class="max-h-80 overflow-auto px-5 pb-5">
+                    <div id="roles-list" class="grid gap-2"></div>
+                </div>
+            </section>
+
+            <section class="overflow-hidden rounded-lg border border-slate-600/70 bg-slate-950/20 shadow-sm">
+                <div class="flex items-center justify-between border-t-4 border-amber-500 px-5 pb-3 pt-4">
+                    <h2 class="m-0 text-xl font-bold text-white">Berechtigungen</h2>
+                    <button class="rounded bg-slate-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-400" type="button" id="create-permission-btn">Hinzufügen</button>
+                </div>
+                <div class="max-h-[32rem] overflow-auto px-5 pb-5">
+                    <table class="w-full border-collapse text-left text-sm text-slate-100">
+                        <thead>
+                        <tr class="border-b border-slate-700 text-slate-300">
+                            <th class="px-2 py-3 font-bold">#</th>
+                            <th class="px-2 py-3 font-bold">Name</th>
+                            <th class="px-2 py-3 font-bold">Rollen</th>
+                            <th class="px-2 py-3 text-right font-bold">Aktionen</th>
+                        </tr>
+                        </thead>
+                        <tbody id="permissions-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <section class="overflow-hidden rounded-lg border border-slate-600/70 bg-slate-950/20 shadow-sm">
+            <div class="border-t-4 border-amber-500 px-5 pb-4 pt-4">
+                <h2 class="m-0 text-xl font-bold text-white">Berechtigungen zuweisen</h2>
+                <p id="selected-role-label" class="mt-2 text-sm font-medium text-slate-300">Wähle eine Rolle, um Zuweisungen zu bearbeiten.</p>
+            </div>
+
+            <div class="grid gap-5 px-5 pb-5 lg:grid-cols-2">
+                <div class="grid content-start gap-2">
+                    <h3 class="m-0 text-lg font-bold text-white">Verfügbar</h3>
+                    <ul id="available-permissions" class="min-h-[28rem] rounded-md border border-dashed border-slate-700 p-3"></ul>
+                </div>
+                <div class="grid content-start gap-2">
+                    <h3 class="m-0 text-lg font-bold text-white">Zugewiesen</h3>
+                    <ul id="assigned-permissions" class="min-h-[28rem] rounded-md border border-dashed border-slate-700 p-3"></ul>
+                </div>
+            </div>
+
+            <p class="px-5 pb-5 text-sm text-slate-400">Tipp: Ziehe Berechtigungen zwischen den Listen oder nutze die Hinzufügen-/Entfernen-Buttons.</p>
+        </section>
+    </div>
+</div>
+
+<script type="module">
+    import prompt from "/js/lib/notifyJs/Modules/Prompt.js";
+    import toast from "/js/lib/notifyJs/Modules/Toast.js";
+
+    const roles = <?= json_encode($roles, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    const permissions = <?= json_encode($permissions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+
+    const routes = {
+        roleCreate: '<?= s(route('api.admin.rbac.roles.create')) ?>',
+        roleUpdate: '<?= s(route('api.admin.rbac.roles.update')) ?>',
+        roleDelete: '<?= s(route('api.admin.rbac.roles.delete')) ?>',
+        roleUpdatePermissions: '<?= s(route('api.admin.rbac.roles.permissions')) ?>',
+        permissionCreate: '<?= s(route('api.admin.rbac.permissions.create')) ?>',
+        permissionUpdate: '<?= s(route('api.admin.rbac.permissions.update')) ?>',
+        permissionDelete: '<?= s(route('api.admin.rbac.permissions.delete')) ?>',
+    };
+
+    const i18n = {
+        add: 'Hinzufügen',
+        remove: 'Entfernen',
+        rename: 'Umbenennen',
+        delete: 'Löschen',
+        save: 'Speichern',
+        cancel: 'Abbrechen',
+        create: 'Erstellen',
+        noRolesAvailable: 'Keine Rollen vorhanden.',
+        noPermissionsAvailable: 'Keine Berechtigungen vorhanden.',
+        selectRoleToManageAssignments: 'Wähle eine Rolle, um Zuweisungen zu bearbeiten.',
+        selectedRole: 'Ausgewählte Rolle:',
+        couldNotUpdateRolePermissions: 'Berechtigungen konnten nicht aktualisiert werden.',
+        dropHere: 'Hier ablegen',
+        createRole: 'Rolle erstellen',
+        newRoleName: 'Name der neuen Rolle',
+        validRoleNameRequired: 'Bitte gib einen gültigen Rollennamen ein.',
+        couldNotCreateRole: 'Rolle konnte nicht erstellt werden.',
+        invalidRoleData: 'Ungültige Rollen-Daten.',
+        roleCreated: 'Rolle erstellt.',
+        createPermission: 'Berechtigung erstellen',
+        newPermissionName: 'Name der neuen Berechtigung',
+        validPermissionNameRequired: 'Bitte gib einen gültigen Berechtigungsnamen ein.',
+        couldNotCreatePermission: 'Berechtigung konnte nicht erstellt werden.',
+        invalidPermissionData: 'Ungültige Berechtigungs-Daten.',
+        permissionCreated: 'Berechtigung erstellt.',
+        renameRole: 'Rolle umbenennen',
+        couldNotRenameRole: 'Rolle konnte nicht umbenannt werden.',
+        roleRenamed: 'Rolle umbenannt.',
+        deleteRole: 'Rolle löschen',
+        couldNotDeleteRole: 'Rolle konnte nicht gelöscht werden.',
+        roleDeleted: 'Rolle gelöscht.',
+        renamePermission: 'Berechtigung umbenennen',
+        couldNotRenamePermission: 'Berechtigung konnte nicht umbenannt werden.',
+        permissionRenamed: 'Berechtigung umbenannt.',
+        deletePermission: 'Berechtigung löschen',
+        couldNotDeletePermission: 'Berechtigung konnte nicht gelöscht werden.',
+        permissionDeleted: 'Berechtigung gelöscht.',
+    };
+
+    let selectedRoleId = null;
+    let roleState = Array.isArray(roles) ? [...roles] : [];
+    let permissionState = Array.isArray(permissions) ? [...permissions] : [];
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    async function postJson(url, payload) {
+        const response = await (window.NixCMS?.fetch || fetch)(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+        const data = await response.json().catch(() => ({}));
+        return {ok: response.ok, data};
+    }
+
+    function permissionIdByName(permissionName) {
+        const permission = permissionState.find((entry) => String(entry.name) === String(permissionName));
+        return permission ? Number(permission.id) : 0;
+    }
+
+    function normalizeRoleState() {
+        roleState = roleState.map((role) => {
+            const permissionIds = (Array.isArray(role.permission_names) ? role.permission_names : [])
+                .map((name) => permissionIdByName(name))
+                .filter((id) => id > 0);
+
+            return {...role, permission_ids: Array.from(new Set(permissionIds)).sort((a, b) => a - b)};
+        });
+    }
+
+    function recalculatePermissionRoleCounts() {
+        const counts = new Map(permissionState.map((permission) => [Number(permission.id), 0]));
+        for (const role of roleState) {
+            for (const permissionId of Array.isArray(role.permission_ids) ? role.permission_ids : []) {
+                const key = Number(permissionId);
+                counts.set(key, (counts.get(key) ?? 0) + 1);
+            }
+        }
+
+        permissionState = permissionState.map((permission) => ({
+            ...permission,
+            role_count: counts.get(Number(permission.id)) ?? 0,
+        }));
+    }
+
+    function selectedRole() {
+        return roleState.find((role) => Number(role.id) === Number(selectedRoleId)) ?? null;
+    }
+
+    function permissionItemMarkup(permission, assigned) {
+        return `
+            <li class="mb-2 flex min-h-12 cursor-grab items-center gap-2 rounded-md border border-slate-700 bg-slate-800/70 px-3 py-2 text-sm text-slate-100"
+                draggable="true"
+                data-permission-id="${Number(permission.id)}">
+                <span class="min-w-0 flex-1 truncate font-semibold">${escapeHtml(permission.name)}</span>
+                <button
+                    type="button"
+                    class="permission-move-btn rounded ${assigned ? 'bg-rose-600 hover:bg-rose-500' : 'bg-slate-500 hover:bg-slate-400'} px-2 py-1 text-xs font-semibold text-white"
+                    data-permission-id="${Number(permission.id)}"
+                    data-target="${assigned ? 'available' : 'assigned'}"
+                >${assigned ? i18n.remove : i18n.add}</button>
+            </li>
+        `;
+    }
+
+    function renderRoles() {
+        const container = document.getElementById('roles-list');
+        if (roleState.length === 0) {
+            container.innerHTML = `<p class="text-sm text-slate-400">${i18n.noRolesAvailable}</p>`;
+            return;
+        }
+
+        container.innerHTML = roleState.map((role) => {
+            const isActive = Number(role.id) === Number(selectedRoleId);
+            return `
+                <div class="group flex min-h-14 items-center gap-2 rounded-md border ${isActive ? 'border-blue-500 bg-slate-800' : 'border-slate-700 bg-slate-900/50'} px-3 py-2" data-role-id="${Number(role.id)}">
+                    <button type="button" class="role-select min-w-0 flex-1 truncate text-left text-sm font-bold text-white">${escapeHtml(role.name)}</button>
+                    <div class="flex gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
+                        <button type="button" class="rename-role rounded bg-slate-500 px-2 py-1 text-xs font-semibold text-white hover:bg-slate-400">${i18n.rename}</button>
+                        <button type="button" class="delete-role rounded bg-rose-600 px-2 py-1 text-xs font-semibold text-white hover:bg-rose-500">${i18n.delete}</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderPermissionsTable() {
+        const tbody = document.getElementById('permissions-tbody');
+        if (permissionState.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="px-2 py-3 text-slate-400">${i18n.noPermissionsAvailable}</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = permissionState.map((permission) => `
+            <tr class="group border-b border-slate-800" data-permission-id="${Number(permission.id)}">
+                <td class="px-2 py-3">${Number(permission.id)}</td>
+                <td class="px-2 py-3 font-semibold">${escapeHtml(permission.name)}</td>
+                <td class="px-2 py-3">${Number(permission.role_count || 0)}</td>
+                <td class="px-2 py-3">
+                    <div class="flex justify-end gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
+                        <button type="button" class="rename-permission rounded bg-slate-500 px-2 py-1 text-xs font-semibold text-white hover:bg-slate-400">${i18n.rename}</button>
+                        <button type="button" class="delete-permission rounded bg-rose-600 px-2 py-1 text-xs font-semibold text-white hover:bg-rose-500">${i18n.delete}</button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function renderAssignment() {
+        const role = selectedRole();
+        const label = document.getElementById('selected-role-label');
+        const availableList = document.getElementById('available-permissions');
+        const assignedList = document.getElementById('assigned-permissions');
+
+        if (!role) {
+            label.textContent = i18n.selectRoleToManageAssignments;
+            availableList.innerHTML = '';
+            assignedList.innerHTML = '';
+            return;
+        }
+
+        label.textContent = `${i18n.selectedRole} ${role.name}`;
+        const assignedIds = new Set((Array.isArray(role.permission_ids) ? role.permission_ids : []).map(Number));
+        const assigned = permissionState.filter((permission) => assignedIds.has(Number(permission.id)));
+        const available = permissionState.filter((permission) => !assignedIds.has(Number(permission.id)));
+
+        availableList.innerHTML = available.map((permission) => permissionItemMarkup(permission, false)).join('');
+        assignedList.innerHTML = assigned.map((permission) => permissionItemMarkup(permission, true)).join('');
+    }
+
+    async function persistSelectedRolePermissions() {
+        const role = selectedRole();
+        if (!role) {
+            return;
+        }
+
+        const result = await postJson(routes.roleUpdatePermissions, {
+            roleId: Number(role.id),
+            permissionIds: Array.isArray(role.permission_ids) ? role.permission_ids : [],
+        });
+
+        if (!result.ok || !result.data.success) {
+            toast(result.data.reason ?? i18n.couldNotUpdateRolePermissions);
+            return;
+        }
+
+        const returnedRole = result.data.role || null;
+        if (returnedRole && Number(returnedRole.id) === Number(role.id)) {
+            const permissionIds = (Array.isArray(returnedRole.permission_names) ? returnedRole.permission_names : [])
+                .map((name) => permissionIdByName(name))
+                .filter((id) => id > 0);
+
+            roleState = roleState.map((entry) => Number(entry.id) === Number(role.id)
+                ? {...entry, ...returnedRole, permission_ids: Array.from(new Set(permissionIds))}
+                : entry
+            );
+        }
+
+        recalculatePermissionRoleCounts();
+        renderPermissionsTable();
+        renderAssignment();
+    }
+
+    async function movePermission(permissionId, target) {
+        const role = selectedRole();
+        if (!role) {
+            return;
+        }
+
+        const currentIds = new Set((Array.isArray(role.permission_ids) ? role.permission_ids : []).map(Number));
+        const normalizedPermissionId = Number(permissionId);
+
+        if (target === 'assigned') {
+            currentIds.add(normalizedPermissionId);
+        } else {
+            currentIds.delete(normalizedPermissionId);
+        }
+
+        role.permission_ids = Array.from(currentIds).sort((a, b) => a - b);
+        recalculatePermissionRoleCounts();
+        renderPermissionsTable();
+        renderAssignment();
+        await persistSelectedRolePermissions();
+    }
+
+    function clearDropState() {
+        document.getElementById('permission-drop-indicator')?.remove();
+        for (const listId of ['available-permissions', 'assigned-permissions']) {
+            document.getElementById(listId)?.classList.remove('ring-2', 'ring-blue-400', 'ring-offset-2', 'ring-offset-slate-950');
+        }
+        document.querySelectorAll('li[data-permission-id].opacity-50').forEach((item) => item.classList.remove('opacity-50'));
+    }
+
+    function dropIndicatorMarkup() {
+        return `<li id="permission-drop-indicator" class="mb-2 rounded-md border-2 border-dashed border-blue-400 bg-blue-900/30 px-2 py-2 text-xs text-blue-100">${i18n.dropHere}</li>`;
+    }
+
+    function insertionReferenceElement(listElement, pointerY, draggedPermissionId) {
+        const items = Array.from(listElement.querySelectorAll('li[data-permission-id]'))
+            .filter((item) => Number(item.dataset.permissionId || 0) !== Number(draggedPermissionId));
+        let closest = {offset: Number.NEGATIVE_INFINITY, element: null};
+        for (const item of items) {
+            const box = item.getBoundingClientRect();
+            const offset = pointerY - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                closest = {offset, element: item};
+            }
+        }
+        return closest.element;
+    }
+
+    function initDnD() {
+        let draggedPermissionId = 0;
+        let draggedFromListId = '';
+        let hoveredTargetListId = '';
+
+        document.addEventListener('dragstart', (event) => {
+            const item = event.target.closest('li[data-permission-id]');
+            if (!item) {
+                return;
+            }
+            draggedPermissionId = Number(item.dataset.permissionId || 0);
+            draggedFromListId = item.closest('ul')?.id || '';
+            item.classList.add('opacity-50');
+            if (event.dataTransfer) {
+                event.dataTransfer.effectAllowed = 'move';
+            }
+        });
+
+        document.addEventListener('dragend', () => {
+            draggedPermissionId = 0;
+            draggedFromListId = '';
+            hoveredTargetListId = '';
+            clearDropState();
+        });
+
+        for (const target of ['available-permissions', 'assigned-permissions']) {
+            const list = document.getElementById(target);
+            list.addEventListener('dragenter', (event) => {
+                event.preventDefault();
+                if (!draggedPermissionId) {
+                    return;
+                }
+                hoveredTargetListId = target;
+                list.classList.add('ring-2', 'ring-blue-400', 'ring-offset-2', 'ring-offset-slate-950');
+            });
+
+            list.addEventListener('dragover', (event) => {
+                event.preventDefault();
+                if (!draggedPermissionId) {
+                    return;
+                }
+
+                hoveredTargetListId = target;
+                const indicator = document.getElementById('permission-drop-indicator') ?? (() => {
+                    list.insertAdjacentHTML('beforeend', dropIndicatorMarkup());
+                    return document.getElementById('permission-drop-indicator');
+                })();
+
+                const beforeElement = insertionReferenceElement(list, event.clientY, draggedPermissionId);
+                if (beforeElement) {
+                    list.insertBefore(indicator, beforeElement);
+                } else {
+                    list.appendChild(indicator);
+                }
+            });
+
+            list.addEventListener('dragleave', (event) => {
+                if (event.relatedTarget && list.contains(event.relatedTarget)) {
+                    return;
+                }
+                if (hoveredTargetListId === target) {
+                    hoveredTargetListId = '';
+                }
+                list.classList.remove('ring-2', 'ring-blue-400', 'ring-offset-2', 'ring-offset-slate-950');
+            });
+
+            list.addEventListener('drop', async (event) => {
+                event.preventDefault();
+                if (!draggedPermissionId) {
+                    return;
+                }
+                const destinationTarget = (hoveredTargetListId || target) === 'assigned-permissions' ? 'assigned' : 'available';
+                if (
+                    (draggedFromListId === 'assigned-permissions' && destinationTarget === 'assigned')
+                    || (draggedFromListId === 'available-permissions' && destinationTarget === 'available')
+                ) {
+                    clearDropState();
+                    draggedPermissionId = 0;
+                    draggedFromListId = '';
+                    hoveredTargetListId = '';
+                    return;
+                }
+
+                clearDropState();
+                await movePermission(draggedPermissionId, destinationTarget);
+                draggedPermissionId = 0;
+                draggedFromListId = '';
+                hoveredTargetListId = '';
+            });
+        }
+    }
+
+    function rerenderAll() {
+        recalculatePermissionRoleCounts();
+        renderRoles();
+        renderPermissionsTable();
+        renderAssignment();
+    }
+
+    async function askName(title, placeholder, value = '') {
+        let name = value;
+        const confirmed = await prompt(`
+            <div class="my-3">${escapeHtml(title)}</div>
+            <input id="rbac-name-input" type="text" value="${escapeHtml(value)}" placeholder="${escapeHtml(placeholder)}"
+                class="w-full rounded-md border border-slate-600 bg-slate-800 p-2.5 text-white" />
+        `, {
+            confirmButtonText: value ? i18n.save : i18n.create,
+            showCancelButton: true,
+            cancelButtonText: i18n.cancel,
+            confirmCallback: async (promptInstance) => {
+                const input = promptInstance.container.querySelector('#rbac-name-input');
+                name = (input?.value ?? '').trim();
+                if (!name) {
+                    toast(value ? i18n.validRoleNameRequired : i18n.validPermissionNameRequired);
+                    return false;
+                }
+                promptInstance.promise.resolve();
+                promptInstance.remove();
+                return true;
+            }
+        });
+
+        return confirmed === false ? null : name;
+    }
+
+    document.getElementById('create-role-btn').addEventListener('click', async () => {
+        const newName = await askName(i18n.createRole, i18n.newRoleName);
+        if (newName === null) {
+            return;
+        }
+
+        const result = await postJson(routes.roleCreate, {name: newName});
+        if (!result.ok || !result.data.success) {
+            toast(result.data.reason ?? i18n.couldNotCreateRole);
+            return;
+        }
+
+        const role = result.data.role || null;
+        if (!role || typeof role.name !== 'string' || role.name.trim() === '') {
+            toast(result.data.reason ?? i18n.invalidRoleData);
+            return;
+        }
+
+        roleState.push({...role, permission_ids: []});
+        roleState.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+        selectedRoleId = Number(role.id);
+        rerenderAll();
+        toast(i18n.roleCreated);
+    });
+
+    document.getElementById('create-permission-btn').addEventListener('click', async () => {
+        const newName = await askName(i18n.createPermission, i18n.newPermissionName);
+        if (newName === null) {
+            return;
+        }
+
+        const result = await postJson(routes.permissionCreate, {name: newName});
+        if (!result.ok || !result.data.success) {
+            toast(result.data.reason ?? i18n.couldNotCreatePermission);
+            return;
+        }
+
+        const permission = result.data.permission || null;
+        if (!permission || typeof permission.name !== 'string' || permission.name.trim() === '') {
+            toast(result.data.reason ?? i18n.invalidPermissionData);
+            return;
+        }
+
+        permissionState.push(permission);
+        permissionState.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+        rerenderAll();
+        toast(i18n.permissionCreated);
+    });
+
+    document.addEventListener('click', async (event) => {
+        const roleSelectBtn = event.target.closest('.role-select');
+        if (roleSelectBtn) {
+            selectedRoleId = Number(roleSelectBtn.closest('[data-role-id]')?.dataset.roleId || 0);
+            renderRoles();
+            renderAssignment();
+            return;
+        }
+
+        const renameRoleBtn = event.target.closest('.rename-role');
+        if (renameRoleBtn) {
+            const roleId = Number(renameRoleBtn.closest('[data-role-id]')?.dataset.roleId || 0);
+            const role = roleState.find((entry) => Number(entry.id) === roleId);
+            if (!role) {
+                return;
+            }
+            const newName = await askName(i18n.renameRole, i18n.newRoleName, role.name);
+            if (newName === null) {
+                return;
+            }
+
+            const result = await postJson(routes.roleUpdate, {id: roleId, name: newName});
+            if (!result.ok || !result.data.success) {
+                toast(result.data.reason ?? i18n.couldNotRenameRole);
+                return;
+            }
+
+            roleState = roleState.map((entry) => Number(entry.id) === roleId ? {...entry, name: newName.toLowerCase()} : entry);
+            roleState.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+            rerenderAll();
+            toast(i18n.roleRenamed);
+            return;
+        }
+
+        const deleteRoleBtn = event.target.closest('.delete-role');
+        if (deleteRoleBtn) {
+            const roleId = Number(deleteRoleBtn.closest('[data-role-id]')?.dataset.roleId || 0);
+            const role = roleState.find((entry) => Number(entry.id) === roleId);
+            if (!role) {
+                return;
+            }
+
+            const confirmed = await prompt(`<div class="my-5">${i18n.deleteRole} "${escapeHtml(role.name)}"?</div>`, {
+                confirmButtonText: i18n.delete,
+                showCancelButton: true,
+                cancelButtonText: i18n.cancel,
+            });
+            if (!confirmed) {
+                return;
+            }
+
+            const result = await postJson(routes.roleDelete, {id: roleId});
+            if (!result.ok || !result.data.success) {
+                toast(result.data.reason ?? i18n.couldNotDeleteRole);
+                return;
+            }
+
+            roleState = roleState.filter((entry) => Number(entry.id) !== roleId);
+            if (Number(selectedRoleId) === roleId) {
+                selectedRoleId = roleState.length > 0 ? Number(roleState[0].id) : null;
+            }
+            rerenderAll();
+            toast(i18n.roleDeleted);
+            return;
+        }
+
+        const renamePermissionBtn = event.target.closest('.rename-permission');
+        if (renamePermissionBtn) {
+            const permissionId = Number(renamePermissionBtn.closest('tr[data-permission-id]')?.dataset.permissionId || 0);
+            const permission = permissionState.find((entry) => Number(entry.id) === permissionId);
+            if (!permission) {
+                return;
+            }
+            const newName = await askName(i18n.renamePermission, i18n.newPermissionName, permission.name);
+            if (newName === null) {
+                return;
+            }
+
+            const result = await postJson(routes.permissionUpdate, {id: permissionId, name: newName});
+            if (!result.ok || !result.data.success) {
+                toast(result.data.reason ?? i18n.couldNotRenamePermission);
+                return;
+            }
+
+            permissionState = permissionState.map((entry) => Number(entry.id) === permissionId
+                ? {...entry, name: newName.toLowerCase()}
+                : entry
+            );
+            permissionState.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+            normalizeRoleState();
+            rerenderAll();
+            toast(i18n.permissionRenamed);
+            return;
+        }
+
+        const deletePermissionBtn = event.target.closest('.delete-permission');
+        if (deletePermissionBtn) {
+            const permissionId = Number(deletePermissionBtn.closest('tr[data-permission-id]')?.dataset.permissionId || 0);
+            const permission = permissionState.find((entry) => Number(entry.id) === permissionId);
+            if (!permission) {
+                return;
+            }
+
+            const confirmed = await prompt(`<div class="my-5">${i18n.deletePermission} "${escapeHtml(permission.name)}"?</div>`, {
+                confirmButtonText: i18n.delete,
+                showCancelButton: true,
+                cancelButtonText: i18n.cancel,
+            });
+            if (!confirmed) {
+                return;
+            }
+
+            const result = await postJson(routes.permissionDelete, {id: permissionId});
+            if (!result.ok || !result.data.success) {
+                toast(result.data.reason ?? i18n.couldNotDeletePermission);
+                return;
+            }
+
+            permissionState = permissionState.filter((entry) => Number(entry.id) !== permissionId);
+            roleState = roleState.map((role) => ({
+                ...role,
+                permission_ids: (Array.isArray(role.permission_ids) ? role.permission_ids : [])
+                    .filter((id) => Number(id) !== permissionId),
+            }));
+            rerenderAll();
+            toast(i18n.permissionDeleted);
+            return;
+        }
+
+        const moveButton = event.target.closest('.permission-move-btn');
+        if (moveButton) {
+            const permissionId = Number(moveButton.dataset.permissionId || 0);
+            const target = moveButton.dataset.target || '';
+            if (permissionId > 0 && (target === 'assigned' || target === 'available')) {
+                await movePermission(permissionId, target);
+            }
+        }
+    });
+
+    normalizeRoleState();
+    selectedRoleId = roleState.length > 0 ? Number(roleState[0].id) : null;
+    rerenderAll();
+    initDnD();
+</script>
+<?php $this->endBlock('content'); ?>

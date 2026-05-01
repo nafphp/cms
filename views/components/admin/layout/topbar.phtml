@@ -1,0 +1,28 @@
+<?php
+
+use function NixPHP\route;
+use function NixPHP\View\view;
+
+$title = (string) ($title ?? '');
+$subtitle = (string) ($subtitle ?? '');
+
+?>
+<header class="admin-topbar">
+    <div class="admin-topbar-inner">
+        <?= view('components.admin.page-header', ['title' => $title, 'subtitle' => $subtitle]) ?>
+        <div class="admin-topbar-actions">
+            <?= view('components.admin.button', ['label' => 'Dashboard', 'href' => route('admin.dashboard'), 'variant' => 'secondary', 'class' => 'admin-topbar-button']) ?>
+            <?= view('components.admin.button', ['label' => 'Artikel', 'href' => route('admin.articles'), 'variant' => 'secondary', 'class' => 'admin-topbar-button']) ?>
+            <?= view('components.admin.button', ['label' => 'Einstellungen', 'href' => '#', 'variant' => 'secondary', 'class' => 'admin-topbar-button is-disabled', 'attributes' => ['aria-disabled' => 'true']]) ?>
+            <?= view('components.admin.button', ['label' => 'Frontend', 'href' => route('home'), 'variant' => 'secondary', 'class' => 'admin-topbar-button']) ?>
+            <span class="admin-language-pill" aria-label="Current language">
+                <span aria-hidden="true">◎</span>
+                <strong>DE</strong>
+            </span>
+            <button id="darkmode-toggle" class="admin-icon-button" type="button" aria-label="Toggle dark mode">
+                <span class="dark-toggle-light">☾</span>
+                <span class="dark-toggle-dark hidden">☀</span>
+            </button>
+        </div>
+    </div>
+</header>

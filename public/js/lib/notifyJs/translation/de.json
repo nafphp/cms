@@ -1,0 +1,5 @@
+{
+  "Value may only consist of chars.": "Der Wert darf nur Buchstaben enthalten.",
+  "The field must not be empty.": "Das Feld darf nicht leer sein.",
+  "Only numbers between ${min} and ${max} are allowed.": "Nur Zahlen zwischen ${min} und ${max} sind erlaubt."
+}

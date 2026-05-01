@@ -1,0 +1,125 @@
+<?php
+
+use Cms\Services\Content\ArticleRenderer;
+use function NixPHP\Form\csrf;
+use function NixPHP\route;
+use function NixPHP\View\s;
+
+/** @var ArticleRenderer $article */
+$reviewActions = is_array($reviewActions ?? null) ? $reviewActions : [];
+$csrfToken = csrf()->generate();
+
+?>
+<?php $this->setLayout('layouts.admin') ?>
+
+<?php $pageTitle = 'Preview article'; ?>
+<?php $pageSubtitle = 'Review the article exactly before publishing decisions.'; ?>
+
+<?php $this->block('adminTop'); ?>
+<div class="article-preview-toolbar">
+    <a class="article-grid-primary-action" href="<?= s(route('admin.articles')) ?>">Back to articles</a>
+    <a class="admin-submit" href="<?= s(route('admin.articles.edit', [
+        'articleId' => $article->articleId(),
+        'language' => $article->language(),
+    ])) ?>">Edit draft</a>
+</div>
+<?php $this->endBlock('adminTop'); ?>
+
+<?php $this->block('content'); ?>
+<div class="article-preview-layout">
+    <article class="article-preview-document">
+        <div class="article-preview-meta">
+            <span><?= s(strtoupper($article->language())) ?></span>
+            <span><?= s($article->status()) ?></span>
+            <?php if ($article->publishedAt() !== ''): ?>
+                <span><?= s($article->publishedAt()) ?></span>
+            <?php endif; ?>
+        </div>
+        <h1><?= s($article->title()) ?></h1>
+        <?php if ($article->showTeaser() && $article->teaser() !== ''): ?>
+            <p class="article-preview-teaser"><?= s($article->teaser()) ?></p>
+        <?php endif; ?>
+        <div class="article-preview-content">
+            <?= $article->html() ?>
+        </div>
+    </article>
+
+    <aside class="article-review-panel">
+        <h2>Review</h2>
+
+        <?php if (($canReview ?? false) && ($isReviewable ?? false)): ?>
+            <form id="articleReviewForm" class="article-review-form">
+                <input type="hidden" name="_csrf" value="<?= s($csrfToken) ?>">
+                <textarea name="comment" class="wow-input wow-textarea" rows="4" placeholder="Review comment"></textarea>
+                <label class="article-toggle">
+                    <input name="publish_article" type="checkbox" value="1" <?= ($canDirectPublish ?? false) ? '' : 'disabled' ?>>
+                    <span>Publish directly on approval</span>
+                </label>
+                <div class="article-review-actions">
+                    <button type="button" class="admin-submit admin-submit-primary" data-review-action="approve">Approve</button>
+                    <button type="button" class="admin-submit" data-review-action="decline">Decline</button>
+                </div>
+            </form>
+        <?php else: ?>
+            <p class="article-review-muted">No review action available for this version.</p>
+        <?php endif; ?>
+
+        <div class="article-review-history">
+            <h3>History</h3>
+            <?php if ($reviewActions === []): ?>
+                <p class="article-review-muted">No review actions yet.</p>
+            <?php endif; ?>
+            <?php foreach ($reviewActions as $action): ?>
+                <?php
+                $name = trim((string) ($action['firstname'] ?? '') . ' ' . (string) ($action['lastname'] ?? ''));
+                $name = $name !== '' ? $name : (string) ($action['username'] ?? 'System');
+                ?>
+                <div class="article-review-entry">
+                    <strong><?= s((string) ($action['action'] ?? '')) ?></strong>
+                    <span><?= s($name) ?> · <?= s((string) ($action['reviewed_at'] ?? '')) ?></span>
+                    <?php if (trim((string) ($action['comment'] ?? '')) !== ''): ?>
+                        <p><?= s((string) $action['comment']) ?></p>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </aside>
+</div>
+
+<script type="module">
+    import toast from '/js/lib/notifyJs/Modules/Toast.js';
+
+    const form = document.getElementById('articleReviewForm');
+    form?.addEventListener('click', async (event) => {
+        const button = event.target.closest('[data-review-action]');
+        if (!button) {
+            return;
+        }
+
+        const response = await (window.NixCMS?.fetch || fetch)(<?= json_encode(route('api.admin.articles.review', [
+            'articleId' => $article->articleId(),
+            'language' => $article->language(),
+        ])) ?>, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-Token': String(window.NixCMS?.csrfToken?.() || form.querySelector('input[name="_csrf"]')?.value || ''),
+            },
+            body: JSON.stringify({
+                action: button.dataset.reviewAction,
+                comment: form.querySelector('[name="comment"]')?.value || '',
+                publish_article: form.querySelector('[name="publish_article"]')?.checked === true,
+            }),
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || payload.success === false) {
+            toast(payload.reason || 'Review could not be saved.');
+            return;
+        }
+
+        window.location.reload();
+    });
+</script>
+<?php $this->endBlock('content'); ?>

@@ -1,0 +1,334 @@
+<?php
+
+use function NixPHP\route;
+use function NixPHP\View\s;
+use function NixPHP\View\view;
+
+$users = is_array($users ?? null) ? $users : [];
+$roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
+
+?>
+<?php $this->setLayout('layouts.admin') ?>
+
+<?php $pageTitle = 'Benutzerverwaltung'; ?>
+<?php $pageSubtitle = 'Benutzer einladen und Rollen verwalten.'; ?>
+
+<?php $this->block('content'); ?>
+<div class="admin-table-toolbar">
+    <label class="article-grid-search-wrap admin-table-search">
+        <span class="icon-search article-grid-search-icon" aria-hidden="true"></span>
+        <input class="article-grid-search" type="search" placeholder="Benutzer suchen..." data-admin-table-search>
+    </label>
+    <div class="admin-table-actions">
+        <?= view('components.admin.button', ['label' => 'Benutzer erstellen', 'href' => route('admin.users.create'), 'variant' => 'primary', 'class' => 'admin-primary-action']) ?>
+        <?= view('components.admin.button', ['label' => 'Einladungslink erstellen', 'attributes' => ['data-create-invite' => true], 'variant' => 'primary', 'class' => 'admin-primary-action']) ?>
+    </div>
+</div>
+<?php if ($users === []): ?>
+    <?= view('components.admin.empty-state', [
+        'title' => 'Noch keine Benutzer',
+        'text' => 'Erstelle das erste Administrationskonto und weise eine Rolle zu.',
+    ]) ?>
+<?php else: ?>
+    <div class="admin-table-frame">
+        <table class="admin-data-table">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Benutzername</th>
+                <th>Name</th>
+                <th>Rollen</th>
+                <th>Berechtigungen</th>
+                <th class="text-right">Aktionen</th>
+            </tr>
+            </thead>
+            <tbody id="users-table-body">
+            <?php foreach ($users as $user): ?>
+                <?php
+                $userId = (int) ($user['id'] ?? 0);
+                $roles = is_array($user['roles'] ?? null) ? $user['roles'] : [];
+                $permissions = is_array($user['permissions'] ?? null) ? $user['permissions'] : [];
+                $displayName = trim((string) ($user['firstname'] ?? '') . ' ' . (string) ($user['lastname'] ?? ''));
+                ?>
+                <tr data-user-row="<?= $userId ?>">
+                    <td><?= $userId ?></td>
+                    <td>
+                        <strong><?= s((string) ($user['username'] ?? '')) ?></strong>
+                    </td>
+                    <td><?= s($displayName !== '' ? $displayName : 'Kein Profilname') ?></td>
+                    <td data-user-roles="<?= $userId ?>">
+                        <div class="flex flex-wrap gap-1.5">
+                            <?php foreach ($roles as $role): ?>
+                                <?= view('components.admin.badge', ['label' => (string) $role]) ?>
+                            <?php endforeach; ?>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="admin-permission-link" data-user-permissions="<?= $userId ?>" title="<?= s($permissions !== [] ? implode(', ', $permissions) : 'Keine Berechtigungen') ?>">
+                            <?= s($permissions !== [] ? 'Berechtigungen anzeigen' : 'Keine Berechtigungen') ?>
+                        </div>
+                    </td>
+                    <td class="text-right">
+                        <div class="flex justify-end gap-2">
+                            <?= view('components.admin.button', [
+                                'label' => 'Rollen ändern',
+                                'size' => 'small',
+                                'class' => 'admin-muted-action',
+                                'attributes' => ['data-edit-roles' => $userId],
+                            ]) ?>
+                        </div>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+<?php endif; ?>
+
+<script type="module">
+    import prompt from '/js/lib/notifyJs/Modules/Prompt.js';
+    import toast from '/js/lib/notifyJs/Modules/Toast.js';
+
+    const roles = <?= json_encode($roleDefinitions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    const users = <?= json_encode($users, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    const updateRolesUrl = <?= json_encode(route('api.admin.users.roles')) ?>;
+    const deleteUserUrl = <?= json_encode(route('api.admin.users.delete')) ?>;
+    const createInviteUrl = <?= json_encode(route('api.admin.users.invite')) ?>;
+
+    const escapeHtml = (value) => String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+    const userById = (userId) => users.find((user) => Number(user.id) === Number(userId));
+
+    document.querySelector('[data-admin-table-search]')?.addEventListener('input', (event) => {
+        const query = String(event.target.value || '').trim().toLowerCase();
+        document.querySelectorAll('[data-user-row]').forEach((row) => {
+            row.hidden = query !== '' && !row.textContent.toLowerCase().includes(query);
+        });
+    });
+
+    const postJson = async (url, payload) => {
+        const response = await (window.NixCMS?.json || fetch)(url, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        return {ok: response.ok, data};
+    };
+
+    const renderRoleBadges = (userId, roleNames) => {
+        const target = document.querySelector(`[data-user-roles="${userId}"]`);
+        if (!target) {
+            return;
+        }
+
+        target.innerHTML = `<div class="flex flex-wrap gap-1.5">${
+            roleNames.map((role) => `<span class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">${escapeHtml(role)}</span>`).join('')
+        }</div>`;
+    };
+
+    document.querySelectorAll('[data-create-invite]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            let selectedRole = '';
+            let email = '';
+            let expiresInDays = 7;
+            const roleMarkup = roles.map((role, index) => {
+                const roleName = String(role.name || '');
+                const permissions = Array.isArray(role.permission_names) ? role.permission_names.join(', ') : '';
+                return `
+                    <label class="notify-role-option">
+                        <input type="radio" name="invite-role" class="invite-role-radio notify-role-check" value="${escapeHtml(roleName)}" ${index === 0 ? 'checked' : ''}>
+                        <span class="notify-role-copy">
+                            <span class="notify-role-name">${escapeHtml(roleName)}</span>
+                            <span class="notify-role-permissions">${escapeHtml(permissions || 'No permissions')}</span>
+                        </span>
+                    </label>
+                `;
+            }).join('');
+
+            const result = await prompt(`
+                <div>Create invite</div>
+                <div class="notify-form">
+                    <p class="notify-form-intro">Generate a one-time registration link for a new account.</p>
+                    <div class="notify-form-grid">
+                        <label class="notify-field">
+                            <span class="notify-field-label">Email</span>
+                            <input id="invite-email" type="email" placeholder="editor@example.com">
+                        </label>
+                        <label class="notify-field">
+                            <span class="notify-field-label">Expires in days</span>
+                            <input id="invite-expires-days" type="number" min="1" max="30" value="7">
+                        </label>
+                    </div>
+                    <div class="notify-section-head"><span>Role</span><span>Select one</span></div>
+                    <div class="notify-role-list">${roleMarkup}</div>
+                </div>
+            `, {
+                confirmButtonText: 'Create invite',
+                cancelButtonText: 'Cancel',
+                showCancelButton: true,
+                confirmCallback: async (promptInstance) => {
+                    email = String(promptInstance.container.querySelector('#invite-email')?.value || '').trim().toLowerCase();
+                    expiresInDays = Number(promptInstance.container.querySelector('#invite-expires-days')?.value || 0);
+                    selectedRole = String(promptInstance.container.querySelector('.invite-role-radio:checked')?.value || '');
+
+                    if (!email || !email.includes('@')) {
+                        toast('Please provide a valid email address.');
+                        return false;
+                    }
+                    if (!Number.isInteger(expiresInDays) || expiresInDays < 1 || expiresInDays > 30) {
+                        toast('Expiry must be between 1 and 30 days.');
+                        return false;
+                    }
+                    if (!selectedRole) {
+                        toast('Please select a role.');
+                        return false;
+                    }
+
+                    promptInstance.promise.resolve(true);
+                    promptInstance.remove();
+                    return true;
+                },
+            });
+
+            if (result !== true) {
+                return;
+            }
+
+            const response = await postJson(createInviteUrl, {
+                email,
+                expiresInDays,
+                roles: [selectedRole],
+            });
+            if (!response.ok || !response.data.success) {
+                toast(response.data.reason || 'Could not create invite.');
+                return;
+            }
+
+            const invitePath = String(response.data.inviteLink || '');
+            const inviteUrl = invitePath.startsWith('http') ? invitePath : `${window.location.origin}${invitePath}`;
+            try {
+                await navigator.clipboard.writeText(inviteUrl);
+                toast('Invite link copied.');
+            } catch (_error) {
+                toast('Invite created.');
+            }
+
+            await prompt(`
+                <div>Invite link created</div>
+                <div class="notify-form">
+                    <p class="notify-form-intro">Valid until ${escapeHtml(String(response.data.expiresAt || ''))}</p>
+                    <label class="notify-field">
+                        <span class="notify-field-label">Registration link</span>
+                        <input type="text" readonly value="${escapeHtml(inviteUrl)}">
+                    </label>
+                </div>
+            `, {
+                confirmButtonText: 'Done',
+            });
+        });
+    });
+
+    document.querySelectorAll('[data-edit-roles]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            const userId = Number(button.getAttribute('data-edit-roles') || 0);
+            const selectedUser = userById(userId);
+            if (!selectedUser) {
+                return;
+            }
+
+            const currentRoles = Array.isArray(selectedUser.roles) ? selectedUser.roles : [];
+            let selectedRoles = [...currentRoles];
+            const roleMarkup = roles.map((role) => {
+                const roleName = String(role.name || '');
+                const checked = currentRoles.includes(roleName) ? 'checked' : '';
+                const permissions = Array.isArray(role.permission_names) ? role.permission_names.join(', ') : '';
+                return `
+                    <label class="notify-role-option">
+                        <input type="checkbox" class="role-checkbox notify-role-check" value="${escapeHtml(roleName)}" ${checked}>
+                        <span class="notify-role-copy">
+                            <span class="notify-role-name">${escapeHtml(roleName)}</span>
+                            <span class="notify-role-permissions">${escapeHtml(permissions || 'No permissions')}</span>
+                        </span>
+                    </label>
+                `;
+            }).join('');
+
+            const result = await prompt(`
+                <div>Update roles for ${escapeHtml(selectedUser.username || '')}</div>
+                <div class="notify-form">
+                    <div class="notify-section-head"><span>Roles</span><span>Select at least one</span></div>
+                    <div class="notify-role-list">${roleMarkup}</div>
+                </div>
+            `, {
+                confirmButtonText: 'Save',
+                cancelButtonText: 'Cancel',
+                showCancelButton: true,
+                confirmCallback: async (promptInstance) => {
+                    selectedRoles = Array.from(promptInstance.container.querySelectorAll('.role-checkbox:checked'))
+                        .map((checkbox) => checkbox.value);
+                    if (selectedRoles.length === 0) {
+                        toast('Please assign at least one role.');
+                        return false;
+                    }
+                    promptInstance.promise.resolve(true);
+                    promptInstance.remove();
+                    return true;
+                },
+            });
+
+            if (result !== true) {
+                return;
+            }
+
+            const response = await postJson(updateRolesUrl, {userId, roles: selectedRoles});
+            if (!response.ok || !response.data.success) {
+                toast(response.data.reason || 'Could not update roles.');
+                return;
+            }
+
+            const updatedUser = response.data.user || {};
+            selectedUser.roles = Array.isArray(updatedUser.roles) ? updatedUser.roles : selectedRoles;
+            selectedUser.permissions = Array.isArray(updatedUser.permissions) ? updatedUser.permissions : [];
+            renderRoleBadges(userId, selectedUser.roles);
+            const permissionsTarget = document.querySelector(`[data-user-permissions="${userId}"]`);
+            if (permissionsTarget) {
+                permissionsTarget.textContent = selectedUser.permissions.length ? 'Berechtigungen anzeigen' : 'Keine Berechtigungen';
+                permissionsTarget.setAttribute('title', selectedUser.permissions.length ? selectedUser.permissions.join(', ') : 'Keine Berechtigungen');
+            }
+            toast('Roles updated.');
+        });
+    });
+
+    document.querySelectorAll('[data-delete-user]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            const userId = Number(button.getAttribute('data-delete-user') || 0);
+            const selectedUser = userById(userId);
+            if (!selectedUser) {
+                return;
+            }
+
+            const confirmed = await prompt(
+                `<div>Delete ${escapeHtml(selectedUser.username || 'this user')}?</div><p class="mt-2 text-sm text-slate-500">This removes the account and active sessions.</p>`,
+                {confirmButtonText: 'Delete', cancelButtonText: 'Cancel', showCancelButton: true}
+            );
+            if (confirmed === false) {
+                return;
+            }
+
+            const response = await postJson(deleteUserUrl, {userId});
+            if (!response.ok || !response.data.success) {
+                toast(response.data.reason || 'Could not delete user.');
+                return;
+            }
+
+            document.querySelector(`[data-user-row="${userId}"]`)?.remove();
+            toast('User deleted.');
+        });
+    });
+</script>
+<?php $this->endBlock('content'); ?>

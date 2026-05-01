@@ -1,0 +1,18 @@
+<?php
+
+use function NixPHP\View\s;
+
+$name = (string) ($name ?? '');
+$label = (string) ($label ?? $name);
+$rows = (int) ($rows ?? 5);
+$value = (string) ($value ?? '');
+
+?>
+<label class="hidden" for="<?= s($name) ?>"><?= s($label) ?>:</label>
+<textarea
+    name="<?= s($name) ?>"
+    id="<?= s($name) ?>"
+    rows="<?= $rows ?>"
+    placeholder="<?= s($label) ?>"
+    class="wow-input wow-textarea"
+><?= s($value) ?></textarea>

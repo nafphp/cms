@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+use function NixPHP\View\s;
+
+$assetWithVersion = static function (string $publicPath): string {
+    $file = dirname(__DIR__, 2) . '/public/' . ltrim($publicPath, '/');
+    $version = is_file($file) ? filemtime($file) : null;
+    return is_int($version) ? $publicPath . '?v=' . $version : $publicPath;
+};
+
+?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?= s($title ?? 'Login') ?> | NixCMS</title>
+    <script>
+        (function () {
+            const root = document.documentElement;
+            const storedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const useDark = storedTheme === 'dark' || (storedTheme !== 'light' && prefersDark);
+            root.classList.toggle('dark', useDark);
+            root.style.colorScheme = useDark ? 'dark' : 'light';
+        })();
+    </script>
+    <link rel="stylesheet" href="<?= s($assetWithVersion('/css/nixcms.css')) ?>">
+</head>
+<body class="auth-shell min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+<main class="flex min-h-screen items-center justify-center px-4">
+    <?= $this->renderBlock('content') ?>
+</main>
+</body>
+</html>

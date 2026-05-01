@@ -1,0 +1,31 @@
+<?php
+
+use function NixPHP\View\s;
+
+$name = (string) ($name ?? '');
+$label = (string) ($label ?? $name);
+$selected = (string) ($selected ?? '');
+$options = is_array($options ?? null) ? $options : [];
+$attributes = is_array($attributes ?? null) ? $attributes : [];
+
+$attributeHtml = '';
+foreach ($attributes as $attributeName => $attributeValue) {
+    if ($attributeValue === null || $attributeValue === false) {
+        continue;
+    }
+    $attributeHtml .= ' ' . s((string) $attributeName);
+    if ($attributeValue !== true) {
+        $attributeHtml .= '="' . s((string) $attributeValue) . '"';
+    }
+}
+
+?>
+<label class="hidden" for="<?= s($name) ?>"><?= s($label) ?>:</label>
+<select name="<?= s($name) ?>" id="<?= s($name) ?>" class="wow-input"<?= $attributeHtml ?>>
+    <?php foreach ($options as $value => $optionLabel): ?>
+        <?php $value = (string) $value; ?>
+        <option value="<?= s($value) ?>" <?= $value === $selected ? 'selected' : '' ?>>
+            <?= s((string) $optionLabel) ?>
+        </option>
+    <?php endforeach; ?>
+</select>

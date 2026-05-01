@@ -1,0 +1,16 @@
+<?php
+
+use function NixPHP\View\s;
+
+$title = trim((string) ($title ?? ''));
+$subtitle = trim((string) ($subtitle ?? ''));
+
+?>
+<div class="admin-page-heading">
+    <?php if ($title !== ''): ?>
+        <h1><?= s($title) ?></h1>
+    <?php endif; ?>
+    <?php if ($subtitle !== ''): ?>
+        <p><?= s($subtitle) ?></p>
+    <?php endif; ?>
+</div>

@@ -1,0 +1,86 @@
+<?php
+
+use Cms\Enums\Language;
+use function NixPHP\Form\csrf;
+use function NixPHP\route;
+use function NixPHP\View\s;
+
+$languages = array_map(static fn(Language $language): string => $language->value, Language::cases());
+$endpoint = (string) ($endpoint ?? route('api.admin.articles'));
+
+$config = [
+    'endpoint' => $endpoint,
+    'csrfToken' => csrf()->generate(),
+    'languages' => $languages,
+    'urls' => [
+        'create' => route('admin.articles.create'),
+        'edit' => '/admin/articles/{articleId}/{language}/edit',
+        'editVersion' => '/admin/articles/{articleId}/{language}/{version}/edit',
+        'createVersion' => '/admin/articles/{articleId}/version/create',
+        'createTranslation' => '/admin/articles/{articleId}/{language}/create',
+        'preview' => '/admin/articles/{articleId}/{language}/preview',
+        'publish' => '/api/admin/articles/{articleId}/{language}/publish',
+        'delete' => '/api/admin/articles/{articleId}/{language}/delete',
+        'deleteVersion' => '/api/admin/articles/{articleId}/{language}/{version}/delete',
+        'translate' => '/api/admin/articles/{articleId}/translate/enqueue',
+    ],
+    'labels' => [
+        'actions' => 'Aktionen',
+        'allLanguages' => 'All languages',
+        'autoTranslate' => 'Auto translate',
+        'cancel' => 'Cancel',
+        'chooseLanguage' => 'Choose language',
+        'chooseLanguages' => 'Choose one or more languages',
+        'continue' => 'Continue',
+        'createArticle' => 'Artikel erstellen',
+        'delete' => 'Delete',
+        'deleteConfirm' => 'Really delete?',
+        'edit' => 'Edit',
+        'editDraft' => 'Edit draft',
+        'empty' => 'No articles found.',
+        'language' => 'Language',
+        'languages' => 'Languages',
+        'loading' => 'Loading articles...',
+        'newTranslation' => 'New translation',
+        'newVersion' => 'New version',
+        'noDraft' => 'No editable draft version found.',
+        'noLanguage' => 'No language available.',
+        'noResults' => 'No matching articles found.',
+        'oneLanguage' => 'One language',
+        'preview' => 'Preview',
+        'publish' => 'Publish',
+        'publishConfirm' => 'Really publish?',
+        'publishedAt' => 'Veröffentlichungsdatum',
+        'queue' => 'Queue',
+        'search' => 'Search articles...',
+        'select' => 'Select',
+        'sourceLanguage' => 'Choose source language',
+        'status' => 'Status',
+        'targetLanguage' => 'Choose target language',
+        'targetMode' => 'Choose target mode',
+        'title' => 'Titel',
+        'version' => 'Version',
+        'versions' => 'Versions',
+    ],
+];
+
+?>
+<div
+    class="article-grid-component"
+    data-article-grid
+    data-config="<?= s(json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '{}') ?>"
+>
+    <div class="article-grid-toolbar">
+        <div class="article-grid-search-wrap">
+            <span class="icon-search article-grid-search-icon" aria-hidden="true"></span>
+            <input class="article-grid-search" type="search" placeholder="Search articles..." data-article-search>
+        </div>
+        <a class="article-grid-primary-action" href="<?= s(route('admin.articles.create')) ?>">
+            Artikel erstellen
+        </a>
+    </div>
+    <div class="article-grid-frame" data-article-grid-frame>
+        <div class="article-grid-state">Loading articles...</div>
+    </div>
+</div>
+<script type="module" src="/js/admin/article-grid.js"></script>

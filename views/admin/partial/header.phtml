@@ -1,0 +1,17 @@
+<?php
+
+use function NixPHP\View\s;
+
+$title = trim((string) ($title ?? ''));
+$subtitle = trim((string) ($subtitle ?? ''));
+$variant = trim((string) ($variant ?? 'default'));
+
+?>
+<div class="admin-content-title-inner admin-content-title-<?= s($variant) ?>">
+    <?php if ($title !== ''): ?>
+        <h1><?= s($title) ?></h1>
+    <?php endif; ?>
+    <?php if ($subtitle !== ''): ?>
+        <p><?= s($subtitle) ?></p>
+    <?php endif; ?>
+</div>

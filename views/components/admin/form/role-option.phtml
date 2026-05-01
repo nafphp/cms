@@ -1,0 +1,20 @@
+<?php
+
+use function NixPHP\View\s;
+
+$name = (string) ($name ?? 'roles[]');
+$value = (string) ($value ?? '');
+$label = (string) ($label ?? $value);
+$description = (string) ($description ?? '');
+$checked = (bool) ($checked ?? false);
+
+?>
+<label class="flex items-start gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/50">
+    <input class="mt-1 h-4 w-4 accent-[var(--admin-page-accent)]" type="checkbox" name="<?= s($name) ?>" value="<?= s($value) ?>" <?= $checked ? 'checked' : '' ?>>
+    <span class="grid gap-1">
+        <strong class="text-sm text-slate-900 dark:text-white"><?= s($label) ?></strong>
+        <?php if ($description !== ''): ?>
+            <small class="text-xs text-slate-500 dark:text-slate-400"><?= s($description) ?></small>
+        <?php endif; ?>
+    </span>
+</label>

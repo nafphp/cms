@@ -1,0 +1,46 @@
+<?php
+
+use function NixPHP\route;
+use function NixPHP\View\s;
+
+$items = is_array($items ?? null) ? $items : [];
+
+?>
+<aside class="admin-sidebar">
+    <div class="admin-brand">
+        <a class="admin-brand-link" href="<?= route('admin.dashboard') ?>">
+            <span class="admin-brand-logo-full">NixCMS</span>
+            <span class="admin-brand-logo-short">NX</span>
+            <span class="admin-brand-divider" aria-hidden="true"></span>
+            <span class="admin-brand-sub">Admin</span>
+        </a>
+    </div>
+    <nav class="admin-menu open" aria-label="Administration">
+        <div class="admin-menu-items">
+            <?php foreach ($items as $item): ?>
+                <?php
+                $routeNames = is_array($item['routeNames'] ?? null) ? $item['routeNames'] : [];
+                $activeClass = $routeNames !== [] ? route()->active($routeNames) : '';
+                $label = (string) ($item['label'] ?? '');
+                $displayLabel = match ($label) {
+                    'Articles' => 'Artikel',
+                    'Users' => 'Benutzer',
+                    'Roles & Permissions' => 'Rollen',
+                    default => $label,
+                };
+                ?>
+                <a
+                    href="<?= s((string) ($item['href'] ?? '#')) ?>"
+                    class="<?= $activeClass ? 'active ' : '' ?>"
+                    title="<?= s($displayLabel) ?>"
+                >
+                    <span class="admin-menu-icon admin-menu-icon-<?= s((string) ($item['icon'] ?? 'dot')) ?>" aria-hidden="true"></span>
+                    <span class="admin-menu-label"><?= s($displayLabel) ?></span>
+                </a>
+            <?php endforeach; ?>
+        </div>
+        <button class="admin-menu-trigger" type="button" title="Toggle menu" aria-label="Toggle menu">
+            <span aria-hidden="true"></span>
+        </button>
+    </nav>
+</aside>

@@ -1,0 +1,144 @@
+<?php
+
+use function NixPHP\route;
+use function NixPHP\View\s;
+use function NixPHP\View\view;
+
+$roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
+$user = is_array($user ?? null) ? $user : null;
+$isEdit = $user !== null && (int) ($user['id'] ?? 0) > 0;
+$selectedRoles = is_array($user['roles'] ?? null) ? $user['roles'] : [];
+
+?>
+<?php $this->setLayout('layouts.admin') ?>
+
+<?php $pageTitle = $isEdit ? 'Edit user' : 'Create user'; ?>
+<?php $pageSubtitle = $isEdit ? 'Update account details and role assignments.' : 'Create an account and assign initial roles.'; ?>
+
+<?php $this->block('content'); ?>
+<form id="user-form" class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)]">
+    <?php if ($isEdit): ?>
+        <input type="hidden" name="user_id" value="<?= (int) ($user['id'] ?? 0) ?>">
+    <?php endif; ?>
+
+    <section class="grid content-start gap-4">
+        <?= view('components.admin.form.field', [
+            'name' => 'username',
+            'label' => 'Username',
+            'value' => (string) ($user['username'] ?? ''),
+        ]) ?>
+        <?= view('components.admin.form.field', [
+            'name' => 'email',
+            'label' => 'Email',
+            'type' => 'email',
+            'value' => (string) ($user['email'] ?? ''),
+        ]) ?>
+        <div class="grid gap-4 md:grid-cols-2">
+            <?= view('components.admin.form.field', [
+                'name' => 'firstname',
+                'label' => 'First name',
+                'value' => (string) ($user['firstname'] ?? ''),
+            ]) ?>
+            <?= view('components.admin.form.field', [
+                'name' => 'lastname',
+                'label' => 'Last name',
+                'value' => (string) ($user['lastname'] ?? ''),
+            ]) ?>
+        </div>
+        <?= view('components.admin.form.field', [
+            'name' => 'password',
+            'label' => $isEdit ? 'New password' : 'Password',
+            'type' => 'password',
+            'placeholder' => $isEdit ? 'Leave empty to keep current password' : '',
+        ]) ?>
+        <?= view('components.admin.form.field', [
+            'name' => 'password_confirmation',
+            'label' => $isEdit ? 'Repeat new password' : 'Repeat password',
+            'type' => 'password',
+        ]) ?>
+    </section>
+
+    <section class="grid content-start gap-3 border-slate-200 dark:border-slate-800 lg:border-l lg:pl-5">
+        <h2 class="m-0 text-lg font-bold text-slate-950 dark:text-white">Roles</h2>
+        <?php foreach ($roleDefinitions as $index => $role): ?>
+            <?php
+            $roleName = (string) ($role['name'] ?? '');
+            $permissions = is_array($role['permission_names'] ?? null) ? $role['permission_names'] : [];
+            ?>
+            <?= view('components.admin.form.role-option', [
+                'value' => $roleName,
+                'label' => $roleName,
+                'description' => $permissions !== [] ? implode(', ', $permissions) : 'No permissions',
+                'checked' => in_array($roleName, $selectedRoles, true) || (!$isEdit && $index === 0),
+            ]) ?>
+        <?php endforeach; ?>
+    </section>
+
+    <div class="flex flex-wrap gap-2 lg:col-span-2">
+        <?= view('components.admin.button', [
+            'label' => 'Save',
+            'variant' => 'primary',
+            'type' => 'submit',
+        ]) ?>
+        <?= view('components.admin.button', ['label' => 'Cancel', 'href' => route('admin.users')]) ?>
+    </div>
+</form>
+
+<script type="module">
+    import toast from '/js/lib/notifyJs/Modules/Toast.js';
+
+    const form = document.getElementById('user-form');
+    const isEdit = <?= $isEdit ? 'true' : 'false' ?>;
+    const submitUrl = <?= json_encode($isEdit ? route('api.admin.users.update') : route('api.admin.users.store')) ?>;
+    const usersUrl = <?= json_encode(route('admin.users')) ?>;
+
+    const collectFormData = () => {
+        const data = {};
+        const formData = new FormData(form);
+        for (const [key, value] of formData.entries()) {
+            if (key.endsWith('[]')) {
+                const normalized = key.slice(0, -2);
+                data[normalized] = Array.isArray(data[normalized]) ? data[normalized] : [];
+                data[normalized].push(value);
+                continue;
+            }
+
+            data[key] = value;
+        }
+
+        if (!Array.isArray(data.roles)) {
+            data.roles = [];
+        }
+
+        return data;
+    };
+
+    const flattenErrors = (errors) => {
+        if (!errors || typeof errors !== 'object') {
+            return [];
+        }
+
+        return Object.values(errors).flat().map((message) => String(message));
+    };
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const data = collectFormData();
+        const response = await (window.NixCMS?.json || fetch)(submitUrl, {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            const errors = flattenErrors(result.errors);
+            toast(errors.length ? errors.join('<br>') : (result.reason || 'Could not save user.'));
+            return;
+        }
+
+        toast(isEdit ? 'User updated.' : 'User created.');
+        window.location.href = result.redirect || usersUrl;
+    });
+</script>
+<?php $this->endBlock('content'); ?>

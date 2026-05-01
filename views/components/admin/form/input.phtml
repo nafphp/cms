@@ -1,0 +1,19 @@
+<?php
+
+use function NixPHP\View\s;
+
+$name = (string) ($name ?? '');
+$label = (string) ($label ?? $name);
+$type = (string) ($type ?? 'text');
+$value = $value ?? null;
+
+?>
+<label class="hidden" for="<?= s($name) ?>"><?= s($label) ?>:</label>
+<input
+    type="<?= s($type) ?>"
+    placeholder="<?= s($label) ?>"
+    name="<?= s($name) ?>"
+    id="<?= s($name) ?>"
+    value="<?= s((string) ($value ?? '')) ?>"
+    class="wow-input"
+>

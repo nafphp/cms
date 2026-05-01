@@ -1,0 +1,15 @@
+{
+  "name": "nixcms",
+  "version": "0.1.0",
+  "description": "Lightweight extensible CMS built on NixPHP.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "tailwindcss -i ./app/Resources/css/nixcms.css -o ./public/css/nixcms.css --watch --verbose",
+    "build": "tailwindcss -i ./app/Resources/css/nixcms.css -o ./public/css/nixcms.css --minify --verbose"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.13",
+    "tailwindcss": "^4.1.13"
+  }
+}

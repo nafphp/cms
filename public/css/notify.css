@@ -1,0 +1,580 @@
+:root {
+    --popup-translate-x: -50%;
+    --popup-translate-y: -50%;
+    --font-size-normal: 1rem;
+    --font-size-small: .86rem;
+    --font-size-big: 1.2rem;
+    --popup-min-width: 280px;
+    --popup-max-width: min(440px, calc(100vw - 32px));
+    --popup-border-radius: 14px;
+    --notify-accent: var(--accent, #ff3b30);
+    --notify-surface: var(--panel, #29303c);
+    --notify-text: var(--text, #ffffff);
+    --notify-muted: var(--muted, rgba(255,255,255,.68));
+    --notify-border: var(--border, rgba(255,255,255,.14));
+    --notify-overlay-opacity: .42;
+    --notify-overlay-blur: 4px;
+}
+
+.notify-modal-open {
+    overscroll-behavior: contain;
+}
+
+.notify-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 3400;
+    background: rgba(4, 8, 18, var(--notify-overlay-opacity));
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease, backdrop-filter .18s ease;
+}
+
+.notify-overlay.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.notify-overlay-blur {
+    backdrop-filter: blur(var(--notify-overlay-blur));
+}
+
+.notify-overlay-darken {
+    backdrop-filter: none;
+}
+
+.notify-toast-container {
+    position: fixed;
+    right: 0;
+    top: 0;
+    left: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    overflow: hidden;
+    padding: 20px;
+    z-index: 3700;
+    pointer-events: none;
+}
+
+.notify {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(var(--popup-translate-x), var(--popup-translate-y));
+    color: var(--notify-text);
+    font-family: "Open Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: var(--font-size-normal);
+    background-color: var(--notify-surface);
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--notify-accent) 14%, transparent), transparent 42%),
+        var(--notify-surface);
+    padding: 1.75rem 1.85rem 1.55rem;
+    box-sizing: border-box;
+    border: 1px solid var(--notify-border);
+    border-radius: var(--popup-border-radius);
+    overflow: hidden;
+    min-width: var(--popup-min-width);
+    max-width: var(--popup-max-width);
+    box-shadow: 0 24px 70px rgba(0,0,0,.34), 0 0 0 1px rgba(255,255,255,.04) inset;
+    text-align: left;
+    z-index: 3500;
+}
+
+.notify::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    bottom: auto;
+    height: 5px;
+    border-radius: var(--popup-border-radius) var(--popup-border-radius) 0 0;
+    background: var(--notify-accent);
+    background: linear-gradient(90deg, var(--notify-accent), color-mix(in srgb, var(--notify-accent) 30%, #ffffff));
+    pointer-events: none;
+}
+
+.notify.top-right {
+    position: relative;
+    top: auto;
+    left: auto;
+    min-width: min(320px, calc(100vw - 40px));
+    max-width: 380px;
+    --popup-translate-x: 0;
+    --popup-translate-y: 0;
+    margin-bottom: 12px;
+    padding: .82rem .95rem;
+    font-size: var(--font-size-small);
+    pointer-events: auto;
+}
+
+.notify.closing {
+    pointer-events: none;
+}
+
+.notify .close {
+    position: absolute;
+    right: 1.35rem;
+    top: 1.35rem;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    color: var(--notify-muted);
+    transition: background-color .14s ease, color .14s ease;
+    z-index: 1;
+}
+
+.notify .close:hover {
+    background: color-mix(in srgb, var(--notify-accent) 14%, transparent);
+    color: var(--notify-text);
+}
+
+.notify .close:before {
+    content: '×';
+    font-size: 1.55rem;
+    line-height: 1;
+}
+
+.notify .message {
+    color: var(--notify-text);
+    font-size: var(--font-size-normal);
+    line-height: 1.55;
+    padding-right: 0;
+}
+
+.notify.prompt .message > :first-child {
+    margin-top: 0;
+    padding-right: 2.8rem;
+}
+
+.notify.prompt .message > div:first-child:not(:only-child) {
+    margin-bottom: 1rem;
+    color: var(--notify-text);
+    font-size: 1.18rem;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.notify.prompt .message p,
+.notify.prompt .message .description,
+.notify.prompt .message .help-text {
+    color: var(--notify-muted);
+    font-size: .92rem;
+    line-height: 1.55;
+}
+
+.notify .message input,
+.notify .message textarea,
+.notify .message select {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.notify .message input[type="text"],
+.notify .message input[type="password"],
+.notify .message input[type="email"],
+.notify .message input[type="number"],
+.notify .message input[type="search"],
+.notify .message textarea,
+.notify .message select {
+    min-height: 2.8rem;
+    font-size: .95rem;
+}
+
+.notify-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.notify-form-intro {
+    margin: -.35rem 0 .2rem;
+    color: var(--notify-muted);
+    font-size: .92rem;
+    line-height: 1.55;
+}
+
+.notify-form-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(140px, .42fr);
+    gap: .85rem;
+}
+
+.notify-field {
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+}
+
+.notify-field-label {
+    color: var(--notify-text);
+    font-size: .82rem;
+    font-weight: 800;
+}
+
+.notify-field input,
+.notify-field textarea,
+.notify-field select {
+    border: 1px solid var(--notify-border);
+    border-radius: calc(var(--popup-border-radius) - 6px);
+    background: color-mix(in srgb, var(--notify-text) 7%, transparent);
+    color: var(--notify-text);
+    padding: .68rem .78rem;
+    outline: none;
+    box-shadow: 0 1px 0 rgba(255,255,255,.04) inset;
+}
+
+.notify-field input:focus,
+.notify-field textarea:focus,
+.notify-field select:focus {
+    border-color: color-mix(in srgb, var(--notify-accent) 68%, var(--notify-border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--notify-accent) 18%, transparent);
+}
+
+.notify-section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: .8rem;
+    margin-top: .1rem;
+}
+
+.notify-section-head span:first-child {
+    color: var(--notify-text);
+    font-size: .9rem;
+    font-weight: 800;
+}
+
+.notify-section-head span:last-child {
+    color: var(--notify-muted);
+    font-size: .76rem;
+    font-weight: 700;
+}
+
+.notify-role-list {
+    display: grid;
+    gap: .55rem;
+    max-height: min(330px, 36vh);
+    overflow: auto;
+    padding-right: .25rem;
+}
+
+.notify-role-option {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: .72rem;
+    align-items: center;
+    padding: .78rem .85rem;
+    border: 1px solid var(--notify-border);
+    border-radius: calc(var(--popup-border-radius) - 5px);
+    background: color-mix(in srgb, var(--notify-text) 5%, transparent);
+    cursor: pointer;
+    transition: border-color .14s ease, background-color .14s ease, transform .12s ease;
+}
+
+.notify-role-option:hover {
+    border-color: color-mix(in srgb, var(--notify-accent) 42%, var(--notify-border));
+    background: color-mix(in srgb, var(--notify-accent) 10%, transparent);
+}
+
+.notify-role-option:has(input:checked) {
+    border-color: color-mix(in srgb, var(--notify-accent) 68%, var(--notify-border));
+    background: color-mix(in srgb, var(--notify-accent) 15%, transparent);
+}
+
+.notify-role-option.is-disabled {
+    cursor: not-allowed;
+    opacity: .52;
+}
+
+.notify .message input.notify-role-check {
+    display: inline-block;
+    width: 1.05rem;
+    height: 1.05rem;
+    margin-top: 0;
+    accent-color: var(--notify-accent);
+}
+
+.notify-role-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: .24rem;
+}
+
+.notify-role-name {
+    color: var(--notify-text);
+    font-size: .98rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.notify-role-permissions {
+    color: var(--notify-muted);
+    font-size: .76rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.notify.alert {
+    text-align: center;
+}
+
+.notify.alert .message {
+    padding-right: 0;
+}
+
+.notify .input {
+    width: 100%;
+    min-height: 2.45rem;
+    background-color: color-mix(in srgb, var(--notify-text) 7%, transparent);
+    color: var(--notify-text);
+    font-size: var(--font-size-small);
+    line-height: 1.4;
+    margin-top: .9rem;
+    padding: .62rem .74rem;
+    outline: none;
+    text-align: left;
+    border-radius: calc(var(--popup-border-radius) - 6px);
+    border: 1px solid var(--notify-border);
+    box-shadow: 0 1px 0 rgba(255,255,255,.04) inset;
+}
+
+.notify .input:focus {
+    border-color: color-mix(in srgb, var(--notify-accent) 68%, var(--notify-border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--notify-accent) 18%, transparent);
+}
+
+.notify .input.error {
+    border-color: #e05252;
+    animation: shake-o .3s forwards ease-in;
+}
+
+.notify .container {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 1.15rem;
+}
+
+.notify .container.single {
+    justify-content: flex-end;
+}
+
+.notify .container div {
+    flex: 1 1 0;
+}
+
+.notify .button {
+    min-height: 2.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--notify-border);
+    background-color: color-mix(in srgb, var(--notify-text) 8%, transparent);
+    color: var(--notify-text);
+    text-align: center;
+    font-size: .84rem;
+    font-weight: 700;
+    padding: .45rem .8rem;
+    border-radius: calc(var(--popup-border-radius) - 6px);
+    cursor: pointer;
+    transition: transform .12s ease, background-color .14s ease, border-color .14s ease, box-shadow .14s ease;
+    user-select: none;
+}
+
+.notify .button:hover {
+    background-color: color-mix(in srgb, var(--notify-text) 12%, transparent);
+    border-color: color-mix(in srgb, var(--notify-text) 20%, var(--notify-border));
+}
+
+.notify .button:active {
+    transform: translateY(1px);
+}
+
+.notify .button.confirm {
+    background: var(--notify-accent);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--notify-accent) 88%, #ffffff), var(--notify-accent));
+    border-color: color-mix(in srgb, var(--notify-accent) 75%, #000000);
+    color: #fff;
+    box-shadow: 0 10px 22px color-mix(in srgb, var(--notify-accent) 26%, transparent);
+}
+
+.notify .button.confirm:hover {
+    background: var(--notify-accent);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--notify-accent) 96%, #ffffff), var(--notify-accent));
+    border-color: color-mix(in srgb, var(--notify-accent) 60%, #ffffff);
+}
+
+.notify-animation-pop {
+    animation: pop-in .2s forwards ease-out;
+}
+
+.notify-animation-pop.closing {
+    animation: pop-out .18s forwards ease-in;
+}
+
+.notify-animation-fade {
+    animation: fade-in .18s forwards ease-out;
+}
+
+.notify-animation-fade.closing {
+    animation: fade-out .16s forwards ease-in;
+}
+
+.notify-animation-slide,
+.notify-animation-slide-up {
+    animation: slide-up-in .2s forwards ease-out;
+}
+
+.notify-animation-slide.closing,
+.notify-animation-slide-up.closing {
+    animation: slide-up-out .16s forwards ease-in;
+}
+
+.notify.top-right.notify-animation-slide,
+.notify.top-right.notify-animation-slide-up {
+    animation: slide-in .2s forwards ease-out;
+}
+
+.notify.top-right.notify-animation-slide.closing,
+.notify.top-right.notify-animation-slide-up.closing {
+    animation: slide-out .18s forwards ease-in;
+}
+
+.notify-animation-zoom {
+    animation: zoom-in .18s forwards cubic-bezier(.22,.61,.36,1);
+}
+
+.notify-animation-zoom.closing {
+    animation: zoom-out .15s forwards ease-in;
+}
+
+@keyframes pop-in {
+    0% {
+        transform: translate(var(--popup-translate-x), var(--popup-translate-y)) scale(.82);
+        opacity: 0;
+    }
+    78% {
+        transform: translate(var(--popup-translate-x), var(--popup-translate-y)) scale(1.04);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--popup-translate-x), var(--popup-translate-y)) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes pop-out {
+    0% {
+        transform: translate(var(--popup-translate-x), var(--popup-translate-y)) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--popup-translate-x), var(--popup-translate-y)) scale(.86);
+        opacity: 0;
+    }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes slide-up-in {
+    from {
+        transform: translate(var(--popup-translate-x), calc(var(--popup-translate-y) + 18px));
+        opacity: 0;
+    }
+    to {
+        transform: translate(var(--popup-translate-x), var(--popup-translate-y));
+        opacity: 1;
+    }
+}
+
+@keyframes slide-up-out {
+    from {
+        transform: translate(var(--popup-translate-x), var(--popup-translate-y));
+        opacity: 1;
+    }
+    to {
+        transform: translate(var(--popup-translate-x), calc(var(--popup-translate-y) + 14px));
+        opacity: 0;
+    }
+}
+
+@keyframes zoom-in {
+    from {
+        transform: translate(var(--popup-translate-x), var(--popup-translate-y)) scale(.92);
+        opacity: 0;
+    }
+    to {
+        transform: translate(var(--popup-translate-x), var(--popup-translate-y)) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes zoom-out {
+    from {
+        transform: translate(var(--popup-translate-x), var(--popup-translate-y)) scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: translate(var(--popup-translate-x), var(--popup-translate-y)) scale(.94);
+        opacity: 0;
+    }
+}
+
+@keyframes slide-in {
+    0% {
+        transform: translateX(100%);
+        opacity: .2;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-out {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes shake-o {
+    0% { transform: translateX(-8px) }
+    30% { transform: translateX(6px) }
+    60% { transform: translateX(-2px) }
+    100% { transform: translateX(0) }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .notify,
+    .notify.closing,
+    .notify.top-right,
+    .notify.top-right.closing {
+        animation: none;
+    }
+
+    .notify-overlay {
+        transition: none;
+    }
+}

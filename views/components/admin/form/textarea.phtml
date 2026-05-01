@@ -1,0 +1,20 @@
+<?php
+
+use function NixPHP\View\s;
+
+$name = (string) ($name ?? '');
+$label = (string) ($label ?? $name);
+$value = (string) ($value ?? '');
+$placeholder = (string) ($placeholder ?? '');
+$rows = (int) ($rows ?? 4);
+
+?>
+<label class="grid gap-1.5">
+    <span class="text-sm font-bold text-slate-500 dark:text-slate-400"><?= s($label) ?></span>
+    <textarea
+        class="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-slate-900 outline-none transition focus:border-[var(--admin-page-accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)] dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+        name="<?= s($name) ?>"
+        rows="<?= $rows ?>"
+        placeholder="<?= s($placeholder) ?>"
+    ><?= s($value) ?></textarea>
+</label>
