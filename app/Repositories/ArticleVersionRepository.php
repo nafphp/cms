@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Cms\Repositories;
+namespace NixCMS\Repositories;
 
-use Cms\Enums\ArticleStatus;
-use Cms\Enums\Language;
-use Cms\Models\ArticleVersion;
+use NixCMS\Enums\ArticleStatus;
+use NixCMS\Enums\Language;
+use NixCMS\Models\ArticleVersion;
 use NixPHP\ORM\Repository\AbstractRepository;
 use function NixPHP\ORM\em;
 

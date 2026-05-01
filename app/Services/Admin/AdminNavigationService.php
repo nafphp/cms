@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cms\Services\Admin;
+namespace NixCMS\Services\Admin;
 
 use function NixPHP\config;
 use function NixPHP\route;

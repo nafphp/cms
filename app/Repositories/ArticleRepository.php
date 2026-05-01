@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Cms\Repositories;
+namespace NixCMS\Repositories;
 
-use Cms\Enums\ArticleStatus;
-use Cms\Enums\Language;
-use Cms\Models\Article;
-use Cms\Models\ArticleVersion;
-use Cms\Models\Category;
-use Cms\Models\Tag;
+use NixCMS\Enums\ArticleStatus;
+use NixCMS\Enums\Language;
+use NixCMS\Models\Article;
+use NixCMS\Models\ArticleVersion;
+use NixCMS\Models\Category;
+use NixCMS\Models\Tag;
 use NixPHP\ORM\Repository\AbstractRepository;
 use function NixPHP\config;
 use function NixPHP\I18n\lang;

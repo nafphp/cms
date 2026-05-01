@@ -2,16 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Cms\Services\Content;
+namespace NixCMS\Services\Content;
 
-use Cms\Enums\ArticleStatus;
-use Cms\Enums\Language;
+use NixCMS\Enums\ArticleStatus;
+use NixCMS\Enums\Language;
 use PDO;
 use Throwable;
 use function NixPHP\Database\database;
 
 final class ArticleCatalogService
 {
+    public function __construct(private ?PDO $connection = null)
+    {
+    }
+
     public function overview(): array
     {
         return [
@@ -27,7 +31,7 @@ final class ArticleCatalogService
     public function articles(): array
     {
         try {
-            $connection = database();
+            $connection = $this->connection();
         } catch (Throwable) {
             return [];
         }
@@ -158,5 +162,20 @@ final class ArticleCatalogService
         }
 
         return $candidateVersion > $currentVersion;
+    }
+
+    private function connection(): ?PDO
+    {
+        if ($this->connection instanceof PDO) {
+            return $this->connection;
+        }
+
+        try {
+            $connection = database();
+        } catch (Throwable) {
+            return null;
+        }
+
+        return $connection instanceof PDO ? $connection : null;
     }
 }

@@ -1,7 +1,8 @@
 <?php
 
-use Cms\Enums\Language;
+use NixCMS\Enums\Language;
 use function NixPHP\Form\csrf;
+use function NixPHP\request;
 use function NixPHP\route;
 use function NixPHP\View\s;
 use function NixPHP\View\view;
@@ -56,7 +57,7 @@ $publishDateValue = $publishDate !== '' ? date('Y-m-d\TH:i', strtotime($publishD
 
 <?php $this->block('content'); ?>
 <div class="article-form-shell">
-    <form action="<?= s(route('admin.articles.store')) ?>" method="post" id="articleForm" class="article-form">
+    <form action="<?= s(request()->getUri()->getPath()) ?>" method="post" id="articleForm" class="article-form">
         <input type="hidden" name="_csrf" value="<?= s(csrf()->generate()) ?>">
         <div class="article-form-layout">
             <div class="article-form-main">

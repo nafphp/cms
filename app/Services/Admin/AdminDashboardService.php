@@ -2,34 +2,47 @@
 
 declare(strict_types=1);
 
-namespace Cms\Services\Admin;
+namespace NixCMS\Services\Admin;
 
+use NixCMS\Enums\ArticleStatus;
+use NixCMS\Repositories\ArticleRepository;
+use NixCMS\Repositories\UserRepository;
 use function NixPHP\app;
+use function NixPHP\ORM\repo;
 
 final class AdminDashboardService
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function summary(): array
     {
+        $articles = repo(ArticleRepository::class);
+        $users = repo(UserRepository::class);
+        $plugins = array_keys(app()->getPlugins());
+
         return [
-            'articles' => 0,
-            'published_articles' => 0,
-            'review_queue' => 0,
-            'users' => 0,
-            'plugins' => array_keys(app()->getPlugins()),
+            'articles' => $articles->countAll(),
+            'published_articles' => $articles->countVersionsByStatus(ArticleStatus::PUBLISHED),
+            'review_queue' => $articles->countDraftReviewQueue(),
+            'users' => $users->countAll(),
+            'plugins' => $plugins,
             'connectors' => [
                 [
                     'group' => 'Core',
                     'label' => 'NixPHP plugins',
                     'status' => 'ready',
                     'tone' => 'success',
-                    'detail' => count(app()->getPlugins()) . ' loaded',
+                    'detail' => count($plugins) . ' loaded',
                 ],
                 [
                     'group' => 'AI',
                     'label' => 'MCP server',
-                    'status' => 'protected',
-                    'tone' => 'warning',
-                    'detail' => '/mcp requires bearer token auth',
+                    'status' => app()->hasPlugin('nixphp/mcp') ? 'protected' : 'inactive',
+                    'tone' => app()->hasPlugin('nixphp/mcp') ? 'warning' : 'muted',
+                    'detail' => app()->hasPlugin('nixphp/mcp')
+                        ? '/mcp requires bearer token auth'
+                        : 'nixphp/mcp plugin not loaded',
                 ],
             ],
         ];

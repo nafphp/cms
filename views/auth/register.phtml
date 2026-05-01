@@ -48,7 +48,7 @@ $isUsable = $invite !== null && empty($error);
         <?php endif; ?>
 
         <?php if ($isUsable): ?>
-            <form action="<?= s(route('auth.register.submit', ['token' => (string) ($token ?? '')])) ?>" method="POST">
+            <form action="<?= s(route('auth.register', ['token' => (string) ($token ?? '')])) ?>" method="POST">
                 <input type="hidden" name="_csrf" value="<?= s(csrf()->generate()) ?>">
 
                 <label class="block">

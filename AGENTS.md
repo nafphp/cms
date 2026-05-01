@@ -124,6 +124,15 @@ When building NixCMS:
 - Keep plugin compatibility in mind early.
 - Treat AI support as a native extension, not an afterthought.
 
+## Testing
+
+- Run `composer test` for the PHPUnit suite.
+- Keep fast unit tests as the default safety net.
+- Extend `Tests\Support\NixPHPTestCase` for unit tests that need common CMS fixtures such as `mockArticle()`, `mockArticleVersion()`, or Editor.js block payload helpers.
+- Use `Tests\Support\DatabaseTestCase` for DB-shaped service or repository tests that can run against an in-memory SQLite database.
+- Prefer injecting a `PDO` into query-oriented services for tests, while production code may continue to resolve the configured NixPHP database connection.
+- Do not require Docker or a local MySQL server for the default test path.
+
 ## Development Environment Versus Shipped Project
 
 This repository is the NixCMS development environment. It may contain planning notes, local IDE metadata, exploratory docs, and implementation guidance that help build the product.
@@ -147,21 +156,24 @@ The shipped project should include its own `AGENTS.md` that explains the applica
 
 ## CMS API Surface
 
-NixCMS provides a public API surface through the `cms()` helper function, which returns a singleton `Cms` instance.
+NixCMS provides a public API surface through the `cms()` helper function, which returns a singleton `NixCMS\Support\Cms` instance.
 
 ### Entry Points
 
 The main entry points are:
 
-- `cms()->articles()` — returns an `ArticleApi` for article-specific operations; daily-use doorway for content workflows.
-- `cms()->content(Article::class)` — returns a `ContentApi<Article>` for generic lifecycle operations; shared foundation for multiple content types later.
+- `cms()->pages()` — returns the `PageRegistry`; source of truth for renderable HTTP pages, including path, title, layout, auth, role/permission requirements, optional data handlers, and content callbacks.
+- `cms()->api()` — returns the `ApiRegistry`; source of truth for JSON/API endpoints, including path, method, auth, role/permission requirements, and a handler that returns a PSR response.
+- `cms()->contentTypes()` — returns the `ContentRegistry`; source of truth for registered content types such as Article.
+- `cms()->content(Article::class)` — resolves the registered content type for the model and returns its content API.
+- `cms()->articles()` — convenience doorway to the registered Article content type API. Do not treat articles as a special HTTP architecture category; they are the first registered content type.
 
 ### Examples
 
 Create a draft article:
 
 ```php
-$result = cms()->articles()->create([
+$result = cms()->content(Article::class)->create([
     'title' => 'My Article',
     'slug' => 'my-article',
     'content' => ['blocks' => [...]],
@@ -175,31 +187,53 @@ echo $result['articleVersionId'];
 Publish an article:
 
 ```php
-cms()->articles()->publish($articleId, 'de');
+cms()->content(Article::class)->publish($articleId, 'de');
 ```
 
-Get the review queue (drafts and declined articles waiting for action):
+Register a renderable page:
 
 ```php
-$queue = cms()->articles()->getDraftReviewQueue(limit: 10);
-foreach ($queue as $item) {
-    echo $item['title'];
-    echo $item['author_name'];
-    echo $item['created_at'];
-}
+cms()->pages()->add(
+    Page::create('admin.users')
+        ->setPath('/admin/users')
+        ->setTitle('Users')
+        ->setLayout('admin')
+        ->requirePermission(Permission::USERS_VIEW)
+        ->setContent(fn () => view('admin.users.index', [
+            'users' => repo(UserRepository::class)->findAllWithRolesAndPermissions(),
+        ]))
+);
 ```
 
-Find reading recommendations for an article:
+Register a page with a POST data handler on the same URL:
 
 ```php
-$article = cms()->articles()->find($articleId);
-$recommendations = cms()->articles()->findReadingRecommendations($article);
-foreach ($recommendations as $rec) {
-    echo $rec['article']->getTitle();
-}
+Page::create('admin.users.create')
+    ->setPath('/admin/users/create')
+    ->setTitle('Create user')
+    ->setLayout('admin')
+    ->requirePermission(Permission::USERS_CREATE)
+    ->setDataHandler(StoreUser::class, 'POST', Permission::USERS_CREATE)
+    ->setContent(fn () => view('admin.users.form', ['user' => null]));
 ```
 
-Use the generic content API to create, restore, and delete versions:
+Register an API endpoint:
+
+```php
+cms()->api()->add(
+    ApiEndpoint::post('api.admin.users.store', '/api/admin/users/store')
+        ->requirePermission(Permission::USERS_CREATE)
+        ->setHandler(StoreUser::class)
+);
+```
+
+Register a content type:
+
+```php
+cms()->contentTypes()->add(new ArticleContentType());
+```
+
+Use a registered content type to create, restore, and delete versions:
 
 ```php
 $contentApi = cms()->content(Article::class);
@@ -218,22 +252,46 @@ $contentApi->deleteLocale($articleId, 'de');
 $contentApi->deleteVersion($articleId, 'de', $versionNumber);
 ```
 
-### Domain APIs vs. Type Aliases
+### HTTP Registries
 
-Follow these rules when extending the CMS API:
+Follow these rules when extending HTTP behavior:
 
-**Domain APIs** (e.g. `cms()->articles()`):
-- May expose rich domain-specific behavior.
-- May delegate to repositories, services, content APIs, events, and translators.
-- Not required to be a thin wrapper; may implement article-specific queries, workflows, or aggregations (e.g. getDraftReviewQueue, findReadingRecommendations, getStatusOverview).
+**Pages**:
+- Register renderable UI resources through `cms()->pages()`.
+- Keep `app/pages.php` as the visible page-definition aggregator and split area-specific definitions into `app/Resources/pages/*.php`.
+- Use `Page::setDataHandler($handler, $method = 'POST', ?Permission $permission = null)` when a form posts back to the same UI resource.
+- Data handlers must return a real PSR response, usually `json()`, `response()`, or `redirect()`.
+- Put page/form data handlers under `app/Handlers/Page/<Area>/`, for example `LoginUser`, `RegisterInvitedUser`, or `StoreArticleDraft`.
+- Keep page definitions as route/auth/content wiring. Move substantial workflows into services or handlers.
 
-**Type aliases** (e.g. a future `cms()->page()`):
-- Purely syntactic sugar for `cms()->content(Page::class)`.
-- Must be thin wrappers that only delegate to ContentApi methods.
-- Do not add separate query logic, repository methods, versioning logic, publishing logic, or translation logic to a type alias.
+**API endpoints**:
+- Register JSON/API/action endpoints through `cms()->api()`.
+- Keep `app/api.php` as the visible API-definition aggregator and split area-specific definitions into `app/Resources/api/*.php`.
+- Use `ApiEndpoint::get/post/put/delete(...)` and `setHandler(...)`; handlers must return a PSR response.
+- Put API execution logic in invokable handler classes under `app/Handlers/Api/<Area>/`, for example `StoreUser`, `PublishArticle`, or `UpdateRolePermissions`.
+- Do not add new `Controllers\Api` classes for registry-backed endpoints; the registry-owned `ApiController` is the HTTP entry point.
+- Prefer permissions over roles for API authorization. Roles are supported but should be used sparingly.
+- API endpoint metadata should become a source for future capability/capability-overview work rather than duplicating static capability lists.
+
+**Routing**:
+- `app/routes.php` should stay small: load page/API definitions, then call `cms()->pages()->registerRoutes()` and `cms()->api()->registerRoutes()`.
+- Plugins should register pages and endpoints through the same registries. App code may override registered entries with explicit replacement where supported.
+- Keep `app/Controllers` small. The normal CMS path should need only central HTTP dispatchers such as `Controllers\Page\PageController` and `Controllers\Api\ApiController`; put workflow behavior in page/API handlers or services.
+
+### Content Type Registry
+
+- Register content types through `cms()->contentTypes()`.
+- Define core content types in `app/content.php`.
+- Put content-type-specific logic under `app/Content/<Type>/`, for example `app/Content/Article/ArticleContentType.php`.
+- A content type should describe its ID, label, model class, API object, and type-specific helpers such as form/catalog/rendering services.
+- Article Editor.js block renderers live under `app/Content/Article/Block` and are registered through `NixCMS\Content\Article\BlockRegistry`.
+- Do not add global CMS block registries for article-specific rendering; expose block extension through the Article content type.
+- Pages and API endpoints should reach article form/catalog/rendering behavior through the Article content type instead of directly creating scattered article services.
+- Treat articles as the first content type, not as a special HTTP architecture.
+- Prefer `cms()->content(Article::class)` for lifecycle operations.
+- Keep `cms()->articles()` as a convenience doorway to `cms()->content(Article::class)` unless a repeated cross-type pattern proves a better abstraction.
 - Do not add a type alias before its model exists.
-
-**Key rule:** Abstract ContentApi only after at least two real content types reveal a shared shape. Domain-rich repository methods stay on the repository (or on the domain API) — do not force them into ContentApi to satisfy hypothetical type aliases.
+- Abstract `ContentApi` only after at least two real content types reveal a shared shape.
 
 ## Service Design Rules
 
@@ -293,9 +351,12 @@ Every shipped NixCMS app should make the common AI inspection path obvious:
 - Read `AGENTS.md` first.
 - Inspect `composer.json` for packages and autoloading.
 - Inspect `app/config.php` or equivalent config defaults.
-- Inspect `app/routes.php` for HTTP behavior.
+- Inspect `app/routes.php` to see registry bootstrapping.
+- Inspect `app/pages.php` and `app/Resources/pages` for renderable UI pages.
+- Inspect `app/api.php` and `app/Resources/api` for JSON/API/action endpoints.
+- Inspect `app/content.php` and `app/Content` for registered content types and content-specific helpers.
 - Inspect `app/Migrations` for schema.
-- Inspect `app/Controllers`, `app/Services`, `app/Repositories`, and `app/Models` for domain behavior.
+- Inspect `app/Controllers`, `app/Services`, `app/Repositories`, and `app/Models` for handlers and domain behavior.
 - Inspect `app/Mcp/Tools` for AI/MCP capabilities.
 - Inspect `views` and `app/Resources` for admin UI.
 
@@ -310,8 +371,8 @@ It should explain:
 - The bare-metal local run path.
 - The Docker run path once available.
 - Migration, test, asset build, queue, scheduler, and MCP commands.
-- How admin routes, API/action routes, views, services, repositories, and models are organized.
-- How plugins extend routes, views, commands, migrations, jobs, scheduler entries, admin navigation, permissions, and MCP tools.
+- How pages, page data handlers, API endpoints, views, services, repositories, and models are organized.
+- How plugins extend page/API registries, views, commands, migrations, jobs, scheduler entries, admin navigation, permissions, and MCP tools.
 - Which files are generated build output and should not be edited manually.
 - Security expectations around auth, permissions, scopes, secrets, and tokens.
 - The rule that MCP tools are executable capabilities and capability overviews should be derived from tool/plugin metadata wherever possible.
@@ -373,7 +434,7 @@ Recommended dependency phases:
 
 ## NixPHP Plugin Rules For NixCMS
 
-NixPHP plugins are Composer packages with package type `nixphp-plugin`. A plugin can provide a `bootstrap.php`, app configuration, views, routes, services, commands, tools, and other app-like files.
+NixPHP plugins are Composer packages with package type `nixphp-plugin`. A plugin can provide a `bootstrap.php`, app configuration, views, page/API registrations, services, commands, tools, and other app-like files.
 
 For NixCMS, preserve that model:
 
@@ -381,7 +442,7 @@ For NixCMS, preserve that model:
 - Plugins should register capabilities through executable code, not duplicated static registries.
 - Plugin configuration should merge cleanly into app config.
 - Plugin views should be added to the view search path rather than copied into the app.
-- Plugin bootstrap code may register routes, commands, events, scheduler entries, queue jobs, MCP tools, admin navigation, and permissions.
+- Plugin bootstrap code may register pages, API endpoints, commands, events, scheduler entries, queue jobs, MCP tools, admin navigation, and permissions.
 - NixCMS-specific plugin metadata may be added later, but executable plugin/tool definitions should remain the source of truth wherever possible.
 
 ## WeOnlyWalk As Reference Material
@@ -421,16 +482,16 @@ These can later become example plugins or separate integration plugins.
 
 Start with small modules that match real admin needs:
 
-- `Cms\Admin`: dashboard, navigation, layout, health/status panels.
-- `Cms\Auth`: login, logout, sessions, password hashing, invites, explicit auth modes.
-- `Cms\Users`: users, roles, permissions, account management.
-- `Cms\Content`: articles, versions, statuses, preview, publish, schedule, archive.
-- `Cms\Taxonomy`: categories and tags.
-- `Cms\Localization`: languages, translation helpers, language switching.
-- `Cms\Media`: uploads, media metadata, image handling.
-- `Cms\Jobs`: queue and scheduler integration.
-- `Cms\Mcp`: scope-aware tools exposing concrete CMS operations.
-- `Cms\Plugins`: admin navigation, permission, route, migration, command, job, scheduler, asset, and MCP registration points.
+- `NixCMS\Admin`: dashboard, navigation, layout, health/status panels.
+- `NixCMS\Auth`: login, logout, sessions, password hashing, invites, explicit auth modes.
+- `NixCMS\Users`: users, roles, permissions, account management.
+- `NixCMS\Content`: articles, versions, statuses, preview, publish, schedule, archive.
+- `NixCMS\Taxonomy`: categories and tags.
+- `NixCMS\Localization`: languages, translation helpers, language switching.
+- `NixCMS\Media`: uploads, media metadata, image handling.
+- `NixCMS\Jobs`: queue and scheduler integration.
+- `NixCMS\Mcp`: scope-aware tools exposing concrete CMS operations.
+- `NixCMS\Plugins`: admin navigation, permission, route, migration, command, job, scheduler, asset, and MCP registration points.
 
 Keep module boundaries plain PHP at first. Extract to Composer plugins when the seams are proven by use.
 

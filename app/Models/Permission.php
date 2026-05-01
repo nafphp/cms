@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Cms\Models;
+namespace NixCMS\Models;
 
-use Cms\Repositories\RoleRepository;
+use NixCMS\Repositories\RoleRepository;
 use NixPHP\ORM\Model\AbstractModel;
 use function NixPHP\ORM\repo;
 

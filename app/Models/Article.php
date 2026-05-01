@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Cms\Models;
+namespace NixCMS\Models;
 
-use Cms\Enums\ArticleStatus;
-use Cms\Enums\Language;
-use Cms\Repositories\ArticleVersionRepository;
-use Cms\Repositories\CategoryRepository;
-use Cms\Repositories\TagRepository;
-use Cms\Repositories\UserRepository;
+use NixCMS\Enums\ArticleStatus;
+use NixCMS\Enums\Language;
+use NixCMS\Repositories\ArticleVersionRepository;
+use NixCMS\Repositories\CategoryRepository;
+use NixCMS\Repositories\TagRepository;
+use NixCMS\Repositories\UserRepository;
 use NixPHP\ORM\Core\EntityInterface;
 use NixPHP\ORM\Model\AbstractModel;
 use function NixPHP\ORM\repo;

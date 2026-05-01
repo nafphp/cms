@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cms\Services\Security;
+namespace NixCMS\Services\Security;
 
 class CredentialService
 {

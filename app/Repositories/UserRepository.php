@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Cms\Repositories;
+namespace NixCMS\Repositories;
 
-use Cms\Enums\Permission as PermissionEnum;
-use Cms\Models\User;
-use Cms\Services\Security\CredentialService;
+use NixCMS\Enums\Permission as PermissionEnum;
+use NixCMS\Models\User;
+use NixCMS\Services\Security\CredentialService;
 use DateInterval;
 use DateTimeImmutable;
 use NixPHP\ORM\Core\EntityManager;

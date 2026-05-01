@@ -2,23 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Cms\Api;
+namespace NixCMS\Api;
 
-use Cms\Enums\Language;
-use Cms\Models\Article;
-use Cms\Models\ArticleVersion;
-use Cms\Repositories\ArticleRepository;
-use Cms\Repositories\ArticleVersionRepository;
+use NixCMS\Enums\Language;
+use NixCMS\Models\Article;
+use NixCMS\Models\ArticleVersion;
+use NixCMS\Repositories\ArticleRepository;
 
 /**
- * Domain API for articles. Exposes article-specific behaviour and delegates
- * persistence/queries to ArticleRepository / ArticleVersionRepository.
+ * Domain API for articles. Exposes article-specific behaviour and delegates persistence/queries to ArticleRepository.
  */
 final class ArticleApi
 {
     public function __construct(
         private ArticleRepository $articleRepository,
-        private ArticleVersionRepository $articleVersionRepository,
     ) {}
 
     /**

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cms\Support;
+namespace NixCMS\Support;
 
 final class Slug
 {

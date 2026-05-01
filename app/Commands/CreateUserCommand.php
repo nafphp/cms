@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Cms\Commands;
+namespace NixCMS\Commands;
 
-use Cms\Models\Role;
-use Cms\Models\User;
-use Cms\Repositories\RoleRepository;
-use Cms\Repositories\UserRepository;
+use NixCMS\Models\Role;
+use NixCMS\Models\User;
+use NixCMS\Repositories\RoleRepository;
+use NixCMS\Repositories\UserRepository;
 use NixPHP\CLI\Core\AbstractCommand;
 use NixPHP\CLI\Core\Input;
 use NixPHP\CLI\Core\Output;

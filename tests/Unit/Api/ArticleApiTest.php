@@ -4,29 +4,23 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Api;
 
-use Cms\Api\ArticleApi;
-use Cms\Enums\Language;
-use Cms\Models\Article;
-use Cms\Repositories\ArticleRepository;
-use Cms\Repositories\ArticleVersionRepository;
+use NixCMS\Api\ArticleApi;
+use NixCMS\Enums\Language;
+use NixCMS\Models\Article;
+use NixCMS\Repositories\ArticleRepository;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
+use Tests\Support\NixPHPTestCase;
 
-final class ArticleApiTest extends TestCase
+final class ArticleApiTest extends NixPHPTestCase
 {
     private ArticleRepository&MockObject $articleRepository;
-    private ArticleVersionRepository&MockObject $articleVersionRepository;
     private ArticleApi $articleApi;
 
     protected function setUp(): void
     {
         $this->articleRepository = $this->createMock(ArticleRepository::class);
-        $this->articleVersionRepository = $this->createMock(ArticleVersionRepository::class);
 
-        $this->articleApi = new ArticleApi(
-            $this->articleRepository,
-            $this->articleVersionRepository,
-        );
+        $this->articleApi = new ArticleApi($this->articleRepository);
     }
 
     public function testCreateSetsArticleIdToZeroAndCallsSaveDraft(): void
@@ -81,6 +75,10 @@ final class ArticleApiTest extends TestCase
 
     public function testPublishThrowsForUnknownLocale(): void
     {
+        $this->articleRepository
+            ->expects($this->never())
+            ->method('publishLatestLanguageVersion');
+
         self::expectException(\InvalidArgumentException::class);
         self::expectExceptionMessage('Unknown locale: xx');
 
@@ -100,6 +98,10 @@ final class ArticleApiTest extends TestCase
 
     public function testDeleteLocaleThrowsOnUnknownLocale(): void
     {
+        $this->articleRepository
+            ->expects($this->never())
+            ->method('deleteLanguageVersions');
+
         self::expectException(\InvalidArgumentException::class);
         self::expectExceptionMessage('Unknown locale: xx');
 
@@ -133,7 +135,7 @@ final class ArticleApiTest extends TestCase
 
     public function testRestoreVersionThrowsWhenArticleHasNoVersion(): void
     {
-        $article = new Article(['id' => 1]);
+        $article = $this->mockArticleWithoutVersion(['id' => 1]);
 
         $this->articleRepository
             ->expects($this->once())
@@ -190,10 +192,10 @@ final class ArticleApiTest extends TestCase
 
     public function testFindReadingRecommendationsReturnsRepositoryPayload(): void
     {
-        $article = new Article(['id' => 1]);
+        $article = $this->mockArticle(['id' => 1]);
         $recommendations = [
             [
-                'article' => new Article(['id' => 2]),
+                'article' => $this->mockArticle(['id' => 2]),
                 'sharedTagCount' => 2,
             ],
         ];

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Cms\Models;
+namespace NixCMS\Models;
 
-use Cms\Enums\Role as RoleEnum;
-use Cms\Enums\Permission as PermissionEnum;
-use Cms\Repositories\RoleRepository;
-use Cms\Repositories\UserRepository;
+use NixCMS\Enums\Role as RoleEnum;
+use NixCMS\Enums\Permission as PermissionEnum;
+use NixCMS\Repositories\RoleRepository;
+use NixCMS\Repositories\UserRepository;
 use NixPHP\ORM\Model\AbstractModel;
 use function NixPHP\ORM\repo;
 

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Cms\Models;
+namespace NixCMS\Models;
 
-use Cms\Enums\ArticleStatus;
-use Cms\Enums\Language;
+use NixCMS\Enums\ArticleStatus;
+use NixCMS\Enums\Language;
 use DateTime;
 use NixPHP\ORM\Model\AbstractModel;
 

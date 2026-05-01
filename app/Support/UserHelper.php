@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Cms\Support;
+namespace NixCMS\Support;
 
-use Cms\Enums\Permission;
-use Cms\Enums\Role;
-use Cms\Models\User;
+use NixCMS\Enums\Permission;
+use NixCMS\Enums\Role;
+use NixCMS\Models\User;
 
 class UserHelper
 {

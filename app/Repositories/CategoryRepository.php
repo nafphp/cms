@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Cms\Repositories;
+namespace NixCMS\Repositories;
 
-use Cms\Models\Category;
-use Cms\Support\Slug;
+use NixCMS\Models\Category;
+use NixCMS\Support\Slug;
 use NixPHP\ORM\Repository\AbstractRepository;
 use function NixPHP\ORM\em;
 

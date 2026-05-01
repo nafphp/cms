@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cms\Services\Content;
+namespace NixCMS\Services\Content;
 
 use PDO;
 use Throwable;
@@ -10,6 +10,10 @@ use function NixPHP\Database\database;
 
 final class ArticleFormService
 {
+    public function __construct(private ?PDO $connection = null)
+    {
+    }
+
     /**
      * @return array<string, mixed>|null
      */
@@ -167,6 +171,10 @@ final class ArticleFormService
 
     private function connection(): ?PDO
     {
+        if ($this->connection instanceof PDO) {
+            return $this->connection;
+        }
+
         try {
             $connection = database();
         } catch (Throwable) {

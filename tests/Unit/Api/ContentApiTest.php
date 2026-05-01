@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Api;
 
-use Cms\Api\ContentApi;
-use Cms\Models\Article;
-use Cms\Repositories\ArticleRepository;
+use NixCMS\Api\ContentApi;
+use NixCMS\Models\Article;
+use NixCMS\Repositories\ArticleRepository;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
+use Tests\Support\NixPHPTestCase;
 
-final class ContentApiTest extends TestCase
+final class ContentApiTest extends NixPHPTestCase
 {
     private ArticleRepository&MockObject $repository;
 
@@ -25,7 +25,7 @@ final class ContentApiTest extends TestCase
 
     public function testFindDelegatesToRepositoryFindOneByOnId(): void
     {
-        $article = new Article(['id' => 7]);
+        $article = $this->mockArticle(['id' => 7]);
 
         $this->repository
             ->expects($this->once())
@@ -49,7 +49,10 @@ final class ContentApiTest extends TestCase
 
     public function testFindByForwardsAllArguments(): void
     {
-        $articles = [new Article(['id' => 1]), new Article(['id' => 2])];
+        $articles = [
+            $this->mockArticle(['id' => 1]),
+            $this->mockArticle(['id' => 2]),
+        ];
 
         $this->repository
             ->expects($this->once())
@@ -64,7 +67,7 @@ final class ContentApiTest extends TestCase
 
     public function testFindOneByForwardsCriteriaAndOrderBy(): void
     {
-        $article = new Article(['id' => 3]);
+        $article = $this->mockArticle(['id' => 3]);
 
         $this->repository
             ->expects($this->once())
@@ -79,7 +82,7 @@ final class ContentApiTest extends TestCase
 
     public function testFindAllDelegatesToRepository(): void
     {
-        $articles = [new Article(['id' => 1])];
+        $articles = [$this->mockArticle(['id' => 1])];
 
         $this->repository
             ->expects($this->once())

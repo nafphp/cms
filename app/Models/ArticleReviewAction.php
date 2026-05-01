@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cms\Models;
+namespace NixCMS\Models;
 
 use NixPHP\ORM\Model\AbstractModel;
 

@@ -19,7 +19,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Cms\\": "app/",
+            "NixCMS\\": "app/",
             "Tests\\": "tests/"
         }
     },

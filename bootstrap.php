@@ -6,20 +6,20 @@ error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Cms\Commands\CreateDatabaseCommand;
-use Cms\Commands\CreateUserCommand;
-use Cms\Commands\FakeDataCommand;
-use Cms\Commands\InstallDatabaseCommand;
-use Cms\Enums\Permission;
-use Cms\Enums\Role;
-use Cms\Events\AdminGuardEvent;
-use Cms\Events\AuthRedirectEvent;
-use Cms\Mcp\Tools\ArticleStatusCountsTool;
-use Cms\Mcp\Tools\QueueStatusTool;
-use Cms\Mcp\Tools\SystemHealthTool;
-use Cms\Models\User;
-use Cms\Repositories\UserRepository;
-use Cms\Support\UserHelper;
+use NixCMS\Commands\CreateDatabaseCommand;
+use NixCMS\Commands\CreateUserCommand;
+use NixCMS\Commands\FakeDataCommand;
+use NixCMS\Commands\InstallDatabaseCommand;
+use NixCMS\Enums\Permission;
+use NixCMS\Enums\Role;
+use NixCMS\Events\AdminGuardEvent;
+use NixCMS\Events\AuthRedirectEvent;
+use NixCMS\Mcp\Tools\ArticleStatusCountsTool;
+use NixCMS\Mcp\Tools\QueueStatusTool;
+use NixCMS\Mcp\Tools\SystemHealthTool;
+use NixCMS\Models\User;
+use NixCMS\Repositories\UserRepository;
+use NixCMS\Support\UserHelper;
 use NixPHP\Core\Event;
 use function NixPHP\app;
 use function NixPHP\CLI\command;
@@ -44,12 +44,12 @@ if (app()->hasPlugin('nixphp/mcp')) {
     tool()->register(new ArticleStatusCountsTool());
 }
 
-function cms(): \Cms\Cms
+function cms(): \NixCMS\Support\Cms
 {
     static $cache = null;
 
     if ($cache === null) {
-        $cache = new \Cms\Cms();
+        $cache = new \NixCMS\Support\Cms();
     }
 
     return $cache;

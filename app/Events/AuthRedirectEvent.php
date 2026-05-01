@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Cms\Events;
+namespace NixCMS\Events;
 
-use Cms\Exceptions\AuthException;
-use Cms\Models\User;
+use NixCMS\Exceptions\AuthException;
+use NixCMS\Models\User;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\redirect;
 use function NixPHP\request;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cms\Enums;
+namespace NixCMS\Enums;
 
 enum ArticleStatus: string
 {

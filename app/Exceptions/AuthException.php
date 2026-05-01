@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cms\Exceptions;
+namespace NixCMS\Exceptions;
 
 class AuthException extends \Exception
 {
