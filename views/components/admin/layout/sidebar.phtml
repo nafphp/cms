@@ -32,7 +32,7 @@ $renderIcon = static function (string $icon, bool $compact = false): string {
 
     return '<span class="' . $wrapperClass . '" aria-hidden="true"><svg class="' . $iconClass . '" viewBox="0 0 24 24" focusable="false">' . $path . '</svg></span>';
 };
-$renderItems = static function (array $items, int $depth = 0) use (&$renderItems, $renderIcon, $activeMainClass, $activeChildClass): void {
+$renderItems = static function (array $items, int $depth = 0, string $parentKey = '') use (&$renderItems, $renderIcon, $activeMainClass, $activeChildClass): void {
     foreach ($items as $item) {
         $routeNames = is_array($item['routeNames'] ?? null) ? $item['routeNames'] : [];
         $activeClass = $routeNames !== [] ? route()->active($routeNames) : '';
@@ -57,14 +57,17 @@ $renderItems = static function (array $items, int $depth = 0) use (&$renderItems
                 class="admin-menu-group <?= $isActive ? 'active' : '' ?>"
                 <?= $indentStyle !== '' ? 'style="' . s($indentStyle) . '"' : '' ?>
                 data-menu-key="<?= s($key) ?>"
+                data-admin-navigation-item="<?= s($key) ?>"
+                data-admin-navigation-parent="<?= s($parentKey) ?>"
+                draggable="true"
                 <?= $isActive ? 'open' : '' ?>
             >
                 <summary class="<?= s($submenuItemClass) ?> flex <?= s($heightClass) ?> cursor-pointer list-none items-center <?= s($gapClass) ?> border-0 border-l-[3px] <?= s($paddingClass) ?> text-slate-300 transition after:ml-auto after:h-2 after:w-2 after:rotate-45 after:border-b-2 after:border-r-2 after:border-current after:opacity-60 after:content-[''] hover:bg-[rgba(86,119,164,.10)] hover:text-slate-100 group-[.is-menu-collapsed]:after:hidden <?= s($collapsedClass) ?> <?= $isActive ? $activeClassName : 'border-l-transparent' ?>" title="<?= s($displayLabel) ?>">
                     <?= $renderIcon($icon, !$isRoot) ?>
                     <span class="<?= s($textClass) ?> font-normal group-[.is-menu-collapsed]:hidden"><?= s($displayLabel) ?></span>
                 </summary>
-                <div class="grid gap-0 group-[.is-menu-collapsed]:hidden">
-                    <?php $renderItems($children, $depth + 1); ?>
+                <div class="grid gap-0 group-[.is-menu-collapsed]:hidden" data-admin-navigation-list data-admin-navigation-parent="<?= s($key) ?>">
+                    <?php $renderItems($children, $depth + 1, $key); ?>
                 </div>
             </details>
             <?php continue; ?>
@@ -74,6 +77,9 @@ $renderItems = static function (array $items, int $depth = 0) use (&$renderItems
             class="<?= s($submenuItemClass) ?> flex <?= s($heightClass) ?> items-center <?= s($gapClass) ?> border-0 border-l-[3px] <?= s($paddingClass) ?> text-slate-300 transition hover:bg-[rgba(86,119,164,.10)] hover:text-slate-100 <?= s($collapsedClass) ?> <?= $isActive ? $activeClassName : 'border-l-transparent' ?>"
             <?= $indentStyle !== '' ? 'style="' . s($indentStyle) . '"' : '' ?>
             title="<?= s($displayLabel) ?>"
+            data-admin-navigation-item="<?= s($key) ?>"
+            data-admin-navigation-parent="<?= s($parentKey) ?>"
+            draggable="true"
         >
             <?= $renderIcon($icon, !$isRoot) ?>
             <span class="<?= s($textClass) ?> font-normal text-slate-200/95 group-[.is-menu-collapsed]:hidden"><?= s($displayLabel) ?></span>
@@ -93,7 +99,7 @@ $renderItems = static function (array $items, int $depth = 0) use (&$renderItems
         </a>
     </div>
     <nav class="admin-menu open flex h-[calc(100vh-74px)] flex-col justify-between px-3 py-4" aria-label="<?= s(t('Administration')) ?>">
-        <div class="grid gap-0">
+        <div class="grid gap-0" data-admin-navigation-list data-admin-navigation-parent="">
             <?php $renderItems($items); ?>
         </div>
         <button class="admin-menu-trigger flex min-h-[42px] w-full items-center gap-3 border-l-[3px] border-transparent px-3 text-slate-400 transition hover:bg-[rgba(86,119,164,.10)] hover:text-slate-100 group-[.is-menu-collapsed]:justify-center group-[.is-menu-collapsed]:px-0" type="button" title="<?= s(t('Toggle menu')) ?>" aria-label="<?= s(t('Toggle menu')) ?>">

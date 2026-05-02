@@ -1,5 +1,7 @@
 <?php
 
+use NixCMS\Services\Form\FormTextTranslator;
+use function NixPHP\I18n\t;
 use function NixPHP\View\s;
 
 $content = is_array($content ?? null) ? $content : [];
@@ -8,9 +10,13 @@ $identifier = trim((string) ($props['formIdentifier'] ?? $props['identifier'] ??
 $form = $identifier !== '' ? cms()->forms()->findByIdentifier($identifier, true) : null;
 $fields = is_array($form['fields'] ?? null) ? $form['fields'] : [];
 $settings = is_array($form['settings'] ?? null) ? $form['settings'] : [];
-$title = trim((string) ($props['title'] ?? ($form['title'] ?? 'Contact')));
+$translator = new FormTextTranslator();
+$title = trim((string) ($props['title'] ?? $translator->translate(
+    is_string($settings['titleKey'] ?? null) ? $settings['titleKey'] : null,
+    (string) ($form['title'] ?? 'Contact')
+)));
 $intro = trim((string) ($props['intro'] ?? ''));
-$submitLabel = (string) ($props['submitLabel'] ?? $settings['submitLabel'] ?? 'Send');
+$submitLabel = (string) ($props['submitLabel'] ?? $translator->setting($settings, 'submitLabel', t('Send')));
 
 ?>
 <section class="grid gap-5 rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-6">
@@ -29,14 +35,34 @@ $submitLabel = (string) ($props['submitLabel'] ?? $settings['submitLabel'] ?? 'S
                 }
                 $name = (string) ($field['name'] ?? '');
                 $type = (string) ($field['type'] ?? 'text');
-                $label = (string) ($field['label'] ?? $name);
+                $label = $translator->fieldLabel($field);
+                $placeholder = $translator->fieldPlaceholder($field);
+                $validators = is_array($field['validators'] ?? null) ? $field['validators'] : [];
                 $required = (bool) ($field['required'] ?? false);
-                $placeholder = (string) ($field['placeholder'] ?? '');
+                $minLength = max(0, (int) ($field['minLength'] ?? 0));
+                $maxLength = max(0, (int) ($field['maxLength'] ?? 0));
+                foreach ($validators as $validator) {
+                    if (!is_array($validator)) {
+                        continue;
+                    }
+                    $rule = (string) ($validator['rule'] ?? '');
+                    if ($rule === 'required') {
+                        $required = true;
+                    } elseif ($rule === 'min') {
+                        $minLength = max(0, (int) ($validator['param'] ?? 0));
+                    } elseif ($rule === 'max') {
+                        $maxLength = max(0, (int) ($validator['param'] ?? 0));
+                    }
+                }
+                $lengthAttributes = trim(
+                    ($minLength > 0 ? ' minlength="' . s((string) $minLength) . '"' : '')
+                    . ($maxLength > 0 ? ' maxlength="' . s((string) $maxLength) . '"' : '')
+                );
                 ?>
                 <label class="grid gap-1.5">
                     <span class="text-sm font-semibold text-[var(--page-text)]"><?= s($label) ?><?= $required ? ' *' : '' ?></span>
                     <?php if ($type === 'textarea'): ?>
-                        <textarea class="min-h-28 rounded-md border border-[var(--page-border)] bg-[var(--page-bg)] px-3 py-2 text-sm text-[var(--page-text)]" name="<?= s($name) ?>" placeholder="<?= s($placeholder) ?>" <?= $required ? 'required' : '' ?>></textarea>
+                        <textarea class="min-h-28 rounded-md border border-[var(--page-border)] bg-[var(--page-bg)] px-3 py-2 text-sm text-[var(--page-text)]" name="<?= s($name) ?>" placeholder="<?= s($placeholder) ?>"<?= $lengthAttributes !== '' ? ' ' . $lengthAttributes : '' ?> <?= $required ? 'required' : '' ?>></textarea>
                     <?php elseif ($type === 'select'): ?>
                         <select class="min-h-10 rounded-md border border-[var(--page-border)] bg-[var(--page-bg)] px-3 text-sm text-[var(--page-text)]" name="<?= s($name) ?>" <?= $required ? 'required' : '' ?>>
                             <?php foreach (is_array($field['options'] ?? null) ? $field['options'] : [] as $option): ?>
@@ -49,7 +75,7 @@ $submitLabel = (string) ($props['submitLabel'] ?? $settings['submitLabel'] ?? 'S
                             <?= s($placeholder !== '' ? $placeholder : $label) ?>
                         </span>
                     <?php else: ?>
-                        <input class="min-h-10 rounded-md border border-[var(--page-border)] bg-[var(--page-bg)] px-3 text-sm text-[var(--page-text)]" type="<?= s($type === 'email' ? 'email' : 'text') ?>" name="<?= s($name) ?>" placeholder="<?= s($placeholder) ?>" <?= $required ? 'required' : '' ?>>
+                        <input class="min-h-10 rounded-md border border-[var(--page-border)] bg-[var(--page-bg)] px-3 text-sm text-[var(--page-text)]" type="<?= s($type === 'email' ? 'email' : 'text') ?>" name="<?= s($name) ?>" placeholder="<?= s($placeholder) ?>"<?= $lengthAttributes !== '' ? ' ' . $lengthAttributes : '' ?> <?= $required ? 'required' : '' ?>>
                     <?php endif; ?>
                 </label>
             <?php endforeach; ?>

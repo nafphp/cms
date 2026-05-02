@@ -75,7 +75,7 @@ $config = [
                 <?php if ($navigationChoices !== []): ?>
                     <label class="ml-auto flex min-w-[260px] items-center gap-2 text-xs font-semibold text-slate-500">
                         <span>Navigation</span>
-                        <select class="min-h-9 min-w-0 flex-1 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-xs text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-default-navigation data-persist-key="defaultNavigationIdentifier">
+                        <select class="min-h-9 min-w-0 flex-1 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-xs text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-styled-select data-default-navigation data-persist-key="defaultNavigationIdentifier">
                             <?php foreach ($navigationChoices as $navigation): ?>
                                 <?php
                                 $priority = (int) ($navigation['priority'] ?? 0);
@@ -187,7 +187,7 @@ $config = [
                     </label>
                     <label class="grid gap-1.5">
                         <span class="text-xs font-semibold text-slate-500">Sprache</span>
-                        <select class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-persist-key="language">
+                        <select class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-styled-select data-persist-key="language">
                             <?php foreach ($languages as $language): ?>
                                 <?php $language = strtolower(trim((string) $language)); ?>
                                 <?php if ($language !== ''): ?>
@@ -198,7 +198,7 @@ $config = [
                     </label>
                     <label class="grid gap-1.5">
                         <span class="text-xs font-semibold text-slate-500">Status</span>
-                        <select class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-persist-key="status">
+                        <select class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-styled-select data-persist-key="status">
                             <option value="draft">Draft</option>
                             <option value="review">Review</option>
                             <option value="published">Published</option>
@@ -227,7 +227,7 @@ $config = [
                     <div class="grid gap-4 md:grid-cols-2">
                         <label class="grid gap-1.5">
                             <span class="text-xs font-semibold text-slate-500">Robots</span>
-                            <select class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-persist-key="seo.robots">
+                            <select class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-styled-select data-persist-key="seo.robots">
                                 <option value="index,follow">index,follow</option>
                                 <option value="noindex,follow">noindex,follow</option>
                                 <option value="noindex,nofollow">noindex,nofollow</option>

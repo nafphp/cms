@@ -2,6 +2,7 @@ import prompt from '../lib/notifyJs/Modules/Prompt.js';
 import toast from '../lib/notifyJs/Modules/Toast.js';
 import {actionMenuMarkup} from '../components/actionMenu.js';
 import {AdminDataGrid} from '../components/dataGrid.js';
+import {initStyledSelects} from '../components/styledSelect.js';
 
 const reviewableStatuses = new Set(['draft', 'declined']);
 const languageTitles = {
@@ -404,11 +405,11 @@ class ArticleGrid {
 
     async askMode() {
         let selected = 'one';
-        const result = await prompt(`
+        const promptResult = prompt(`
             <div class="notify-form">
                 <label class="notify-field">
                     <span class="notify-field-label">${escapeHtml(this.label('targetMode'))}</span>
-                    <select id="article-target-mode">
+                    <select id="article-target-mode" data-styled-select>
                         <option value="one">${escapeHtml(this.label('oneLanguage'))}</option>
                         <option value="all">${escapeHtml(this.label('allLanguages'))}</option>
                     </select>
@@ -425,6 +426,8 @@ class ArticleGrid {
                 return true;
             },
         });
+        window.setTimeout(() => initStyledSelects(document.querySelectorAll('#article-target-mode[data-styled-select]')), 0);
+        const result = await promptResult;
 
         return result === false ? null : selected;
     }
@@ -441,11 +444,11 @@ class ArticleGrid {
         }
 
         let selected = available[0];
-        const result = await prompt(`
+        const promptResult = prompt(`
             <div class="notify-form">
                 <label class="notify-field">
                     <span class="notify-field-label">${escapeHtml(title)}</span>
-                    <select id="article-language-select">
+                    <select id="article-language-select" data-styled-select>
                         ${available.map((language) => `<option value="${escapeAttr(language)}">${escapeHtml(languageLabel(language))}</option>`).join('')}
                     </select>
                 </label>
@@ -461,6 +464,8 @@ class ArticleGrid {
                 return true;
             },
         });
+        window.setTimeout(() => initStyledSelects(document.querySelectorAll('#article-language-select[data-styled-select]')), 0);
+        const result = await promptResult;
 
         return result === false ? null : selected;
     }

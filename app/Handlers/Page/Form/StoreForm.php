@@ -60,8 +60,22 @@ final class StoreForm
                 continue;
             }
 
-            if (trim((string) ($field['name'] ?? '')) === '' || trim((string) ($field['label'] ?? '')) === '') {
-                $errors['fields'][] = sprintf('Field %d needs a label and name.', $index + 1);
+            if (trim((string) ($field['label'] ?? '')) === '') {
+                $errors['fields'][] = sprintf('Field %d needs a label.', $index + 1);
+            }
+
+            $limits = ['min' => 0, 'max' => 0];
+            foreach (is_array($field['validators'] ?? null) ? $field['validators'] : [] as $validator) {
+                if (!is_array($validator)) {
+                    continue;
+                }
+                $rule = (string) ($validator['rule'] ?? '');
+                if ($rule === 'min' || $rule === 'max') {
+                    $limits[$rule] = max(0, (int) ($validator['param'] ?? 0));
+                }
+            }
+            if ($limits['min'] > 0 && $limits['max'] > 0 && $limits['min'] > $limits['max']) {
+                $errors['fields'][] = sprintf('Field %d minimum length cannot be greater than maximum length.', $index + 1);
             }
         }
 

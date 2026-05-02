@@ -5,10 +5,22 @@ declare(strict_types=1);
 use NixCMS\Enums\Permission;
 use NixCMS\Handlers\Page\Form\StoreForm;
 use NixCMS\Page\Page;
+use NixCMS\Services\Settings\TranslationFileService;
 use function NixPHP\I18n\t;
 use function NixPHP\redirect;
 use function NixPHP\route;
 use function NixPHP\View\render;
+
+$translationSuggestions = static function (): array {
+    $language = \cms()->settings()->currentLanguage();
+    $entries = (new TranslationFileService())->entries($language);
+
+    return array_map(
+        static fn(string $key, string $value): array => ['key' => $key, 'value' => $value],
+        array_keys($entries),
+        array_values($entries),
+    );
+};
 
 return [
     Page::create('admin.forms')
@@ -39,6 +51,7 @@ return [
             'mode' => 'create',
             'saveUrl' => route('admin.forms.create'),
             'overviewUrl' => route('admin.forms'),
+            'translationSuggestions' => $translationSuggestions(),
         ])),
 
     Page::create('admin.forms.edit')
@@ -62,6 +75,7 @@ return [
                 'mode' => 'edit',
                 'saveUrl' => route('admin.forms.edit', ['formId' => (int) $formId]),
                 'overviewUrl' => route('admin.forms'),
+                'translationSuggestions' => $translationSuggestions(),
             ]);
         }),
 

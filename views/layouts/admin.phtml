@@ -15,6 +15,7 @@ $accent = $navigationService->accentForPath($path);
 $navItems = $navigationService->items();
 $settings = cms()->settings();
 $currentLanguage = $settings->currentLanguage();
+$currentUserId = (int) (session()->get('userId') ?? 0);
 $csrfToken = session()->get('_csrf');
 if (!is_string($csrfToken) || $csrfToken === '') {
     $csrfToken = csrf()->generate();
@@ -54,6 +55,7 @@ $assetWithVersion = static function (string $publicPath): string {
             ...(window.NixCMS || {}),
             csrfToken: () => nixCmsCsrfToken,
             csrfHeader: 'X-CSRF-Token',
+            adminUserKey: <?= json_encode($currentUserId > 0 ? 'user:' . $currentUserId : 'guest') ?>,
         };
     </script>
     <script>

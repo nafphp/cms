@@ -1,4 +1,5 @@
 import notifyAlert from '../lib/notifyJs/Modules/Alert.js';
+import {initStyledSelects} from '../components/styledSelect.js';
 
 const cardClass = 'rounded-lg border border-slate-700 bg-[#121820] p-3 text-left text-slate-100 transition hover:border-[var(--admin-page-accent)] hover:shadow-sm';
 const layoutClass = 'group grid gap-3 rounded-lg border-2 border-slate-800 bg-[#0b1118] p-3 text-left transition hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-[var(--admin-page-accent)]';
@@ -269,6 +270,7 @@ class PageBuilder {
             Array.from(field.options).forEach((option) => {
                 option.selected = value.includes(option.value);
             });
+            field.dispatchEvent(new Event('change'));
             return;
         }
 
@@ -278,6 +280,9 @@ class PageBuilder {
         }
 
         field.value = value ?? '';
+        if (field instanceof HTMLSelectElement) {
+            field.dispatchEvent(new Event('change'));
+        }
     }
 
     normalizeColor(value) {
@@ -1355,6 +1360,7 @@ class PageBuilder {
                 ${fields.map((field) => this.renderField(field.name, content.props?.[field.name] ?? '', content.type, field)).join('')}
             </div>
         `;
+        initStyledSelects(this.contentSettings.querySelectorAll('select[data-styled-select]'));
     }
 
     renderField(key, value, contentType = '', field = null) {
@@ -1434,7 +1440,7 @@ class PageBuilder {
         return `
             <label class="grid gap-1.5">
                 <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${escapeHtml(label)}</span>
-                <select class="${inputClass}" data-prop-name="${escapeHtml(key)}">
+                <select class="${inputClass}" data-styled-select data-prop-name="${escapeHtml(key)}">
                     ${normalizedOptions.map((option) => `<option value="${escapeHtml(option.value)}" ${option.value === value ? 'selected' : ''}>${escapeHtml(option.label)}</option>`).join('')}
                 </select>
             </label>

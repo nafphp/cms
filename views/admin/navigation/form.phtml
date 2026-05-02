@@ -116,6 +116,7 @@ $languageLabels = [
 
 <script type="module">
     import toast from '/js/lib/notifyJs/Modules/Toast.js';
+    import {initStyledSelects} from '/js/components/styledSelect.js';
 
     const form = document.getElementById('navigation-form');
     const endpoint = form.dataset.endpoint;
@@ -191,7 +192,7 @@ $languageLabels = [
             const depthClass = path.length > 0 ? 'ml-4 border-l border-slate-300 pl-4 dark:border-slate-700' : '';
             const type = item.type || 'url';
             const targetControl = type === 'page'
-                ? `<select class="${inputClass}" data-field="target">
+                ? `<select class="${inputClass}" data-styled-select data-field="target">
                     <option value="">Select page</option>
                     ${pageChoices.map((page) => `<option value="${escapeHtml(page.id)}" data-path="${escapeHtml(page.path)}" ${String(item.target || '') === String(page.id) ? 'selected' : ''}>${escapeHtml(page.title)} (${escapeHtml(page.path)})</option>`).join('')}
                 </select>`
@@ -200,7 +201,7 @@ $languageLabels = [
             return `<div class="grid gap-3 rounded-lg border border-slate-300/70 bg-slate-50/80 p-3 dark:border-slate-700 dark:bg-slate-900/55" data-item-path="${encodedPath}">
                 <div class="grid gap-3 lg:grid-cols-[1fr_150px_1.5fr_auto]">
                     <input class="${inputClass}" data-field="label" value="${escapeHtml(item.label || '')}" placeholder="Label">
-                    <select class="${inputClass}" data-field="type">
+                    <select class="${inputClass}" data-styled-select data-field="type">
                         ${[['url', 'URL'], ['page', 'Page']].map(([value, label]) => `<option value="${value}" ${value === type ? 'selected' : ''}>${label}</option>`).join('')}
                     </select>
                     ${targetControl}
@@ -221,6 +222,7 @@ $languageLabels = [
     const render = () => {
         renderTabs();
         itemsRoot.innerHTML = activeLanguage === '' ? '' : renderItems(activeItems());
+        initStyledSelects(itemsRoot.querySelectorAll('select[data-styled-select]'));
         updateState();
     };
     const payload = () => ({

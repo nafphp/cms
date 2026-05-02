@@ -126,7 +126,7 @@ final class FormRepository
         $title = trim((string) ($payload['title'] ?? ''));
         $status = $this->normalizeStatus((string) ($payload['status'] ?? 'draft'));
         $fields = $this->normalizeFields(is_array($payload['fields'] ?? null) ? $payload['fields'] : []);
-        $settings = is_array($payload['settings'] ?? null) ? $payload['settings'] : [];
+        $settings = $this->normalizeSettings(is_array($payload['settings'] ?? null) ? $payload['settings'] : []);
 
         if ($title === '') {
             throw new \InvalidArgumentException('Form title is required.');
@@ -264,6 +264,18 @@ final class FormRepository
         return in_array($status, ['draft', 'published', 'archived'], true) ? $status : 'draft';
     }
 
+    /** @param array<string, mixed> $settings */
+    private function normalizeSettings(array $settings): array
+    {
+        return [
+            'titleKey' => $this->normalizeTranslationKey((string) ($settings['titleKey'] ?? '')),
+            'submitLabel' => trim((string) ($settings['submitLabel'] ?? '')),
+            'submitLabelKey' => $this->normalizeTranslationKey((string) ($settings['submitLabelKey'] ?? '')),
+            'successMessage' => trim((string) ($settings['successMessage'] ?? '')),
+            'successMessageKey' => $this->normalizeTranslationKey((string) ($settings['successMessageKey'] ?? '')),
+        ];
+    }
+
     /** @param array<int, mixed> $fields */
     private function normalizeFields(array $fields): array
     {
@@ -273,21 +285,97 @@ final class FormRepository
                 continue;
             }
 
-            $name = $this->normalizeIdentifier((string) ($field['name'] ?? 'field-' . ($index + 1)));
+            $label = trim((string) ($field['label'] ?? ''));
+            $nameSource = trim((string) ($field['name'] ?? ''));
+            if ($nameSource === '') {
+                $nameSource = $label !== '' ? $label : 'field-' . ($index + 1);
+            }
+            $name = $this->normalizeIdentifier($nameSource);
             $type = strtolower(trim((string) ($field['type'] ?? 'text')));
             $normalized[] = [
                 'name' => $name,
-                'label' => trim((string) ($field['label'] ?? $name)),
+                'label' => $label !== '' ? $label : $name,
+                'labelKey' => $this->normalizeTranslationKey((string) ($field['labelKey'] ?? '')),
                 'type' => in_array($type, ['text', 'email', 'textarea', 'select', 'checkbox'], true) ? $type : 'text',
                 'required' => (bool) ($field['required'] ?? false),
                 'placeholder' => trim((string) ($field['placeholder'] ?? '')),
+                'placeholderKey' => $this->normalizeTranslationKey((string) ($field['placeholderKey'] ?? '')),
                 'options' => array_values(array_filter(array_map('trim', is_array($field['options'] ?? null)
                     ? $field['options']
                     : explode("\n", (string) ($field['options'] ?? ''))))),
+                'validators' => $this->normalizeValidators($field),
             ];
         }
 
         return $normalized;
+    }
+
+    /**
+     * @param array<string, mixed> $field
+     * @return array<int, array{rule:string,param:string}>
+     */
+    private function normalizeValidators(array $field): array
+    {
+        $validators = [];
+        $source = is_array($field['validators'] ?? null) ? $field['validators'] : [];
+
+        foreach ($source as $validator) {
+            if (!is_array($validator)) {
+                continue;
+            }
+
+            $rule = strtolower(trim((string) ($validator['rule'] ?? '')));
+            if (!in_array($rule, ['required', 'email', 'min', 'max'], true)) {
+                continue;
+            }
+
+            $param = trim((string) ($validator['param'] ?? ''));
+            if (in_array($rule, ['min', 'max'], true)) {
+                $param = (string) max(0, (int) $param);
+                if ($param === '0') {
+                    continue;
+                }
+            } else {
+                $param = '';
+            }
+
+            $validators[] = ['rule' => $rule, 'param' => $param];
+        }
+
+        if ($validators === []) {
+            if ((bool) ($field['required'] ?? false)) {
+                $validators[] = ['rule' => 'required', 'param' => ''];
+            }
+            if (strtolower(trim((string) ($field['validation'] ?? ''))) === 'email'
+                || strtolower(trim((string) ($field['type'] ?? ''))) === 'email') {
+                $validators[] = ['rule' => 'email', 'param' => ''];
+            }
+            if ((int) ($field['minLength'] ?? 0) > 0) {
+                $validators[] = ['rule' => 'min', 'param' => (string) max(0, (int) $field['minLength'])];
+            }
+            if ((int) ($field['maxLength'] ?? 0) > 0) {
+                $validators[] = ['rule' => 'max', 'param' => (string) max(0, (int) $field['maxLength'])];
+            }
+        }
+
+        $seen = [];
+        return array_values(array_filter($validators, static function (array $validator) use (&$seen): bool {
+            $key = $validator['rule'] . ':' . $validator['param'];
+            if (isset($seen[$key])) {
+                return false;
+            }
+            $seen[$key] = true;
+            return true;
+        }));
+    }
+
+    private function normalizeTranslationKey(string $key): string
+    {
+        $key = strtolower(trim($key));
+        $key = preg_replace('/[^a-z0-9._-]+/', '.', $key) ?: '';
+        $key = preg_replace('/[.]{2,}/', '.', $key) ?: '';
+
+        return trim($key, '.-_');
     }
 
     private function decodeJson(string $json): array
