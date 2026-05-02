@@ -1,0 +1,16 @@
+<?php
+
+require_once __DIR__ . '/_navigation_helpers.php';
+
+$content = is_array($content ?? null) ? $content : [];
+$props = is_array($content['props'] ?? null) ? $content['props'] : [];
+$language = (string) ($props['language'] ?? '');
+$items = nixcms_page_block_nav_items(
+    (string) ($props['identifier'] ?? 'main'),
+    $language === 'current' ? '' : $language
+);
+
+?>
+<div class="rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-5">
+    <?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'horizontal')) ?>
+</div>

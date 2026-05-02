@@ -47,7 +47,6 @@ return [
         ->setTitle('Logout')
         ->setContent(static function () {
             session()->forget('userId');
-            session()->forget('dummyAdmin');
             return redirect('/admin/login');
         }),
 

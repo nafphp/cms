@@ -1,0 +1,21 @@
+<?php
+
+use function NixPHP\View\s;
+
+require_once __DIR__ . '/_navigation_helpers.php';
+
+$content = is_array($content ?? null) ? $content : [];
+$props = is_array($content['props'] ?? null) ? $content['props'] : [];
+$logoText = trim((string) ($props['logoText'] ?? ''));
+$logoText = $logoText !== '' ? $logoText : cms()->settings()->logoText();
+$logoImage = cms()->settings()->logoImage();
+$items = nixcms_page_block_nav_items((string) ($props['navigationIdentifier'] ?? 'main'));
+
+?>
+<header class="flex min-h-16 items-center gap-4 border-b border-[var(--page-border)] bg-[var(--page-header-bg)] px-6 py-4 text-[var(--page-header-text)]">
+    <?php if ($logoImage !== ''): ?>
+        <img class="h-8 w-auto" src="<?= s($logoImage) ?>" alt="">
+    <?php endif; ?>
+    <strong class="text-base font-bold"><?= s($logoText) ?></strong>
+    <div class="ml-auto"><?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'horizontal')) ?></div>
+</header>

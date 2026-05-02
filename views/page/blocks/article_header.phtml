@@ -1,0 +1,28 @@
+<?php
+
+use NixCMS\Services\Content\ArticleRenderer;
+use function NixPHP\View\s;
+
+/** @var ArticleRenderer|null $article */
+$showTeaser = (bool) ($showTeaser ?? true);
+$showMeta = (bool) ($showMeta ?? true);
+
+?>
+<?php if (($article ?? null) instanceof ArticleRenderer): ?>
+    <div class="grid gap-4">
+        <?php if ($showMeta): ?>
+            <div class="flex flex-wrap gap-2 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
+                <?php if ($article->language() !== ''): ?>
+                    <span class="rounded-full bg-surface-soft px-2 py-1"><?= s(strtoupper($article->language())) ?></span>
+                <?php endif; ?>
+                <?php if ($article->publishedAt() !== ''): ?>
+                    <span class="rounded-full bg-surface-soft px-2 py-1"><?= s($article->publishedAt()) ?></span>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+        <h1 class="m-0 text-[clamp(2rem,4vw,3.75rem)] font-black leading-[1.02] tracking-tight text-slate-950 dark:text-slate-50"><?= s($article->title()) ?></h1>
+        <?php if ($showTeaser && $article->teaser() !== ''): ?>
+            <p class="m-0 max-w-[72ch] text-lg leading-relaxed text-slate-600 dark:text-slate-300"><?= s($article->teaser()) ?></p>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>

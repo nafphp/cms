@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace NixCMS\Page;
 
 use NixCMS\Controllers\Page\PageController;
+use NixCMS\Enums\Permission;
+use NixCMS\Repositories\PageRepository;
+use function NixPHP\I18n\lang;
 use function NixPHP\route;
 
 final class PageRegistry
 {
     /** @var array<string, Page> */
     private array $pages = [];
+    private ?PageRepository $repository = null;
+    private bool $storedPagesLoaded = false;
 
     public function add(Page $page, bool $replace = false): self
     {
@@ -57,7 +62,21 @@ final class PageRegistry
             }
         }
 
-        return null;
+        if ($normalizedMethod !== 'GET') {
+            return null;
+        }
+
+        $templates = $this->pageTemplates();
+        if ($templates === []) {
+            return null;
+        }
+
+        return $this->repository()->pageByPath(
+            $normalizedPath,
+            $templates,
+            $this->activeLanguage(),
+            publishedOnly: \user()?->can(Permission::PAGES_VIEW) !== true,
+        );
     }
 
     /** @return array<string, Page> */
@@ -68,6 +87,8 @@ final class PageRegistry
 
     public function registerRoutes(): void
     {
+        $this->loadStoredPages();
+
         foreach ($this->pages as $page) {
             route()->add($page->method(), $page->path(), [PageController::class, 'show'], $page->id());
 
@@ -80,6 +101,38 @@ final class PageRegistry
                 );
             }
         }
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $templates
+     * @return array<int, array<string, mixed>>
+     */
+    public function summaries(array $templates = []): array
+    {
+        return $this->repository()->summaries($templates);
+    }
+
+    public function find(int $id): ?array
+    {
+        return $this->repository()->find($id);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    public function save(array $payload): int
+    {
+        return $this->repository()->save($payload);
+    }
+
+    public function publish(int $id): bool
+    {
+        return $this->repository()->publish($id);
+    }
+
+    public function delete(int $id): bool
+    {
+        return $this->repository()->delete($id);
     }
 
     public function dataRouteName(Page $page, PageDataHandler $dataHandler): string
@@ -104,5 +157,71 @@ final class PageRegistry
     {
         $path = '/' . ltrim(trim($path), '/');
         return $path === '/' ? '/' : rtrim($path, '/');
+    }
+
+    private function loadStoredPages(): void
+    {
+        if ($this->storedPagesLoaded) {
+            return;
+        }
+
+        $this->storedPagesLoaded = true;
+        $templates = $this->pageTemplates();
+
+        foreach ($this->repository()->pagesForRouting($templates) as $page) {
+            $collision = $this->findCodePageByPath($page->path(), $page->method());
+            if ($collision instanceof Page && !str_starts_with($collision->id(), 'db.page.')) {
+                continue;
+            }
+
+            $this->add($page, true);
+        }
+    }
+
+    private function repository(): PageRepository
+    {
+        return $this->repository ??= new PageRepository();
+    }
+
+    private function activeLanguage(): string
+    {
+        $language = strtolower(trim((string) lang()));
+        if ($language !== '') {
+            return $language;
+        }
+
+        return \cms()->settings()->language();
+    }
+
+    private function findCodePageByPath(string $path, string $method = 'GET'): ?Page
+    {
+        $normalizedPath = $this->normalizePath($path);
+        $normalizedMethod = strtoupper($method);
+
+        foreach ($this->pages as $page) {
+            if ($page->method() === $normalizedMethod && $page->path() === $normalizedPath) {
+                return $page;
+            }
+
+            if ($page->path() === $normalizedPath && $page->dataHandler($normalizedMethod) instanceof PageDataHandler) {
+                return $page;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function pageTemplates(): array
+    {
+        $templateFile = BASE_PATH . '/app/Resources/pages/page_templates.php';
+        if (!is_file($templateFile)) {
+            return [];
+        }
+
+        $templates = require $templateFile;
+        return is_array($templates) ? $templates : [];
     }
 }

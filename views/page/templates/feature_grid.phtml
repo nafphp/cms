@@ -1,0 +1,28 @@
+<?php
+
+/** @var callable(string): string $block */
+
+?>
+<div class="page-template-shell">
+    <?= $block('site_header') ?>
+    <main class="page-template-main page-template-main--feature-grid">
+        <section class="page-template-region">
+            <?= $block('intro') ?>
+        </section>
+        <div class="grid gap-5 md:grid-cols-3">
+            <section class="page-template-region">
+                <?= $block('feature_a') ?>
+            </section>
+            <section class="page-template-region">
+                <?= $block('feature_b') ?>
+            </section>
+            <section class="page-template-region">
+                <?= $block('feature_c') ?>
+            </section>
+        </div>
+        <section class="page-template-region">
+            <?= $block('cta') ?>
+        </section>
+    </main>
+    <?= $block('site_footer') ?>
+</div>

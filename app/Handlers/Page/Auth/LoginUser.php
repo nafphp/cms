@@ -37,14 +37,6 @@ final class LoginUser
             return $this->loginView($data, 'Please enter username and password.', $username);
         }
 
-        if ($username === 'admin' && $password === 'test') {
-            \session_regenerate_id(true);
-            session()->set('dummyAdmin', true);
-            session()->forget('userId');
-
-            return redirect($this->resolveRedirectUri($data));
-        }
-
         /** @var User|null $user */
         $user = repo(UserRepository::class)->findOneBy('username', $username);
         $verification = $this->credentialService->verifyPassword($password, $user?->getPassword());

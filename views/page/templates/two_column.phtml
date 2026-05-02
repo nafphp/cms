@@ -1,0 +1,19 @@
+<?php
+
+/** @var callable(string): string $block */
+
+?>
+<div class="page-template-shell">
+    <?= $block('site_header') ?>
+    <main class="page-template-main page-template-main--two-column">
+        <div class="grid gap-5 md:grid-cols-2">
+            <section class="page-template-region">
+                <?= $block('primary') ?>
+            </section>
+            <section class="page-template-region">
+                <?= $block('secondary') ?>
+            </section>
+        </div>
+    </main>
+    <?= $block('site_footer') ?>
+</div>

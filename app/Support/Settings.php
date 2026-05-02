@@ -39,6 +39,17 @@ final class Settings
         return strtoupper(substr($parts[0] ?? 'NX', 0, 2));
     }
 
+    public function logoText(): string
+    {
+        $configured = trim((string) $this->value('branding.logoText', ''));
+        return $configured !== '' ? $configured : $this->name();
+    }
+
+    public function logoImage(): string
+    {
+        return trim((string) $this->value('branding.logoImage', ''));
+    }
+
     public function pageTitle(string $title = ''): string
     {
         $title = trim($title);

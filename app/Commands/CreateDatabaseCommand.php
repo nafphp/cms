@@ -20,6 +20,7 @@ class CreateDatabaseCommand extends AbstractCommand
         $this
             ->setTitle('Create Database')
             ->setDescription('Create the configured MySQL database if it does not exist.')
+            ->addOption('force')
             ->addOption('help');
     }
 
@@ -28,14 +29,21 @@ class CreateDatabaseCommand extends AbstractCommand
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
             $output->writeLine('    php bin/nix db:create');
+            $output->writeLine('    php bin/nix db:create --force');
             $output->writeLine('  Reads driver/host/port/username/password/database from app config (.env).');
+            $output->writeLine('  --force drops the configured database before recreating it.');
             return self::SUCCESS;
         }
 
         $dbConfig = (array) config('database', []);
         $driver = (string) ($dbConfig['driver'] ?? 'mysql');
+        $force = $input->getOption('force') === true;
 
         if ($driver === 'sqlite') {
+            if ($force) {
+                return $this->resetSqliteDatabase((string) ($dbConfig['database'] ?? ''), $output);
+            }
+
             $output->writeLine('SQLite databases are created on first connect; nothing to do.', 'ok');
             return self::SUCCESS;
         }
@@ -69,11 +77,19 @@ class CreateDatabaseCommand extends AbstractCommand
             return self::ERROR;
         }
 
-        $existsStmt = $pdo->prepare(
-            'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = :name LIMIT 1'
-        );
-        $existsStmt->execute(['name' => $database]);
-        $alreadyExists = $existsStmt->fetchColumn() !== false;
+        $alreadyExists = $this->databaseExists($pdo, $database);
+
+        if ($force && $alreadyExists) {
+            try {
+                $pdo->exec(sprintf('DROP DATABASE `%s`', $database));
+            } catch (PDOException $e) {
+                $output->writeLine(sprintf('Could not drop database "%s": %s', $database, $e->getMessage()), 'error');
+                return self::ERROR;
+            }
+
+            $alreadyExists = false;
+            $output->writeLine(sprintf('Database "%s" dropped.', $database), 'warning');
+        }
 
         $sql = sprintf(
             'CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET %s COLLATE %s',
@@ -95,6 +111,33 @@ class CreateDatabaseCommand extends AbstractCommand
             $output->writeLine(sprintf('Database "%s" created (%s / %s).', $database, $charset, $collation), 'ok');
         }
 
+        return self::SUCCESS;
+    }
+
+    private function databaseExists(PDO $pdo, string $database): bool
+    {
+        $existsStmt = $pdo->prepare(
+            'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = :name LIMIT 1'
+        );
+        $existsStmt->execute(['name' => $database]);
+
+        return $existsStmt->fetchColumn() !== false;
+    }
+
+    private function resetSqliteDatabase(string $database, Output $output): int
+    {
+        $database = trim($database);
+        if ($database === '' || $database === ':memory:') {
+            $output->writeLine('SQLite database is in-memory or empty; nothing to drop.', 'ok');
+            return self::SUCCESS;
+        }
+
+        if (is_file($database) && !unlink($database)) {
+            $output->writeLine(sprintf('Could not delete SQLite database file "%s".', $database), 'error');
+            return self::ERROR;
+        }
+
+        $output->writeLine(sprintf('SQLite database "%s" removed.', $database), 'warning');
         return self::SUCCESS;
     }
 }

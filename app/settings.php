@@ -26,6 +26,12 @@ return [
             SettingField::text('app.short_name', t('Application short name'))
                 ->setDescription(t('Shown as compact logo text when space is tight.'))
                 ->setDefaultValue('NX'),
+            SettingField::text('branding.logoText', t('Logo text'))
+                ->setDescription(t('Shown in public page headers when a page does not override it.'))
+                ->setDefaultValue(''),
+            SettingField::text('branding.logoImage', t('Logo image'))
+                ->setDescription(t('Optional public URL for a brand mark.'))
+                ->setDefaultValue(''),
         ]),
     SettingSection::create('languages', t('Languages'))
         ->setDescription(t('Language defaults and enabled CMS languages.'))

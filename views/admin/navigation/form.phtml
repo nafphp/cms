@@ -1,0 +1,355 @@
+<?php
+
+use function NixPHP\I18n\t;
+use function NixPHP\route;
+use function NixPHP\View\s;
+
+$navigation = is_array($navigation ?? null) ? $navigation : null;
+$translations = is_array($translations ?? null) ? $translations : [];
+$languages = is_array($languages ?? null) ? array_values(array_map('strval', $languages)) : ['de', 'en'];
+$pageChoices = is_array($pageChoices ?? null) ? $pageChoices : [];
+$mode = (string) ($mode ?? 'create');
+$endpoint = $mode === 'edit' && isset($navigation['id'])
+    ? route('admin.navigation.edit', ['navigationId' => (int) $navigation['id']])
+    : route('admin.navigation.create');
+
+$selectedLanguages = array_values(array_filter(array_keys($translations)));
+if ($selectedLanguages === [] && isset($navigation['language']) && trim((string) $navigation['language']) !== '') {
+    $selectedLanguages = [strtolower(trim((string) $navigation['language']))];
+}
+if ($selectedLanguages === []) {
+    $selectedLanguages = [in_array('de', $languages, true) ? 'de' : $languages[0]];
+}
+
+$itemsByLanguage = [];
+$ids = [];
+foreach ($translations as $language => $translation) {
+    if (!is_array($translation)) {
+        continue;
+    }
+    $language = strtolower(trim((string) $language));
+    if ($language === '') {
+        continue;
+    }
+    $itemsByLanguage[$language] = is_array($translation['items'] ?? null) ? $translation['items'] : [];
+    $ids[$language] = (int) ($translation['id'] ?? 0);
+}
+foreach ($selectedLanguages as $language) {
+    $itemsByLanguage[$language] ??= [];
+}
+
+$payload = [
+    'title' => (string) ($navigation['title'] ?? ''),
+    'identifier' => (string) ($navigation['identifier'] ?? ''),
+    'status' => (string) ($navigation['status'] ?? 'draft'),
+    'languages' => $selectedLanguages,
+    'ids' => $ids,
+    'itemsByLanguage' => $itemsByLanguage,
+];
+
+$languageLabels = [
+    'de' => 'Deutsch',
+    'en' => 'English',
+    'fr' => 'Francais',
+    'es' => 'Espanol',
+    'it' => 'Italiano',
+];
+
+?>
+<?php $this->setLayout('layouts.admin') ?>
+
+<?php $this->block('content'); ?>
+<form
+    id="navigation-form"
+    class="grid gap-5"
+    data-endpoint="<?= s($endpoint) ?>"
+    data-navigation="<?= s(json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)) ?>"
+    data-pages="<?= s(json_encode($pageChoices, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)) ?>"
+>
+    <section class="grid gap-4 rounded-lg border border-slate-300/70 bg-white/85 p-5 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-slate-400/25 dark:bg-slate-950/50 dark:shadow-none">
+        <div class="grid gap-4 lg:grid-cols-[1fr_300px]">
+            <label class="grid gap-2">
+                <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Title')) ?></span>
+                <input class="min-h-11 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white" name="title" value="<?= s($payload['title']) ?>" placeholder="<?= s(t('Main navigation')) ?>" required>
+                <span class="hidden text-sm text-rose-600 dark:text-rose-300" data-error-for="title"></span>
+            </label>
+            <label class="grid gap-2">
+                <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Identifier')) ?></span>
+                <input class="min-h-11 rounded-md border border-slate-300 bg-white px-3 font-mono text-sm text-slate-950 outline-none transition focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white" name="identifier" value="<?= s($payload['identifier']) ?>" placeholder="main-navigation" required>
+                <span class="hidden text-sm text-rose-600 dark:text-rose-300" data-error-for="identifier"></span>
+            </label>
+        </div>
+
+        <div class="grid gap-2">
+            <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Languages')) ?></span>
+            <div class="flex flex-wrap gap-2">
+                <?php foreach ($languages as $language): ?>
+                    <label class="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                        <input class="h-4 w-4 accent-[var(--admin-page-accent)]" type="checkbox" name="languages[]" value="<?= s($language) ?>" <?= in_array($language, $selectedLanguages, true) ? 'checked' : '' ?> data-language-toggle>
+                        <span><?= s($languageLabels[$language] ?? strtoupper($language)) ?></span>
+                    </label>
+                <?php endforeach; ?>
+            </div>
+            <span class="hidden text-sm text-rose-600 dark:text-rose-300" data-error-for="languages"></span>
+        </div>
+    </section>
+
+    <section class="grid gap-4 rounded-lg border border-slate-300/70 bg-white/85 p-5 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-slate-400/25 dark:bg-slate-950/50 dark:shadow-none">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 class="text-base font-semibold text-slate-950 dark:text-white"><?= s(t('Items')) ?></h2>
+            <button class="inline-flex min-h-9 items-center rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:border-[var(--admin-page-accent)] hover:text-slate-950 dark:border-slate-700 dark:text-slate-200 dark:hover:text-white" type="button" data-add-root>
+                <?= s(t('Add item')) ?>
+            </button>
+        </div>
+        <div class="flex flex-wrap gap-2" data-language-tabs></div>
+        <div class="grid gap-3" data-navigation-items></div>
+    </section>
+
+    <div class="sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-300/70 bg-white/95 px-4 py-3 shadow-[0_18px_40px_rgba(15,23,42,.16)] backdrop-blur dark:border-slate-500/30 dark:bg-slate-950/95">
+        <div class="text-sm text-slate-500 dark:text-slate-400" data-save-state><?= s(t('No unsaved changes.')) ?></div>
+        <div class="flex flex-wrap gap-2">
+            <a class="inline-flex min-h-10 items-center rounded-md border border-slate-300 px-4 text-sm font-semibold text-slate-700 transition hover:border-[var(--admin-page-accent)] hover:text-slate-950 dark:border-slate-700 dark:text-slate-200 dark:hover:text-white" href="<?= route('admin.navigation') ?>"><?= s(t('Cancel')) ?></a>
+            <button class="inline-flex min-h-10 items-center rounded-md bg-[var(--admin-page-accent)] px-4 text-sm font-bold text-white transition hover:brightness-110" type="submit"><?= s(t('Save draft')) ?></button>
+        </div>
+    </div>
+</form>
+
+<script type="module">
+    import toast from '/js/lib/notifyJs/Modules/Toast.js';
+
+    const form = document.getElementById('navigation-form');
+    const endpoint = form.dataset.endpoint;
+    const state = form.querySelector('[data-save-state]');
+    const tabsRoot = form.querySelector('[data-language-tabs]');
+    const itemsRoot = form.querySelector('[data-navigation-items]');
+    const languageLabels = <?= json_encode($languageLabels, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    const labels = <?= json_encode([
+        'addChild' => t('Add child'),
+        'couldNotSave' => t('Could not save navigation.'),
+        'dirty' => t('Unsaved changes.'),
+        'empty' => t('No items yet.'),
+        'path' => t('Path or URL'),
+        'remove' => t('Remove'),
+        'saved' => t('Navigation draft saved.'),
+        'clean' => t('No unsaved changes.'),
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    let data = JSON.parse(form.dataset.navigation || '{}');
+    const pageChoices = JSON.parse(form.dataset.pages || '[]');
+    let activeLanguage = data.languages?.[0] || 'de';
+    let identifierTouched = Boolean(data.identifier);
+
+    const blankItem = () => ({
+        key: `item-${Date.now().toString(36)}`,
+        label: '',
+        href: '',
+        type: 'url',
+        target: '',
+        visible: true,
+        children: [],
+    });
+    const inputClass = 'min-h-10 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white';
+    const buttonClass = 'inline-flex min-h-8 items-center rounded-md border border-slate-300 px-2.5 text-xs font-semibold text-slate-600 transition hover:border-[var(--admin-page-accent)] hover:text-slate-950 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white';
+    const escapeHtml = (value) => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+    const labelForLanguage = (language) => languageLabels[language] || String(language).toUpperCase();
+    const selectedLanguages = () => Array.from(form.querySelectorAll('[data-language-toggle]:checked')).map((input) => input.value);
+    const activeItems = () => {
+        data.itemsByLanguage = data.itemsByLanguage || {};
+        data.itemsByLanguage[activeLanguage] = Array.isArray(data.itemsByLanguage[activeLanguage]) ? data.itemsByLanguage[activeLanguage] : [];
+        return data.itemsByLanguage[activeLanguage];
+    };
+    const getByPath = (path) => path.reduce((items, index) => items[index]?.children || [], activeItems());
+    const itemByPath = (path) => {
+        let items = activeItems();
+        let item = null;
+        for (const index of path) {
+            item = items[index];
+            items = item?.children || [];
+        }
+        return item;
+    };
+
+    const renderTabs = () => {
+        const languages = selectedLanguages();
+        data.languages = languages;
+        if (!languages.includes(activeLanguage)) {
+            activeLanguage = languages[0] || '';
+        }
+        tabsRoot.innerHTML = languages.map((language) => `
+            <button class="inline-flex min-h-9 items-center rounded-md border px-3 text-sm font-semibold transition ${language === activeLanguage ? 'border-[var(--admin-page-accent)] bg-[var(--admin-page-accent)] text-white' : 'border-slate-300 text-slate-700 hover:border-[var(--admin-page-accent)] dark:border-slate-700 dark:text-slate-200'}" type="button" data-language-tab="${escapeHtml(language)}">
+                ${escapeHtml(labelForLanguage(language))}
+            </button>
+        `).join('');
+    };
+
+    const renderItems = (items, path = []) => {
+        if (!Array.isArray(items) || items.length === 0) {
+            return path.length === 0 ? `<div class="rounded-md border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">${labels.empty}</div>` : '';
+        }
+        return items.map((item, index) => {
+            const currentPath = [...path, index];
+            const encodedPath = currentPath.join('.');
+            const depthClass = path.length > 0 ? 'ml-4 border-l border-slate-300 pl-4 dark:border-slate-700' : '';
+            const type = item.type || 'url';
+            const targetControl = type === 'page'
+                ? `<select class="${inputClass}" data-field="target">
+                    <option value="">Select page</option>
+                    ${pageChoices.map((page) => `<option value="${escapeHtml(page.id)}" data-path="${escapeHtml(page.path)}" ${String(item.target || '') === String(page.id) ? 'selected' : ''}>${escapeHtml(page.title)} (${escapeHtml(page.path)})</option>`).join('')}
+                </select>`
+                : `<input class="${inputClass}" data-field="href" value="${escapeHtml(item.href || '')}" placeholder="${escapeHtml(labels.path)}">`;
+
+            return `<div class="grid gap-3 rounded-lg border border-slate-300/70 bg-slate-50/80 p-3 dark:border-slate-700 dark:bg-slate-900/55" data-item-path="${encodedPath}">
+                <div class="grid gap-3 lg:grid-cols-[1fr_150px_1.5fr_auto]">
+                    <input class="${inputClass}" data-field="label" value="${escapeHtml(item.label || '')}" placeholder="Label">
+                    <select class="${inputClass}" data-field="type">
+                        ${[['url', 'URL'], ['page', 'Page']].map(([value, label]) => `<option value="${value}" ${value === type ? 'selected' : ''}>${label}</option>`).join('')}
+                    </select>
+                    ${targetControl}
+                    <label class="inline-flex min-h-10 items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                        <input type="checkbox" data-field="visible" ${item.visible !== false ? 'checked' : ''}>
+                        Visible
+                    </label>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button class="${buttonClass}" type="button" data-add-child="${encodedPath}">${labels.addChild}</button>
+                    <button class="${buttonClass}" type="button" data-remove-item="${encodedPath}">${labels.remove}</button>
+                </div>
+                <div class="grid gap-3 ${depthClass}">${renderItems(Array.isArray(item.children) ? item.children : [], currentPath)}</div>
+            </div>`;
+        }).join('');
+    };
+
+    const render = () => {
+        renderTabs();
+        itemsRoot.innerHTML = activeLanguage === '' ? '' : renderItems(activeItems());
+        updateState();
+    };
+    const payload = () => ({
+        title: form.elements.title.value,
+        identifier: form.elements.identifier.value,
+        status: data.status || 'draft',
+        languages: selectedLanguages(),
+        ids: data.ids || {},
+        itemsByLanguage: data.itemsByLanguage || {},
+    });
+    const stableJson = (value) => JSON.stringify(value);
+    let initialPayload = stableJson(payload());
+    const updateState = () => {
+        state.textContent = stableJson(payload()) === initialPayload ? labels.clean : labels.dirty;
+    };
+    const clearErrors = () => {
+        form.querySelectorAll('[data-error-for]').forEach((node) => {
+            node.textContent = '';
+            node.classList.add('hidden');
+        });
+    };
+    const showErrors = (errors) => {
+        Object.entries(errors || {}).forEach(([key, messages]) => {
+            const target = form.querySelector(`[data-error-for="${CSS.escape(key)}"]`);
+            if (!target) return;
+            target.textContent = Array.isArray(messages) ? messages.join(' ') : String(messages || '');
+            target.classList.remove('hidden');
+        });
+    };
+
+    form.addEventListener('change', (event) => {
+        if (event.target.matches('[data-language-toggle]')) {
+            render();
+        }
+    });
+    tabsRoot.addEventListener('click', (event) => {
+        const tab = event.target.closest('[data-language-tab]');
+        if (!tab) return;
+        activeLanguage = tab.dataset.languageTab;
+        render();
+    });
+    itemsRoot.addEventListener('input', (event) => {
+        const field = event.target.closest('[data-field]');
+        const wrapper = event.target.closest('[data-item-path]');
+        if (!field || !wrapper) return;
+        const item = itemByPath(wrapper.dataset.itemPath.split('.').map(Number));
+        if (!item) return;
+        item[field.dataset.field] = field.type === 'checkbox' ? field.checked : field.value;
+        if (field.dataset.field === 'type') {
+            item.href = '';
+            item.target = '';
+            render();
+            return;
+        }
+        if (field.dataset.field === 'target' && item.type === 'page') {
+            item.href = field.selectedOptions[0]?.dataset.path || '';
+        }
+        item.key = String(item.label || item.href || item.key || 'item').toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^[-._]+|[-._]+$/g, '') || item.key;
+        updateState();
+    });
+    itemsRoot.addEventListener('change', (event) => {
+        const field = event.target.closest('[data-field]');
+        if (field) field.dispatchEvent(new Event('input', {bubbles: true}));
+    });
+    itemsRoot.addEventListener('click', (event) => {
+        const addChild = event.target.closest('[data-add-child]');
+        const remove = event.target.closest('[data-remove-item]');
+        if (addChild) {
+            const item = itemByPath(addChild.dataset.addChild.split('.').map(Number));
+            if (item) {
+                item.children = Array.isArray(item.children) ? item.children : [];
+                item.children.push(blankItem());
+                render();
+            }
+        }
+        if (remove) {
+            const path = remove.dataset.removeItem.split('.').map(Number);
+            const index = path.pop();
+            const siblings = path.length === 0 ? activeItems() : getByPath(path);
+            siblings.splice(index, 1);
+            render();
+        }
+    });
+    form.querySelector('[data-add-root]').addEventListener('click', () => {
+        activeItems().push(blankItem());
+        render();
+    });
+    const slugifyIdentifier = (value) => String(value || '')
+        .replace(/ä/g, 'ae')
+        .replace(/ö/g, 'oe')
+        .replace(/ü/g, 'ue')
+        .replace(/ß/g, 'ss')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9._-]+/g, '-')
+        .replace(/^[-._]+|[-._]+$/g, '');
+    form.elements.title.addEventListener('input', () => {
+        if (identifierTouched) {
+            return;
+        }
+
+        form.elements.identifier.value = slugifyIdentifier(form.elements.title.value);
+        updateState();
+    });
+    form.elements.identifier.addEventListener('input', () => {
+        identifierTouched = form.elements.identifier.value !== slugifyIdentifier(form.elements.title.value);
+    });
+    form.addEventListener('input', updateState);
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        clearErrors();
+        const response = await (window.NixCMS?.json || fetch)(endpoint, {
+            method: 'POST',
+            body: JSON.stringify(payload()),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.success) {
+            showErrors(result.errors || {});
+            toast(result.reason || labels.couldNotSave);
+            return;
+        }
+        toast(labels.saved);
+        data.ids = result.ids || data.ids || {};
+        initialPayload = stableJson(payload());
+        updateState();
+        window.location.href = `/admin/navigation/${result.id}/edit`;
+    });
+
+    render();
+</script>
+<?php $this->endBlock('content'); ?>

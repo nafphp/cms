@@ -1,0 +1,74 @@
+<?php
+
+use function NixPHP\View\s;
+
+/** @var string|null $content */
+/** @var \NixCMS\Page\Page $page */
+/** @var \NixCMS\Page\Template $template */
+/** @var string|null $title */
+
+$settings = cms()->settings();
+$currentLanguage = $page->language() ?? $settings->currentLanguage();
+$attributeString = static function (array $attributes): string {
+    $html = '';
+
+    foreach ($attributes as $name => $value) {
+        if ($value === true) {
+            $html .= ' ' . s((string) $name);
+            continue;
+        }
+
+        $html .= ' ' . s((string) $name) . '="' . s((string) $value) . '"';
+    }
+
+    return $html;
+};
+
+$bodyAttributes = $page->bodyAttributes();
+$htmlAttributes = $page->htmlAttributes();
+$htmlAttributes['class'] = trim(($htmlAttributes['class'] ?? '') . ' dark');
+$accent = trim((string) ($page->meta()->theme->accent ?? ''));
+$themeStyles = [];
+if (preg_match('/^#[0-9a-fA-F]{6}$/', $accent) === 1) {
+    $themeStyles[] = '--page-accent: ' . $accent;
+}
+$bodyClasses = trim(implode(' ', [
+    'page-theme',
+    ...$template->bodyClasses(),
+    ...$page->bodyClasses(),
+]));
+if ($bodyClasses !== '') {
+    $bodyAttributes['class'] = trim(($bodyAttributes['class'] ?? '') . ' ' . $bodyClasses);
+}
+if ($themeStyles !== []) {
+    $style = trim((string) ($bodyAttributes['style'] ?? ''));
+    $bodyAttributes['style'] = trim($style . ($style !== '' && !str_ends_with($style, ';') ? '; ' : ' ') . implode('; ', $themeStyles));
+}
+
+?>
+<!doctype html>
+<html lang="<?= s($currentLanguage) ?>"<?= $attributeString($htmlAttributes) ?>>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?= s($settings->pageTitle((string) ($title ?? ''))) ?></title>
+    <?php if ($page->meta()->seo->description !== ''): ?>
+        <meta name="description" content="<?= s($page->meta()->seo->description) ?>">
+    <?php endif; ?>
+    <?php if ($page->meta()->seo->robots !== ''): ?>
+        <meta name="robots" content="<?= s($page->meta()->seo->robots) ?>">
+    <?php endif; ?>
+    <?php if ($page->meta()->seo->canonicalUrl !== null && $page->meta()->seo->canonicalUrl !== ''): ?>
+        <link rel="canonical" href="<?= s($page->meta()->seo->canonicalUrl) ?>">
+    <?php endif; ?>
+    <?php foreach ([...$template->stylesheets(), ...$page->stylesheets()] as $stylesheet): ?>
+        <link rel="stylesheet" href="<?= s($stylesheet['href']) ?>"<?= $attributeString($stylesheet['attributes']) ?>>
+    <?php endforeach; ?>
+</head>
+<body<?= $attributeString($bodyAttributes) ?>>
+    <?= $this->renderBlock('content', $content ?? '') ?>
+    <?php foreach ([...$template->scripts(), ...$page->scripts()] as $script): ?>
+        <script src="<?= s($script['src']) ?>"<?= $attributeString($script['attributes']) ?>></script>
+    <?php endforeach; ?>
+</body>
+</html>

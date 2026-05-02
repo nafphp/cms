@@ -6,12 +6,9 @@ error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use NixCMS\Commands\CreateDatabaseCommand;
 use NixCMS\Commands\CreateUserCommand;
 use NixCMS\Commands\FakeDataCommand;
 use NixCMS\Commands\InstallDatabaseCommand;
-use NixCMS\Enums\Permission;
-use NixCMS\Enums\Role;
 use NixCMS\Events\AdminGuardEvent;
 use NixCMS\Events\AuthRedirectEvent;
 use NixCMS\Events\SettingsLocaleEvent;
@@ -36,7 +33,6 @@ event()->listen(Event::EXCEPTION, [AuthRedirectEvent::class, 'onException'], -10
 event()->listen(Event::REQUEST_START, [SettingsLocaleEvent::class, 'handle'], -10);
 event()->listen(Event::CONTROLLER_CALLING, [AdminGuardEvent::class, 'handle']);
 
-command()->add(CreateDatabaseCommand::class);
 command()->add(InstallDatabaseCommand::class);
 command()->add(CreateUserCommand::class);
 command()->add(FakeDataCommand::class);
@@ -67,21 +63,6 @@ function user(): ?UserHelper
 {
     static $cache = null;
     static $cachedUserId = null;
-
-    if (session()->get('dummyAdmin') === true) {
-        if ($cache !== null && $cachedUserId === 'dummy-admin') {
-            return $cache;
-        }
-
-        $cachedUserId = 'dummy-admin';
-        $cache = new UserHelper(
-            null,
-            Permission::cases(),
-            [Role::ADMIN],
-            true,
-        );
-        return $cache;
-    }
 
     $userId = session()->get('userId');
     if ($userId === null) {

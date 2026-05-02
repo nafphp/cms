@@ -3,10 +3,12 @@ import toast from './lib/notifyJs/Modules/Toast.js';
 import { initDatePickers } from './components/datePicker.js';
 import { initMultiSelects } from './components/multiSelect.js';
 import { initStyledSelects } from './components/styledSelect.js';
+import { initPageBuilders } from './admin/page-builder.js';
 
 const nativeFetch = window.fetch.bind(window);
 const configuredCsrfToken = window.NixCMS?.csrfToken;
 const configuredCsrfHeader = window.NixCMS?.csrfHeader || 'X-CSRF-Token';
+const flashToastKey = 'nixcms:flash-toast';
 
 const csrfToken = () => {
     if (typeof configuredCsrfToken === 'function') {
@@ -111,9 +113,18 @@ document.querySelectorAll('[data-toast]').forEach((element) => {
     });
 });
 
+try {
+    const flashToast = sessionStorage.getItem(flashToastKey);
+    if (flashToast) {
+        sessionStorage.removeItem(flashToastKey);
+        toast(flashToast);
+    }
+} catch (error) {}
+
 initStyledSelects('select[data-styled-select]');
 initMultiSelects('select[data-multiselect]');
 initDatePickers('[data-date-picker]');
+initPageBuilders();
 
 document.querySelectorAll('[data-open-role-prompt]').forEach((element) => {
     element.addEventListener('click', () => {

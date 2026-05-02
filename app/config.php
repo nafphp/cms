@@ -42,7 +42,7 @@ return [
     'cms' => [
         'languages' => ['en', 'de'],
         'auth_enabled' => true,
-        'setup_mode' => true,
+        'setup_mode' => 'ENV:CMS_SETUP_MODE',
         'admin' => [
             'accent_colors' => [
                 'dashboard' => '#ff3b30',

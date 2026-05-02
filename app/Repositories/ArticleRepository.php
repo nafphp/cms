@@ -57,9 +57,29 @@ class ArticleRepository extends AbstractRepository
         ?int $limit = null,
         array $excludeArticleIds = []
     ): array {
+        return $this->findPublishedWithLatestVersionByCategoryAndLanguage(
+            $categoryId,
+            $limit,
+            $this->resolveActiveLanguage(),
+            $excludeArticleIds,
+        );
+    }
+
+    /**
+     * Returns published articles for a specific language.
+     *
+     * @param int[] $excludeArticleIds
+     * @return array<int, Article>
+     */
+    public function findPublishedWithLatestVersionByCategoryAndLanguage(
+        ?int $categoryId,
+        ?int $limit,
+        string $language,
+        array $excludeArticleIds = []
+    ): array {
         /** @var array<int, Article> $articles */
         $articles = $this->findAll();
-        $articles = $this->hydrateLatestVisiblePublishedVersions($articles);
+        $articles = $this->hydrateLatestVisiblePublishedVersions($articles, $language);
         $excludedIds = array_values(array_unique(array_map('intval', $excludeArticleIds)));
 
         $filteredArticles = array_values(array_filter(
@@ -238,9 +258,11 @@ class ArticleRepository extends AbstractRepository
      * @param array<int, Article> $articles
      * @return array<int, Article>
      */
-    private function hydrateLatestVisiblePublishedVersions(array $articles): array
+    private function hydrateLatestVisiblePublishedVersions(array $articles, ?string $language = null): array
     {
-        $language = $this->resolveActiveLanguage();
+        $language = $language !== null && trim($language) !== ''
+            ? strtolower(trim($language))
+            : $this->resolveActiveLanguage();
 
         usort($articles, static fn(Article $a, Article $b): int => $b->getId() <=> $a->getId());
 
@@ -334,6 +356,40 @@ class ArticleRepository extends AbstractRepository
         }
 
         return null;
+    }
+
+    public function findPublishedVisibleBySlug(string $slug, ?string $language = null): ?Article
+    {
+        $slug = trim($slug);
+        if ($slug === '') {
+            return null;
+        }
+
+        $language = $language !== null && trim($language) !== ''
+            ? strtolower(trim($language))
+            : $this->resolveActiveLanguage();
+
+        /** @var ArticleVersion|null $version */
+        $version = repo(ArticleVersionRepository::class)->findOneBy(
+            [
+                'slug' => $slug,
+                'language' => $language,
+            ],
+            orderBy: ['version' => 'DESC']
+        );
+
+        if (!$version instanceof ArticleVersion || !$this->isFrontendVisiblePublishedVersion($version)) {
+            return null;
+        }
+
+        /** @var Article|null $article */
+        $article = $this->findOneBy('id', (int) $version->getArticleId());
+        if (!$article instanceof Article) {
+            return null;
+        }
+
+        $article->setCurrentVersion($version);
+        return $article;
     }
 
     public function findWithSpecificVersion(int $id, string $language, int $versionNumber): ?Article

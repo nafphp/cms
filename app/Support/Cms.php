@@ -6,8 +6,12 @@ namespace NixCMS\Support;
 
 use NixCMS\Api\ArticleApi;
 use NixCMS\Api\ApiRegistry;
+use NixCMS\Api\FormApi;
+use NixCMS\Api\NavigationApi;
 use NixCMS\Content\ContentRegistry;
 use NixCMS\Models\Article;
+use NixCMS\Models\Form;
+use NixCMS\Models\SiteNavigation;
 use NixCMS\Navigation\NavigationRegistry;
 use NixCMS\Page\PageRegistry;
 use NixCMS\Settings\SettingsRegistry;
@@ -44,7 +48,7 @@ final class Cms
         return $this->pageRegistry ??= new PageRegistry();
     }
 
-    public function navigation(): NavigationRegistry
+    public function navigationRegistry(): NavigationRegistry
     {
         if ($this->navigationRegistry === null) {
             $this->navigationRegistry = new NavigationRegistry();
@@ -55,6 +59,13 @@ final class Cms
         }
 
         return $this->navigationRegistry;
+    }
+
+    public function navigation(): NavigationApi
+    {
+        /** @var NavigationApi $api */
+        $api = $this->content(SiteNavigation::class);
+        return $api;
     }
 
     public function contentTypes(): ContentRegistry
@@ -79,6 +90,13 @@ final class Cms
     {
         /** @var ArticleApi $api */
         $api = $this->content(Article::class);
+        return $api;
+    }
+
+    public function forms(): FormApi
+    {
+        /** @var FormApi $api */
+        $api = $this->content(Form::class);
         return $api;
     }
 

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Admin;
 
+use NixCMS\Enums\Permission;
 use NixCMS\Navigation\NavigationItem;
 use NixCMS\Navigation\NavigationRegistry;
 use NixCMS\Page\Page;
 use NixCMS\Page\PageRegistry;
 use NixCMS\Services\Admin\AdminNavigationService;
+use NixCMS\Support\UserHelper;
 use PHPUnit\Framework\TestCase;
 
 final class AdminNavigationServiceTest extends TestCase
@@ -185,6 +187,87 @@ final class AdminNavigationServiceTest extends TestCase
         self::assertSame('docs.admin', $items[0]['children'][0]['key']);
         self::assertSame('docs.admin.index', $items[0]['children'][0]['children'][0]['key']);
         self::assertSame(['admin.docs'], $items[0]['routeNames']);
+    }
+
+    public function testServiceIgnoresHiddenFrontendPageAttachments(): void
+    {
+        $pages = new PageRegistry();
+        $pages->addMany([
+            Page::create('docs.hidden')
+                ->setPath('/docs/hidden')
+                ->hideFromNavigation('docs'),
+            Page::create('admin.dashboard')
+                ->setPath('/admin')
+                ->setAdminNavigation('Dashboard', key: 'dashboard'),
+        ]);
+
+        $items = (new AdminNavigationService(new NavigationRegistry(), $pages, includeConfiguredItems: false))->items();
+
+        self::assertCount(1, $items);
+        self::assertSame('dashboard', $items[0]['key']);
+        self::assertSame(['admin.dashboard'], $items[0]['routeNames']);
+    }
+
+    public function testServiceHidesPagesCurrentUserCannotAccess(): void
+    {
+        $pages = new PageRegistry();
+        $pages->addMany([
+            Page::create('admin.pages')
+                ->setPath('/admin/pages')
+                ->requirePermission(Permission::PAGES_VIEW)
+                ->setAdminNavigation('Pages', parent: 'content', key: 'pages'),
+            Page::create('admin.users')
+                ->setPath('/admin/users')
+                ->requirePermission(Permission::USERS_VIEW)
+                ->setAdminNavigation('Users', parent: 'system', key: 'users'),
+        ]);
+
+        $user = new UserHelper(null, [Permission::PAGES_VIEW], [], true);
+        $items = (new AdminNavigationService(
+            new NavigationRegistry(),
+            $pages,
+            includeConfiguredItems: false,
+            userResolver: static fn(): UserHelper => $user,
+        ))->items();
+
+        self::assertNotNull($this->findNode($items, 'pages'));
+        self::assertNull($this->findNode($items, 'users'));
+    }
+
+    public function testServiceKeepsDeniedParentWhenChildIsVisible(): void
+    {
+        $navigation = new NavigationRegistry();
+        $navigation->add(
+            NavigationItem::create('content')
+                ->setLabel('Content')
+                ->setScope('admin')
+                ->addRouteName('admin.articles')
+        );
+
+        $pages = new PageRegistry();
+        $pages->addMany([
+            Page::create('admin.articles')
+                ->setPath('/admin/articles')
+                ->requirePermission(Permission::ARTICLES_VIEW),
+            Page::create('admin.pages')
+                ->setPath('/admin/pages')
+                ->requirePermission(Permission::PAGES_VIEW)
+                ->setAdminNavigation('Pages', parent: 'content', key: 'pages'),
+        ]);
+
+        $user = new UserHelper(null, [Permission::PAGES_VIEW], [], true);
+        $items = (new AdminNavigationService(
+            $navigation,
+            $pages,
+            includeConfiguredItems: false,
+            userResolver: static fn(): UserHelper => $user,
+        ))->items();
+
+        $content = $this->findNode($items, 'content');
+
+        self::assertNotNull($content);
+        self::assertSame('pages', $content['children'][0]['key']);
+        self::assertSame(['admin.pages'], $content['routeNames']);
     }
 
     /**

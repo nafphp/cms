@@ -1,6 +1,7 @@
 import prompt from '../lib/notifyJs/Modules/Prompt.js';
 import toast from '../lib/notifyJs/Modules/Toast.js';
-import {actionMenuMarkup, setupActionMenus} from '../components/actionMenu.js';
+import {actionMenuMarkup} from '../components/actionMenu.js';
+import {AdminDataGrid} from '../components/dataGrid.js';
 
 const reviewableStatuses = new Set(['draft', 'declined']);
 const languageTitles = {
@@ -17,13 +18,10 @@ const languageFlags = {
     es: '🇪🇸',
     it: '🇮🇹',
 };
-const tableClass = 'article-grid-table w-full min-w-[980px] table-fixed border-separate border-spacing-0 text-sm';
 const tableCellClass = '[&_td]:h-[78px] [&_td]:border-b [&_td]:border-slate-900/10 [&_td]:px-[18px] [&_td]:py-4 [&_td]:text-left [&_td]:text-[rgba(48,48,48,.86)] dark:[&_td]:border-slate-400/15 dark:[&_td]:text-slate-100 [&_th]:h-[46px] [&_th]:border-b [&_th]:border-slate-900/10 [&_th]:bg-slate-200/70 [&_th]:px-[18px] [&_th]:py-[11px] [&_th]:text-left [&_th]:text-[13px] [&_th]:font-semibold [&_th]:leading-tight [&_th]:text-slate-700 dark:[&_th]:border-slate-400/15 dark:[&_th]:bg-slate-800/50 dark:[&_th]:text-slate-300';
 const rowClass = 'article-grid-row cursor-pointer hover:[&_td]:bg-slate-900/[.035] dark:hover:[&_td]:bg-white/[.035]';
 const titleCellClass = 'font-semibold text-[#303030] dark:text-slate-50';
 const wideCellClass = 'article-grid-wide wide:table-cell max-wide:hidden';
-const sortButtonClass = 'article-grid-sort-button inline-flex min-w-0 cursor-pointer items-center p-0 text-left font-inherit text-inherit';
-const sortMarkClass = 'article-grid-sort-mark text-[11px] font-medium leading-none text-slate-500 dark:text-slate-400';
 const statusClass = 'article-status-chip inline-flex min-h-6 items-center justify-center rounded-md bg-slate-900/5 px-2 text-xs font-bold text-slate-700 dark:bg-transparent dark:text-slate-100';
 const languageBadgeWrapClass = 'article-language-badges inline-flex flex-nowrap items-center gap-1.5';
 const languageFlagClass = 'article-language-flag inline-flex min-h-8 min-w-8 items-center justify-center rounded-md border border-slate-900/10 bg-slate-900/5 px-0 text-xs font-bold text-slate-700 dark:border-slate-400/30 dark:bg-slate-500/30 dark:text-white';
@@ -37,19 +35,29 @@ class ArticleGrid {
     constructor(root) {
         this.root = root;
         this.config = JSON.parse(root.getAttribute('data-config') || '{}');
-        this.frame = root.querySelector('[data-article-grid-frame]');
-        this.search = root.querySelector('[data-article-search]');
-        this.rows = [];
-        this.expanded = new Set();
-        this.sort = {key: 'id', direction: 'asc'};
+        this.grid = new AdminDataGrid(root, {
+            frameSelector: '[data-article-grid-frame], [data-admin-grid-frame]',
+            searchSelector: '[data-article-search], [data-admin-grid-search]',
+            defaultSort: {key: 'id', direction: 'asc'},
+            columns: this.columns(),
+            rowId: (row) => row.id,
+            rowClass: (row) => `${rowClass} admin-data-grid-row`,
+            renderCell: (row, column) => this.renderCell(row, column),
+            renderDetails: (row) => this.renderDetailsContent(row),
+            searchableValues: (row) => this.searchValues(row),
+            sortValue: (row, key) => sortValue(row, key),
+            afterRender: () => {
+                this.syncDetailColumnGeometry();
+                requestAnimationFrame(() => this.syncDetailColumnGeometry());
+            },
+            onAction: async (event, target) => {
+                event.preventDefault();
+                await this.handleAction(target);
+            },
+        });
     }
 
     async init() {
-        setupActionMenus(this.root);
-        this.search?.addEventListener('input', () => this.render());
-        this.root.addEventListener('click', (event) => this.handleClick(event));
-        this.root.addEventListener('click', (event) => this.handleRowClick(event));
-        this.root.addEventListener('click', (event) => this.handleSortClick(event));
         this.root.addEventListener('mouseover', (event) => this.showLanguagePopover(event));
         this.root.addEventListener('mouseout', (event) => this.hideLanguagePopover(event));
         this.root.addEventListener('focusin', (event) => this.showLanguagePopover(event));
@@ -57,137 +65,41 @@ class ArticleGrid {
         window.addEventListener('resize', () => {
             this.syncDetailColumnGeometry();
         });
-        await this.refresh();
+        await this.grid.init();
     }
 
-    async refresh() {
-        this.renderState(this.label('loading'));
-
-        try {
-            const response = await fetch(this.config.endpoint, {headers: {'Accept': 'application/json'}});
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            const data = await response.json();
-            this.rows = Array.isArray(data) ? data : [];
-            this.render();
-        } catch (error) {
-            this.renderState('Could not load articles.');
-        }
+    columns() {
+        return [
+            {key: 'id', label: '#', colClass: 'w-[5%]'},
+            {key: 'title', labelKey: 'title', colClass: 'w-[20%]', cellClass: titleCellClass},
+            {key: 'slug', label: 'Slug', colClass: 'w-[18%]', className: wideCellClass},
+            {key: 'author', label: 'Author', colClass: 'w-[13%]'},
+            {key: 'publishedAt', labelKey: 'publishedAt', colClass: 'w-[16%]', className: wideCellClass},
+            {key: 'lastVersion', labelKey: 'version', colClass: 'w-[7%]'},
+            {key: 'status', labelKey: 'status', colClass: 'w-[8%]'},
+            {key: 'languages', labelKey: 'languages', sortable: false, colClass: 'w-[7%]'},
+            {key: 'actions', labelKey: 'actions', sortable: false, colClass: 'w-[6%]', headerClass: 'text-right'},
+        ];
     }
 
-    render() {
-        const rows = this.sortedRows(this.filteredRows());
-        if (rows.length === 0) {
-            this.renderState(this.searchTerm() === '' ? this.label('empty') : this.label('noResults'));
-            return;
-        }
-
-        const table = document.createElement('table');
-        table.className = `${tableClass} ${tableCellClass}`;
-        table.innerHTML = `
-            ${tableColumnGroup()}
-            <thead>
-                <tr>
-                    <th>${this.sortableHeader('#', 'id')}</th>
-                    <th>${this.sortableHeader(this.label('title'), 'title')}</th>
-                    <th class="${wideCellClass}">${this.sortableHeader('Slug', 'slug')}</th>
-                    <th>${this.sortableHeader('Author', 'author')}</th>
-                    <th class="${wideCellClass}">${this.sortableHeader(this.label('publishedAt'), 'publishedAt')}</th>
-                    <th>${this.sortableHeader(this.label('version'), 'lastVersion')}</th>
-                    <th>${this.sortableHeader(this.label('status'), 'status')}</th>
-                    <th>${escapeHtml(this.label('languages'))}</th>
-                    <th class="w-[6%] text-right">${escapeHtml(this.label('actions'))}</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        `;
-
-        const body = table.querySelector('tbody');
-        rows.forEach((row) => {
-            body.appendChild(this.renderMainRow(row));
-            if (this.expanded.has(String(row.id))) {
-                body.appendChild(this.renderDetailsRow(row));
-            }
-        });
-
-        this.frame.replaceChildren(table);
-        this.syncDetailColumnGeometry();
-        requestAnimationFrame(() => this.syncDetailColumnGeometry());
-    }
-
-    sortableHeader(label, key) {
-        const active = this.sort.key === key;
-        const direction = active ? this.sort.direction : 'none';
-        const mark = active ? (direction === 'asc' ? '↑' : '↓') : '↕';
-        return `<button class="${sortButtonClass} ${active ? 'is-active' : ''}" type="button" data-sort-key="${escapeAttr(key)}" aria-sort="${escapeAttr(direction)}">
-            <span class="inline-flex min-w-0 items-center gap-1">${escapeHtml(label)} <span class="${sortMarkClass} ${active ? 'text-slate-800 dark:text-slate-50' : ''}" aria-hidden="true">${mark}</span></span>
-        </button>`;
-    }
-
-    handleSortClick(event) {
-        const button = event.target.closest('[data-sort-key]');
-        if (!button || !this.root.contains(button)) {
-            return;
-        }
-
-        const key = String(button.dataset.sortKey || '');
-        if (key === '') {
-            return;
-        }
-
-        this.sort = {
-            key,
-            direction: this.sort.key === key && this.sort.direction === 'asc' ? 'desc' : 'asc',
+    renderCell(row, column) {
+        const key = column.key;
+        const renderers = {
+            id: () => escapeHtml(row.id || '-'),
+            title: () => escapeHtml(row.title || '-'),
+            slug: () => escapeHtml(row.slug || '-'),
+            author: () => escapeHtml(row.author || '-'),
+            publishedAt: () => escapeHtml(formatDate(row.publishedAt)),
+            lastVersion: () => escapeHtml(row.lastVersion ? `v${Number(row.lastVersion)}` : '-'),
+            status: () => statusChip(row.status),
+            languages: () => this.languageBadges(this.languages(row)),
+            actions: () => this.actionMenu(row),
         };
-        this.render();
+
+        return renderers[key]?.() ?? escapeHtml(row[key] || '-');
     }
 
-    renderMainRow(row) {
-        const tr = document.createElement('tr');
-        tr.className = rowClass;
-        tr.dataset.articleId = String(row.id ?? '');
-        tr.innerHTML = `
-            <td>${escapeHtml(row.id || '-')}</td>
-            <td class="${titleCellClass}">${escapeHtml(row.title || '-')}</td>
-            <td class="${wideCellClass}">${escapeHtml(row.slug || '-')}</td>
-            <td>${escapeHtml(row.author || '-')}</td>
-            <td class="${wideCellClass}">${escapeHtml(formatDate(row.publishedAt))}</td>
-            <td>${escapeHtml(row.lastVersion ? `v${Number(row.lastVersion)}` : '-')}</td>
-            <td>${statusChip(row.status)}</td>
-            <td>${this.languageBadges(this.languages(row))}</td>
-            <td>${this.actionMenu(row)}</td>
-        `;
-
-        return tr;
-    }
-
-    handleRowClick(event) {
-        if (
-            event.target.closest('[data-grid-action]')
-            || event.target.closest('a, button, details, summary, input, select, textarea')
-        ) {
-            return;
-        }
-
-        const rowElement = event.target.closest('.article-grid-row');
-        if (!rowElement) {
-            return;
-        }
-
-        const id = String(rowElement.dataset.articleId || '');
-        if (id === '') {
-            return;
-        }
-
-        this.expanded.has(id) ? this.expanded.delete(id) : this.expanded.add(id);
-        this.render();
-    }
-
-    renderDetailsRow(row) {
-        const tr = document.createElement('tr');
-        tr.className = 'article-grid-details-row';
-        tr.dataset.articleId = String(row.id ?? '');
+    renderDetailsContent(row) {
         const versions = this.versions(row);
         const cells = versions.length === 0
             ? `<div class="${stateClass}">${escapeHtml(this.label('versions'))}: 0</div>`
@@ -198,14 +110,13 @@ class ArticleGrid {
                 </tbody>
             </table>`;
 
-        tr.innerHTML = `<td colspan="9"><div class="${detailsClass}">${cells}</div></td>`;
-        return tr;
+        return `<div class="${detailsClass}">${cells}</div>`;
     }
 
     syncDetailColumnGeometry() {
-        this.root.querySelectorAll('.article-grid-details-row').forEach((detailRow) => {
-            const id = String(detailRow.dataset.articleId || '');
-            const parentRow = id === '' ? null : this.root.querySelector(`.article-grid-row[data-article-id="${CSS.escape(id)}"]`);
+        this.root.querySelectorAll('.admin-data-grid-details-row').forEach((detailRow) => {
+            const id = String(detailRow.dataset.adminGridRowId || '');
+            const parentRow = id === '' ? null : this.root.querySelector(`[data-admin-grid-row-id="${CSS.escape(id)}"]`);
             const nestedTable = detailRow.querySelector('.article-version-table');
             if (!parentRow || !nestedTable) {
                 return;
@@ -362,19 +273,14 @@ class ArticleGrid {
         popover.style.top = `${top}px`;
     }
 
-    async handleClick(event) {
-        const target = event.target.closest('[data-grid-action]');
-        if (!target) {
-            return;
-        }
-
+    async handleAction(target) {
         const row = this.rowById(target.dataset.articleId);
         const action = target.dataset.gridAction;
 
         if (action === 'toggle') {
             const id = String(target.dataset.articleId ?? '');
-            this.expanded.has(id) ? this.expanded.delete(id) : this.expanded.add(id);
-            this.render();
+            this.grid.expanded.has(id) ? this.grid.expanded.delete(id) : this.grid.expanded.add(id);
+            this.grid.render();
             return;
         }
 
@@ -445,7 +351,7 @@ class ArticleGrid {
         }
 
         toast('Published.');
-        await this.refresh();
+        await this.grid.refresh();
     }
 
     async delete(row) {
@@ -456,7 +362,7 @@ class ArticleGrid {
 
         await this.post(this.url('delete', {articleId: row.id, language}));
         toast('Deleted.');
-        await this.refresh();
+        await this.grid.refresh();
     }
 
     async deleteVersion(row, language, version) {
@@ -466,7 +372,7 @@ class ArticleGrid {
 
         await this.post(this.url('deleteVersion', {articleId: row.id, language, version}));
         toast('Deleted.');
-        await this.refresh();
+        await this.grid.refresh();
     }
 
     async autoTranslate(row) {
@@ -625,36 +531,15 @@ class ArticleGrid {
         return data;
     }
 
-    filteredRows() {
-        const term = this.searchTerm().toLowerCase();
-        if (term === '') {
-            return this.rows;
-        }
-
-        return this.rows.filter((row) => [
+    searchValues(row) {
+        return [
             row.id,
             row.title,
             row.slug,
             row.author,
             row.status,
             ...this.versions(row).flatMap((version) => [version.title, version.slug, version.language, version.status]),
-        ].some((value) => String(value ?? '').toLowerCase().includes(term)));
-    }
-
-    sortedRows(rows) {
-        const key = this.sort.key;
-        const direction = this.sort.direction === 'desc' ? -1 : 1;
-        return rows
-            .map((row, index) => ({row, index}))
-            .sort((left, right) => {
-                const result = compareSortValues(sortValue(left.row, key), sortValue(right.row, key));
-                return result === 0 ? left.index - right.index : result * direction;
-            })
-            .map((item) => item.row);
-    }
-
-    searchTerm() {
-        return String(this.search?.value ?? '').trim();
+        ];
     }
 
     versions(row) {
@@ -678,7 +563,7 @@ class ArticleGrid {
     }
 
     rowById(id) {
-        return this.rows.find((row) => String(row.id) === String(id)) || null;
+        return this.grid.rowById(id);
     }
 
     languageBadges(languages) {
@@ -717,7 +602,7 @@ class ArticleGrid {
     }
 
     renderState(message) {
-        this.frame.innerHTML = `<div class="${stateClass}">${escapeHtml(message)}</div>`;
+        this.grid.renderState(message);
     }
 }
 

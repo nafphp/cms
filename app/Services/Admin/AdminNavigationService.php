@@ -7,6 +7,7 @@ namespace NixCMS\Services\Admin;
 use NixCMS\Navigation\NavigationRegistry;
 use NixCMS\Page\Page;
 use NixCMS\Page\PageRegistry;
+use NixCMS\Support\UserHelper;
 use function NixPHP\config;
 
 final class AdminNavigationService
@@ -17,12 +18,13 @@ final class AdminNavigationService
         private ?NavigationRegistry $navigation = null,
         private ?PageRegistry $pages = null,
         private bool $includeConfiguredItems = true,
+        private mixed $userResolver = null,
     ) {
     }
 
     public function items(): array
     {
-        return $this->buildTree($this->flatItems());
+        return $this->filterTreeByAuthorization($this->buildTree($this->flatItems()));
     }
 
     /**
@@ -31,7 +33,7 @@ final class AdminNavigationService
     private function flatItems(): array
     {
         $items = [];
-        foreach ($this->navigation()->all() as $item) {
+        foreach ($this->navigation()->allForScope(self::SCOPE) as $item) {
             $data = $item->toArray();
             $items[$data['key']] = $this->normalizeItem($data);
         }
@@ -76,6 +78,10 @@ final class AdminNavigationService
         $routeNameAttachments = [];
         foreach ($this->pages()->all() as $page) {
             $navigation = $page->meta()->navigation;
+            if ($navigation->scope !== self::SCOPE) {
+                continue;
+            }
+
             $parent = $navigation->parentKey();
             $key = $navigation->key ?? $page->id();
 
@@ -244,6 +250,111 @@ final class AdminNavigationService
     }
 
     /**
+     * @param array<int, array<string, mixed>> $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function filterTreeByAuthorization(array $items): array
+    {
+        $visible = [];
+
+        foreach ($items as $item) {
+            $children = $this->filterTreeByAuthorization(
+                is_array($item['children'] ?? null) ? $item['children'] : []
+            );
+            $item['children'] = $children;
+
+            if ($children !== [] || $this->isItemAuthorized($item)) {
+                $item['routeNames'] = $this->routeNames([
+                    ...$this->authorizedRouteNames(is_array($item['routeNames'] ?? null) ? $item['routeNames'] : []),
+                    ...$this->descendantRouteNames($children),
+                ]);
+                $visible[] = $item;
+            }
+        }
+
+        return $visible;
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     */
+    private function isItemAuthorized(array $item): bool
+    {
+        $routeNames = $this->routeNames(is_array($item['routeNames'] ?? null) ? $item['routeNames'] : []);
+        if ($routeNames === []) {
+            return true;
+        }
+
+        return $this->authorizedRouteNames($routeNames) !== [];
+    }
+
+    /**
+     * @param array<int, mixed> $routeNames
+     * @return array<int, string>
+     */
+    private function authorizedRouteNames(array $routeNames): array
+    {
+        $authorized = [];
+        $routeNames = $this->routeNames($routeNames);
+        foreach ($routeNames as $routeName) {
+            $page = $this->pages()->get($routeName);
+            if (!$page instanceof Page || $this->isPageAuthorized($page)) {
+                $authorized[] = $routeName;
+            }
+        }
+
+        return $this->routeNames($authorized);
+    }
+
+    private function isPageAuthorized(Page $page): bool
+    {
+        $user = $this->currentUser();
+
+        if ($page->requiresAuthentication() && ($user === null || !$user->isLoggedIn())) {
+            return false;
+        }
+
+        foreach ($page->requiredRoles() as $role) {
+            if ($user?->hasRole($role) !== true) {
+                return false;
+            }
+        }
+
+        $permissions = $page->requiredPermissions();
+        if ($permissions === []) {
+            return true;
+        }
+
+        if ($page->requiresAnyPermission()) {
+            foreach ($permissions as $permission) {
+                if ($user?->can($permission) === true) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        foreach ($permissions as $permission) {
+            if ($user?->can($permission) !== true) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function currentUser(): ?UserHelper
+    {
+        if (is_callable($this->userResolver)) {
+            $user = ($this->userResolver)();
+            return $user instanceof UserHelper ? $user : null;
+        }
+
+        return function_exists('\user') ? \user() : null;
+    }
+
+    /**
      * @param array<int, mixed> $routeNames
      * @return array<int, string>
      */
@@ -299,7 +410,7 @@ final class AdminNavigationService
 
     private function navigation(): NavigationRegistry
     {
-        return $this->navigation ??= \cms()->navigation();
+        return $this->navigation ??= \cms()->navigationRegistry();
     }
 
     private function pages(): PageRegistry
@@ -316,7 +427,9 @@ final class AdminNavigationService
 
         $key = match (true) {
             $path === '/admin' => 'dashboard',
+            str_starts_with($path, '/admin/pages') => 'content',
             str_starts_with($path, '/admin/articles') => 'content',
+            str_starts_with($path, '/admin/navigation') => 'content',
             str_starts_with($path, '/admin/users') => 'users',
             str_starts_with($path, '/admin/roles') => 'roles',
             str_starts_with($path, '/admin/translations') => 'settings',

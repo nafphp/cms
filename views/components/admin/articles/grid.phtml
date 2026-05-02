@@ -4,7 +4,7 @@ use NixCMS\Enums\Language;
 use function NixPHP\Form\csrf;
 use function NixPHP\I18n\t;
 use function NixPHP\route;
-use function NixPHP\View\s;
+use function NixPHP\View\view;
 
 $languages = array_map(static fn(Language $language): string => $language->value, Language::cases());
 $endpoint = (string) ($endpoint ?? route('api.admin.articles'));
@@ -67,22 +67,13 @@ $config = [
 ];
 
 ?>
-<div
-    class="grid gap-3.5"
-    data-article-grid
-    data-config="<?= s(json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '{}') ?>"
->
-    <div class="flex items-center justify-between gap-4 max-admin:flex-col max-admin:items-stretch">
-        <div class="flex min-h-12 w-[min(438px,100%)] items-center gap-2 rounded-lg border border-[var(--border)] bg-admin-field px-3 focus-within:border-accent focus-within:bg-admin-field-focus focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)]">
-            <span class="icon-search text-[13px] text-slate-500" aria-hidden="true"></span>
-            <input class="w-full min-w-0 border-0 bg-transparent text-sm text-inherit outline-none placeholder:text-slate-400" type="search" placeholder="<?= s(t('Search articles...')) ?>" data-article-search>
-        </div>
-        <a class="inline-flex min-h-12 items-center justify-center rounded-lg border border-[rgba(169,201,247,.38)] bg-[linear-gradient(180deg,#6895d4,#4f7fbd)] px-4 text-sm font-bold text-white" href="<?= s(route('admin.articles.create')) ?>">
-            <?= s(t('Create article')) ?>
-        </a>
-    </div>
-    <div class="relative overflow-x-auto rounded-lg border border-slate-300/70 bg-white/80 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-slate-400/25 dark:bg-slate-950/50 dark:shadow-none" data-article-grid-frame>
-        <div class="py-8 text-center text-sm text-slate-500"><?= s(t('Loading articles...')) ?></div>
-    </div>
-</div>
-<script type="module" src="/js/admin/article-grid.js"></script>
+<?= view('components.admin.grid', [
+    'attributes' => ['data-article-grid' => true],
+    'frameAttributes' => ['data-article-grid-frame' => true],
+    'config' => $config,
+    'searchPlaceholder' => t('Search articles...'),
+    'actionLabel' => t('Create article'),
+    'actionHref' => route('admin.articles.create'),
+    'loadingLabel' => t('Loading articles...'),
+    'script' => '/js/admin/article-grid.js',
+]) ?>

@@ -1,0 +1,22 @@
+<?php
+
+/** @var callable(string): string $block */
+
+?>
+<div class="page-template-shell">
+    <?= $block('site_header') ?>
+    <main class="page-template-main page-template-main--editorial">
+        <section class="page-template-region">
+            <?= $block('intro') ?>
+        </section>
+        <div class="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(180px,.36fr)]">
+            <section class="page-template-region">
+                <?= $block('content') ?>
+            </section>
+            <aside class="page-template-region">
+                <?= $block('aside') ?>
+            </aside>
+        </div>
+    </main>
+    <?= $block('site_footer') ?>
+</div>

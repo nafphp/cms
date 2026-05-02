@@ -1,0 +1,15 @@
+<?php
+
+/** @var string $templateView */
+/** @var \NixCMS\Page\Template $template */
+
+if ($template->layout() !== null && $template->layout() !== '') {
+    $this->setLayout($template->layout());
+    $this->block('content');
+}
+
+echo \NixPHP\View\view($templateView, get_defined_vars());
+
+if ($template->layout() !== null && $template->layout() !== '') {
+    $this->endBlock('content');
+}

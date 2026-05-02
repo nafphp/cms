@@ -26,6 +26,18 @@ final class Page
     private mixed $handler = null;
     /** @var array<string, PageDataHandler> */
     private array $dataHandlers = [];
+    private ?Template $template = null;
+    private ?string $language = null;
+    /** @var array<string, string|bool> */
+    private array $htmlAttributes = [];
+    /** @var array<string, string|bool> */
+    private array $bodyAttributes = [];
+    /** @var array<string, string> */
+    private array $bodyClasses = [];
+    /** @var array<int, array{href: string, attributes: array<string, string|bool>}> */
+    private array $stylesheets = [];
+    /** @var array<int, array{src: string, attributes: array<string, string|bool>}> */
+    private array $scripts = [];
     private PageMeta $meta;
 
     private function __construct(private readonly string $id)
@@ -180,6 +192,11 @@ final class Page
         return $this->content;
     }
 
+    public function hasContent(): bool
+    {
+        return $this->content !== null;
+    }
+
     /**
      * @param callable|array{0: class-string, 1: string}|class-string $handler
      */
@@ -213,6 +230,143 @@ final class Page
     public function dataHandlers(): array
     {
         return $this->dataHandlers;
+    }
+
+    public function template(): ?Template
+    {
+        return $this->template;
+    }
+
+    public function templateView(): ?string
+    {
+        return $this->template?->view();
+    }
+
+    public function setTemplate(string|Template|null $template): self
+    {
+        if ($template === null) {
+            $this->template = null;
+            return $this;
+        }
+
+        $template = is_string($template) ? new Template($template) : $template;
+
+        $this->template = $template;
+
+        return $this;
+    }
+
+    public function language(): ?string
+    {
+        return $this->language;
+    }
+
+    public function setLanguage(?string $language): self
+    {
+        if ($language === null || trim($language) === '') {
+            $this->language = null;
+            return $this;
+        }
+
+        $this->language = strtolower(trim($language));
+        return $this;
+    }
+
+    public function setHtmlAttribute(string $name, string|bool|null $value): self
+    {
+        return $this->setAttribute($this->htmlAttributes, $name, $value);
+    }
+
+    /**
+     * @return array<string, string|bool>
+     */
+    public function htmlAttributes(): array
+    {
+        return $this->htmlAttributes;
+    }
+
+    public function setBodyAttribute(string $name, string|bool|null $value): self
+    {
+        return $this->setAttribute($this->bodyAttributes, $name, $value);
+    }
+
+    /**
+     * @return array<string, string|bool>
+     */
+    public function bodyAttributes(): array
+    {
+        return $this->bodyAttributes;
+    }
+
+    public function addBodyClass(string $class): self
+    {
+        foreach (preg_split('/\s+/', trim($class)) ?: [] as $name) {
+            if ($name !== '') {
+                $this->bodyClasses[$name] = $name;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function bodyClasses(): array
+    {
+        return array_values($this->bodyClasses);
+    }
+
+    /**
+     * @param array<string, string|bool> $attributes
+     */
+    public function addStylesheet(string $href, array $attributes = []): self
+    {
+        $href = trim($href);
+        if ($href === '') {
+            throw new \InvalidArgumentException('Stylesheet href cannot be empty.');
+        }
+
+        $this->stylesheets[] = [
+            'href' => $href,
+            'attributes' => $this->cleanAttributes($attributes),
+        ];
+
+        return $this;
+    }
+
+    /**
+     * @return array<int, array{href: string, attributes: array<string, string|bool>}>
+     */
+    public function stylesheets(): array
+    {
+        return $this->stylesheets;
+    }
+
+    /**
+     * @param array<string, string|bool> $attributes
+     */
+    public function addScript(string $src, array $attributes = []): self
+    {
+        $src = trim($src);
+        if ($src === '') {
+            throw new \InvalidArgumentException('Script src cannot be empty.');
+        }
+
+        $this->scripts[] = [
+            'src' => $src,
+            'attributes' => $this->cleanAttributes($attributes),
+        ];
+
+        return $this;
+    }
+
+    /**
+     * @return array<int, array{src: string, attributes: array<string, string|bool>}>
+     */
+    public function scripts(): array
+    {
+        return $this->scripts;
     }
 
     public function meta(): PageMeta
@@ -274,5 +428,44 @@ final class Page
     public function hideFromAdminNavigation(?string $parent = null): self
     {
         return $this->hideFromNavigation($parent, 'admin');
+    }
+
+    /**
+     * @param array<string, string|bool> $target
+     */
+    private function setAttribute(array &$target, string $name, string|bool|null $value): self
+    {
+        $name = trim($name);
+        if ($name === '') {
+            throw new \InvalidArgumentException('Attribute name cannot be empty.');
+        }
+
+        if ($value === null || $value === false) {
+            unset($target[$name]);
+            return $this;
+        }
+
+        $target[$name] = is_string($value) ? trim($value) : $value;
+        return $this;
+    }
+
+    /**
+     * @param array<string, string|bool> $attributes
+     * @return array<string, string|bool>
+     */
+    private function cleanAttributes(array $attributes): array
+    {
+        $clean = [];
+
+        foreach ($attributes as $name => $value) {
+            $name = trim((string) $name);
+            if ($name === '' || $value === false) {
+                continue;
+            }
+
+            $clean[$name] = is_string($value) ? trim($value) : $value;
+        }
+
+        return $clean;
     }
 }

@@ -1,0 +1,21 @@
+<?php
+
+use function NixPHP\View\s;
+
+$content = is_array($content ?? null) ? $content : [];
+$props = is_array($content['props'] ?? null) ? $content['props'] : [];
+$items = [
+    ['value' => (string) ($props['valueA'] ?? '12'), 'label' => (string) ($props['labelA'] ?? 'Items')],
+    ['value' => (string) ($props['valueB'] ?? '98%'), 'label' => (string) ($props['labelB'] ?? 'Quality')],
+    ['value' => (string) ($props['valueC'] ?? '24/7'), 'label' => (string) ($props['labelC'] ?? 'Access')],
+];
+
+?>
+<section class="grid gap-3 md:grid-cols-3">
+    <?php foreach ($items as $item): ?>
+        <div class="rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-5">
+            <strong class="block text-3xl font-black text-[var(--page-text)]"><?= s($item['value']) ?></strong>
+            <span class="mt-1 block text-sm text-[var(--page-muted)]"><?= s($item['label']) ?></span>
+        </div>
+    <?php endforeach; ?>
+</section>

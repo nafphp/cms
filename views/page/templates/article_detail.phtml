@@ -1,0 +1,25 @@
+<?php
+
+/** @var callable(string): string $block */
+
+?>
+<div class="page-template-shell">
+    <?= $block('site_header') ?>
+    <main class="page-template-main page-template-main--article-detail">
+        <header class="page-template-region">
+            <?= $block('header') ?>
+        </header>
+        <div class="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(220px,.34fr)]">
+            <article class="page-template-region">
+                <?= $block('body') ?>
+            </article>
+            <aside class="page-template-region">
+                <?= $block('aside') ?>
+            </aside>
+        </div>
+        <section class="page-template-region">
+            <?= $block('related') ?>
+        </section>
+    </main>
+    <?= $block('site_footer') ?>
+</div>

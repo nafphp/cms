@@ -19,6 +19,7 @@ class InstallDatabaseCommand extends AbstractCommand
         $this
             ->setTitle('Install Database')
             ->setDescription('Create the database (if missing) and run all pending migrations.')
+            ->addOption('force')
             ->addOption('help');
     }
 
@@ -27,12 +28,14 @@ class InstallDatabaseCommand extends AbstractCommand
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
             $output->writeLine('    php bin/nix db:install');
-            $output->writeLine('  Runs db:create followed by db:migrate up.');
+            $output->writeLine('    php bin/nix db:install --force');
+            $output->writeLine('  Creates the configured database if needed, then runs db:migrate up.');
+            $output->writeLine('  --force drops the configured database before recreating it.');
             return self::SUCCESS;
         }
 
         $createCommand = new CreateDatabaseCommand();
-        $createInput = new Input([], $createCommand->getDefinition());
+        $createInput = new Input($input->getOption('force') === true ? ['--force'] : [], $createCommand->getDefinition());
         $createResult = $createCommand->run($createInput, $output);
 
         if ($createResult !== self::SUCCESS) {

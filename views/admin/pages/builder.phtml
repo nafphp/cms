@@ -1,0 +1,281 @@
+<?php
+
+use function NixPHP\View\s;
+use function NixPHP\I18n\t;
+use function NixPHP\route;
+
+$templates = is_array($templates ?? null) ? $templates : [];
+$contentTypes = is_array($contentTypes ?? null) ? $contentTypes : [];
+$navigationChoices = is_array($navigationChoices ?? null) ? $navigationChoices : [];
+$languages = is_array($languages ?? null) ? array_values($languages) : ['en'];
+$defaultLanguage = (string) ($defaultLanguage ?? ($languages[0] ?? 'en'));
+$initialState = is_array($initialState ?? null) ? $initialState : [];
+$mode = (string) ($mode ?? 'create');
+
+$config = [
+    'templates' => $templates,
+    'contentTypes' => $contentTypes,
+    'navigationChoices' => $navigationChoices,
+    'defaultNavigationIdentifier' => (string) ($defaultNavigationIdentifier ?? ($navigationChoices[0]['identifier'] ?? 'main')),
+    'languages' => $languages,
+    'defaultLanguage' => $defaultLanguage,
+    'saveUrl' => (string) ($saveUrl ?? '/admin/pages'),
+    'overviewUrl' => (string) ($overviewUrl ?? route('admin.pages')),
+    'initialState' => $initialState,
+    'mode' => $mode,
+    'labels' => [
+        'saved' => t('Page saved.'),
+        'couldNotSave' => t('Page could not be saved.'),
+    ],
+];
+
+?>
+<?php $this->setLayout('layouts.admin') ?>
+
+<?php $this->block('content'); ?>
+<div
+    class="page-builder overflow-hidden rounded-lg border border-slate-700/80 bg-[#0c1118] text-slate-100 shadow-[0_24px_80px_rgba(0,0,0,.32)]"
+    data-page-builder
+    data-save-url="<?= s((string) ($saveUrl ?? '/admin/pages')) ?>"
+    data-overview-url="<?= s((string) ($overviewUrl ?? route('admin.pages'))) ?>"
+    data-config="<?= s(json_encode($config, JSON_THROW_ON_ERROR)) ?>"
+>
+    <section class="page-builder-template-step grid overflow-hidden" data-step="template">
+        <aside class="page-builder-layout-panel grid grid-rows-[auto_minmax(0,1fr)_auto] border-r border-slate-700/80 bg-[#141a22]">
+            <div class="border-b border-slate-700/80 p-6">
+                <h2 class="m-0 text-[22px] font-semibold tracking-tight text-white">Layout wählen</h2>
+                <div class="mt-7 flex items-center gap-2 text-sm">
+                    <span class="grid h-9 w-9 place-items-center rounded-full bg-[var(--admin-page-accent)] font-bold text-white">1</span>
+                    <span class="font-semibold text-white">Layout</span>
+                    <span class="h-px w-6 bg-slate-700"></span>
+                    <span class="grid h-9 w-9 place-items-center rounded-full border-2 border-slate-700 font-bold text-slate-400">2</span>
+                    <span class="text-slate-500">Inhalt</span>
+                    <span class="h-px w-6 bg-slate-700"></span>
+                    <span class="grid h-9 w-9 place-items-center rounded-full border-2 border-slate-700 font-bold text-slate-400">3</span>
+                    <span class="text-slate-500">Metadaten</span>
+                </div>
+            </div>
+
+            <div class="min-h-0 overflow-y-auto overscroll-contain p-5">
+                <div class="grid gap-3" data-template-list></div>
+            </div>
+
+            <div class="border-t border-slate-700/80 bg-[#141a22]/95 p-5">
+                <button class="inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-[var(--admin-page-accent)] px-4 text-base font-bold text-white shadow-[0_18px_40px_rgba(40,116,220,.24)] transition hover:brightness-110" type="button" data-next-step>
+                    Weiter
+                    <span class="ml-2">→</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="grid min-h-0 grid-rows-[74px_minmax(0,1fr)] bg-[#0b1017]">
+            <header class="flex min-h-0 items-center gap-3 border-b border-slate-800 px-8">
+                <span class="h-3 w-3 rounded-full bg-[var(--admin-page-accent)]"></span>
+                <span class="text-sm font-semibold text-slate-400">Vorschau - <span data-template-preview-title>Landing Page</span></span>
+                <?php if ($navigationChoices !== []): ?>
+                    <label class="ml-auto flex min-w-[260px] items-center gap-2 text-xs font-semibold text-slate-500">
+                        <span>Navigation</span>
+                        <select class="min-h-9 min-w-0 flex-1 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-xs text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-default-navigation data-persist-key="defaultNavigationIdentifier">
+                            <?php foreach ($navigationChoices as $navigation): ?>
+                                <?php
+                                $priority = (int) ($navigation['priority'] ?? 0);
+                                $status = (string) ($navigation['status'] ?? '');
+                                $label = trim(sprintf(
+                                    '%s%s%s',
+                                    (string) ($navigation['label'] ?? $navigation['identifier'] ?? ''),
+                                    $status !== '' ? ' · ' . $status : '',
+                                    $priority > 0 ? ' · Prio ' . $priority : ''
+                                ));
+                                ?>
+                                <option value="<?= s((string) ($navigation['identifier'] ?? '')) ?>"><?= s($label) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                <?php endif; ?>
+                <code class="rounded bg-white/5 px-2 py-1 text-[11px] text-slate-500" data-template-view></code>
+            </header>
+            <div class="grid min-h-0 place-items-center overflow-auto p-8">
+                <div class="w-[min(840px,100%)]" data-template-preview></div>
+            </div>
+        </main>
+    </section>
+
+    <section class="hidden min-h-[760px] bg-[#0b1017]" data-step="layout">
+        <header class="flex min-h-[74px] items-center gap-5 border-b border-slate-800 bg-[#141a22] px-6">
+            <strong class="text-lg font-black tracking-wide text-[var(--admin-page-accent)]">NIXCMS</strong>
+            <span class="text-xl font-semibold text-white" data-editor-title>Layout bearbeiten</span>
+            <div class="ml-auto flex items-center gap-3">
+                <span class="grid h-9 w-9 place-items-center rounded-full bg-[var(--admin-page-accent)] font-bold text-white">✓</span>
+                <span class="text-sm text-slate-400">1 Layout</span>
+                <span class="h-px w-8 bg-[var(--admin-page-accent)]"></span>
+                <span class="grid h-9 w-9 place-items-center rounded-full bg-[var(--admin-page-accent)] font-bold text-white">2</span>
+                <span class="text-sm font-semibold text-white">2 Inhalt</span>
+                <span class="h-px w-8 bg-slate-700"></span>
+                <span class="grid h-9 w-9 place-items-center rounded-full border-2 border-slate-700 font-bold text-slate-400">3</span>
+                <span class="text-sm text-slate-500">3 Metadaten</span>
+                <button class="min-h-10 rounded-md border border-slate-700 px-4 text-sm font-semibold text-slate-300" type="button" data-back-step>← Zurück</button>
+                <button class="min-h-10 rounded-md bg-[var(--admin-page-accent)] px-4 text-sm font-bold text-white" type="button" data-next-meta>Metadaten →</button>
+            </div>
+        </header>
+
+        <div class="grid min-h-[686px] grid-cols-[minmax(0,1fr)_auto]">
+            <div class="grid place-items-start px-8 py-10">
+                <div class="mx-auto w-[min(880px,100%)] overflow-hidden rounded-lg border border-slate-800 bg-[#020617] shadow-[0_18px_52px_rgba(0,0,0,.28)]">
+                    <div class="grid gap-0" data-block-canvas></div>
+                </div>
+                <div class="mx-auto mt-4 rounded-md border border-dashed border-slate-700 px-4 py-2 text-xs text-slate-500">Block anklicken → Drawer öffnet</div>
+
+                <details class="mx-auto mt-8 w-[min(880px,100%)] rounded-lg border border-slate-800 bg-[#121820] p-3 text-xs">
+                    <summary class="cursor-pointer font-semibold text-slate-400">Generated shape</summary>
+                    <pre class="mt-3 max-h-72 overflow-auto rounded-lg bg-slate-950 p-3 text-xs leading-relaxed text-slate-100" data-builder-json></pre>
+                </details>
+                <div class="hidden" data-page-preview></div>
+                <span class="hidden" data-filled-count></span>
+            </div>
+
+            <aside class="w-0 overflow-hidden border-l border-transparent bg-slate-950 opacity-0 transition-[width,opacity,border-color] duration-200 ease-out" data-settings-drawer>
+                <div class="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
+                    <div>
+                        <h2 class="m-0 text-sm font-semibold text-white">Block settings</h2>
+                        <p class="mt-0.5 text-xs text-slate-500">Props for the selected block type.</p>
+                    </div>
+                    <button class="rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300" type="button" data-close-settings>Close</button>
+                </div>
+                <div class="max-h-[calc(100vh-170px)] overflow-auto p-4" data-content-settings></div>
+            </aside>
+        </div>
+    </section>
+
+    <section class="hidden min-h-[760px] bg-[#0b1017]" data-step="meta">
+        <header class="flex min-h-[74px] items-center gap-5 border-b border-slate-800 bg-[#141a22] px-6">
+            <strong class="text-lg font-black tracking-wide text-[var(--admin-page-accent)]">NIXCMS</strong>
+            <span class="text-xl font-semibold text-white">Metadaten pflegen</span>
+            <div class="ml-auto flex items-center gap-3">
+                <span class="grid h-9 w-9 place-items-center rounded-full bg-[var(--admin-page-accent)] font-bold text-white">✓</span>
+                <span class="text-sm text-slate-400">1 Layout</span>
+                <span class="h-px w-8 bg-[var(--admin-page-accent)]"></span>
+                <span class="grid h-9 w-9 place-items-center rounded-full bg-[var(--admin-page-accent)] font-bold text-white">✓</span>
+                <span class="text-sm text-slate-400">2 Inhalt</span>
+                <span class="h-px w-8 bg-[var(--admin-page-accent)]"></span>
+                <span class="grid h-9 w-9 place-items-center rounded-full bg-[var(--admin-page-accent)] font-bold text-white">3</span>
+                <span class="text-sm font-semibold text-white">3 Metadaten</span>
+                <span class="h-8 w-px bg-slate-700"></span>
+                <button class="min-h-10 rounded-md border border-slate-700 px-4 text-sm font-semibold text-slate-300" type="button" data-back-layout>← Inhalt</button>
+                <button class="min-h-10 rounded-md bg-[var(--admin-page-accent)] px-4 text-sm font-bold text-white disabled:cursor-wait disabled:opacity-60" type="button" data-save-page>Speichern</button>
+            </div>
+        </header>
+
+        <div class="grid gap-6 px-8 py-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,.42fr)]">
+            <div class="grid gap-5 rounded-lg border border-slate-800 bg-[#121820] p-5">
+                <div>
+                    <h2 class="m-0 text-sm font-semibold text-white">Page</h2>
+                    <p class="mt-1 text-xs text-slate-500">Diese Werte landen am gespeicherten Page-Objekt und steuern Routing, Sprache und Workflow.</p>
+                </div>
+
+                <div class="grid gap-4 md:grid-cols-2">
+                    <label class="grid gap-1.5">
+                        <span class="text-xs font-semibold text-slate-500">Titel</span>
+                        <input class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" type="text" data-persist-key="title">
+                    </label>
+                    <label class="grid gap-1.5">
+                        <span class="text-xs font-semibold text-slate-500">Identifier</span>
+                        <input class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" type="text" data-persist-key="identifier" placeholder="about.company">
+                    </label>
+                    <label class="grid gap-1.5">
+                        <span class="text-xs font-semibold text-slate-500">Pfad</span>
+                        <input class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" type="text" data-persist-key="path" placeholder="/about">
+                    </label>
+                    <label class="grid gap-1.5">
+                        <span class="text-xs font-semibold text-slate-500">Sprache</span>
+                        <select class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-persist-key="language">
+                            <?php foreach ($languages as $language): ?>
+                                <?php $language = strtolower(trim((string) $language)); ?>
+                                <?php if ($language !== ''): ?>
+                                    <option value="<?= s($language) ?>" <?= $language === $defaultLanguage ? 'selected' : '' ?>><?= s(mb_strtoupper($language)) ?></option>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                    <label class="grid gap-1.5">
+                        <span class="text-xs font-semibold text-slate-500">Status</span>
+                        <select class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-persist-key="status">
+                            <option value="draft">Draft</option>
+                            <option value="review">Review</option>
+                            <option value="published">Published</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="archived">Archived</option>
+                        </select>
+                    </label>
+                    <label class="grid gap-1.5">
+                        <span class="text-xs font-semibold text-slate-500">Layout</span>
+                        <input class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-500 outline-none" type="text" data-meta-template readonly>
+                    </label>
+                </div>
+
+                <div class="h-px bg-slate-800"></div>
+
+                <div>
+                    <h2 class="m-0 text-sm font-semibold text-white">SEO</h2>
+                    <p class="mt-1 text-xs text-slate-500">Diese Werte werden beim öffentlichen Rendern als Meta-Tags ausgegeben.</p>
+                </div>
+
+                <div class="grid gap-4">
+                    <label class="grid gap-1.5">
+                        <span class="text-xs font-semibold text-slate-500">Description</span>
+                        <textarea class="min-h-24 resize-y rounded-md border border-slate-700 bg-[#0b1017] px-3 py-2 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-persist-key="seo.description"></textarea>
+                    </label>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <label class="grid gap-1.5">
+                            <span class="text-xs font-semibold text-slate-500">Robots</span>
+                            <select class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-persist-key="seo.robots">
+                                <option value="index,follow">index,follow</option>
+                                <option value="noindex,follow">noindex,follow</option>
+                                <option value="noindex,nofollow">noindex,nofollow</option>
+                            </select>
+                        </label>
+                        <label class="grid gap-1.5">
+                            <span class="text-xs font-semibold text-slate-500">Canonical URL</span>
+                            <input class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" type="url" data-persist-key="seo.canonicalUrl">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="h-px bg-slate-800"></div>
+
+                <div>
+                    <h2 class="m-0 text-sm font-semibold text-white">Theme</h2>
+                </div>
+                <label class="grid max-w-[260px] gap-1.5">
+                    <span class="text-xs font-semibold text-slate-500">Accent</span>
+                    <input class="h-10 w-full rounded-md border border-slate-700 bg-[#0b1017] p-1.5 outline-none focus:border-[var(--admin-page-accent)]" type="color" data-persist-key="theme.accent" value="#3f7fbd" aria-label="Accent color">
+                </label>
+            </div>
+
+            <aside class="grid content-start gap-4 rounded-lg border border-slate-800 bg-[#121820] p-5">
+                <h2 class="m-0 text-sm font-semibold text-white">Zusammenfassung</h2>
+                <dl class="grid gap-3 text-sm" data-meta-summary></dl>
+                <div class="rounded-lg border border-slate-800 bg-slate-950 p-4">
+                    <div class="text-xs font-semibold uppercase text-slate-500">SEO preview</div>
+                    <div class="mt-3 text-base font-bold text-slate-100" data-meta-preview-title></div>
+                    <div class="mt-1 text-xs text-slate-500" data-meta-preview-path></div>
+                    <p class="mt-3 text-sm leading-relaxed text-slate-400" data-meta-preview-description></p>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <div class="fixed inset-0 z-[1200] hidden bg-slate-950/55 p-4 backdrop-blur-sm" data-content-modal>
+        <div class="mx-auto grid max-h-[min(720px,calc(100vh-32px))] w-[min(760px,100%)] overflow-hidden rounded-lg border border-slate-700 bg-slate-950 shadow-2xl">
+            <div class="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
+                <div>
+                    <h2 class="m-0 text-sm font-semibold text-white">Choose block</h2>
+                    <p class="mt-0.5 text-xs text-slate-500">Pick the content block rendered at this template position.</p>
+                </div>
+                <button class="rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300" type="button" data-close-content-modal>Close</button>
+            </div>
+            <div class="grid max-h-[620px] gap-3 overflow-auto p-4" data-content-options></div>
+        </div>
+    </div>
+
+</div>
+<?php $this->endBlock('content'); ?>

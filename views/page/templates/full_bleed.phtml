@@ -1,0 +1,17 @@
+<?php
+
+/** @var callable(string): string $block */
+
+?>
+<div class="page-template-shell">
+    <?= $block('site_header') ?>
+    <main class="page-template-main page-template-main--full-bleed">
+        <section class="page-template-region grid content-center">
+            <?= $block('stage') ?>
+        </section>
+        <section class="page-template-region page-template-support">
+            <?= $block('support') ?>
+        </section>
+    </main>
+    <?= $block('site_footer') ?>
+</div>

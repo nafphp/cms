@@ -1,0 +1,60 @@
+<?php
+
+use function NixPHP\I18n\t;
+use function NixPHP\route;
+use function NixPHP\View\view;
+
+$forms = is_array($forms ?? null) ? $forms : [];
+$config = [
+    'rows' => array_map(static fn(array $form): array => $form + ['kind' => 'Form'], $forms),
+    'sort' => ['key' => 'title', 'direction' => 'asc'],
+    'search' => ['title', 'identifier', 'status', 'updated'],
+    'columns' => [
+        ['key' => 'title', 'labelKey' => 'title', 'type' => 'title', 'subtitle' => 'identifier', 'colClass' => 'w-[28%]'],
+        ['key' => 'status', 'labelKey' => 'status', 'type' => 'status', 'colClass' => 'w-[13%]'],
+        ['key' => 'fields', 'labelKey' => 'fields', 'type' => 'badge', 'colClass' => 'w-[12%]'],
+        ['key' => 'submissions', 'labelKey' => 'submissions', 'type' => 'badge', 'colClass' => 'w-[14%]'],
+        ['key' => 'updated', 'labelKey' => 'updated', 'cellClass' => 'text-slate-500 dark:text-slate-400', 'colClass' => 'w-[18%]'],
+        ['key' => 'actions', 'labelKey' => 'actions', 'sortable' => false, 'colClass' => 'w-[120px]'],
+    ],
+    'urls' => [
+        'create' => route('admin.forms.create'),
+        'edit' => '/admin/forms/{id}/edit',
+        'submissions' => '/admin/forms/{id}/submissions',
+        'delete' => '/api/admin/forms/{id}/delete',
+    ],
+    'labels' => [
+        'actions' => t('Actions'),
+        'cancel' => t('Cancel'),
+        'createForm' => t('Create form'),
+        'delete' => t('Delete'),
+        'deleteConfirm' => t('Really delete this form? Submissions will be removed too.'),
+        'deleted' => t('Form deleted.'),
+        'edit' => t('Edit'),
+        'empty' => t('No forms found.'),
+        'error' => t('Action failed.'),
+        'fields' => t('Fields'),
+        'loading' => t('Loading forms...'),
+        'noResults' => t('No matching forms found.'),
+        'status' => t('Status'),
+        'submissions' => t('Submissions'),
+        'title' => t('Title'),
+        'updated' => t('Updated'),
+    ],
+];
+
+?>
+<?php $this->setLayout('layouts.admin') ?>
+
+<?php $this->block('content'); ?>
+<?= view('components.admin.grid', [
+    'attributes' => ['data-form-grid' => true],
+    'frameAttributes' => ['data-form-grid-frame' => true],
+    'config' => $config,
+    'searchPlaceholder' => t('Search forms'),
+    'actionLabel' => t('Create form'),
+    'actionHref' => route('admin.forms.create'),
+    'loadingLabel' => t('Loading forms...'),
+    'script' => '/js/admin/form-grid.js',
+]) ?>
+<?php $this->endBlock('content'); ?>

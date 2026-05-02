@@ -1,6 +1,8 @@
 const menuSelector = '.admin-action-menu';
 const panelSelector = '.admin-action-menu-panel';
 const summarySelector = '.admin-action-menu > summary';
+const panelHiddenClasses = ['pointer-events-none', 'opacity-0', '-translate-y-1', 'scale-[.98]'];
+const panelVisibleClasses = ['pointer-events-auto', 'opacity-100', 'translate-y-0', 'scale-100'];
 
 const initializedRoots = new WeakSet();
 
@@ -48,20 +50,63 @@ function actionMenuItemMarkup(action) {
 
     const actionName = escapeAttr(action.action || '');
     const danger = action.danger ? actionDangerClass : '';
-    const icon = action.icon ? `<span class="${escapeAttr(action.icon)}"></span>` : '';
+    const iconClass = actionIcon(action.icon || action.action || '');
+    const icon = iconClass ? `<span class="${escapeAttr(iconClass)}"></span>` : '';
     const attrs = [
-        'type="button"',
         'data-admin-action-menu-item',
         actionName ? `data-grid-action="${actionName}"` : '',
         ...(Array.isArray(action.attributes) ? action.attributes : []),
     ].filter(Boolean).join(' ');
+    const href = String(action.href || '').trim();
+    const tag = href !== '' ? 'a' : 'button';
+    const type = href === '' ? ' type="button"' : '';
+    const hrefAttribute = href !== '' ? ` href="${escapeAttr(href)}"` : '';
 
     return `
-        <button class="${actionButtonClass} ${danger}" ${attrs}>
+        <${tag} class="${actionButtonClass} ${danger}"${type}${hrefAttribute} ${attrs}>
             <span class="${actionIconClass}" aria-hidden="true">${icon}</span>
             <span class="min-w-0 flex-1 truncate">${escapeHtml(label)}</span>
-        </button>
+        </${tag}>
     `;
+}
+
+export function actionIcon(value) {
+    const name = String(value || '').trim();
+    const aliases = {
+        'icon-check': 'icon-checkmark',
+        'icon-pencil': 'icon-file-empty',
+        'icon-list': 'icon-file-empty',
+        check: 'icon-checkmark',
+        publish: 'icon-circle-right',
+        preview: 'icon-circle-right',
+        edit: 'icon-file-empty',
+        pencil: 'icon-file-empty',
+        delete: 'icon-cross',
+        remove: 'icon-cross',
+        version: 'icon-file-empty',
+        submissions: 'icon-list',
+        translation: 'icon-earth',
+        translate: 'icon-earth',
+    };
+
+    if (name.startsWith('icon-')) {
+        return aliases[name] || name;
+    }
+
+    if (name.includes('delete') || name.includes('remove')) {
+        return aliases.delete;
+    }
+    if (name.includes('publish') || name.includes('preview')) {
+        return aliases.publish;
+    }
+    if (name.includes('translation') || name.includes('translate')) {
+        return aliases.translation;
+    }
+    if (name.includes('version')) {
+        return aliases.version;
+    }
+
+    return aliases[name] || 'icon-checkmark';
 }
 
 function handleItemClick(root, event) {
@@ -175,14 +220,18 @@ function revealActionMenu(menu) {
     requestAnimationFrame(() => {
         if (menu.open) {
             menu.classList.add('is-positioned');
-            menu.querySelector(panelSelector)?.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0', 'scale-100');
+            const panel = menu.querySelector(panelSelector);
+            panel?.classList.remove(...panelHiddenClasses);
+            panel?.classList.add(...panelVisibleClasses);
         }
     });
 }
 
 function closeActionMenu(menu) {
     menu.classList.remove('is-positioned');
-    menu.querySelector(panelSelector)?.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0', 'scale-100');
+    const panel = menu.querySelector(panelSelector);
+    panel?.classList.remove(...panelVisibleClasses);
+    panel?.classList.add(...panelHiddenClasses);
     menu.open = false;
 }
 

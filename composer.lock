@@ -150,16 +150,16 @@
         },
         {
             "name": "nixphp/framework",
-            "version": "v0.1.4",
+            "version": "v0.1.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nixphp/framework.git",
-                "reference": "77c4af8edc56af900a687ac23ee2b8cc429545f5"
+                "reference": "f8a76082f24e6d3859fe7dfab4df709ae73cb1ce"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nixphp/framework/zipball/77c4af8edc56af900a687ac23ee2b8cc429545f5",
-                "reference": "77c4af8edc56af900a687ac23ee2b8cc429545f5",
+                "url": "https://api.github.com/repos/nixphp/framework/zipball/f8a76082f24e6d3859fe7dfab4df709ae73cb1ce",
+                "reference": "f8a76082f24e6d3859fe7dfab4df709ae73cb1ce",
                 "shasum": ""
             },
             "require": {
@@ -200,9 +200,9 @@
             "description": "NixPHP - the ultra-light, functional PHP framework for fast microservices and APIs.",
             "support": {
                 "issues": "https://github.com/nixphp/framework/issues",
-                "source": "https://github.com/nixphp/framework/tree/v0.1.4"
+                "source": "https://github.com/nixphp/framework/tree/v0.1.5"
             },
-            "time": "2026-02-22T22:35:19+00:00"
+            "time": "2026-05-02T18:55:14+00:00"
         },
         {
             "name": "nixphp/i18n",
@@ -1521,16 +1521,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "12.5.23",
+            "version": "12.5.24",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "c54fcf3d6bcb6e96ac2f7e40097dc37b5f139969"
+                "reference": "d75dd30597caa80e72fad2ef7904601a30ef1046"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/c54fcf3d6bcb6e96ac2f7e40097dc37b5f139969",
-                "reference": "c54fcf3d6bcb6e96ac2f7e40097dc37b5f139969",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/d75dd30597caa80e72fad2ef7904601a30ef1046",
+                "reference": "d75dd30597caa80e72fad2ef7904601a30ef1046",
                 "shasum": ""
             },
             "require": {
@@ -1599,7 +1599,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/12.5.23"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/12.5.24"
             },
             "funding": [
                 {
@@ -1607,7 +1607,7 @@
                     "type": "other"
                 }
             ],
-            "time": "2026-04-18T06:12:49+00:00"
+            "time": "2026-05-01T04:21:04+00:00"
         },
         {
             "name": "sebastian/cli-parser",

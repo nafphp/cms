@@ -7,6 +7,7 @@ namespace NixCMS\Controllers\Page;
 use NixCMS\Page\PageDataHandler;
 use NixCMS\Page\Page;
 use NixCMS\Page\PageAuthorization;
+use NixCMS\Page\PageBuilderRenderer;
 use NixCMS\Support\HandlerInvoker;
 use Psr\Http\Message\ResponseInterface;
 use function cms;
@@ -23,15 +24,23 @@ final class PageController
         (new PageAuthorization())->authorize($page);
 
         $handler = $page->handler();
+        $usesTemplate = false;
         if ($handler !== null) {
             $result = HandlerInvoker::call($handler, $params);
-        } else {
+        } elseif ($page->hasContent()) {
             $content = $page->content();
             $result = $content(...$params);
+        } else {
+            $usesTemplate = $page->template() !== null;
+            $result = (new PageBuilderRenderer())->render($page);
         }
 
         if ($result instanceof ResponseInterface) {
             return $result;
+        }
+
+        if ($usesTemplate) {
+            return response((string) $result);
         }
 
         return $this->renderPage($page, (string) $result);
@@ -59,6 +68,14 @@ final class PageController
     {
         $routeName = route()->current();
         if (is_string($routeName) && $routeName !== '') {
+            if (str_starts_with($routeName, 'db.page.')) {
+                $request = request();
+                $page = cms()->pages()->findByPath($request->getUri()->getPath(), $request->getMethod());
+                if ($page instanceof Page) {
+                    return $page;
+                }
+            }
+
             $page = cms()->pages()->get($routeName);
             if ($page instanceof Page) {
                 return $page;

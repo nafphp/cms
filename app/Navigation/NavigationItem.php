@@ -12,6 +12,12 @@ final class NavigationItem
     private ?string $href = null;
     private ?string $parent = null;
     private ?string $icon = null;
+    private string $type = 'url';
+    private ?string $target = null;
+    /** @var array<string, mixed> */
+    private array $meta = [];
+    /** @var array<int, NavigationItem> */
+    private array $children = [];
     private int $order = 100;
     private bool $visible = true;
     private string $scope = 'frontend';
@@ -35,12 +41,22 @@ final class NavigationItem
         $item->href = isset($data['href']) ? (string) $data['href'] : null;
         $item->parent = isset($data['parent']) ? (string) $data['parent'] : null;
         $item->icon = isset($data['icon']) ? (string) $data['icon'] : null;
+        $item->type = trim((string) ($data['type'] ?? 'url')) ?: 'url';
+        $item->target = isset($data['target']) ? (string) $data['target'] : null;
+        $item->meta = is_array($data['meta'] ?? null) ? $data['meta'] : [];
         $item->order = (int) ($data['order'] ?? 100);
         $item->visible = (bool) ($data['visible'] ?? true);
         $item->scope = (string) ($data['scope'] ?? 'frontend');
 
         if (is_array($data['routeNames'] ?? null)) {
             $item->setRouteNames(array_map('strval', $data['routeNames']));
+        }
+        if (is_array($data['children'] ?? null)) {
+            foreach ($data['children'] as $child) {
+                if (is_array($child)) {
+                    $item->addChild(self::fromArray($child));
+                }
+            }
         }
 
         return $item;
@@ -77,6 +93,36 @@ final class NavigationItem
         return $this;
     }
 
+    public function setType(string $type): self
+    {
+        $type = trim($type);
+        $this->type = $type === '' ? 'url' : $type;
+        return $this;
+    }
+
+    public function setTarget(?string $target): self
+    {
+        $target = $target === null ? null : trim($target);
+        $this->target = $target === '' ? null : $target;
+        return $this;
+    }
+
+    /**
+     * @param array<string, mixed> $meta
+     */
+    public function setMeta(array $meta): self
+    {
+        $this->meta = $meta;
+        return $this;
+    }
+
+    public function addChild(NavigationItem|array $child): self
+    {
+        $child = is_array($child) ? self::fromArray($child) : $child;
+        $this->children[] = $child;
+        return $this;
+    }
+
     public function setOrder(int $order): self
     {
         $this->order = $order;
@@ -94,6 +140,19 @@ final class NavigationItem
         $scope = trim($scope);
         $this->scope = $scope === '' ? 'frontend' : $scope;
         return $this;
+    }
+
+    public function scope(): string
+    {
+        return $this->scope;
+    }
+
+    /**
+     * @return array<int, NavigationItem>
+     */
+    public function children(): array
+    {
+        return $this->children;
     }
 
     /**
@@ -126,10 +185,14 @@ final class NavigationItem
      *     href:string|null,
      *     parent:string|null,
      *     icon:string|null,
+     *     type:string,
+     *     target:string|null,
+     *     meta:array<string, mixed>,
      *     order:int,
      *     visible:bool,
      *     scope:string,
-     *     routeNames:array<int, string>
+     *     routeNames:array<int, string>,
+     *     children:array<int, array<string, mixed>>
      * }
      */
     public function toArray(): array
@@ -140,10 +203,17 @@ final class NavigationItem
             'href' => $this->href,
             'parent' => $this->parent,
             'icon' => $this->icon,
+            'type' => $this->type,
+            'target' => $this->target,
+            'meta' => $this->meta,
             'order' => $this->order,
             'visible' => $this->visible,
             'scope' => $this->scope,
             'routeNames' => $this->routeNames,
+            'children' => array_map(
+                static fn(NavigationItem $child): array => $child->toArray(),
+                $this->children
+            ),
         ];
     }
 }

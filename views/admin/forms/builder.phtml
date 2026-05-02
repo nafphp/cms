@@ -1,0 +1,90 @@
+<?php
+
+use function NixPHP\I18n\t;
+use function NixPHP\View\s;
+
+$form = is_array($form ?? null) ? $form : null;
+$fields = is_array($form['fields'] ?? null) ? $form['fields'] : [
+    ['name' => 'name', 'label' => 'Name', 'type' => 'text', 'required' => true, 'placeholder' => 'Jane Doe', 'options' => []],
+    ['name' => 'email', 'label' => 'Email', 'type' => 'email', 'required' => true, 'placeholder' => 'jane@example.com', 'options' => []],
+    ['name' => 'message', 'label' => 'Message', 'type' => 'textarea', 'required' => true, 'placeholder' => '', 'options' => []],
+];
+$settings = is_array($form['settings'] ?? null) ? $form['settings'] : [];
+$payload = [
+    'id' => (int) ($form['id'] ?? 0),
+    'identifier' => (string) ($form['identifier'] ?? 'contact'),
+    'title' => (string) ($form['title'] ?? 'Contact form'),
+    'status' => (string) ($form['status'] ?? 'draft'),
+    'fields' => $fields,
+    'settings' => [
+        'submitLabel' => (string) ($settings['submitLabel'] ?? 'Send message'),
+        'successMessage' => (string) ($settings['successMessage'] ?? 'Thank you. We will get back to you.'),
+    ],
+];
+
+?>
+<?php $this->setLayout('layouts.admin') ?>
+
+<?php $this->block('content'); ?>
+<form
+    class="grid gap-5"
+    data-form-builder
+    data-save-url="<?= s((string) ($saveUrl ?? '')) ?>"
+    data-overview-url="<?= s((string) ($overviewUrl ?? '/admin/forms')) ?>"
+    data-form="<?= s(json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)) ?>"
+>
+    <section class="grid gap-4 rounded-lg border border-slate-300/70 bg-white/85 p-5 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-slate-400/25 dark:bg-slate-950/50 dark:shadow-none">
+        <div class="grid gap-4 lg:grid-cols-[1fr_260px_180px]">
+            <label class="grid gap-2">
+                <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Title')) ?></span>
+                <input class="min-h-11 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white" name="title" required>
+                <span class="hidden text-sm text-rose-600 dark:text-rose-300" data-error-for="title"></span>
+            </label>
+            <label class="grid gap-2">
+                <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Identifier')) ?></span>
+                <input class="min-h-11 rounded-md border border-slate-300 bg-white px-3 font-mono text-sm text-slate-950 outline-none focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white" name="identifier" required>
+                <span class="hidden text-sm text-rose-600 dark:text-rose-300" data-error-for="identifier"></span>
+            </label>
+            <label class="grid gap-2">
+                <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Status')) ?></span>
+                <select class="min-h-11 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white" name="status">
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                </select>
+            </label>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+            <label class="grid gap-2">
+                <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Submit label')) ?></span>
+                <input class="min-h-11 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white" name="submitLabel">
+            </label>
+            <label class="grid gap-2">
+                <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Success message')) ?></span>
+                <input class="min-h-11 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white" name="successMessage">
+            </label>
+        </div>
+    </section>
+
+    <section class="grid gap-4 rounded-lg border border-slate-300/70 bg-white/85 p-5 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-slate-400/25 dark:bg-slate-950/50 dark:shadow-none">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h2 class="m-0 text-base font-semibold text-slate-950 dark:text-white"><?= s(t('Fields')) ?></h2>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400"><?= s(t('Create the reusable field schema rendered by form blocks.')) ?></p>
+                <span class="hidden text-sm text-rose-600 dark:text-rose-300" data-error-for="fields"></span>
+            </div>
+            <button class="inline-flex min-h-9 items-center rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:border-[var(--admin-page-accent)] dark:border-slate-700 dark:text-slate-200" type="button" data-add-field><?= s(t('Add field')) ?></button>
+        </div>
+        <div class="grid gap-3" data-fields></div>
+    </section>
+
+    <div class="sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-300/70 bg-white/95 px-4 py-3 shadow-[0_18px_40px_rgba(15,23,42,.16)] backdrop-blur dark:border-slate-500/30 dark:bg-slate-950/95">
+        <div class="text-sm text-slate-500 dark:text-slate-400" data-save-state><?= s(t('No unsaved changes.')) ?></div>
+        <div class="flex flex-wrap gap-2">
+            <a class="inline-flex min-h-10 items-center rounded-md border border-slate-300 px-4 text-sm font-semibold text-slate-700 transition hover:border-[var(--admin-page-accent)] dark:border-slate-700 dark:text-slate-200" href="<?= s((string) ($overviewUrl ?? '/admin/forms')) ?>"><?= s(t('Cancel')) ?></a>
+            <button class="inline-flex min-h-10 items-center rounded-md bg-[var(--admin-page-accent)] px-4 text-sm font-bold text-white transition hover:brightness-110" type="submit"><?= s(t('Save form')) ?></button>
+        </div>
+    </div>
+</form>
+<script type="module" src="/js/admin/form-builder.js"></script>
+<?php $this->endBlock('content'); ?>

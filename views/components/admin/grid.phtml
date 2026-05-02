@@ -1,0 +1,56 @@
+<?php
+
+use function NixPHP\View\s;
+
+$config = is_array($config ?? null) ? $config : [];
+$attributes = is_array($attributes ?? null) ? $attributes : [];
+$frameAttributes = is_array($frameAttributes ?? null) ? $frameAttributes : [];
+$searchPlaceholder = (string) ($searchPlaceholder ?? 'Search...');
+$actionLabel = trim((string) ($actionLabel ?? ''));
+$actionHref = trim((string) ($actionHref ?? ''));
+$loadingLabel = (string) ($loadingLabel ?? 'Loading...');
+$script = trim((string) ($script ?? ''));
+
+$htmlAttributes = static function (array $attributes): string {
+    $html = '';
+    foreach ($attributes as $name => $value) {
+        if ($value === null || $value === false) {
+            continue;
+        }
+        $html .= ' ' . s((string) $name);
+        if ($value !== true) {
+            $html .= '="' . s((string) $value) . '"';
+        }
+    }
+
+    return $html;
+};
+
+$rootAttributes = $attributes + [
+    'data-config' => json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '{}',
+];
+$frameAttributes = $frameAttributes + [
+    'data-admin-grid-frame' => true,
+];
+
+?>
+<div class="grid gap-3.5"<?= $htmlAttributes($rootAttributes) ?>>
+    <div class="flex items-center justify-between gap-4 max-admin:flex-col max-admin:items-stretch">
+        <div class="flex min-h-12 w-[min(438px,100%)] items-center gap-2 rounded-lg border border-[var(--border)] bg-admin-field px-3 focus-within:border-accent focus-within:bg-admin-field-focus focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)]">
+            <span class="icon-search text-[13px] text-slate-500" aria-hidden="true"></span>
+            <input class="w-full min-w-0 border-0 bg-transparent text-sm text-inherit outline-none placeholder:text-slate-400" type="search" placeholder="<?= s($searchPlaceholder) ?>" data-admin-grid-search>
+        </div>
+        <?php if ($actionLabel !== '' && $actionHref !== ''): ?>
+            <a class="inline-flex min-h-12 items-center justify-center rounded-lg border border-[rgba(169,201,247,.38)] bg-[linear-gradient(180deg,#6895d4,#4f7fbd)] px-4 text-sm font-bold text-white" href="<?= s($actionHref) ?>">
+                <?= s($actionLabel) ?>
+            </a>
+        <?php endif; ?>
+    </div>
+
+    <section class="relative overflow-x-auto rounded-lg border border-slate-300/70 bg-white/80 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-slate-400/25 dark:bg-slate-950/50 dark:shadow-none"<?= $htmlAttributes($frameAttributes) ?>>
+        <div class="py-8 text-center text-sm text-slate-500"><?= s($loadingLabel) ?></div>
+    </section>
+</div>
+<?php if ($script !== ''): ?>
+    <script type="module" src="<?= s($script) ?>"></script>
+<?php endif; ?>
