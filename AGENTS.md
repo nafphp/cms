@@ -177,6 +177,7 @@ The main entry points are:
 - `cms()->forms()` — convenience doorway to the registered Form content type API.
 - `cms()->media()` — convenience doorway to the registered Media content type API.
 - `cms()->navigation()` — convenience doorway to the registered SiteNavigation content type API.
+- `cms()->storage(Model::class)` — returns an `EntityStorage` for Criteria-based model reads and ORM-backed writes above `db()`/PDO and below domain APIs such as `cms()->media()`.
 - `cms()->navigationRegistry()` — returns the `NavigationRegistry`; source of truth for named frontend/admin navigation trees.
 - `cms()->visualizations()` — returns the `VisualizationRegistry`; source of truth for registered chart definitions and chart rendering.
 - `cms()->blocks()` — returns the `BlockViewRegistry`; source of truth for page-builder block type to view mappings.
@@ -282,6 +283,39 @@ Store media through the registered Media content type:
 ```php
 $media = cms()->media()->storeUploadedFile($uploadedFile, $authorId, [
     'alt' => 'Dashboard preview',
+]);
+```
+
+Search CMS model storage with Criteria:
+
+```php
+$media = cms()->storage(Media::class)->search(
+    Criteria::create()
+        ->equals('visibility', 'public')
+        ->contains('original_name', 'dashboard')
+        ->sort('created_at', 'DESC')
+        ->limit(20)
+);
+```
+
+Create or update CMS model storage through the NixPHP ORM layer:
+
+```php
+$media = cms()->storage(Media::class)->create([
+    'public_id' => 'generated-id',
+    'visibility' => 'public',
+    'original_name' => 'dashboard.png',
+    'stored_name' => 'dashboard.png',
+    'storage_path' => 'media/dashboard.png',
+    'file_path' => 'media/dashboard.png',
+    'public_url' => '/media/dashboard.png',
+    'mime_type' => 'image/png',
+    'extension' => 'png',
+    'size_bytes' => 12345,
+]);
+
+cms()->storage(Media::class)->update($media->getId(), [
+    'alt_text' => 'Dashboard preview',
 ]);
 ```
 

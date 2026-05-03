@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NixCMS\Repositories;
 
+use NixCMS\Support\AuditLogRecord;
 use PDO;
 use function NixPHP\Database\database;
 
@@ -24,8 +25,12 @@ final class AuditLogRepository
         }
 
         try {
+            $hasEntryJson = $this->columnExists($connection, 'audit_log', 'entry_json');
+            $entryJsonColumn = $hasEntryJson ? "entry_json,\n                    " : '';
+            $entryJsonPlaceholder = $hasEntryJson ? ":entry_json,\n                    " : '';
             $statement = $connection->prepare(<<<SQL
                 INSERT INTO audit_log (
+                    {$entryJsonColumn}
                     actor_user_id,
                     actor_label,
                     action,
@@ -37,6 +42,7 @@ final class AuditLogRepository
                     ip_address,
                     created_at
                 ) VALUES (
+                    {$entryJsonPlaceholder}
                     :actor_user_id,
                     :actor_label,
                     :action,
@@ -50,7 +56,7 @@ final class AuditLogRepository
                 )
             SQL);
 
-            return $statement->execute([
+            $parameters = [
                 'actor_user_id' => $entry['actor_user_id'] ?? null,
                 'actor_label' => (string) ($entry['actor_label'] ?? ''),
                 'action' => (string) ($entry['action'] ?? ''),
@@ -60,14 +66,20 @@ final class AuditLogRepository
                 'new_value' => $this->encodeValue($entry['new_value'] ?? null),
                 'meta_json' => $this->encodeValue($entry['meta'] ?? []),
                 'ip_address' => (string) ($entry['ip_address'] ?? ''),
-            ]);
+            ];
+
+            if ($hasEntryJson) {
+                $parameters['entry_json'] = $this->encodeValue($this->entryDocument($entry));
+            }
+
+            return $statement->execute($parameters);
         } catch (\Throwable) {
             return false;
         }
     }
 
-    /** @return list<array<string, mixed>> */
-    public function latest(int $limit = 100, ?string $subjectType = null): array
+    /** @return list<AuditLogRecord> */
+    public function latestRecords(int $limit = 100, ?string $subjectType = null): array
     {
         $connection = $this->connection();
         if (!$connection instanceof PDO) {
@@ -82,10 +94,15 @@ final class AuditLogRepository
             $params['subject_type'] = trim($subjectType);
         }
 
+        $entryJsonSelect = $this->columnExists($connection, 'audit_log', 'entry_json')
+            ? 'entry_json,'
+            : "NULL AS entry_json,";
+
         try {
             $statement = $connection->prepare(<<<SQL
                 SELECT
                     id,
+                    {$entryJsonSelect}
                     actor_user_id,
                     actor_label,
                     action,
@@ -107,19 +124,45 @@ final class AuditLogRepository
             return [];
         }
 
-        return array_map(fn(array $row): array => [
-            'id' => (int) ($row['id'] ?? 0),
-            'actor_user_id' => $row['actor_user_id'] !== null ? (int) $row['actor_user_id'] : null,
-            'actor_label' => (string) ($row['actor_label'] ?? ''),
-            'action' => (string) ($row['action'] ?? ''),
-            'subject_type' => (string) ($row['subject_type'] ?? ''),
-            'subject_key' => (string) ($row['subject_key'] ?? ''),
-            'old_value' => $this->decodeValue((string) ($row['old_value'] ?? 'null')),
-            'new_value' => $this->decodeValue((string) ($row['new_value'] ?? 'null')),
-            'meta' => $this->decodeValue((string) ($row['meta_json'] ?? '[]')),
-            'ip_address' => (string) ($row['ip_address'] ?? ''),
-            'created_at' => (string) ($row['created_at'] ?? ''),
-        ], is_array($rows) ? $rows : []);
+        return array_map(
+            static fn(array $row): AuditLogRecord => AuditLogRecord::fromDatabaseRow($row),
+            is_array($rows) ? $rows : [],
+        );
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function latest(int $limit = 100, ?string $subjectType = null): array
+    {
+        return array_map(
+            static fn(AuditLogRecord $record): array => $record->toArray(),
+            $this->latestRecords($limit, $subjectType),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $entry
+     * @return array<string, mixed>
+     */
+    private function entryDocument(array $entry): array
+    {
+        return [
+            'schema' => 'nixcms.audit.v1',
+            'actor' => [
+                'user_id' => $entry['actor_user_id'] ?? null,
+                'label' => (string) ($entry['actor_label'] ?? ''),
+            ],
+            'event' => [
+                'action' => (string) ($entry['action'] ?? ''),
+                'subject_type' => (string) ($entry['subject_type'] ?? ''),
+                'subject_key' => (string) ($entry['subject_key'] ?? ''),
+                'old_value' => $entry['old_value'] ?? null,
+                'new_value' => $entry['new_value'] ?? null,
+                'meta' => $entry['meta'] ?? [],
+            ],
+            'request' => [
+                'ip_address' => (string) ($entry['ip_address'] ?? ''),
+            ],
+        ];
     }
 
     private function encodeValue(mixed $value): string
@@ -149,5 +192,24 @@ final class AuditLogRepository
         }
 
         return $connection instanceof PDO ? $connection : null;
+    }
+
+    private function columnExists(PDO $connection, string $table, string $column): bool
+    {
+        $driver = strtolower((string) $connection->getAttribute(PDO::ATTR_DRIVER_NAME));
+        if ($driver === 'sqlite') {
+            $statement = $connection->query('PRAGMA table_info(' . $table . ')');
+            foreach ($statement->fetchAll(PDO::FETCH_ASSOC) ?: [] as $row) {
+                if ((string) ($row['name'] ?? '') === $column) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        $statement = $connection->prepare('SHOW COLUMNS FROM ' . $table . ' LIKE :column');
+        $statement->execute(['column' => $column]);
+        return (bool) $statement->fetchColumn();
     }
 }

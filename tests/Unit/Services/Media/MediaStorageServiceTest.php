@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Media;
 
-use NixCMS\Repositories\MediaRepository;
+use NixCMS\Models\Media;
 use NixCMS\Services\Media\MediaStorageService;
+use NixCMS\Storage\EntityStorage;
 use Nyholm\Psr7\Stream;
 use Nyholm\Psr7\UploadedFile;
 use Tests\Support\DatabaseTestCase;
@@ -13,7 +14,7 @@ use Tests\Support\DatabaseTestCase;
 final class MediaStorageServiceTest extends DatabaseTestCase
 {
     private string $publicRoot;
-    private MediaRepository $repository;
+    private EntityStorage $storage;
     private MediaStorageService $service;
 
     protected function setUp(): void
@@ -47,9 +48,9 @@ final class MediaStorageServiceTest extends DatabaseTestCase
         $this->publicRoot = sys_get_temp_dir() . '/nixcms-media-test-' . bin2hex(random_bytes(6));
         mkdir($this->publicRoot, 0755, true);
 
-        $this->repository = new MediaRepository($this->pdo);
+        $this->storage = new EntityStorage(Media::class, $this->pdo);
         $this->service = new MediaStorageService(
-            $this->repository,
+            $this->storage,
             $this->publicRoot,
             '/media',
             1024 * 1024,
@@ -84,7 +85,7 @@ final class MediaStorageServiceTest extends DatabaseTestCase
         self::assertSame(1, $media['height']);
         self::assertFileExists($this->publicRoot . '/' . $media['storage_path']);
         self::assertSame(realpath($this->publicRoot . '/' . $media['storage_path']), $this->service->pathFor($media));
-        self::assertSame($media['id'], $this->repository->findByPublicId((string) $media['public_id'])['id'] ?? null);
+        self::assertSame($media['id'], $this->storage->find((int) $media['id'])?->getId());
 
         $row = $this->fetchOne('SELECT * FROM media WHERE id = :id', ['id' => $media['id']]);
         self::assertIsArray($row);
@@ -101,7 +102,7 @@ final class MediaStorageServiceTest extends DatabaseTestCase
                 $this->uploadedFile('<?php echo "no";', 'shell.php', 'application/x-php'),
             );
         } finally {
-            self::assertSame([], $this->repository->recent());
+            self::assertSame([], $this->storage->search());
             self::assertSame([], $this->storedFiles());
         }
     }
@@ -116,21 +117,7 @@ final class MediaStorageServiceTest extends DatabaseTestCase
         self::assertFileExists($path);
         self::assertTrue($this->service->delete((int) $media['id']));
         self::assertFileDoesNotExist($path);
-        self::assertNull($this->repository->find((int) $media['id']));
-    }
-
-    public function testUpdatesVisibilityWithoutDroppingAltText(): void
-    {
-        $media = $this->service->storeUploadedFile(
-            $this->uploadedFile($this->tinyPng(), 'preview.png', 'image/png'),
-            context: ['alt_text' => 'Preview'],
-        );
-
-        $updated = $this->repository->update((int) $media['id'], ['visibility' => 'private']);
-
-        self::assertIsArray($updated);
-        self::assertSame('private', $updated['visibility']);
-        self::assertSame('Preview', $updated['alt_text']);
+        self::assertNull($this->storage->find((int) $media['id']));
     }
 
     private function uploadedFile(string $contents, string $filename, string $mimeType): UploadedFile

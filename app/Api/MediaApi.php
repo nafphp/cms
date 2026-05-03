@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace NixCMS\Api;
 
-use NixCMS\Repositories\MediaRepository;
+use NixCMS\Models\Media;
+use NixCMS\Services\Media\MediaPayload;
 use NixCMS\Services\Media\MediaStorageService;
+use NixCMS\Storage\Criteria;
+use NixCMS\Storage\EntityStorage;
 use NixCMS\Support\AuditEntry;
 use Psr\Http\Message\UploadedFileInterface;
 
 final class MediaApi
 {
     public function __construct(
-        private MediaRepository $repository,
         private MediaStorageService $storage,
+        private ?EntityStorage $mediaStorage = null,
     ) {
     }
 
@@ -22,7 +25,23 @@ final class MediaApi
      */
     public function recent(int $limit = 120): array
     {
-        return $this->repository->recent($limit);
+        return array_map(
+            static fn(Media $media): array => MediaPayload::fromEntity($media),
+            $this->storage()->search(
+                Criteria::create()
+                    ->sort('created_at', 'DESC')
+                    ->sort('id', 'DESC')
+                    ->limit(max(1, min(500, $limit))),
+            ),
+        );
+    }
+
+    /**
+     * @return array<int, Media>
+     */
+    public function search(?Criteria $criteria = null): array
+    {
+        return $this->storage()->search($criteria);
     }
 
     /**
@@ -30,7 +49,19 @@ final class MediaApi
      */
     public function summary(): array
     {
-        return $this->repository->summary();
+        $summary = ['total' => 0, 'images' => 0, 'documents' => 0, 'bytes' => 0];
+        foreach ($this->storage()->search() as $media) {
+            $payload = MediaPayload::fromEntity($media);
+            $summary['total']++;
+            $summary['bytes'] += (int) ($payload['size_bytes'] ?? 0);
+            if (($payload['kind'] ?? '') === 'image') {
+                $summary['images']++;
+            } else {
+                $summary['documents']++;
+            }
+        }
+
+        return $summary;
     }
 
     /**
@@ -38,7 +69,8 @@ final class MediaApi
      */
     public function find(int $id): ?array
     {
-        return $this->repository->find($id);
+        $media = $this->storage()->find($id);
+        return $media instanceof Media ? MediaPayload::fromEntity($media) : null;
     }
 
     /**
@@ -46,7 +78,13 @@ final class MediaApi
      */
     public function findByPublicId(string $publicId): ?array
     {
-        return $this->repository->findByPublicId($publicId);
+        $publicId = $this->normalizePublicId($publicId);
+        if ($publicId === '') {
+            return null;
+        }
+
+        $media = $this->storage()->first(Criteria::create()->equals('public_id', $publicId));
+        return $media instanceof Media ? MediaPayload::fromEntity($media) : null;
     }
 
     public function pathFor(array $media): ?string
@@ -80,8 +118,16 @@ final class MediaApi
      */
     public function update(int $id, array $payload): ?array
     {
-        $old = $this->repository->find($id);
-        $media = $this->repository->update($id, $payload);
+        $old = $this->find($id);
+        $mediaEntity = $this->storage()->update($id, [
+            'visibility' => array_key_exists('visibility', $payload)
+                ? MediaPayload::normalizeVisibility((string) $payload['visibility'])
+                : (string) ($old['visibility'] ?? 'public'),
+            'alt_text' => array_key_exists('alt_text', $payload)
+                ? $this->nullableText($payload['alt_text'] ?? null, 255)
+                : $this->nullableText($old['alt_text'] ?? null, 255),
+        ]);
+        $media = $mediaEntity instanceof Media ? MediaPayload::fromEntity($mediaEntity) : null;
         if ($media !== null) {
             AuditEntry::create(
                 'media.updated',
@@ -97,7 +143,7 @@ final class MediaApi
 
     public function delete(int $id): bool
     {
-        $old = $this->repository->find($id);
+        $old = $this->find($id);
         $deleted = $this->storage->delete($id);
         if ($deleted) {
             AuditEntry::create(
@@ -145,5 +191,26 @@ final class MediaApi
             'alt_text' => $media['alt_text'] ?? null,
             'public_url' => (string) ($media['public_url'] ?? ''),
         ];
+    }
+
+    private function storage(): EntityStorage
+    {
+        return $this->mediaStorage ??= new EntityStorage(Media::class);
+    }
+
+    private function normalizePublicId(string $publicId): string
+    {
+        $publicId = strtolower(trim($publicId));
+        return preg_match('/^[a-z0-9]{16,40}$/', $publicId) === 1 ? $publicId : '';
+    }
+
+    private function nullableText(mixed $value, int $maxLength): ?string
+    {
+        $text = trim((string) ($value ?? ''));
+        if ($text === '') {
+            return null;
+        }
+
+        return strlen($text) > $maxLength ? substr($text, 0, $maxLength) : $text;
     }
 }

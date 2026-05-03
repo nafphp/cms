@@ -8,6 +8,8 @@ use NixPHP\ORM\Model\AbstractModel;
 
 class Media extends AbstractModel
 {
+    public string $table = 'media';
+
     protected ?string $disk = 'public';
     protected ?string $public_id = null;
     protected ?string $visibility = 'public';
@@ -26,6 +28,11 @@ class Media extends AbstractModel
     protected ?string $metadata_json = null;
     protected ?string $created_at = null;
     protected ?string $updated_at = null;
+
+    public function getTableName(bool $singular = false): string
+    {
+        return 'media';
+    }
 
     public function getPublicUrl(): ?string
     {

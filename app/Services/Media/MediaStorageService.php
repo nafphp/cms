@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NixCMS\Services\Media;
 
-use NixCMS\Repositories\MediaRepository;
+use NixCMS\Models\Media;
+use NixCMS\Storage\EntityStorage;
 use NixCMS\Support\Slug;
 use Psr\Http\Message\UploadedFileInterface;
 use function NixPHP\config;
@@ -33,7 +34,7 @@ final class MediaStorageService
     ];
 
     public function __construct(
-        private MediaRepository $repository,
+        private EntityStorage $storage,
         private ?string $storageRoot = null,
         private ?string $publicUrlPrefix = null,
         private ?int $maxUploadSize = null,
@@ -91,9 +92,11 @@ final class MediaStorageService
         $storagePath = $storageDirectory . '/' . $storedName;
         $filePath = $this->relativeFilePath($storagePath);
         $publicUrl = $this->publicUrlPrefix() . '/' . $publicId . '/' . rawurlencode($storedName);
+        $createdAt = date('Y-m-d H:i:s');
 
         try {
-            return $this->repository->create([
+            /** @var Media $media */
+            $media = $this->storage->create([
                 'public_id' => $publicId,
                 'disk' => 'public',
                 'visibility' => $this->visibility($context),
@@ -107,14 +110,18 @@ final class MediaStorageService
                 'size_bytes' => $size,
                 'width' => $width,
                 'height' => $height,
-                'alt_text' => $context['alt_text'] ?? null,
+                'alt_text' => $this->nullableText($context['alt_text'] ?? null, 255),
                 'uploaded_by' => $uploadedBy,
-                'metadata' => [
+                'metadata_json' => json_encode([
                     'collection' => $this->collection($context),
                     'client_mime_type' => $clientMime,
                     'detected_mime_type' => $detectedMime,
-                ],
+                ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt,
             ]);
+
+            return MediaPayload::fromEntity($media);
         } catch (\Throwable $exception) {
             if (is_file($absoluteTarget)) {
                 @unlink($absoluteTarget);
@@ -126,17 +133,18 @@ final class MediaStorageService
 
     public function delete(int $id): bool
     {
-        $media = $this->repository->find($id);
-        if (!is_array($media)) {
+        $media = $this->storage->find($id);
+        if (!$media instanceof Media) {
             return false;
         }
 
-        $fullPath = $this->absolutePath((string) ($media['storage_path'] ?? ''));
+        $payload = MediaPayload::fromEntity($media);
+        $fullPath = $this->absolutePath((string) ($payload['storage_path'] ?? ''));
         if ($fullPath !== null && is_file($fullPath)) {
             @unlink($fullPath);
         }
 
-        return $this->repository->delete($id);
+        return $this->storage->delete($id);
     }
 
     /**
@@ -327,12 +335,7 @@ final class MediaStorageService
      */
     private function visibility(array $context): string
     {
-        $visibility = strtolower(trim((string) ($context['visibility'] ?? 'public')));
-        if ($visibility === 'admin') {
-            return 'registered';
-        }
-
-        return in_array($visibility, ['public', 'registered', 'private'], true) ? $visibility : 'public';
+        return MediaPayload::normalizeVisibility((string) ($context['visibility'] ?? 'public'));
     }
 
     private function relativeFilePath(string $storagePath): string
@@ -403,5 +406,15 @@ final class MediaStorageService
         }
 
         return number_format($bytes / (1024 * 1024), 1) . ' MB';
+    }
+
+    private function nullableText(mixed $value, int $maxLength): ?string
+    {
+        $text = trim((string) ($value ?? ''));
+        if ($text === '') {
+            return null;
+        }
+
+        return strlen($text) > $maxLength ? substr($text, 0, $maxLength) : $text;
     }
 }

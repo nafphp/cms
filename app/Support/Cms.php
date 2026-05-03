@@ -19,6 +19,7 @@ use NixCMS\Models\SiteNavigation;
 use NixCMS\Navigation\NavigationRegistry;
 use NixCMS\Page\PageRegistry;
 use NixCMS\Settings\SettingsRegistry;
+use NixCMS\Storage\EntityStorage;
 use NixCMS\Visualization\VisualizationRegistry;
 
 final class Cms
@@ -128,6 +129,16 @@ final class Cms
         /** @var MediaApi $api */
         $api = $this->content(Media::class);
         return $api;
+    }
+
+    /**
+     * @template T of \NixPHP\ORM\Core\EntityInterface
+     * @param class-string<T> $class
+     * @return EntityStorage<T>
+     */
+    public function storage(string $class): EntityStorage
+    {
+        return new EntityStorage($class);
     }
 
     /**
