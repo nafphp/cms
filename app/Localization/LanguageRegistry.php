@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NixCMS\Localization;
 
 use NixCMS\Enums\Language;
+use NixPHP\I18n\Core\Language as NixPHPLanguage;
 use function NixPHP\config;
 use function NixPHP\I18n\t;
 
@@ -43,12 +44,41 @@ final class LanguageRegistry
     }
 
     /**
+     * @return list<string>
+     */
+    public function known(): array
+    {
+        $languages = [
+            ...$this->normalizeList(NixPHPLanguage::all()),
+            ...$this->available(),
+        ];
+
+        $languages = array_values(array_unique($languages));
+        sort($languages);
+
+        return $languages;
+    }
+
+    /**
      * @return array<string, string>
      */
     public function options(): array
     {
         $options = [];
         foreach ($this->available() as $language) {
+            $options[$language] = $this->label($language);
+        }
+
+        return $options;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function knownOptions(): array
+    {
+        $options = [];
+        foreach ($this->known() as $language) {
             $options[$language] = $this->label($language);
         }
 
@@ -63,7 +93,12 @@ final class LanguageRegistry
         }
 
         $translated = t($language);
-        return $translated !== $language ? $translated : strtoupper($language);
+        if ($translated !== $language) {
+            return $translated;
+        }
+
+        $label = (new NixPHPLanguage())->label($language, '');
+        return $label !== '' ? $label : strtoupper($language);
     }
 
     public function isKnown(string $language): bool

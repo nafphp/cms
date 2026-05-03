@@ -61,7 +61,7 @@ return [
         ->requirePermission(Permission::FORMS_EDIT)
         ->setDataHandler(StoreForm::class, 'POST', Permission::FORMS_EDIT)
         ->hideFromAdminNavigation('forms')
-        ->setContent(static function (string $formId) {
+        ->setContent(static function (string $formId) use ($translationSuggestions) {
             $form = \cms()->forms()->find((int) $formId);
             if (!is_array($form)) {
                 return redirect(route('admin.forms'));

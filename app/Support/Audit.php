@@ -17,24 +17,30 @@ final class Audit
      * @param array<string, mixed> $meta
      */
     public function record(
-        string $action,
-        string $subjectType,
-        string $subjectKey,
+        AuditEntry|string $action,
+        ?string $subjectType = null,
+        ?string $subjectKey = null,
         mixed $oldValue = null,
         mixed $newValue = null,
         array $meta = [],
     ): bool {
-        $actor = \user()?->get();
+        $entry = $action instanceof AuditEntry
+            ? $action
+            : AuditEntry::create(
+                $action,
+                (string) $subjectType,
+                (string) $subjectKey,
+                $oldValue,
+                $newValue,
+                $meta,
+            );
 
-        return $this->repository()->record([
+        $helper = function_exists('user') ? \user() : null;
+        $actor = $helper?->get();
+
+        return $this->repository()->record($entry->toArray() + [
             'actor_user_id' => $actor?->getId(),
-            'actor_label' => $actor?->getDisplayName() ?? (\user()?->isLoggedIn() === true ? 'System admin' : 'System'),
-            'action' => $action,
-            'subject_type' => $subjectType,
-            'subject_key' => $subjectKey,
-            'old_value' => $oldValue,
-            'new_value' => $newValue,
-            'meta' => $meta,
+            'actor_label' => $actor?->getDisplayName() ?? ($helper?->isLoggedIn() === true ? 'System admin' : 'System'),
             'ip_address' => $this->ipAddress(),
         ]);
     }

@@ -113,6 +113,31 @@ final class NavigationRepositoryTest extends DatabaseTestCase
         self::assertSame('draft', $this->repository->find($id)?->status());
     }
 
+    public function testDeleteTranslationsExceptKeepsCanonicalNavigation(): void
+    {
+        $keepId = $this->repository->save([
+            'identifier' => 'main',
+            'title' => 'Main',
+            'items' => [],
+        ]);
+        $this->repository->save([
+            'identifier' => 'main',
+            'title' => 'Main DE',
+            'language' => 'de',
+            'items' => [],
+        ]);
+        $this->repository->save([
+            'identifier' => 'main',
+            'title' => 'Main EN',
+            'language' => 'en',
+            'items' => [],
+        ]);
+
+        self::assertSame(2, $this->repository->deleteTranslationsExcept('main', keepId: $keepId));
+        self::assertCount(1, $this->repository->findTranslations('main'));
+        self::assertSame('Main', $this->repository->find($keepId)?->title());
+    }
+
     public function testPublishChangesStatus(): void
     {
         $id = $this->repository->save([

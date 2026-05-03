@@ -1706,7 +1706,8 @@ body.page-builder-live-preview main.content-center {
 }
 
 body.admin-app .notify:has(.translation-key-prompt) {
-    width: min(820px, calc(100vw - 32px));
+    width: min(980px, calc(100vw - 32px));
+    max-width: min(980px, calc(100vw - 32px));
 }
 
 body.admin-app .translation-key-prompt {
@@ -1720,15 +1721,15 @@ body.admin-app .translation-key-prompt .notify-form-intro {
 
 body.admin-app .translation-key-grid {
     display: grid;
-    grid-template-columns: minmax(260px, .86fr) minmax(300px, 1fr);
-    gap: 16px;
+    grid-template-columns: minmax(360px, .9fr) minmax(360px, 1fr);
+    gap: 22px;
     align-items: start;
 }
 
 body.admin-app .translation-key-language-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) minmax(154px, auto);
+    gap: 12px;
     align-items: stretch;
 }
 

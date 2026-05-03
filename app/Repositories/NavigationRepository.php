@@ -270,6 +270,34 @@ final class NavigationRepository
         return $statement->rowCount() > 0;
     }
 
+    public function deleteTranslationsExcept(string $identifier, string $scope = 'frontend', int $keepId = 0): int
+    {
+        $connection = $this->connection();
+        if (!$connection instanceof PDO) {
+            return 0;
+        }
+
+        try {
+            $identifier = Navigation::normalizeIdentifier($identifier);
+        } catch (\InvalidArgumentException) {
+            return 0;
+        }
+
+        $statement = $connection->prepare(<<<SQL
+            DELETE FROM navigations
+            WHERE identifier = :identifier
+              AND scope = :scope
+              AND id != :keep_id
+        SQL);
+        $statement->execute([
+            'identifier' => $identifier,
+            'scope' => trim($scope) ?: 'frontend',
+            'keep_id' => $keepId,
+        ]);
+
+        return $statement->rowCount();
+    }
+
     /**
      * @param array<string, mixed> $row
      * @return array<string, mixed>

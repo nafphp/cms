@@ -6,6 +6,7 @@ namespace NixCMS\Api;
 
 use NixCMS\Repositories\MediaRepository;
 use NixCMS\Services\Media\MediaStorageService;
+use NixCMS\Support\AuditEntry;
 use Psr\Http\Message\UploadedFileInterface;
 
 final class MediaApi
@@ -59,7 +60,18 @@ final class MediaApi
      */
     public function storeUploadedFile(UploadedFileInterface $file, ?int $uploadedBy = null, array $context = []): array
     {
-        return $this->storage->storeUploadedFile($file, $uploadedBy, $context);
+        $media = $this->storage->storeUploadedFile($file, $uploadedBy, $context);
+
+        AuditEntry::create(
+            'media.uploaded',
+            'media',
+            (string) ($media['id'] ?? ''),
+            null,
+            $this->mediaAuditSnapshot($media),
+            ['context' => $context],
+        )->record();
+
+        return $media;
     }
 
     /**
@@ -68,12 +80,35 @@ final class MediaApi
      */
     public function update(int $id, array $payload): ?array
     {
-        return $this->repository->update($id, $payload);
+        $old = $this->repository->find($id);
+        $media = $this->repository->update($id, $payload);
+        if ($media !== null) {
+            AuditEntry::create(
+                'media.updated',
+                'media',
+                (string) $id,
+                $this->mediaAuditSnapshot($old),
+                $this->mediaAuditSnapshot($media),
+            )->record();
+        }
+
+        return $media;
     }
 
     public function delete(int $id): bool
     {
-        return $this->storage->delete($id);
+        $old = $this->repository->find($id);
+        $deleted = $this->storage->delete($id);
+        if ($deleted) {
+            AuditEntry::create(
+                'media.deleted',
+                'media',
+                (string) $id,
+                $this->mediaAuditSnapshot($old),
+            )->record();
+        }
+
+        return $deleted;
     }
 
     /**
@@ -87,5 +122,28 @@ final class MediaApi
     public function maxUploadSize(): int
     {
         return $this->storage->maxUploadSize();
+    }
+
+    /**
+     * @param array<string, mixed>|null $media
+     * @return array<string, mixed>|null
+     */
+    private function mediaAuditSnapshot(?array $media): ?array
+    {
+        if ($media === null) {
+            return null;
+        }
+
+        return [
+            'id' => (int) ($media['id'] ?? 0),
+            'public_id' => (string) ($media['public_id'] ?? ''),
+            'original_name' => (string) ($media['original_name'] ?? ''),
+            'stored_name' => (string) ($media['stored_name'] ?? ''),
+            'visibility' => (string) ($media['visibility'] ?? ''),
+            'mime_type' => (string) ($media['mime_type'] ?? ''),
+            'size_bytes' => (int) ($media['size_bytes'] ?? 0),
+            'alt_text' => $media['alt_text'] ?? null,
+            'public_url' => (string) ($media['public_url'] ?? ''),
+        ];
     }
 }

@@ -41,17 +41,20 @@ asset()->add('/js/admin/form-builder.js', 'module');
     data-overview-url="<?= s((string) ($overviewUrl ?? '/admin/forms')) ?>"
     data-form="<?= s(json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)) ?>"
     data-translation-suggestions="<?= s(json_encode($translationSuggestions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)) ?>"
+    data-translation-language="<?= s(\cms()->settings()->currentLanguage()) ?>"
+    data-translation-endpoint="<?= s('/api/admin/translations/{language}') ?>"
 >
     <section class="grid gap-4 rounded-lg border border-slate-300/70 bg-white/85 p-5 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-slate-400/25 dark:bg-slate-950/50 dark:shadow-none">
-        <div class="grid gap-4 lg:grid-cols-[1fr_280px_260px_180px]">
+        <div class="grid gap-4 lg:grid-cols-[1fr_260px_180px]">
             <label class="grid gap-2">
                 <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Title')) ?></span>
-                <input class="min-h-11 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white" name="title" placeholder="<?= s(t('Contact form')) ?>" required>
+                <span class="flex min-w-0 overflow-hidden rounded-md border border-slate-300 bg-white transition focus-within:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900">
+                    <input class="min-h-11 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-slate-950 outline-none dark:text-white" name="title" placeholder="forms.contact.title" required data-translation-field data-translation-context="form.title" data-translation-fallback="<?= s(t('Contact form')) ?>">
+                    <button class="inline-flex min-h-11 w-14 shrink-0 items-center justify-center border-l border-slate-300 bg-slate-50/70 px-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300" type="button" data-open-translation-field="title" title="<?= s(t('Translation key')) ?>" aria-label="<?= s(t('Translation key')) ?>">
+                        <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
+                    </button>
+                </span>
                 <span class="hidden text-sm text-rose-600 dark:text-rose-300" data-error-for="title"></span>
-            </label>
-            <label class="grid gap-2">
-                <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Title key')) ?></span>
-                <input class="min-h-11 rounded-md border border-slate-300 bg-white px-3 font-mono text-sm text-slate-950 outline-none focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white" name="titleKey" placeholder="forms.contact.title" data-translation-key-suggest data-translation-context="form.title" data-translation-source-name="title">
             </label>
             <label class="grid gap-2">
                 <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Identifier')) ?></span>
@@ -70,19 +73,21 @@ asset()->add('/js/admin/form-builder.js', 'module');
         <div class="grid gap-4 lg:grid-cols-2">
             <label class="grid gap-2">
                 <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Submit label')) ?></span>
-                <input class="min-h-11 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white" name="submitLabel" placeholder="<?= s(t('Send message')) ?>">
-            </label>
-            <label class="grid gap-2">
-                <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Submit label key')) ?></span>
-                <input class="min-h-11 rounded-md border border-slate-300 bg-white px-3 font-mono text-sm text-slate-950 outline-none focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white" name="submitLabelKey" placeholder="forms.contact.submit" data-translation-key-suggest data-translation-context="form.submitLabel" data-translation-source-name="submitLabel">
+                <span class="flex min-w-0 overflow-hidden rounded-md border border-slate-300 bg-white transition focus-within:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900">
+                    <input class="min-h-11 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-slate-950 outline-none dark:text-white" name="submitLabel" placeholder="forms.contact.submit" data-translation-field data-translation-context="form.submitLabel" data-translation-fallback="<?= s(t('Send message')) ?>">
+                    <button class="inline-flex min-h-11 w-14 shrink-0 items-center justify-center border-l border-slate-300 bg-slate-50/70 px-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300" type="button" data-open-translation-field="submitLabel" title="<?= s(t('Translation key')) ?>" aria-label="<?= s(t('Translation key')) ?>">
+                        <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
+                    </button>
+                </span>
             </label>
             <label class="grid gap-2">
                 <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Success message')) ?></span>
-                <input class="min-h-11 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white" name="successMessage" placeholder="<?= s(t('Thank you. We will get back to you.')) ?>">
-            </label>
-            <label class="grid gap-2">
-                <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Success message key')) ?></span>
-                <input class="min-h-11 rounded-md border border-slate-300 bg-white px-3 font-mono text-sm text-slate-950 outline-none focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white" name="successMessageKey" placeholder="forms.contact.success" data-translation-key-suggest data-translation-context="form.successMessage" data-translation-source-name="successMessage">
+                <span class="flex min-w-0 overflow-hidden rounded-md border border-slate-300 bg-white transition focus-within:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900">
+                    <input class="min-h-11 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-slate-950 outline-none dark:text-white" name="successMessage" placeholder="forms.contact.success" data-translation-field data-translation-context="form.successMessage" data-translation-fallback="<?= s(t('Thank you. We will get back to you.')) ?>">
+                    <button class="inline-flex min-h-11 w-14 shrink-0 items-center justify-center border-l border-slate-300 bg-slate-50/70 px-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300" type="button" data-open-translation-field="successMessage" title="<?= s(t('Translation key')) ?>" aria-label="<?= s(t('Translation key')) ?>">
+                        <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
+                    </button>
+                </span>
             </label>
         </div>
     </section>

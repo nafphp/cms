@@ -7,6 +7,7 @@ namespace NixCMS\Handlers\Api\User;
 use NixCMS\Handlers\Support\ReadsJsonBody;
 use NixCMS\Models\User;
 use NixCMS\Repositories\UserRepository;
+use NixCMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 use function NixPHP\ORM\repo;
@@ -48,6 +49,19 @@ final class StoreUser
         if (!$created instanceof User) {
             return json(['success' => false, 'reason' => 'Could not create user.'], 400);
         }
+
+        AuditEntry::create(
+            'user.created',
+            'user',
+            (string) $created->getId(),
+            null,
+            [
+                'id' => $created->getId(),
+                'username' => $username,
+                'email' => $email !== '' ? $email : null,
+                'roles' => is_array($data['roles'] ?? null) ? array_values($data['roles']) : [],
+            ],
+        )->record();
 
         return json([
             'success' => true,

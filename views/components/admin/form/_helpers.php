@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace NixCMS\View\Admin\Form;
 
-use function NixPHP\Form\is_post;
 use function NixPHP\Form\memory;
 use function NixPHP\param;
+use function NixPHP\request;
 use function NixPHP\View\s;
 
 function attributes(array $attributes): string
@@ -83,7 +83,7 @@ function checked(string $name, mixed $value, bool $default = false, bool $useMem
 {
     if ($useMemory && $name !== '') {
         $remembered = memory($name);
-        if ($remembered !== null || is_post()) {
+        if ($remembered !== null || request()->getMethod() === 'POST') {
             return (string) $remembered === (string) $value;
         }
     }

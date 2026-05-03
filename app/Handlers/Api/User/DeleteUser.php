@@ -6,6 +6,7 @@ namespace NixCMS\Handlers\Api\User;
 
 use NixCMS\Handlers\Support\ReadsJsonBody;
 use NixCMS\Repositories\UserRepository;
+use NixCMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 use function NixPHP\ORM\repo;
@@ -26,9 +27,13 @@ final class DeleteUser
             return json(['success' => false, 'reason' => 'You cannot delete your own account.'], 400);
         }
 
-        if (!repo(UserRepository::class)->deleteById($userId)) {
+        $repository = repo(UserRepository::class);
+        $old = $repository->findOneForForm($userId);
+        if (!$repository->deleteById($userId)) {
             return json(['success' => false, 'reason' => 'Could not delete user.'], 400);
         }
+
+        AuditEntry::create('user.deleted', 'user', (string) $userId, $old)->record();
 
         return json(['success' => true]);
     }

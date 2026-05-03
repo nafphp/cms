@@ -28,6 +28,10 @@ composer install
 composer serve
 ```
 
+The web server DocumentRoot must be `public`. Unknown paths should be routed
+through the front controller (`public/index.php`); static files that exist under
+`public/css`, `public/js`, fonts, and images may be served directly.
+
 Use the project CLI wrapper from the project root:
 
 ```bash

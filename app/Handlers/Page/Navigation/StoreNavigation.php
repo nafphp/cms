@@ -23,24 +23,32 @@ final class StoreNavigation
         }
 
         try {
-            $savedIds = [];
-            $languages = $this->normalizeLanguages(is_array($data['languages'] ?? null) ? $data['languages'] : []);
-            $itemsByLanguage = is_array($data['itemsByLanguage'] ?? null) ? $data['itemsByLanguage'] : [];
-            $status = $this->normalizeStatus((string) ($data['status'] ?? 'draft'));
-
-            foreach ($languages as $language) {
-                $savedIds[$language] = \cms()->navigation()->save([
-                    'id' => (int) ($data['ids'][$language] ?? 0),
-                    'identifier' => (string) ($data['identifier'] ?? ''),
-                    'title' => (string) ($data['title'] ?? ''),
-                    'scope' => 'frontend',
-                    'language' => $language,
-                    'status' => $status,
-                    'items' => $this->normalizeItems(is_array($itemsByLanguage[$language] ?? null) ? $itemsByLanguage[$language] : []),
-                ]);
+            $ids = is_array($data['ids'] ?? null) ? $data['ids'] : [];
+            $targetId = (int) ($ids[''] ?? ($data['id'] ?? 0));
+            if ($targetId <= 0) {
+                $targetId = (int) (reset($ids) ?: 0);
             }
 
-            return json(['success' => true, 'ids' => $savedIds, 'id' => reset($savedIds) ?: 0]);
+            $identifier = (string) ($data['identifier'] ?? '');
+            $originalIdentifier = (string) ($data['originalIdentifier'] ?? $identifier);
+            $status = $this->normalizeStatus((string) ($data['status'] ?? 'draft'));
+
+            $savedId = \cms()->navigation()->save([
+                'id' => $targetId,
+                'identifier' => $identifier,
+                'title' => (string) ($data['title'] ?? ''),
+                'scope' => 'frontend',
+                'language' => '',
+                'status' => $status,
+                'items' => $this->normalizeItems(is_array($data['items'] ?? null) ? $data['items'] : []),
+            ]);
+
+            \cms()->navigation()->deleteTranslationsExcept($identifier, 'frontend', $savedId);
+            if ($originalIdentifier !== '' && $originalIdentifier !== $identifier) {
+                \cms()->navigation()->deleteTranslationsExcept($originalIdentifier, 'frontend', 0);
+            }
+
+            return json(['success' => true, 'ids' => ['' => $savedId], 'id' => $savedId]);
         } catch (Throwable $exception) {
             return json(['success' => false, 'reason' => $exception->getMessage()], 500);
         }
@@ -63,23 +71,7 @@ final class StoreNavigation
             $errors['title'][] = 'Please enter a title.';
         }
 
-        if ($this->normalizeLanguages(is_array($data['languages'] ?? null) ? $data['languages'] : []) === []) {
-            $errors['languages'][] = 'Please choose at least one language.';
-        }
-
         return $errors;
-    }
-
-    /**
-     * @param array<int, mixed> $languages
-     * @return array<int, string>
-     */
-    private function normalizeLanguages(array $languages): array
-    {
-        return array_values(array_unique(array_filter(array_map(
-            static fn(mixed $language): string => strtolower(trim((string) $language)),
-            $languages
-        ), static fn(string $language): bool => $language !== '')));
     }
 
     private function normalizeStatus(string $status): string

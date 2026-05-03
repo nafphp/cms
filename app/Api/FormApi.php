@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NixCMS\Api;
 
 use NixCMS\Repositories\FormRepository;
+use NixCMS\Support\AuditEntry;
 
 final class FormApi
 {
@@ -39,12 +40,35 @@ final class FormApi
     /** @param array<string, mixed> $payload */
     public function save(array $payload): int
     {
-        return $this->repository->save($payload);
+        $id = (int) ($payload['id'] ?? 0);
+        $old = $id > 0 ? $this->repository->find($id) : null;
+        $savedId = $this->repository->save($payload);
+
+        AuditEntry::create(
+            $old === null ? 'form.created' : 'form.updated',
+            'form',
+            (string) $savedId,
+            $this->formAuditSnapshot($old),
+            $this->formAuditSnapshot($this->repository->find($savedId)),
+        )->record();
+
+        return $savedId;
     }
 
     public function delete(int $id): bool
     {
-        return $this->repository->delete($id);
+        $old = $this->repository->find($id);
+        $deleted = $this->repository->delete($id);
+        if ($deleted) {
+            AuditEntry::create(
+                'form.deleted',
+                'form',
+                (string) $id,
+                $this->formAuditSnapshot($old),
+            )->record();
+        }
+
+        return $deleted;
     }
 
     /** @param array<string, mixed> $payload */
@@ -57,5 +81,25 @@ final class FormApi
     public function submissions(int $formId, int $limit = 50): array
     {
         return $this->repository->submissions($formId, $limit);
+    }
+
+    /**
+     * @param array<string, mixed>|null $form
+     * @return array<string, mixed>|null
+     */
+    private function formAuditSnapshot(?array $form): ?array
+    {
+        if ($form === null) {
+            return null;
+        }
+
+        return [
+            'id' => (int) ($form['id'] ?? 0),
+            'identifier' => (string) ($form['identifier'] ?? ''),
+            'title' => (string) ($form['title'] ?? ''),
+            'status' => (string) ($form['status'] ?? ''),
+            'fields' => $form['fields'] ?? [],
+            'settings' => $form['settings'] ?? [],
+        ];
     }
 }

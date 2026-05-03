@@ -92,9 +92,9 @@ function user(): ?UserHelper
  * @param array<string, mixed> $meta
  */
 function audit(
-    string $action,
-    string $subjectType,
-    string $subjectKey,
+    \NixCMS\Support\AuditEntry|string $action,
+    ?string $subjectType = null,
+    ?string $subjectKey = null,
     mixed $oldValue = null,
     mixed $newValue = null,
     array $meta = [],

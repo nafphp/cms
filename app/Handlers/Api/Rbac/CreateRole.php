@@ -7,6 +7,7 @@ namespace NixCMS\Handlers\Api\Rbac;
 use NixCMS\Handlers\Support\ReadsJsonBody;
 use NixCMS\Models\Role;
 use NixCMS\Repositories\RoleRepository;
+use NixCMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 use function NixPHP\ORM\repo;
@@ -21,6 +22,14 @@ final class CreateRole
         if (!$created instanceof Role) {
             return json(['success' => false, 'reason' => 'Could not create role.'], 400);
         }
+
+        AuditEntry::create(
+            'role.created',
+            'role',
+            (string) $created->getId(),
+            null,
+            ['id' => $created->getId(), 'name' => $created->getName(), 'permission_names' => []],
+        )->record();
 
         return json([
             'success' => true,

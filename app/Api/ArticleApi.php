@@ -8,6 +8,7 @@ use NixCMS\Models\Article;
 use NixCMS\Models\ArticleVersion;
 use NixCMS\Localization\LanguageRegistry;
 use NixCMS\Repositories\ArticleRepository;
+use NixCMS\Support\AuditEntry;
 
 /**
  * Domain API for articles. Exposes article-specific behaviour and delegates persistence/queries to ArticleRepository.
@@ -25,7 +26,18 @@ final class ArticleApi
     public function create(array $data, ?int $authorId = null): array
     {
         $data['article_id'] = 0;
-        return $this->articleRepository->saveDraftFromPayload($data, $authorId);
+        $result = $this->articleRepository->saveDraftFromPayload($data, $authorId);
+
+        AuditEntry::create(
+            'article.created',
+            'article',
+            (string) $result['articleId'],
+            null,
+            $this->articleSnapshot($result['articleId'], (string) ($data['language'] ?? '')),
+            ['article_version_id' => $result['articleVersionId']],
+        )->record();
+
+        return $result;
     }
 
     /**
@@ -34,13 +46,39 @@ final class ArticleApi
      */
     public function draft(int $id, array $data, ?int $authorId = null): array
     {
+        $old = $this->articleSnapshot($id, (string) ($data['language'] ?? ''));
         $data['article_id'] = $id;
-        return $this->articleRepository->saveDraftFromPayload($data, $authorId);
+        $result = $this->articleRepository->saveDraftFromPayload($data, $authorId);
+
+        AuditEntry::create(
+            'article.draft_saved',
+            'article',
+            (string) $result['articleId'],
+            $old,
+            $this->articleSnapshot($result['articleId'], (string) ($data['language'] ?? '')),
+            ['article_version_id' => $result['articleVersionId']],
+        )->record();
+
+        return $result;
     }
 
     public function publish(int $id, string $locale = 'de'): bool
     {
-        return $this->articleRepository->publishLatestLanguageVersion($id, $this->resolveLocale($locale));
+        $language = $this->resolveLocale($locale);
+        $old = $this->articleSnapshot($id, $language);
+        $published = $this->articleRepository->publishLatestLanguageVersion($id, $language);
+        if ($published) {
+            AuditEntry::create(
+                'article.published',
+                'article',
+                (string) $id,
+                $old,
+                $this->articleSnapshot($id, $language),
+                ['language' => $language],
+            )->record();
+        }
+
+        return $published;
     }
 
     public function find(int $id, ?string $locale = null): ?Article
@@ -91,7 +129,7 @@ final class ArticleApi
             ? json_decode($content, true, 512, JSON_THROW_ON_ERROR)
             : [];
 
-        return $this->articleRepository->saveDraftFromPayload([
+        $result = $this->articleRepository->saveDraftFromPayload([
             'article_id' => $articleId,
             'title' => $version->getTitle() ?? '',
             'slug' => $version->getSlug() ?? '',
@@ -104,20 +142,63 @@ final class ArticleApi
             'category' => $article->getCategory()?->getName() ?? '',
             'publish_date' => $version->getPublishedAt()?->format('Y-m-d H:i:s') ?? '',
         ]);
+
+        AuditEntry::create(
+            'article.version_restored',
+            'article',
+            (string) $articleId,
+            $this->articleVersionSnapshot($version),
+            $this->articleSnapshot($articleId, $locale),
+            [
+                'language' => $locale,
+                'restored_version' => $versionNumber,
+                'article_version_id' => $result['articleVersionId'],
+            ],
+        )->record();
+
+        return $result;
     }
 
     public function deleteLocale(int $articleId, string $locale): bool
     {
-        return $this->articleRepository->deleteLanguageVersions($articleId, $this->resolveLocale($locale));
+        $language = $this->resolveLocale($locale);
+        $old = $this->articleSnapshot($articleId, $language);
+        $deleted = $this->articleRepository->deleteLanguageVersions($articleId, $language);
+        if ($deleted) {
+            AuditEntry::create(
+                'article.locale_deleted',
+                'article',
+                (string) $articleId,
+                $old,
+                null,
+                ['language' => $language],
+            )->record();
+        }
+
+        return $deleted;
     }
 
     public function deleteVersion(int $articleId, string $locale, int $versionNumber): bool
     {
-        return $this->articleRepository->deleteSpecificVersion(
+        $language = $this->resolveLocale($locale);
+        $old = $this->articleSnapshot($articleId, $language, $versionNumber);
+        $deleted = $this->articleRepository->deleteSpecificVersion(
             $articleId,
-            $this->resolveLocale($locale),
+            $language,
             $versionNumber,
         );
+        if ($deleted) {
+            AuditEntry::create(
+                'article.version_deleted',
+                'article',
+                (string) $articleId,
+                $old,
+                null,
+                ['language' => $language, 'version' => $versionNumber],
+            )->record();
+        }
+
+        return $deleted;
     }
 
     /**
@@ -193,5 +274,49 @@ final class ArticleApi
         }
 
         throw new \InvalidArgumentException("Unknown locale: {$locale}");
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function articleSnapshot(int $id, ?string $locale = null, ?int $versionNumber = null): ?array
+    {
+        try {
+            $article = $versionNumber !== null
+                ? $this->findVersion($id, (string) $locale, $versionNumber)
+                : $this->find($id, $locale);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        if (!$article instanceof Article) {
+            return null;
+        }
+
+        $version = $article->getVersion();
+
+        return [
+            'id' => $article->getId(),
+            'category' => $article->getCategory()?->getName(),
+            'tags' => $article->getTagNames(),
+            'hide_lead_image_in_content' => $article->shouldHideLeadImageInContent(),
+            'version' => $version instanceof ArticleVersion ? $this->articleVersionSnapshot($version) : null,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function articleVersionSnapshot(ArticleVersion $version): array
+    {
+        return [
+            'id' => $version->getId(),
+            'language' => $version->getLanguageCode(),
+            'version' => $version->getVersion(),
+            'status' => $version->getStatus()?->value,
+            'title' => $version->getTitle(),
+            'slug' => $version->getSlug(),
+            'published_at' => $version->getPublishedAt()?->format('Y-m-d H:i:s'),
+        ];
     }
 }

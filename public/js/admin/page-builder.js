@@ -82,8 +82,8 @@ class PageBuilder {
             apply: 'Apply',
             newLanguage: 'New language',
             createLanguage: 'Create language',
-            enterLanguageCode: 'Enter a language code, for example nl or pt-br.',
-            invalidLanguage: 'Please enter a valid language code.',
+            chooseLanguageCode: 'Choose a language code.',
+            invalidLanguage: 'Please choose a valid language code.',
             languageCreated: 'Language created.',
             translationSaved: 'Translation saved.',
             emptyTranslationKey: 'Please enter a translation key.',
@@ -106,6 +106,7 @@ class PageBuilder {
         this.contentTypes = Array.isArray(this.config.contentTypes) ? this.config.contentTypes : [];
         this.navigationChoices = Array.isArray(this.config.navigationChoices) ? this.config.navigationChoices : [];
         this.languages = Array.isArray(this.config.languages) ? this.config.languages : [];
+        this.languageOptions = this.config.languageOptions && typeof this.config.languageOptions === 'object' ? this.config.languageOptions : {};
         this.defaultLanguage = this.config.defaultLanguage || this.languages[0] || 'en';
         this.translationSuggestionsByLanguage = this.normalizeTranslationSuggestionsByLanguage(this.config.translationSuggestions || {});
         this.translationEndpoint = this.config.translationEndpoint || '/api/admin/translations/{language}';
@@ -1349,19 +1350,26 @@ class PageBuilder {
 
         const option = event.target.closest('[data-page-translation-suggestion-key]');
         if (option && this.activeTranslationSuggestInput instanceof HTMLInputElement) {
-            this.activeTranslationSuggestInput.value = option.dataset.pageTranslationSuggestionKey || '';
             const promptContainer = this.activeTranslationSuggestInput.closest('.notify');
             const language = promptContainer?.querySelector('[data-page-translation-language]')?.value || this.translationLanguage();
-            const suggestion = this.findTranslationSuggestion(language, this.activeTranslationSuggestInput.value);
+            const key = option.dataset.pageTranslationSuggestionKey || '';
+            const suggestion = this.findTranslationSuggestion(language, key);
+            const keyInput = promptContainer?.querySelector('[data-page-translation-key]');
             const valueInput = promptContainer?.querySelector('[data-page-translation-value]');
-            if (suggestion && valueInput instanceof HTMLInputElement && valueInput.value.trim() === '') {
+
+            if (keyInput instanceof HTMLInputElement) {
+                keyInput.value = key;
+                keyInput.dispatchEvent(new Event('input', {bubbles: true}));
+            }
+            if (suggestion && valueInput instanceof HTMLInputElement) {
                 valueInput.value = suggestion.value;
+                valueInput.dispatchEvent(new Event('input', {bubbles: true}));
             }
             this.hideTranslationSuggestions();
             return;
         }
 
-        if (!event.target.closest('[data-page-translation-key]') && !event.target.closest('[data-page-translation-suggest-box]')) {
+        if (!event.target.closest('[data-page-translation-key]') && !event.target.closest('[data-page-translation-value]') && !event.target.closest('[data-page-translation-suggest-box]')) {
             this.hideTranslationSuggestions();
         }
     }
@@ -2142,7 +2150,7 @@ class PageBuilder {
             confirmButtonText: this.labels.apply,
             cancelButtonText: this.labels.cancel,
             showCancelButton: true,
-            style: {width: 'min(820px, calc(100vw - 32px))'},
+            style: {width: 'min(980px, calc(100vw - 32px))', maxWidth: 'min(980px, calc(100vw - 32px))'},
             confirmCallback: (promptInstance) => {
                 this.applyTranslationPicker(promptInstance, propName);
                 return true;
@@ -2237,7 +2245,7 @@ class PageBuilder {
             if (existing && valueInput instanceof HTMLInputElement && valueInput.value.trim() === '') {
                 valueInput.value = existing.value;
             }
-            this.showTranslationSuggestions(keyInput);
+            this.showTranslationSuggestions(this.activeTranslationSuggestInput || keyInput);
         });
         keyInput?.addEventListener('focus', () => this.showTranslationSuggestions(keyInput));
         keyInput?.addEventListener('input', () => {
@@ -2247,6 +2255,8 @@ class PageBuilder {
             }
             this.showTranslationSuggestions(keyInput);
         });
+        valueInput?.addEventListener('focus', () => this.showTranslationSuggestions(valueInput));
+        valueInput?.addEventListener('input', () => this.showTranslationSuggestions(valueInput));
         modal.querySelector('[data-page-translation-new-language]')?.addEventListener('click', async () => {
             const language = await this.openLanguagePrompt();
             if (!language || !(languageSelect instanceof HTMLSelectElement)) {
@@ -2262,13 +2272,15 @@ class PageBuilder {
 
     async openLanguagePrompt() {
         let createdLanguage = null;
-        const confirmed = await prompt(`
+        const promptResult = prompt(`
             <div>${escapeHtml(this.labels.newLanguage)}</div>
-            <div class="notify-form">
-                <p class="notify-form-intro">${escapeHtml(this.labels.enterLanguageCode)}</p>
+            <div class="page-builder-language-prompt notify-form">
+                <p class="notify-form-intro">${escapeHtml(this.labels.chooseLanguageCode)}</p>
                 <label class="notify-field">
                     <span class="notify-field-label">${escapeHtml(this.labels.language)}</span>
-                    <input id="page-builder-language-code-input" class="font-mono" type="text" placeholder="nl">
+                    <select id="page-builder-language-code-input" data-styled-select>
+                        ${this.languageCreationOptions()}
+                    </select>
                 </label>
             </div>
         `, {
@@ -2276,11 +2288,11 @@ class PageBuilder {
             cancelButtonText: this.labels.cancel,
             showCancelButton: true,
             confirmCallback: async (promptInstance) => {
-                const input = promptInstance.container.querySelector('#page-builder-language-code-input');
-                const language = this.normalizeLanguageCode(input?.value);
+                const select = promptInstance.container.querySelector('#page-builder-language-code-input');
+                const language = this.normalizeLanguageCode(select?.value);
                 if (language === null) {
                     toast(this.labels.invalidLanguage);
-                    input?.focus();
+                    select?.focus();
                     return true;
                 }
 
@@ -2296,7 +2308,19 @@ class PageBuilder {
             },
         });
 
+        window.setTimeout(() => initStyledSelects(document.querySelectorAll('.page-builder-language-prompt select[data-styled-select]')), 0);
+        const confirmed = await promptResult;
+
         return confirmed === true ? createdLanguage : null;
+    }
+
+    languageCreationOptions(selectedLanguage = '') {
+        return [
+            `<option value="" ${selectedLanguage === '' ? 'selected' : ''} disabled>${escapeHtml(this.labels.language)}</option>`,
+            ...Object.entries(this.languageOptions).map(([language, label]) => `
+                <option value="${escapeHtml(language)}" ${language === selectedLanguage ? 'selected' : ''}>${escapeHtml(label)} (${escapeHtml(language)})</option>
+            `),
+        ].join('');
     }
 
     async createLanguage(language) {

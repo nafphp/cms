@@ -7,6 +7,7 @@ namespace NixCMS\Handlers\Api\User;
 use NixCMS\Enums\Permission;
 use NixCMS\Handlers\Support\ReadsJsonBody;
 use NixCMS\Repositories\UserRepository;
+use NixCMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 use function NixPHP\ORM\repo;
@@ -57,6 +58,18 @@ final class CreateInvite
         if ($invite === null) {
             return json(['success' => false, 'reason' => 'Could not create invite.'], 400);
         }
+
+        AuditEntry::create(
+            'user.invite_created',
+            'user_invite',
+            (string) ($invite['email'] ?? $email),
+            null,
+            [
+                'email' => $invite['email'] ?? $email,
+                'roles' => $invite['roles'] ?? $roles,
+                'expires_at' => $invite['expiresAt'] ?? null,
+            ],
+        )->record();
 
         return json([
             'success' => true,

@@ -9,6 +9,7 @@ $language = strtolower(trim((string) ($language ?? 'en')));
 $languages = is_array($languages ?? null) ? $languages : [];
 $settingSections = is_array($settingSections ?? null) ? $settingSections : [];
 $entries = is_array($entries ?? null) ? $entries : [];
+$languageOptions = \cms()->languages()->knownOptions();
 
 ?>
 <?php $this->setLayout('layouts.admin') ?>
@@ -132,6 +133,7 @@ $entries = is_array($entries ?? null) ? $entries : [];
 <script type="module">
     import toast from '/js/lib/notifyJs/Modules/Toast.js';
     import prompt from '/js/lib/notifyJs/Modules/Prompt.js';
+    import {initStyledSelects} from '/js/components/styledSelect.js';
 
     const settingsForm = document.getElementById('language-settings-form');
     const form = document.getElementById('translation-form');
@@ -144,6 +146,7 @@ $entries = is_array($entries ?? null) ? $entries : [];
     const languageSaveState = settingsForm.querySelector('[data-language-save-state]');
     const settingsEndpoint = <?= json_encode(route('api.admin.settings.update')) ?>;
     const endpoint = <?= json_encode('/api/admin/translations/{language}') ?>.replace('{language}', encodeURIComponent(language));
+    const languageOptions = <?= json_encode($languageOptions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     const labels = <?= json_encode([
         'duplicateKey' => t('Duplicate translation key:'),
         'emptyKey' => t('Translation keys cannot be empty.'),
@@ -152,8 +155,10 @@ $entries = is_array($entries ?? null) ? $entries : [];
         'dirty' => t('Unsaved changes.'),
         'clean' => t('No unsaved changes.'),
         'createLanguage' => t('Create language'),
-        'newLanguagePrompt' => t('Enter a language code, for example nl or pt-br.'),
-        'invalidLanguage' => t('Please enter a valid language code.'),
+        'newLanguage' => t('New language'),
+        'language' => t('Language'),
+        'chooseLanguageCode' => t('Choose a language code.'),
+        'invalidLanguage' => t('Please choose a valid language code.'),
         'languageCreated' => t('Language created.'),
         'deleteConfirm' => t('Delete translation?'),
         'delete' => t('Delete'),
@@ -274,21 +279,49 @@ $entries = is_array($entries ?? null) ? $entries : [];
         openModal(rows.lastElementChild);
     });
 
+    const languageCreationOptions = (selectedLanguage = '') => [
+        `<option value="" ${selectedLanguage === '' ? 'selected' : ''} disabled>${escapeHtml(labels.language)}</option>`,
+        ...Object.entries(languageOptions).map(([code, label]) => `
+            <option value="${escapeHtml(code)}" ${code === selectedLanguage ? 'selected' : ''}>${escapeHtml(label)} (${escapeHtml(code)})</option>
+        `),
+    ].join('');
+
     document.querySelector('[data-create-language]')?.addEventListener('click', async () => {
-        const entered = await prompt(`<div class="my-5">${escapeHtml(labels.newLanguagePrompt)}</div>`, {
-            showInput: true,
+        let newLanguage = null;
+        const promptResult = prompt(`
+            <div>${escapeHtml(labels.newLanguage)}</div>
+            <div class="settings-language-prompt notify-form">
+                <p class="notify-form-intro">${escapeHtml(labels.chooseLanguageCode)}</p>
+                <label class="notify-field">
+                    <span class="notify-field-label">${escapeHtml(labels.language)}</span>
+                    <select id="settings-language-code-input" data-styled-select>
+                        ${languageCreationOptions()}
+                    </select>
+                </label>
+            </div>
+        `, {
             confirmButtonText: labels.createLanguage,
             cancelButtonText: labels.cancel,
             showCancelButton: true,
-            validators: [],
-        });
-        if (!entered) return;
+            confirmCallback: (promptInstance) => {
+                const select = promptInstance.container.querySelector('#settings-language-code-input');
+                const selected = String(select?.value || '').trim().toLowerCase();
+                if (!/^[a-z]{2,3}(?:-[a-z0-9]{2,4})?$/.test(selected) || selected.length > 8) {
+                    toast(labels.invalidLanguage);
+                    select?.focus();
+                    return true;
+                }
 
-        const newLanguage = String(entered || '').trim().toLowerCase();
-        if (!/^[a-z]{2,3}(?:-[a-z0-9]{2,4})?$/.test(newLanguage) || newLanguage.length > 8) {
-            toast(labels.invalidLanguage);
-            return;
-        }
+                newLanguage = selected;
+                promptInstance.promise.resolve(true);
+                promptInstance.remove();
+                return true;
+            },
+        });
+
+        window.setTimeout(() => initStyledSelects(document.querySelectorAll('.settings-language-prompt select[data-styled-select]')), 0);
+        const confirmed = await promptResult;
+        if (confirmed !== true || !newLanguage) return;
 
         const response = await (window.NixCMS?.json || fetch)(<?= json_encode('/api/admin/translations/{language}') ?>.replace('{language}', encodeURIComponent(newLanguage)), {
             method: 'POST',

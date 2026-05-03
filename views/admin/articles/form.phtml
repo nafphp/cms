@@ -70,13 +70,14 @@ $fieldErrorAssets->add('/js/components/formFieldErrors.js');
                     ]) ?>
                 </div>
 
-                <hr>
-                <?= view('components.admin.form.editor', [
-                    'name' => 'content',
-                    'label' => t('Content'),
-                    'value' => $content !== '' ? $content : null,
-                    'uploadUrl' => route('api.admin.media.upload'),
-                ]) ?>
+                <div class="mt-6">
+                    <?= view('components.admin.form.editor', [
+                        'name' => 'content',
+                        'label' => t('Content'),
+                        'value' => $content !== '' ? $content : null,
+                        'uploadUrl' => route('api.admin.media.upload'),
+                    ]) ?>
+                </div>
             </div>
 
             <aside class="px-[22px] pt-6 shell:pr-[22px]">

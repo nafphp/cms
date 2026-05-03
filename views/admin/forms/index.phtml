@@ -6,7 +6,11 @@ use function NixPHP\View\view;
 
 $forms = is_array($forms ?? null) ? $forms : [];
 $config = [
-    'rows' => array_map(static fn(array $form): array => $form + ['kind' => 'Form'], $forms),
+    'rows' => array_map(static fn(array $form): array => [
+        ...$form,
+        'title' => t((string) ($form['title'] ?? '')),
+        'kind' => 'Form',
+    ], $forms),
     'sort' => ['key' => 'title', 'direction' => 'asc'],
     'search' => ['title', 'identifier', 'status', 'updated'],
     'columns' => [

@@ -6,6 +6,7 @@ namespace NixCMS\Handlers\Api\User;
 
 use NixCMS\Handlers\Support\ReadsJsonBody;
 use NixCMS\Repositories\UserRepository;
+use NixCMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 use function NixPHP\ORM\repo;
@@ -29,7 +30,8 @@ final class UpdateUser
         }
 
         $repository = repo(UserRepository::class);
-        if ($repository->findOneForForm($userId) === null) {
+        $old = $repository->findOneForForm($userId);
+        if ($old === null) {
             return json(['success' => false, 'reason' => 'User not found.'], 404);
         }
 
@@ -57,10 +59,38 @@ final class UpdateUser
             return json(['success' => false, 'reason' => 'Could not update user.'], 400);
         }
 
+        AuditEntry::create(
+            'user.updated',
+            'user',
+            (string) $userId,
+            $this->userAuditSnapshot($old),
+            $this->userAuditSnapshot($repository->findOneForForm($userId)),
+        )->record();
+
         return json([
             'success' => true,
             'userId' => $userId,
             'redirect' => route('admin.users'),
         ]);
+    }
+
+    /**
+     * @param array<string, mixed>|null $user
+     * @return array<string, mixed>|null
+     */
+    private function userAuditSnapshot(?array $user): ?array
+    {
+        if ($user === null) {
+            return null;
+        }
+
+        return [
+            'id' => (int) ($user['id'] ?? 0),
+            'username' => (string) ($user['username'] ?? ''),
+            'email' => $user['email'] ?? null,
+            'firstname' => (string) ($user['firstname'] ?? ''),
+            'lastname' => (string) ($user['lastname'] ?? ''),
+            'roles' => $user['roles'] ?? [],
+        ];
     }
 }

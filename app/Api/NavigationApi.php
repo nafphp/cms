@@ -6,6 +6,7 @@ namespace NixCMS\Api;
 
 use NixCMS\Navigation\Navigation;
 use NixCMS\Repositories\NavigationRepository;
+use NixCMS\Support\AuditEntry;
 use function NixPHP\I18n\t;
 
 final class NavigationApi
@@ -63,17 +64,57 @@ final class NavigationApi
      */
     public function save(array $payload): int
     {
-        return $this->repository->save($payload);
+        $id = (int) ($payload['id'] ?? 0);
+        $old = $id > 0 ? $this->repository->find($id) : null;
+        $savedId = $this->repository->save($payload);
+
+        AuditEntry::create(
+            $old instanceof Navigation ? 'navigation.updated' : 'navigation.created',
+            'navigation',
+            (string) $savedId,
+            $this->navigationAuditSnapshot($old),
+            $this->navigationAuditSnapshot($this->repository->find($savedId)),
+        )->record();
+
+        return $savedId;
     }
 
     public function publish(int $id): bool
     {
-        return $this->repository->publish($id);
+        $old = $this->repository->find($id);
+        $published = $this->repository->publish($id);
+        if ($published) {
+            AuditEntry::create(
+                'navigation.published',
+                'navigation',
+                (string) $id,
+                $this->navigationAuditSnapshot($old),
+                $this->navigationAuditSnapshot($this->repository->find($id)),
+            )->record();
+        }
+
+        return $published;
     }
 
     public function delete(int $id): bool
     {
-        return $this->repository->delete($id);
+        $old = $this->repository->find($id);
+        $deleted = $this->repository->delete($id);
+        if ($deleted) {
+            AuditEntry::create(
+                'navigation.deleted',
+                'navigation',
+                (string) $id,
+                $this->navigationAuditSnapshot($old),
+            )->record();
+        }
+
+        return $deleted;
+    }
+
+    public function deleteTranslationsExcept(string $identifier, string $scope, int $keepId): int
+    {
+        return $this->repository->deleteTranslationsExcept($identifier, $scope, $keepId);
     }
 
     /**
@@ -96,5 +137,27 @@ final class NavigationApi
         unset($item);
 
         return $items;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function navigationAuditSnapshot(?Navigation $navigation): ?array
+    {
+        if (!$navigation instanceof Navigation) {
+            return null;
+        }
+
+        $data = $navigation->toArray();
+
+        return [
+            'id' => $navigation->id(),
+            'identifier' => $navigation->identifier(),
+            'title' => $navigation->title(),
+            'scope' => $navigation->scope(),
+            'language' => $navigation->language(),
+            'status' => $navigation->status(),
+            'items' => $data['items'] ?? [],
+        ];
     }
 }

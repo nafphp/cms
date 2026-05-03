@@ -44,6 +44,21 @@ final class LanguageRegistryTest extends TestCase
         self::assertSame(['de', 'en', 'es', 'fr', 'it'], $languages);
     }
 
+    public function testKnownLanguagesIncludeNixPhpLanguageCodes(): void
+    {
+        $languages = (new LanguageRegistry($this->directory))->known();
+
+        self::assertContains('nl', $languages);
+        self::assertContains('pt', $languages);
+    }
+
+    public function testKnownOptionsUseNixPhpLanguageLabels(): void
+    {
+        $options = (new LanguageRegistry($this->directory))->knownOptions();
+
+        self::assertSame('Nederlands', $options['nl']);
+    }
+
     public function testMalformedJsonLanguageFilesAreIgnoredDuringDiscovery(): void
     {
         file_put_contents($this->directory . '/nl.json', '{');

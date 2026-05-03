@@ -6,6 +6,7 @@ namespace NixCMS\Handlers\Api\User;
 
 use NixCMS\Handlers\Support\ReadsJsonBody;
 use NixCMS\Repositories\UserRepository;
+use NixCMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 use function NixPHP\ORM\repo;
@@ -24,6 +25,14 @@ final class UpdateUserRoles
         }
 
         $repository = repo(UserRepository::class);
+        $oldUser = null;
+        foreach ($repository->findAllWithRolesAndPermissions() as $user) {
+            if ((int) ($user['id'] ?? 0) === $userId) {
+                $oldUser = $user;
+                break;
+            }
+        }
+
         if ($repository->updateRolesByUserId($userId, $roles) === []) {
             return json(['success' => false, 'reason' => 'Could not update roles for this user.'], 400);
         }
@@ -35,6 +44,14 @@ final class UpdateUserRoles
                 break;
             }
         }
+
+        AuditEntry::create(
+            'user.roles_updated',
+            'user',
+            (string) $userId,
+            $oldUser,
+            $updatedUser,
+        )->record();
 
         return json(['success' => true, 'user' => $updatedUser]);
     }

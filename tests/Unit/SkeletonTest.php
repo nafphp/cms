@@ -14,6 +14,8 @@ final class SkeletonTest extends TestCase
 
         self::assertFileExists($basePath . '/bootstrap.php');
         self::assertFileExists($basePath . '/public/index.php');
+        self::assertFileExists($basePath . '/public/router.php');
+        self::assertFileExists($basePath . '/public/.htaccess');
         self::assertFileExists($basePath . '/app/routes.php');
         self::assertFileExists($basePath . '/app/pages.php');
         self::assertFileExists($basePath . '/app/api.php');

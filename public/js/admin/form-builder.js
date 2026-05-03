@@ -1,4 +1,5 @@
 import toast from '../lib/notifyJs/Modules/Toast.js';
+import prompt from '../lib/notifyJs/Modules/Prompt.js';
 import {initStyledSelects} from '../components/styledSelect.js';
 
 const inputClass = 'min-h-10 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white';
@@ -21,20 +22,19 @@ let activeSuggestInput = null;
 document.querySelectorAll('[data-form-builder]').forEach((root) => {
     const data = JSON.parse(root.dataset.form || '{}');
     const translationSuggestions = normalizeTranslationSuggestions(JSON.parse(root.dataset.translationSuggestions || '[]'));
+    const translationLanguage = String(root.dataset.translationLanguage || 'en');
+    const translationEndpoint = String(root.dataset.translationEndpoint || '/api/admin/translations/{language}');
     const fieldsRoot = root.querySelector('[data-fields]');
     const actionsRoot = root.querySelector('[data-actions]');
     const state = root.querySelector('[data-save-state]');
     const overviewUrl = root.dataset.overviewUrl || '/admin/forms';
     let identifierTouched = Boolean(data.identifier && data.identifier !== 'contact');
 
-    root.elements.title.value = data.title || '';
-    root.elements.titleKey.value = data.settings?.titleKey || '';
+    root.elements.title.value = data.settings?.titleKey || data.title || '';
     root.elements.identifier.value = data.identifier || '';
     root.elements.status.value = data.status || 'draft';
-    root.elements.submitLabel.value = data.settings?.submitLabel || '';
-    root.elements.submitLabelKey.value = data.settings?.submitLabelKey || '';
-    root.elements.successMessage.value = data.settings?.successMessage || '';
-    root.elements.successMessageKey.value = data.settings?.successMessageKey || '';
+    root.elements.submitLabel.value = data.settings?.submitLabelKey || data.settings?.submitLabel || '';
+    root.elements.successMessage.value = data.settings?.successMessageKey || data.settings?.successMessage || '';
     initStyledSelects(root.querySelectorAll('select[data-styled-select]'));
     root.elements.status.dispatchEvent(new Event('change'));
 
@@ -53,11 +53,11 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
         status: root.elements.status.value,
         fields,
         settings: {
-            titleKey: root.elements.titleKey.value,
+            titleKey: translationKeyOrEmpty(root.elements.title.value),
             submitLabel: root.elements.submitLabel.value,
-            submitLabelKey: root.elements.submitLabelKey.value,
+            submitLabelKey: translationKeyOrEmpty(root.elements.submitLabel.value),
             successMessage: root.elements.successMessage.value,
-            successMessageKey: root.elements.successMessageKey.value,
+            successMessageKey: translationKeyOrEmpty(root.elements.successMessage.value),
             actions,
         },
     });
@@ -88,11 +88,12 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
                     </div>
                     <label class="grid gap-1.5">
                         <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Label</span>
-                        <input class="${inputClass}" data-field-prop="label" value="${escapeHtml(field.label || '')}" placeholder="Email address">
-                    </label>
-                    <label class="grid gap-1.5">
-                        <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Label key</span>
-                        <input class="${inputClass} font-mono" data-field-prop="labelKey" value="${escapeHtml(field.labelKey || '')}" placeholder="${escapeHtml(defaultFieldKey(field, 'label'))}" data-translation-key-suggest data-translation-context="field.label" data-translation-source-prop="label">
+                        <span class="flex min-w-0 overflow-hidden rounded-md border border-slate-300 bg-white transition focus-within:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900">
+                            <input class="min-h-10 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-slate-950 outline-none dark:text-white" data-field-prop="label" value="${escapeHtml(field.labelKey || field.label || '')}" placeholder="${escapeHtml(defaultFieldKey(field, 'label'))}" data-translation-field data-translation-context="field.label" data-translation-fallback="Email address">
+                            <button class="inline-flex min-h-10 w-14 shrink-0 items-center justify-center border-l border-slate-300 bg-slate-50/70 px-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300" type="button" data-open-field-translation="${index}:label" title="Translation key" aria-label="Translation key">
+                                ${translationIcon()}
+                            </button>
+                        </span>
                     </label>
                     <label class="grid gap-1.5">
                         <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Key</span>
@@ -106,11 +107,12 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
                     </label>
                     <label class="grid gap-1.5">
                         <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Placeholder</span>
-                        <input class="${inputClass}" data-field-prop="placeholder" value="${escapeHtml(field.placeholder || '')}" placeholder="jane@example.com">
-                    </label>
-                    <label class="grid gap-1.5">
-                        <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Placeholder key</span>
-                        <input class="${inputClass} font-mono" data-field-prop="placeholderKey" value="${escapeHtml(field.placeholderKey || '')}" placeholder="${escapeHtml(defaultFieldKey(field, 'placeholder'))}" data-translation-key-suggest data-translation-context="field.placeholder" data-translation-source-prop="placeholder">
+                        <span class="flex min-w-0 overflow-hidden rounded-md border border-slate-300 bg-white transition focus-within:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900">
+                            <input class="min-h-10 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-slate-950 outline-none dark:text-white" data-field-prop="placeholder" value="${escapeHtml(field.placeholderKey || field.placeholder || '')}" placeholder="${escapeHtml(defaultFieldKey(field, 'placeholder'))}" data-translation-field data-translation-context="field.placeholder" data-translation-fallback="jane@example.com">
+                            <button class="inline-flex min-h-10 w-14 shrink-0 items-center justify-center border-l border-slate-300 bg-slate-50/70 px-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300" type="button" data-open-field-translation="${index}:placeholder" title="Translation key" aria-label="Translation key">
+                                ${translationIcon()}
+                            </button>
+                        </span>
                     </label>
                     ${field.type === 'select' ? `
                         <label class="grid gap-1.5">
@@ -203,22 +205,13 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
     };
 
     root.elements.title.addEventListener('input', () => {
-        if (!identifierTouched) {
+        if (!identifierTouched && !translationKeyOrEmpty(root.elements.title.value)) {
             root.elements.identifier.value = slug(root.elements.title.value);
         }
         state.textContent = JSON.stringify(payload()) === initial ? 'No unsaved changes.' : 'Unsaved changes.';
     });
     root.elements.identifier.addEventListener('input', () => {
         identifierTouched = true;
-    });
-    root.elements.titleKey.addEventListener('input', (event) => {
-        event.target.value = translationKey(event.target.value);
-    });
-    root.elements.submitLabelKey.addEventListener('input', (event) => {
-        event.target.value = translationKey(event.target.value);
-    });
-    root.elements.successMessageKey.addEventListener('input', (event) => {
-        event.target.value = translationKey(event.target.value);
     });
     const handleFieldInput = (event) => {
         const target = event.target.closest('[data-field-prop], [data-validator-prop]');
@@ -254,6 +247,7 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
 
         if (prop === 'label') {
             field.label = target.value;
+            field.labelKey = translationKeyOrEmpty(target.value);
             if (!field.nameTouched) {
                 field.name = slug(target.value);
                 card.querySelector('[data-field-prop="name"]').value = field.name;
@@ -262,9 +256,9 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
             field.nameTouched = true;
             field.name = slug(target.value);
             target.value = field.name;
-        } else if (prop === 'labelKey' || prop === 'placeholderKey') {
-            field[prop] = translationKey(target.value);
-            target.value = field[prop];
+        } else if (prop === 'placeholder') {
+            field.placeholder = target.value;
+            field.placeholderKey = translationKeyOrEmpty(target.value);
         } else if (prop === 'options') {
             field.options = target.value.split('\n').map((item) => item.trim()).filter(Boolean);
         } else {
@@ -355,6 +349,12 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
             render();
         }
 
+        const translationButton = event.target.closest('[data-open-translation-field], [data-open-field-translation]');
+        if (translationButton) {
+            openTranslationModal(translationButton);
+            return;
+        }
+
         const removeWebhook = event.target.closest('[data-remove-webhook-action]');
         if (removeWebhook) {
             const webhook = actions.filter((action) => action.type === 'webhook')[Number(removeWebhook.dataset.removeWebhookAction || -1)];
@@ -365,6 +365,153 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
             }
         }
     });
+
+    async function openTranslationModal(button) {
+        const target = translationTarget(button);
+        if (!target?.input) {
+            return;
+        }
+
+        const current = String(target.input.value || '');
+        const key = translationKeyOrEmpty(current) || target.defaultKey;
+        const existing = findTranslationSuggestion(translationSuggestions, key);
+        const value = existing?.value || (!translationKeyOrEmpty(current) ? current : target.fallback);
+        const promptResult = prompt(`
+            <div>Translation key</div>
+            <div class="form-translation-prompt translation-key-prompt notify-form">
+                <p class="notify-form-intro">Search or create a translation key for this form text.</p>
+                <div class="translation-key-grid">
+                    <label class="notify-field">
+                        <span class="notify-field-label">Key</span>
+                        <input class="font-mono" type="text" value="${escapeHtml(key)}" placeholder="${escapeHtml(target.defaultKey)}" autocomplete="off" data-form-translation-key>
+                    </label>
+                    <label class="notify-field">
+                        <span class="notify-field-label">Value</span>
+                        <input type="text" value="${escapeHtml(value)}" placeholder="${escapeHtml(target.fallback)}" autocomplete="off" data-form-translation-value>
+                    </label>
+                </div>
+                <p class="notify-form-intro">The form stores only the translation key for this text.</p>
+            </div>
+        `, {
+            confirmButtonText: 'Apply',
+            cancelButtonText: 'Cancel',
+            showCancelButton: true,
+            style: {width: 'min(980px, calc(100vw - 32px))', maxWidth: 'min(980px, calc(100vw - 32px))'},
+            confirmCallback: async (promptInstance) => {
+                const keyInput = promptInstance.container.querySelector('[data-form-translation-key]');
+                const valueInput = promptInstance.container.querySelector('[data-form-translation-value]');
+                const selectedKey = translationKey(String(keyInput?.value || ''));
+                const selectedValue = String(valueInput?.value || '');
+                if (selectedKey === '') {
+                    toast('Please enter a translation key.');
+                    keyInput?.focus();
+                    return true;
+                }
+
+                if (selectedValue.trim() !== '' || !findTranslationSuggestion(translationSuggestions, selectedKey)) {
+                    const saved = await saveTranslation(selectedKey, selectedValue);
+                    if (!saved) {
+                        return true;
+                    }
+                }
+
+                applyTranslationTarget(target, selectedKey);
+                promptInstance.promise.resolve(true);
+                promptInstance.remove();
+                return true;
+            },
+        });
+
+        window.setTimeout(() => bindTranslationPrompt(document.querySelector('.form-translation-prompt')), 0);
+        await promptResult;
+        hideTranslationSuggestions();
+    }
+
+    function translationTarget(button) {
+        const fieldTarget = button.dataset.openFieldTranslation;
+        if (fieldTarget) {
+            const [index, prop] = fieldTarget.split(':');
+            const field = fields[Number(index)];
+            const card = button.closest('[data-field-index]');
+            const input = card?.querySelector(`[data-field-prop="${CSS.escape(prop)}"]`);
+            if (!field || !(input instanceof HTMLInputElement)) {
+                return null;
+            }
+
+            return {
+                input,
+                field,
+                prop,
+                defaultKey: defaultFieldKey(field, prop),
+                fallback: String(field[prop] || input.dataset.translationFallback || ''),
+            };
+        }
+
+        const name = button.dataset.openTranslationField;
+        const input = name ? root.elements[name] : null;
+        if (!(input instanceof HTMLInputElement)) {
+            return null;
+        }
+
+        const suffix = name === 'submitLabel'
+            ? 'submit'
+            : (name === 'successMessage' ? 'success' : 'title');
+
+        return {
+            input,
+            name,
+            defaultKey: `forms.${slug(root.elements.identifier.value || 'contact') || 'contact'}.${suffix}`,
+            fallback: String(input.dataset.translationFallback || ''),
+        };
+    }
+
+    function applyTranslationTarget(target, key) {
+        target.input.value = key;
+        if (target.field && target.prop) {
+            target.field[target.prop] = key;
+            target.field[`${target.prop}Key`] = key;
+        }
+        state.textContent = JSON.stringify(payload()) === initial ? 'No unsaved changes.' : 'Unsaved changes.';
+    }
+
+    function bindTranslationPrompt(modal) {
+        if (!(modal instanceof HTMLElement)) {
+            return;
+        }
+
+        const keyInput = modal.querySelector('[data-form-translation-key]');
+        const valueInput = modal.querySelector('[data-form-translation-value]');
+        keyInput?.focus({preventScroll: true});
+        keyInput?.addEventListener('focus', () => showTranslationSuggestions(keyInput, root, translationSuggestions));
+        keyInput?.addEventListener('input', () => {
+            const existing = findTranslationSuggestion(translationSuggestions, keyInput.value);
+            if (existing && valueInput instanceof HTMLInputElement && valueInput.value.trim() === '') {
+                valueInput.value = existing.value;
+            }
+            showTranslationSuggestions(keyInput, root, translationSuggestions);
+        });
+        valueInput?.addEventListener('focus', () => showTranslationSuggestions(valueInput, root, translationSuggestions));
+        valueInput?.addEventListener('input', () => showTranslationSuggestions(valueInput, root, translationSuggestions));
+    }
+
+    async function saveTranslation(key, value) {
+        const entries = Object.fromEntries(translationSuggestions.map((suggestion) => [suggestion.key, suggestion.value]));
+        entries[key] = value;
+        const response = await (window.NixCMS?.json || fetch)(translationEndpoint.replace('{language}', encodeURIComponent(translationLanguage)), {
+            method: 'POST',
+            body: JSON.stringify({entries}),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.success) {
+            toast(result.reason || 'Could not save translations.');
+            return false;
+        }
+
+        setTranslationSuggestion(translationSuggestions, key, value);
+        toast('Translation saved.');
+        return true;
+    }
+
     root.addEventListener('submit', async (event) => {
         event.preventDefault();
         root.querySelectorAll('[data-error-for]').forEach((node) => {
@@ -404,13 +551,28 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
 document.addEventListener('click', (event) => {
     const option = event.target.closest('[data-translation-suggestion-key]');
     if (option && activeSuggestInput) {
-        activeSuggestInput.value = option.dataset.translationSuggestionKey || '';
-        activeSuggestInput.dispatchEvent(new Event('input', {bubbles: true}));
+        const key = option.dataset.translationSuggestionKey || '';
+        const promptContainer = activeSuggestInput.closest('.notify');
+        const keyInput = promptContainer?.querySelector('[data-form-translation-key]');
+        const valueInput = promptContainer?.querySelector('[data-form-translation-value]');
+        const suggestionValue = option.dataset.translationSuggestionValue || '';
+
+        if (keyInput instanceof HTMLInputElement) {
+            keyInput.value = key;
+            keyInput.dispatchEvent(new Event('input', {bubbles: true}));
+        } else {
+            activeSuggestInput.value = key;
+            activeSuggestInput.dispatchEvent(new Event('input', {bubbles: true}));
+        }
+        if (valueInput instanceof HTMLInputElement) {
+            valueInput.value = suggestionValue;
+            valueInput.dispatchEvent(new Event('input', {bubbles: true}));
+        }
         hideTranslationSuggestions();
         return;
     }
 
-    if (!event.target.closest('[data-translation-key-suggest]') && !event.target.closest('[data-translation-suggest-box]')) {
+    if (!event.target.closest('[data-translation-key-suggest], [data-form-translation-key], [data-form-translation-value]') && !event.target.closest('[data-translation-suggest-box]')) {
         hideTranslationSuggestions();
     }
 });
@@ -478,6 +640,28 @@ function translationKey(value) {
     return String(value || '').trim().toLowerCase().replace(/[^a-z0-9._-]+/g, '.').replace(/[.]{2,}/g, '.').replace(/^[._-]+|[._-]+$/g, '');
 }
 
+function translationKeyOrEmpty(value) {
+    const text = String(value || '').trim();
+    const key = translationKey(text);
+    return key === text && key.includes('.') ? key : '';
+}
+
+function findTranslationSuggestion(suggestions, key) {
+    const normalizedKey = String(key || '').trim();
+    return suggestions.find((suggestion) => suggestion.key === normalizedKey) || null;
+}
+
+function setTranslationSuggestion(suggestions, key, value) {
+    const existing = suggestions.find((suggestion) => suggestion.key === key);
+    if (existing) {
+        existing.value = value;
+        return;
+    }
+
+    suggestions.push({key, value});
+    suggestions.sort((a, b) => a.key.localeCompare(b.key));
+}
+
 function defaultFieldKey(field, property) {
     const base = field?.name || slug(field?.label || 'field');
     return base ? `forms.${base}.${property}` : `forms.field.${property}`;
@@ -510,7 +694,7 @@ function showTranslationSuggestions(input, root, suggestions) {
     suggestBox.style.top = `${rect.bottom + 6}px`;
     suggestBox.style.width = `${Math.max(rect.width, 320)}px`;
     suggestBox.innerHTML = matches.map((suggestion) => `
-        <button type="button" class="grid w-full gap-0.5 rounded px-2.5 py-2 text-left transition hover:bg-slate-100 dark:hover:bg-slate-900" data-translation-suggestion-key="${escapeHtml(suggestion.key)}">
+        <button type="button" class="grid w-full gap-0.5 rounded px-2.5 py-2 text-left transition hover:bg-slate-100 dark:hover:bg-slate-900" data-translation-suggestion-key="${escapeHtml(suggestion.key)}" data-translation-suggestion-value="${escapeHtml(suggestion.value)}">
             <span class="font-mono text-xs font-semibold text-slate-900 dark:text-slate-100">${highlight(suggestion.key, input.value)}</span>
             <span class="truncate text-xs text-slate-500 dark:text-slate-400">${escapeHtml(suggestion.value)}</span>
         </button>

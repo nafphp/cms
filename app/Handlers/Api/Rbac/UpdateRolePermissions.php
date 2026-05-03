@@ -6,6 +6,7 @@ namespace NixCMS\Handlers\Api\Rbac;
 
 use NixCMS\Handlers\Support\ReadsJsonBody;
 use NixCMS\Repositories\RoleRepository;
+use NixCMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 use function NixPHP\ORM\repo;
@@ -23,14 +24,31 @@ final class UpdateRolePermissions
             return json(['success' => false, 'reason' => 'Invalid role assignment payload.'], 400);
         }
 
-        $permissionNames = repo(RoleRepository::class)->updatePermissionsByRoleId($roleId, $permissionIds);
+        $repository = repo(RoleRepository::class);
+        $oldRole = null;
+        foreach ($repository->findAllWithPermissions() as $role) {
+            if ((int) ($role['id'] ?? 0) === $roleId) {
+                $oldRole = $role;
+                break;
+            }
+        }
+
+        $permissionNames = $repository->updatePermissionsByRoleId($roleId, $permissionIds);
         $updatedRole = null;
-        foreach (repo(RoleRepository::class)->findAllWithPermissions() as $role) {
+        foreach ($repository->findAllWithPermissions() as $role) {
             if ((int) ($role['id'] ?? 0) === $roleId) {
                 $updatedRole = $role;
                 break;
             }
         }
+
+        AuditEntry::create(
+            'role.permissions_updated',
+            'role',
+            (string) $roleId,
+            $oldRole,
+            $updatedRole,
+        )->record();
 
         return json([
             'success' => true,

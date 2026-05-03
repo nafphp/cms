@@ -8,6 +8,7 @@ use NixCMS\Enums\ArticleStatus;
 use NixCMS\Enums\Permission;
 use NixCMS\Exceptions\AuthException;
 use NixCMS\Handlers\Support\ReadsJsonBody;
+use NixCMS\Support\AuditEntry;
 use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
@@ -103,6 +104,25 @@ final class ReviewArticle
                 $connection->rollBack();
                 throw $throwable;
             }
+
+            AuditEntry::create(
+                'article.reviewed',
+                'article',
+                (string) $articleIdValue,
+                [
+                    'article_version_id' => (int) $version['id'],
+                    'language' => $languageValue,
+                    'status' => $currentStatus,
+                ],
+                [
+                    'article_version_id' => (int) $version['id'],
+                    'language' => $languageValue,
+                    'status' => $newStatus,
+                    'review_action' => $action,
+                    'published_directly' => $publishArticle,
+                ],
+                ['has_comment' => $comment !== null && $comment !== ''],
+            )->record();
 
             return ['success' => true, 'action' => $action, 'newStatus' => $newStatus];
         });

@@ -6,6 +6,7 @@ namespace NixCMS\Handlers\Api\User;
 
 use NixCMS\Handlers\Support\ReadsJsonBody;
 use NixCMS\Repositories\UserRepository;
+use NixCMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 use function NixPHP\ORM\repo;
@@ -46,6 +47,14 @@ final class UpdateUserPassword
         if (!$repository->upgradePasswordHash($userId, $password)) {
             return json(['success' => false, 'reason' => 'Could not update password.'], 400);
         }
+
+        AuditEntry::create(
+            'user.password_updated',
+            'user',
+            (string) $userId,
+            null,
+            ['password_updated' => true],
+        )->record();
 
         return json(['success' => true, 'userId' => $userId]);
     }

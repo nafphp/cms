@@ -29,6 +29,23 @@ composer serve
 
 Open `http://127.0.0.1:8080`.
 
+The webroot is `public`. When using the PHP built-in server directly, route
+unknown paths through the front controller:
+
+```bash
+php -S localhost:8000 -t public public/router.php
+```
+
+If your shell is already inside `public`, use:
+
+```bash
+php -S localhost:8000 router.php
+```
+
+Production web servers should also use `public` as the DocumentRoot and rewrite
+missing files to `index.php`. Apache can use `public/.htaccess`; nginx should use
+the equivalent `try_files $uri $uri/ /index.php?$query_string;`.
+
 ## Assets
 
 Install frontend dependencies once:

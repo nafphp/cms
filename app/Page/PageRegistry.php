@@ -7,6 +7,7 @@ namespace NixCMS\Page;
 use NixCMS\Controllers\Page\PageController;
 use NixCMS\Enums\Permission;
 use NixCMS\Repositories\PageRepository;
+use NixCMS\Support\AuditEntry;
 use function NixPHP\I18n\lang;
 use function NixPHP\route;
 
@@ -130,17 +131,61 @@ final class PageRegistry
      */
     public function save(array $payload): int
     {
-        return $this->repository()->save($payload);
+        $old = null;
+        $id = (int) ($payload['id'] ?? 0);
+        if ($id > 0) {
+            $old = $this->repository()->find($id);
+        }
+
+        $savedId = $this->repository()->save($payload);
+        $new = $this->repository()->find($savedId);
+
+        AuditEntry::create(
+            $old === null ? 'page.created' : 'page.updated',
+            'page',
+            (string) $savedId,
+            $this->pageAuditSnapshot($old),
+            $this->pageAuditSnapshot($new),
+            [
+                'path' => (string) ($new['path'] ?? $payload['path'] ?? ''),
+                'language' => (string) ($new['language'] ?? $payload['language'] ?? ''),
+            ],
+        )->record();
+
+        return $savedId;
     }
 
     public function publish(int $id): bool
     {
-        return $this->repository()->publish($id);
+        $old = $this->repository()->find($id);
+        $published = $this->repository()->publish($id);
+        if ($published) {
+            AuditEntry::create(
+                'page.published',
+                'page',
+                (string) $id,
+                $this->pageAuditSnapshot($old),
+                $this->pageAuditSnapshot($this->repository()->find($id)),
+            )->record();
+        }
+
+        return $published;
     }
 
     public function delete(int $id): bool
     {
-        return $this->repository()->delete($id);
+        $old = $this->repository()->find($id);
+        $deleted = $this->repository()->delete($id);
+        if ($deleted) {
+            AuditEntry::create(
+                'page.deleted',
+                'page',
+                (string) $id,
+                $this->pageAuditSnapshot($old),
+            )->record();
+        }
+
+        return $deleted;
     }
 
     public function dataRouteName(Page $page, PageDataHandler $dataHandler): string
@@ -165,6 +210,30 @@ final class PageRegistry
     {
         $path = '/' . ltrim(trim($path), '/');
         return $path === '/' ? '/' : rtrim($path, '/');
+    }
+
+    /**
+     * @param array<string, mixed>|null $page
+     * @return array<string, mixed>|null
+     */
+    private function pageAuditSnapshot(?array $page): ?array
+    {
+        if ($page === null) {
+            return null;
+        }
+
+        return [
+            'id' => (int) ($page['id'] ?? 0),
+            'identifier' => (string) ($page['identifier'] ?? ''),
+            'title' => (string) ($page['title'] ?? ''),
+            'path' => (string) ($page['path'] ?? ''),
+            'language' => (string) ($page['language'] ?? ''),
+            'status' => (string) ($page['status'] ?? ''),
+            'template_id' => (string) ($page['template_id'] ?? ''),
+            'layout' => (string) ($page['layout'] ?? ''),
+            'blocks' => $page['blocks'] ?? [],
+            'meta' => $page['meta'] ?? [],
+        ];
     }
 
     private function loadStoredPages(): void
