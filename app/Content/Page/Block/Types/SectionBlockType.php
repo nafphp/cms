@@ -38,7 +38,7 @@ final class SectionBlockType extends AbstractBlockType
         return [
             'width' => 'default',
             'padding' => 'medium',
-            'tone' => 'plain',
+            'tone' => 'none',
             'children' => [],
         ];
     }
@@ -48,7 +48,7 @@ final class SectionBlockType extends AbstractBlockType
         return [
             ['name' => 'width', 'label' => 'Width', 'type' => 'select', 'options' => ['default', 'narrow', 'wide', 'full']],
             ['name' => 'padding', 'label' => 'Padding', 'type' => 'select', 'options' => ['none', 'small', 'medium', 'large']],
-            ['name' => 'tone', 'label' => 'Surface', 'type' => 'select', 'options' => ['plain', 'soft', 'card', 'accent']],
+            ['name' => 'tone', 'label' => 'Surface', 'type' => 'select', 'options' => ['none', 'soft', 'card', 'accent']],
             ['name' => 'children', 'label' => 'Children', 'type' => 'children'],
         ];
     }

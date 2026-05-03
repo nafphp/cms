@@ -56,7 +56,8 @@ if ($contentWidth !== '') {
 }
 $bodyClasses = trim(implode(' ', [
     'page-theme',
-    ($page->meta()->theme->contentWidthIncludesChrome ?? false) ? 'page-theme--bounded-chrome' : '',
+    ($page->meta()->theme->contentWidthIncludesChrome ?? true) ? 'page-theme--bounded-chrome' : '',
+    ($page->meta()->theme->contentWidthIncludesChromeBackground ?? false) ? 'page-theme--bounded-chrome-background' : '',
     ...$template->bodyClasses(),
     ...$page->bodyClasses(),
 ]));

@@ -44,6 +44,7 @@ final class ChartBlockType extends AbstractBlockType
             'showLegend' => true,
             'showLabels' => true,
             'smoothLine' => true,
+            ...$this->surfaceDefaults(),
             'metrics' => [
                 ['label' => 'Draft', 'value' => 12, 'color' => '#3b82f6'],
                 ['label' => 'Review', 'value' => 7, 'color' => '#f59e0b'],
@@ -69,6 +70,7 @@ final class ChartBlockType extends AbstractBlockType
             ['name' => 'showLegend', 'label' => 'Show legend', 'type' => 'checkbox'],
             ['name' => 'showLabels', 'label' => 'Show pie labels', 'type' => 'checkbox'],
             ['name' => 'smoothLine', 'label' => 'Smooth line', 'type' => 'checkbox'],
+            $this->surfaceField(),
             ['name' => 'metrics', 'label' => 'Metrics', 'type' => 'metrics'],
         ];
     }

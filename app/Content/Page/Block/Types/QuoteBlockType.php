@@ -38,6 +38,7 @@ final class QuoteBlockType extends AbstractBlockType
         return [
             'quote' => 'A focused quote or testimonial belongs here.',
             'source' => '',
+            ...$this->surfaceDefaults(),
         ];
     }
 
@@ -46,6 +47,7 @@ final class QuoteBlockType extends AbstractBlockType
         return [
             ['name' => 'quote', 'label' => 'Quote', 'type' => 'textarea'],
             ['name' => 'source', 'label' => 'Source', 'type' => 'text'],
+            $this->surfaceField(),
         ];
     }
 }

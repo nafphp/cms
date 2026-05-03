@@ -42,7 +42,7 @@ final class NavigationBlockType extends AbstractBlockType
             'identifier' => (string) ($navigationOptions[0]['value'] ?? 'main'),
             'presentation' => 'horizontal',
             'language' => 'current',
-            'surface' => 'plain',
+            ...$this->surfaceDefaults(),
         ];
     }
 
@@ -52,7 +52,7 @@ final class NavigationBlockType extends AbstractBlockType
             ['name' => 'identifier', 'label' => 'Navigation', 'type' => 'select', 'options' => PageBuilderBlockOptions::navigationOptions()],
             ['name' => 'presentation', 'label' => 'Presentation', 'type' => 'select', 'options' => ['horizontal', 'vertical', 'compact']],
             ['name' => 'language', 'label' => 'Language', 'type' => 'select', 'options' => ['current', 'de', 'en', 'fr', 'es', 'it']],
-            ['name' => 'surface', 'label' => 'Surface', 'type' => 'select', 'options' => ['plain', 'card']],
+            $this->surfaceField(),
         ];
     }
 }

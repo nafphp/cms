@@ -143,6 +143,39 @@ body.is-admin-navigation-dragging [data-admin-navigation-item] {
     box-shadow: 0 22px 54px rgba(0, 0, 0, .32);
 }
 
+.nixcms-chart--surface-none {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.dark .nixcms-chart--surface-none {
+    background: transparent;
+    box-shadow: none;
+}
+
+.nixcms-chart--surface-soft {
+    border-color: transparent;
+    background: var(--page-panel-soft, var(--surface-soft));
+    box-shadow: none;
+}
+
+.nixcms-chart--surface-accent {
+    border-color: color-mix(in srgb, var(--page-accent, var(--admin-page-accent)) 36%, var(--admin-line));
+    background: color-mix(in srgb, var(--page-accent, var(--admin-page-accent)) 12%, var(--admin-panel));
+    box-shadow: none;
+}
+
+.nixcms-chart--surface-none .nixcms-chart__header {
+    padding: 0 0 .5rem;
+}
+
+.nixcms-chart--surface-none .nixcms-chart__surface {
+    padding: 0;
+}
+
 .nixcms-chart__header {
     display: flex;
     align-items: flex-start;
@@ -320,6 +353,15 @@ body.page-theme {
 
 body.page-theme--bounded-chrome .page-template-chrome-inner,
 .page-builder[data-content-width-includes-chrome="true"] .page-template-chrome-inner {
+    max-width: min(100%, var(--page-content-max-width, var(--page-template-default-width, 1120px)));
+    margin-inline: auto;
+}
+
+body.page-theme--bounded-chrome-background .page-site-header,
+body.page-theme--bounded-chrome-background .page-site-footer,
+.page-builder[data-content-width-includes-chrome-background="true"] .page-site-header,
+.page-builder[data-content-width-includes-chrome-background="true"] .page-site-footer {
+    width: 100%;
     max-width: min(100%, var(--page-content-max-width, var(--page-template-default-width, 1120px)));
     margin-inline: auto;
 }
@@ -595,7 +637,7 @@ body.page-theme--bounded-chrome .page-template-chrome-inner,
     overflow: hidden;
 }
 
-.page-layout-child--plain {
+.page-layout-child--none {
     padding: 0;
 }
 
@@ -974,6 +1016,10 @@ body.page-builder-live-preview .page-template-main {
 .page-builder[data-preview-viewport="mobile"] .page-template-main {
     gap: 1rem;
     padding: 1rem;
+}
+
+.page-builder[data-preview-viewport="mobile"] .page-builder-custom-toolbar {
+    display: none;
 }
 
 .page-builder[data-preview-viewport="tablet"] .page-template-main {

@@ -40,6 +40,7 @@ final class CtaBlockType extends AbstractBlockType
             'text' => 'Give visitors a direct next step.',
             'buttonLabel' => 'Continue',
             'buttonUrl' => '#',
+            ...$this->surfaceDefaults(),
         ];
     }
 
@@ -50,6 +51,7 @@ final class CtaBlockType extends AbstractBlockType
             ['name' => 'text', 'label' => 'Text', 'type' => 'textarea'],
             ['name' => 'buttonLabel', 'label' => 'Button label', 'type' => 'text'],
             ['name' => 'buttonUrl', 'label' => 'Button URL', 'type' => 'text'],
+            $this->surfaceField(),
         ];
     }
 }

@@ -12,11 +12,14 @@ $items = nixcms_page_block_nav_items(
     $language === 'current' ? $pageObject?->language() : $language,
     $fallbackIdentifier
 );
-$surface = (string) ($props['surface'] ?? 'plain');
-$surface = in_array($surface, ['plain', 'card'], true) ? $surface : 'plain';
-$class = $surface === 'card'
-    ? 'rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-5'
-    : 'w-full';
+$surface = (string) ($props['surface'] ?? 'none');
+$surface = in_array($surface, ['none', 'soft', 'card', 'accent'], true) ? $surface : 'none';
+$class = [
+    'none' => 'w-full',
+    'soft' => 'w-full rounded-lg bg-[var(--page-panel-soft)] p-5',
+    'card' => 'w-full rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-5',
+    'accent' => 'w-full rounded-lg border border-[color-mix(in_srgb,var(--page-accent)_36%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))] p-5',
+][$surface];
 
 ?>
 <div class="<?= s($class) ?>">

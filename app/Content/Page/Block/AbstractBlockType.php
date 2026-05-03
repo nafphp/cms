@@ -26,6 +26,22 @@ abstract class AbstractBlockType implements BlockTypeInterface
         return [];
     }
 
+    /**
+     * @return array<string, string>
+     */
+    protected function surfaceDefaults(string $surface = 'none'): array
+    {
+        return ['surface' => $surface];
+    }
+
+    /**
+     * @return array{name: string, label: string, type: string, options: array<int, string>}
+     */
+    protected function surfaceField(): array
+    {
+        return ['name' => 'surface', 'label' => 'Surface', 'type' => 'select', 'options' => ['none', 'soft', 'card', 'accent']];
+    }
+
     public function contentTypes(): array
     {
         return [];

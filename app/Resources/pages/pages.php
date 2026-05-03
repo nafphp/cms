@@ -82,7 +82,8 @@ $persistedValuesForBuilder = static function (array $page): array {
         'seo.canonicalUrl' => (string) ($seo['canonicalUrl'] ?? ''),
         'theme.accent' => (string) ($theme['accent'] ?? ''),
         'theme.contentWidth' => (string) ($theme['contentWidth'] ?? 'template'),
-        'theme.contentWidthIncludesChrome' => filter_var($theme['contentWidthIncludesChrome'] ?? false, FILTER_VALIDATE_BOOLEAN),
+        'theme.contentWidthIncludesChrome' => filter_var($theme['contentWidthIncludesChrome'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'theme.contentWidthIncludesChromeBackground' => filter_var($theme['contentWidthIncludesChromeBackground'] ?? false, FILTER_VALIDATE_BOOLEAN),
         'defaultNavigationIdentifier' => (string) ($extra['defaultNavigationIdentifier'] ?? ''),
     ];
 };

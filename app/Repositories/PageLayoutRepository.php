@@ -10,6 +10,8 @@ use function NixPHP\Database\database;
 
 final class PageLayoutRepository
 {
+    private ?string $lastError = null;
+
     public function __construct(private ?PDO $connection = null)
     {
     }
@@ -66,6 +68,7 @@ final class PageLayoutRepository
      */
     public function save(array $payload): array
     {
+        $this->lastError = null;
         $connection = $this->connection();
         if (!$connection instanceof PDO) {
             throw new \RuntimeException('No database connection available.');
@@ -76,7 +79,7 @@ final class PageLayoutRepository
         $description = trim((string) ($payload['description'] ?? ''));
         $layout = trim((string) ($payload['layout'] ?? 'layouts.page')) ?: 'layouts.page';
         $view = trim((string) ($payload['view'] ?? 'page.templates.custom')) ?: 'page.templates.custom';
-        $meta = is_array($payload['meta'] ?? null) ? $payload['meta'] : [];
+        $meta = $this->filterMeta(is_array($payload['meta'] ?? null) ? $payload['meta'] : []);
         $errors = [];
         $slots = (new CustomLayoutNormalizer())->normalize(
             is_array($payload['slots'] ?? null) ? $payload['slots'] : [],
@@ -131,6 +134,41 @@ final class PageLayoutRepository
         $statement->execute($params);
 
         return $this->find((int) $connection->lastInsertId()) ?? [];
+    }
+
+    public function delete(int $id): bool
+    {
+        $this->lastError = null;
+        $connection = $this->connection();
+        if (!$connection instanceof PDO || $id <= 0) {
+            $this->lastError = 'Invalid layout id.';
+            return false;
+        }
+
+        if ($this->find($id) === null) {
+            $this->lastError = 'Layout does not exist.';
+            return false;
+        }
+
+        try {
+            if ($this->isReferencedByPage($id)) {
+                $this->lastError = 'Layout is still used by one or more pages.';
+                return false;
+            }
+
+            $statement = $connection->prepare('DELETE FROM page_layouts WHERE id = :id');
+            $statement->execute(['id' => $id]);
+
+            return $statement->rowCount() > 0;
+        } catch (\Throwable) {
+            $this->lastError = 'Layout could not be deleted.';
+            return false;
+        }
+    }
+
+    public function lastError(): ?string
+    {
+        return $this->lastError;
     }
 
     /**
@@ -228,6 +266,63 @@ final class PageLayoutRepository
         $id = (int) ($statement->fetchColumn() ?: 0);
 
         return $id > 0 && $id !== $ignoreId;
+    }
+
+    private function isReferencedByPage(int $layoutId): bool
+    {
+        $connection = $this->connection();
+        if (!$connection instanceof PDO) {
+            return false;
+        }
+
+        $statement = $connection->query('SELECT meta_json FROM pages');
+        $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach (is_array($rows) ? $rows : [] as $row) {
+            $meta = $this->decodeJson((string) ($row['meta_json'] ?? '{}'));
+            $referencedId = (int) ($meta['layoutPresetId'] ?? $meta['custom_layout_ref'] ?? 0);
+            if ($referencedId === $layoutId) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Pages reference page_layouts only through page meta. There is no foreign key;
+     * deleting a referenced layout is rejected here so page migration stays explicit.
+     *
+     * @param array<string, mixed> $meta
+     * @return array<string, mixed>
+     */
+    private function filterMeta(array $meta): array
+    {
+        $filtered = [];
+
+        foreach (['source', 'createdBy'] as $key) {
+            $value = $meta[$key] ?? null;
+            if (is_scalar($value) || $value instanceof \Stringable) {
+                $filtered[$key] = (string) $value;
+            }
+        }
+
+        if (is_array($meta['tags'] ?? null)) {
+            $tags = [];
+            foreach ($meta['tags'] as $tag) {
+                if (is_scalar($tag) || $tag instanceof \Stringable) {
+                    $tag = trim((string) $tag);
+                    if ($tag !== '') {
+                        $tags[] = $tag;
+                    }
+                }
+            }
+            if ($tags !== []) {
+                $filtered['tags'] = array_values(array_unique($tags));
+            }
+        }
+
+        return $filtered;
     }
 
     private function decodeJson(string $json): array

@@ -10,8 +10,8 @@ $width = (string) ($props['width'] ?? 'default');
 $width = in_array($width, ['default', 'narrow', 'wide', 'full'], true) ? $width : 'default';
 $padding = (string) ($props['padding'] ?? 'medium');
 $padding = in_array($padding, ['none', 'small', 'medium', 'large'], true) ? $padding : 'medium';
-$tone = (string) ($props['tone'] ?? 'plain');
-$tone = in_array($tone, ['plain', 'soft', 'card', 'accent'], true) ? $tone : 'plain';
+$tone = (string) ($props['tone'] ?? 'none');
+$tone = in_array($tone, ['none', 'soft', 'card', 'accent'], true) ? $tone : 'none';
 $renderer = isset($nestedRenderer) && $nestedRenderer instanceof PageNestedBlockRenderer ? $nestedRenderer : new PageNestedBlockRenderer();
 $depth = (int) ($nestedDepth ?? 0);
 

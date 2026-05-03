@@ -143,7 +143,8 @@ These sections are generated from registries and enums. Edit the source code, th
 | `api.admin.media.update` | `POST` | `/api/admin/media/{id}/update` | `media.edit` |
 | `api.admin.navigation.delete` | `POST` | `/api/admin/navigation/{navigationId}/delete` | `navigation.delete` |
 | `api.admin.navigation.publish` | `POST` | `/api/admin/navigation/{navigationId}/publish` | `navigation.edit` |
-| `api.admin.page-layouts.store` | `POST` | `/api/admin/page-layouts` | `pages.create` |
+| `api.admin.page-layouts.store` | `POST` | `/api/admin/page-layouts` | any of `pages.create`, `pages.edit` |
+| `api.admin.page-layouts.delete` | `DELETE` | `/api/admin/page-layouts/{id}` | `pages.delete` |
 | `api.admin.pages.delete` | `POST` | `/api/admin/pages/{id}/delete` | `pages.delete` |
 | `api.admin.rbac.permissions` | `GET` | `/api/admin/rbac/permissions` | `permissions.manage` |
 | `api.admin.rbac.permissions.create` | `POST` | `/api/admin/rbac/permissions/create` | `permissions.manage` |

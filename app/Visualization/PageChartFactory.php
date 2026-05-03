@@ -23,6 +23,7 @@ final class PageChartFactory
         $options = [
             'datasetLabel' => $this->translate((string) ($props['datasetLabel'] ?? 'Value')),
             'height' => $height,
+            'surface' => $this->surface($props['surface'] ?? 'none'),
             'colors' => $this->colors($props),
             'echarts' => [
                 'legend' => [
@@ -204,6 +205,12 @@ final class PageChartFactory
     private function chartType(string $type): string
     {
         return in_array($type, ['bar', 'line', 'metric-bars', 'doughnut', 'pie'], true) ? $type : 'bar';
+    }
+
+    private function surface(mixed $surface): string
+    {
+        $surface = (string) $surface;
+        return in_array($surface, ['none', 'soft', 'card', 'accent'], true) ? $surface : 'none';
     }
 
     private function height(mixed $value): int

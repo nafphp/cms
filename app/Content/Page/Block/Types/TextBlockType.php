@@ -20,7 +20,7 @@ final class TextBlockType extends AbstractBlockType
 
     public function description(): string
     {
-        return 'Plain copy for short intro, aside, or CTA text.';
+        return 'Simple copy for short intro, aside, or CTA text.';
     }
 
     public function regions(): array

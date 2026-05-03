@@ -64,7 +64,7 @@ const customLayoutSurfaces = [
     {value: 'accent', label: 'Accent', labelKey: 'surfaceAccent'},
 ];
 const layoutChildContainerStyles = [
-    {value: 'plain', label: 'Plain', labelKey: 'containerPlain'},
+    {value: 'none', label: 'None', labelKey: 'surfaceNone'},
     {value: 'border', label: 'Border', labelKey: 'containerBorder'},
     {value: 'soft', label: 'Soft', labelKey: 'containerSoft'},
     {value: 'card', label: 'Card', labelKey: 'containerCard'},
@@ -143,7 +143,10 @@ class PageBuilder {
             customSlotsCount: ':count custom slots',
             deleteSlot: 'Delete slot',
             duplicateSlot: 'A slot with this id already exists.',
-            addMenuBlock: 'Menü hinzufügen',
+            addHeaderBlock: 'Header hinzufügen',
+            addFooterBlock: 'Footer hinzufügen',
+            chromeContentWidth: 'Header/footer content',
+            chromeBackgroundWidth: 'Header/footer background',
             saveCustomLayout: 'Save as layout',
             saveLayoutTitle: 'Save custom layout',
             saveLayoutIntro: 'Save this slot structure as a reusable layout for future pages.',
@@ -187,7 +190,7 @@ class PageBuilder {
             surfaceSoft: 'Soft',
             surfaceCard: 'Card',
             surfaceAccent: 'Accent',
-            containerPlain: 'Plain',
+            containerNone: 'None',
             containerBorder: 'Border',
             containerSoft: 'Soft',
             containerCard: 'Card',
@@ -326,7 +329,10 @@ class PageBuilder {
             this.persistedValues['theme.contentWidth'] = 'template';
         }
         if (!Object.prototype.hasOwnProperty.call(this.persistedValues, 'theme.contentWidthIncludesChrome')) {
-            this.persistedValues['theme.contentWidthIncludesChrome'] = false;
+            this.persistedValues['theme.contentWidthIncludesChrome'] = true;
+        }
+        if (!Object.prototype.hasOwnProperty.call(this.persistedValues, 'theme.contentWidthIncludesChromeBackground')) {
+            this.persistedValues['theme.contentWidthIncludesChromeBackground'] = false;
         }
         this.ensureTemplateDefaults();
         this.syncPageTheme();
@@ -584,11 +590,17 @@ class PageBuilder {
         return value === true || value === 'true' || value === 1 || value === '1';
     }
 
+    contentWidthIncludesChromeBackground() {
+        const value = this.persistedValues['theme.contentWidthIncludesChromeBackground'];
+        return value === true || value === 'true' || value === 1 || value === '1';
+    }
+
     syncPageTheme() {
         this.root.style.setProperty('--page-accent', this.pageAccent());
         this.root.style.setProperty('--admin-page-accent', this.pageAccent());
         this.root.style.setProperty('--page-template-default-width', this.templateDefaultWidth());
         this.root.dataset.contentWidthIncludesChrome = this.contentWidthIncludesChrome() ? 'true' : 'false';
+        this.root.dataset.contentWidthIncludesChromeBackground = this.contentWidthIncludesChromeBackground() ? 'true' : 'false';
         const width = this.contentWidthCssValue();
         if (width !== '') {
             this.root.style.setProperty('--page-content-max-width', width);
@@ -739,7 +751,7 @@ class PageBuilder {
     }
 
     layoutChildContainerStyle(content) {
-        return optionValue(layoutChildContainerStyles, content?.props?.containerStyle, 'plain');
+        return optionValue(layoutChildContainerStyles, content?.props?.containerStyle, 'none');
     }
 
     layoutChildContainerClass(content, preview = false) {
@@ -854,7 +866,7 @@ class PageBuilder {
             return 'aside';
         }
         if (region === 'header' || region === 'footer') {
-            return 'small';
+            return 'full';
         }
 
         return 'medium';
@@ -912,24 +924,25 @@ class PageBuilder {
         this.render();
     }
 
-    addNavigationSlot() {
-        const definition = this.contentTypeDefinition('navigation');
+    addChromeSlot(type) {
+        const definition = this.contentTypeDefinition(type);
         if (!definition) {
             return;
         }
 
-        const id = this.uniqueCustomSlotId(this.labels.addMenuBlock || definition.label, 'navigation');
+        const region = type === 'footer' ? 'footer' : 'header';
+        const id = this.uniqueCustomSlotId(definition.label, type);
         this.customLayout.push({
             id,
-            label: definition.label || 'Navigation',
-            region: 'header',
-            size: 'large',
+            label: definition.label || type,
+            region,
+            size: 'full',
             position: 'stretch',
             maxHeight: 'none',
             overflow: 'visible',
             surface: 'none',
-            accepts: ['navigation'],
-            defaultContentType: 'navigation',
+            accepts: [type],
+            defaultContentType: type,
         });
         this.syncCustomTemplateBlocks();
         this.selectedBlockId = id;
@@ -1199,9 +1212,10 @@ class PageBuilder {
             return;
         }
 
-        if (event.target.closest('[data-add-navigation-slot]')) {
+        const addChromeSlot = event.target.closest('[data-add-chrome-slot]');
+        if (addChromeSlot) {
             event.preventDefault();
-            this.addNavigationSlot();
+            this.addChromeSlot(addChromeSlot.dataset.addChromeSlot || 'header');
             return;
         }
 
@@ -1445,7 +1459,7 @@ class PageBuilder {
             const child = this.contentAtPath(layoutChildContainerStyle.dataset.layoutChildContainerStyle || '');
             if (child) {
                 child.props = child.props && typeof child.props === 'object' && !Array.isArray(child.props) ? child.props : {};
-                child.props.containerStyle = optionValue(layoutChildContainerStyles, layoutChildContainerStyle.value, 'plain');
+                child.props.containerStyle = optionValue(layoutChildContainerStyles, layoutChildContainerStyle.value, 'none');
                 this.renderBlocks();
                 this.renderPagePreview();
                 this.renderJson();
@@ -1632,7 +1646,7 @@ class PageBuilder {
         if (key.startsWith('theme.')) {
             this.syncPageTheme();
         }
-        if (key === 'theme.contentWidth' || key === 'theme.contentWidthIncludesChrome') {
+        if (key === 'theme.contentWidth' || key === 'theme.contentWidthIncludesChrome' || key === 'theme.contentWidthIncludesChromeBackground') {
             this.renderPreviewChrome();
         }
         this.renderMeta();
@@ -2276,7 +2290,7 @@ class PageBuilder {
 
         if (block.preview === 'navigation') {
             return `
-                <div class="border-b border-[var(--page-border)] bg-[var(--page-header-bg)] text-[var(--page-header-text)] ${className}">
+                <div class="page-site-header border-b border-[var(--page-border)] bg-[var(--page-header-bg)] text-[var(--page-header-text)] ${className}">
                     <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 px-6 py-4">
                         <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[var(--page-accent)] text-sm font-black text-white">N</span>
                         <strong class="text-base font-bold">NixCMS</strong>
@@ -2288,7 +2302,7 @@ class PageBuilder {
 
         if (block.preview === 'footer') {
             return `
-                <div class="border-t border-[var(--page-border)] bg-[var(--page-footer-bg)] ${className}">
+                <div class="page-site-footer border-t border-[var(--page-border)] bg-[var(--page-footer-bg)] ${className}">
                     <div class="page-template-chrome-inner flex min-h-16 flex-wrap items-center justify-between gap-3 px-6 py-4">
                         <span class="text-xs font-medium text-[var(--page-footer-text)]">Powered by NixCMS</span>
                         <div>${this.renderNavigationItems(this.selectedDefaultNavigationIdentifier(), 'compact')}</div>
@@ -2630,7 +2644,7 @@ class PageBuilder {
         const blocks = template?.blocks || [];
         if (this.isCustomTemplate(template)) {
             const toolbar = interactive ? `
-                <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800 bg-[#121820] px-4 py-3">
+                <div class="page-builder-custom-toolbar mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800 bg-[#121820] px-4 py-3">
                     <div class="grid gap-0.5">
                         <span class="text-[11px] font-bold uppercase text-slate-500">${escapeHtml(this.labels.customLayout)}</span>
                         <strong class="text-sm font-semibold text-white">${escapeHtml(this.labels.customSlotsCount.replace(':count', String(blocks.length)))}</strong>
@@ -2639,8 +2653,11 @@ class PageBuilder {
                         <button class="inline-flex min-h-9 items-center justify-center rounded-md border border-slate-700 px-3 text-xs font-bold text-slate-200 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-save-custom-layout>
                             ${escapeHtml(this.labels.saveCustomLayout)}
                         </button>
-                        <button class="inline-flex min-h-9 items-center justify-center rounded-md border border-slate-700 px-3 text-xs font-bold text-slate-200 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-add-navigation-slot>
-                            ${escapeHtml(this.labels.addMenuBlock)}
+                        <button class="inline-flex min-h-9 items-center justify-center rounded-md border border-slate-700 px-3 text-xs font-bold text-slate-200 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-add-chrome-slot="header">
+                            ${escapeHtml(this.labels.addHeaderBlock)}
+                        </button>
+                        <button class="inline-flex min-h-9 items-center justify-center rounded-md border border-slate-700 px-3 text-xs font-bold text-slate-200 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-add-chrome-slot="footer">
+                            ${escapeHtml(this.labels.addFooterBlock)}
                         </button>
                         <button class="inline-flex min-h-9 items-center justify-center rounded-md bg-[var(--admin-page-accent)] px-3 text-xs font-bold text-white transition hover:brightness-110" type="button" data-add-custom-slot>
                             ${escapeHtml(this.labels.addCustomBlock)}
@@ -2885,6 +2902,16 @@ class PageBuilder {
         `;
     }
 
+    contentSurfaceClass(content, baseClass = 'grid gap-2', defaultSurface = 'none', paddedClass = 'p-4') {
+        const surface = optionValue(customLayoutSurfaces, content?.props?.surface, defaultSurface);
+        return {
+            none: `${baseClass} px-1 py-2`,
+            soft: `${baseClass} rounded-md bg-[var(--page-panel-soft)] ${paddedClass}`,
+            card: `${baseClass} rounded-md border border-[var(--page-card-border)] bg-[var(--page-card-bg)] ${paddedClass}`,
+            accent: `${baseClass} rounded-md border border-[color-mix(in_srgb,var(--page-accent)_36%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))] ${paddedClass}`,
+        }[surface];
+    }
+
     contentMiniPreview(content, depth = 0) {
         content = content && typeof content === 'object' ? content : {type: '', props: {}};
         if (layoutBlockTypes.includes(content.type)) {
@@ -2904,7 +2931,7 @@ class PageBuilder {
                 : ` style="grid-template-columns:repeat(${columns},minmax(0,1fr));"`;
 
             return `
-                <div class="grid gap-2 rounded-md border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-3">
+                <div class="grid gap-2 px-1 py-2">
                     <div class="flex items-center justify-between gap-3">
                         <strong class="text-sm font-bold text-[var(--page-text)]">${escapeHtml(content.label || content.previewTitle || content.type)}</strong>
                         <span class="rounded bg-white/10 px-2 py-1 text-[11px] font-bold uppercase text-[var(--page-muted)]">${escapeHtml(content.type)}</span>
@@ -2916,11 +2943,15 @@ class PageBuilder {
 
         if (content.type === 'header') {
             const compact = this.isMobilePreview();
+            const logoImage = String(content.props?.logoImage || '');
+            const logoText = String(content.props?.logoText || 'NixCMS');
             return `
-                <div class="rounded-lg border border-[var(--page-border)] bg-[var(--page-header-bg)] text-[var(--page-header-text)]">
+                <div class="page-site-header rounded-lg border border-[var(--page-border)] bg-[var(--page-header-bg)] text-[var(--page-header-text)]">
                     <div class="page-template-chrome-inner ${compact ? 'grid' : 'flex'} min-h-14 items-center gap-4 px-4 py-3">
-                        <span class="grid h-8 w-8 place-items-center rounded-md bg-[var(--page-accent)] text-xs font-black text-white">${escapeHtml((content.props?.logoText || 'N').slice(0, 1))}</span>
-                        <strong class="text-sm font-bold">${escapeHtml(content.props?.logoText || 'NixCMS')}</strong>
+                        ${logoImage
+                            ? `<img class="h-8 w-auto max-w-36 object-contain" src="${escapeHtml(logoImage)}" alt="">`
+                            : `<span class="grid h-8 w-8 place-items-center rounded-md bg-[var(--page-accent)] text-xs font-black text-white">${escapeHtml(logoText.slice(0, 1) || 'N')}</span>`}
+                        <strong class="text-sm font-bold">${escapeHtml(logoText)}</strong>
                         <div class="${compact ? '' : 'ml-auto'}">${this.renderNavigationItems(content.props?.navigationIdentifier, compact ? 'compact' : (content.props?.presentation || 'horizontal'))}</div>
                     </div>
                 </div>
@@ -2930,7 +2961,7 @@ class PageBuilder {
         if (content.type === 'footer') {
             const compact = this.isMobilePreview();
             return `
-                <div class="rounded-lg border border-[var(--page-border)] bg-[var(--page-footer-bg)]">
+                <div class="page-site-footer rounded-lg border border-[var(--page-border)] bg-[var(--page-footer-bg)]">
                     <div class="page-template-chrome-inner flex min-h-14 flex-wrap ${compact ? 'items-start' : 'items-center justify-between'} gap-3 px-4 py-3">
                         <span class="text-xs text-[var(--page-footer-text)]">${escapeHtml(content.props?.text || 'Powered by NixCMS')}</span>
                         ${this.renderNavigationItems(content.props?.navigationIdentifier, content.props?.presentation || 'compact')}
@@ -3067,7 +3098,7 @@ class PageBuilder {
                         </div>`;
 
             return `
-                <div class="grid gap-3 rounded-md border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-4">
+                <div class="${this.contentSurfaceClass(content, 'grid gap-3')}">
                     <div class="flex min-w-0 items-start justify-between gap-3">
                         <div class="min-w-0">
                             <strong class="block truncate text-base font-bold text-[var(--page-text)]">${escapeHtml(content.props?.title || content.previewTitle || 'Diagram')}</strong>
@@ -3120,7 +3151,7 @@ class PageBuilder {
 
         if (['cta', 'feature', 'quote', 'stats', 'media'].includes(content.type)) {
             return `
-                <div class="grid gap-2 rounded-md border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-4">
+                <div class="${this.contentSurfaceClass(content)}">
                     <strong class="text-base font-bold text-[var(--page-text)]">${escapeHtml(content.props?.title || content.props?.quote || content.previewTitle || content.label)}</strong>
                     <span class="text-sm leading-relaxed text-[var(--page-muted)]">${escapeHtml(content.props?.text || content.props?.caption || content.props?.source || '')}</span>
                 </div>
@@ -3129,7 +3160,7 @@ class PageBuilder {
 
         if (content.type === 'form' || content.type === 'contact-form') {
             return `
-                <div class="grid gap-3 rounded-md border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-4">
+                <div class="${this.contentSurfaceClass(content, 'grid gap-3', 'none')}">
                     <div>
                         <strong class="text-base font-bold text-[var(--page-text)]">${escapeHtml(content.props?.title || 'Form')}</strong>
                         <div class="mt-1 text-xs font-mono text-[var(--page-muted)]">${escapeHtml(content.props?.formIdentifier || 'contact')}</div>
@@ -3163,7 +3194,7 @@ class PageBuilder {
 
         if (content.type === 'article-meta') {
             return `
-                <div class="grid gap-2 rounded-md bg-slate-950/45 p-4 text-xs">
+                <div class="${this.contentSurfaceClass(content, 'grid gap-2 text-xs')}">
                     <div class="flex items-center justify-between gap-3"><span class="text-slate-500">Language</span><strong class="text-slate-100">Current</strong></div>
                     <div class="flex items-center justify-between gap-3"><span class="text-slate-500">Published</span><strong class="text-slate-100">Date</strong></div>
                     ${content.props?.showTags ? '<div class="flex flex-wrap gap-1.5 pt-1"><span class="rounded-full bg-white/10 px-2 py-1 text-slate-300">tag</span><span class="rounded-full bg-white/10 px-2 py-1 text-slate-300">topic</span></div>' : ''}
@@ -3189,12 +3220,12 @@ class PageBuilder {
 
         if (content.type === 'navigation') {
             return `
-                <div class="rounded-md bg-slate-950/45 p-3">
-                    <div class="flex items-center justify-between gap-3 text-xs">
+                <div class="grid gap-3 px-1 py-2">
+                    <div class="flex w-max max-w-full items-center gap-2 text-xs">
                         <span class="font-semibold text-slate-100">${escapeHtml(this.navigationChoice(content.props?.identifier)?.label || content.previewTitle || 'Navigation')}</span>
                         <span class="rounded bg-white/10 px-2 py-1 font-mono text-slate-300">${escapeHtml(content.props?.presentation || 'horizontal')}</span>
                     </div>
-                    <div class="mt-3">${this.renderNavigationItems(content.props?.identifier, content.props?.presentation || 'horizontal', content.props?.language === 'current' ? '' : content.props?.language)}</div>
+                    <div>${this.renderNavigationItems(content.props?.identifier, content.props?.presentation || 'horizontal', content.props?.language === 'current' ? '' : content.props?.language)}</div>
                 </div>
             `;
         }
@@ -3458,9 +3489,18 @@ class PageBuilder {
     }
 
     renderField(key, value, contentType = '', field = null) {
-        const label = field?.label || key;
+        const label = (key === 'surface' || (key === 'tone' && contentType === 'section'))
+            ? this.labels.surface
+            : (field?.label || key);
         if (field?.type === 'metrics') {
             return this.renderChartMetricsField(label);
+        }
+
+        if (key === 'tone' && contentType === 'section') {
+            return this.renderSelect(key, value, customLayoutSurfaces, label);
+        }
+        if (key === 'surface') {
+            return this.renderSelect(key, value, customLayoutSurfaces, label);
         }
 
         if (field?.type === 'select') {
@@ -3504,9 +3544,6 @@ class PageBuilder {
         }
         if (key === 'tone') {
             return this.renderSelect(key, value, ['body', 'lead', 'muted'], label);
-        }
-        if (key === 'surface' && contentType === 'navigation') {
-            return this.renderSelect(key, value, ['plain', 'card'], label);
         }
         if (key === 'presentation') {
             return this.renderSelect(key, value, contentType === 'navigation'
@@ -3631,7 +3668,7 @@ class PageBuilder {
         const normalizedOptions = options.map((option) => {
             if (typeof option === 'object' && option !== null) {
                 return {
-                    label: option.label ?? option.value ?? '',
+                    label: optionLabel(option, this.labels),
                     value: option.value ?? option.label ?? '',
                 };
             }
@@ -4237,6 +4274,7 @@ class PageBuilder {
                     routePattern: template.routePattern || null,
                     contentWidth: this.contentWidthKey(),
                     contentWidthIncludesChrome: this.contentWidthIncludesChrome(),
+                    contentWidthIncludesChromeBackground: this.contentWidthIncludesChromeBackground(),
                 } : null,
                 blocks,
                 meta: {
@@ -4263,7 +4301,8 @@ class PageBuilder {
                 ['Status', payload.status || 'draft'],
                 ['Accent', payload.meta?.theme?.accent || '#3f7fbd'],
                 [this.labels.width, this.contentWidthDisplay()],
-                [this.labels.headerFooter, this.contentWidthIncludesChrome() ? this.labels.bounded : this.labels.contentWidthFull],
+                [this.labels.chromeContentWidth, this.contentWidthIncludesChrome() ? this.labels.bounded : this.labels.contentWidthFull],
+                [this.labels.chromeBackgroundWidth, this.contentWidthIncludesChromeBackground() ? this.labels.bounded : this.labels.contentWidthFull],
                 ['Template', payload.templateId || ''],
                 ...(this.isCustomTemplate(template) || this.customLayout.length > 0 ? [[this.labels.customSlots, String(this.customLayout.length)]] : []),
             ];
@@ -4309,6 +4348,7 @@ class PageBuilder {
                 accent: this.pageAccent(),
                 contentWidth: this.contentWidthKey(),
                 contentWidthIncludesChrome: this.contentWidthIncludesChrome(),
+                contentWidthIncludesChromeBackground: this.contentWidthIncludesChromeBackground(),
             },
             extra: {
                 defaultNavigationIdentifier: this.selectedDefaultNavigationIdentifier(),

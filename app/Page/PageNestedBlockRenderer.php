@@ -82,7 +82,7 @@ final class PageNestedBlockRenderer
         }
 
         $props = is_array($block['props'] ?? null) ? $block['props'] : [];
-        $style = (string) ($props['containerStyle'] ?? 'plain');
+        $style = (string) ($props['containerStyle'] ?? 'none');
         if (!in_array($style, ['border', 'soft', 'card', 'accent'], true)) {
             return $output;
         }

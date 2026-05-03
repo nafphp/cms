@@ -42,6 +42,7 @@ final class StatsBlockType extends AbstractBlockType
             'labelB' => 'Quality',
             'valueC' => '24/7',
             'labelC' => 'Access',
+            ...$this->surfaceDefaults(),
         ];
     }
 
@@ -54,6 +55,7 @@ final class StatsBlockType extends AbstractBlockType
             ['name' => 'labelB', 'label' => 'Metric B label', 'type' => 'text'],
             ['name' => 'valueC', 'label' => 'Metric C value', 'type' => 'text'],
             ['name' => 'labelC', 'label' => 'Metric C label', 'type' => 'text'],
+            $this->surfaceField(),
         ];
     }
 }

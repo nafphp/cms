@@ -10,10 +10,18 @@ $props = is_array($content['props'] ?? null) ? $content['props'] : [];
 $showStatus = (bool) ($showStatus ?? $props['showStatus'] ?? false);
 $showAuthor = (bool) ($showAuthor ?? $props['showAuthor'] ?? true);
 $showTags = (bool) ($showTags ?? $props['showTags'] ?? true);
+$surface = (string) ($props['surface'] ?? 'none');
+$surface = in_array($surface, ['none', 'soft', 'card', 'accent'], true) ? $surface : 'none';
+$surfaceClass = [
+    'none' => 'grid gap-3 text-sm',
+    'soft' => 'grid gap-3 rounded-lg bg-[var(--page-panel-soft)] p-4 text-sm',
+    'card' => 'grid gap-3 rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-4 text-sm',
+    'accent' => 'grid gap-3 rounded-lg border border-[color-mix(in_srgb,var(--page-accent)_36%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))] p-4 text-sm',
+][$surface];
 
 ?>
 <?php if (($article ?? null) instanceof ArticleRenderer): ?>
-    <aside class="grid gap-3 rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-4 text-sm">
+    <aside class="<?= s($surfaceClass) ?>">
         <dl class="grid gap-2">
             <?php if ($article->language() !== ''): ?>
                 <div class="flex items-center justify-between gap-3">

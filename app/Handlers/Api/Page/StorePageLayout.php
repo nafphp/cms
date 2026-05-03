@@ -40,7 +40,8 @@ final class StorePageLayout
         } catch (\InvalidArgumentException $exception) {
             return json(['success' => false, 'reason' => $exception->getMessage()], 400);
         } catch (Throwable $exception) {
-            return json(['success' => false, 'reason' => $exception->getMessage()], 500);
+            error_log($exception);
+            return json(['success' => false, 'reason' => 'Layout could not be saved.'], 500);
         }
     }
 }

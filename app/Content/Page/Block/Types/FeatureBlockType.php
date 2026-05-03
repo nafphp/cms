@@ -39,6 +39,7 @@ final class FeatureBlockType extends AbstractBlockType
             'icon' => 'N',
             'title' => 'Feature',
             'text' => 'Describe one focused capability.',
+            ...$this->surfaceDefaults(),
         ];
     }
 
@@ -48,6 +49,7 @@ final class FeatureBlockType extends AbstractBlockType
             ['name' => 'icon', 'label' => 'Icon label', 'type' => 'text'],
             ['name' => 'title', 'label' => 'Title', 'type' => 'text'],
             ['name' => 'text', 'label' => 'Text', 'type' => 'textarea'],
+            $this->surfaceField(),
         ];
     }
 }

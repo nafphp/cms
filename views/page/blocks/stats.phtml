@@ -10,11 +10,19 @@ $items = [
     ['value' => (string) ($props['valueB'] ?? '98%'), 'label' => (string) ($props['labelB'] ?? 'Quality')],
     ['value' => (string) ($props['valueC'] ?? '24/7'), 'label' => (string) ($props['labelC'] ?? 'Access')],
 ];
+$surface = (string) ($props['surface'] ?? 'none');
+$surface = in_array($surface, ['none', 'soft', 'card', 'accent'], true) ? $surface : 'none';
+$itemClass = [
+    'none' => 'py-1',
+    'soft' => 'rounded-lg bg-[var(--page-panel-soft)] p-5',
+    'card' => 'rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-5',
+    'accent' => 'rounded-lg border border-[color-mix(in_srgb,var(--page-accent)_36%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))] p-5',
+][$surface];
 
 ?>
 <section class="grid gap-3 md:grid-cols-3">
     <?php foreach ($items as $item): ?>
-        <div class="rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-5">
+        <div class="<?= s($itemClass) ?>">
             <strong class="block text-3xl font-black text-[var(--page-text)]"><?= s($item['value']) ?></strong>
             <span class="mt-1 block text-sm text-[var(--page-muted)]"><?= s(t($item['label'])) ?></span>
         </div>

@@ -40,6 +40,7 @@ final class HeaderBlockType extends AbstractBlockType
 
         return [
             'logoText' => '',
+            'logoImage' => '',
             'navigationIdentifier' => (string) ($navigationOptions[0]['value'] ?? 'main'),
             'presentation' => 'horizontal',
         ];
@@ -49,6 +50,7 @@ final class HeaderBlockType extends AbstractBlockType
     {
         return [
             ['name' => 'logoText', 'label' => 'Logo text', 'type' => 'text'],
+            ['name' => 'logoImage', 'label' => 'Logo image', 'type' => 'media', 'altTarget' => 'logoText'],
             ['name' => 'navigationIdentifier', 'label' => 'Navigation', 'type' => 'select', 'options' => PageBuilderBlockOptions::navigationOptions()],
             ['name' => 'presentation', 'label' => 'Presentation', 'type' => 'select', 'options' => ['horizontal', 'compact']],
         ];

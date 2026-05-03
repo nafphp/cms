@@ -39,6 +39,7 @@ final class ArticleMetaBlockType extends AbstractBlockType
             'showStatus' => false,
             'showAuthor' => true,
             'showTags' => true,
+            ...$this->surfaceDefaults(),
         ];
     }
 
@@ -48,6 +49,7 @@ final class ArticleMetaBlockType extends AbstractBlockType
             ['name' => 'showStatus', 'label' => 'Show status', 'type' => 'checkbox'],
             ['name' => 'showAuthor', 'label' => 'Show author', 'type' => 'checkbox'],
             ['name' => 'showTags', 'label' => 'Show tags', 'type' => 'checkbox'],
+            $this->surfaceField(),
         ];
     }
 }

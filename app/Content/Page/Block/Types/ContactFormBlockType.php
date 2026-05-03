@@ -43,6 +43,7 @@ final class ContactFormBlockType extends AbstractBlockType
             'intro' => 'Tell us what you need.',
             'formIdentifier' => (string) ($formOptions[0]['value'] ?? 'contact'),
             'submitLabel' => 'Send message',
+            ...$this->surfaceDefaults(),
         ];
     }
 
@@ -53,6 +54,7 @@ final class ContactFormBlockType extends AbstractBlockType
             ['name' => 'intro', 'label' => 'Intro', 'type' => 'textarea'],
             ['name' => 'formIdentifier', 'label' => 'Form', 'type' => 'select', 'options' => PageBuilderBlockOptions::formOptions()],
             ['name' => 'submitLabel', 'label' => 'Submit label', 'type' => 'text'],
+            $this->surfaceField(),
         ];
     }
 }

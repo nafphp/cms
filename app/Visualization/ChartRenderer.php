@@ -28,9 +28,11 @@ final class ChartRenderer
         $title = $this->escape((string) ($chart->title ?? ''));
         $subtitle = $this->escape((string) ($chart->subtitle ?? ''));
         $emptyText = $this->escape($chart->emptyText);
+        $surface = (string) ($chart->options['surface'] ?? 'none');
+        $surface = in_array($surface, ['none', 'soft', 'card', 'accent'], true) ? $surface : 'none';
 
         return <<<HTML
-<figure class="nixcms-chart" data-nixcms-chart="{$this->escape($chart->id)}">
+<figure class="nixcms-chart nixcms-chart--surface-{$this->escape($surface)}" data-nixcms-chart="{$this->escape($chart->id)}">
     <div class="nixcms-chart__header">
         <div>
             {$this->optionalHeading($title)}
