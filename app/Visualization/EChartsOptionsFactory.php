@@ -122,11 +122,12 @@ final class EChartsOptionsFactory
         $colors = $this->colors($chart);
         $dataset = $chart->datasets[0] ?? ChartDataset::make('Value', []);
 
-        return $this->mergeOptions([
+        $options = [
             'color' => $colors,
             'textStyle' => $this->textStyle(),
             'tooltip' => ['trigger' => 'item'],
-            'grid' => ['left' => 0, 'right' => 8, 'top' => 12, 'bottom' => 0, 'containLabel' => true],
+            'legend' => ['show' => false, 'selectedMode' => false],
+            'grid' => ['left' => 0, 'right' => 8, 'top' => 8, 'bottom' => 4, 'containLabel' => true],
             'xAxis' => [
                 'type' => 'value',
                 'show' => false,
@@ -150,7 +151,7 @@ final class EChartsOptionsFactory
                     $dataset->values,
                     array_keys($dataset->values),
                 ),
-                'barWidth' => 14,
+                'barWidth' => 12,
                 'showBackground' => true,
                 'backgroundStyle' => [
                     'color' => 'rgba(148, 163, 184, .16)',
@@ -166,7 +167,9 @@ final class EChartsOptionsFactory
                     ...$this->labelStyle('rgba(148, 163, 184, .92)'),
                 ],
             ]],
-        ], $chart->options['echarts'] ?? []);
+        ];
+
+        return $this->mergeOptions($options, $chart->options['echarts'] ?? []);
     }
 
     /**

@@ -38,7 +38,7 @@ class FakeDataCommand extends AbstractCommand
 
         $pdo = database();
         if (!$pdo instanceof PDO) {
-            $output->writeLine('Database connection not available. Run db:install first.', 'error');
+            $output->writeLine('Database connection not available. Run install:database first.', 'error');
             return self::ERROR;
         }
 

@@ -11,10 +11,10 @@ use ReflectionMethod;
 
 final class CmsApiSurfaceDocumentedTest extends TestCase
 {
-    public function testEveryPublicCmsEntryPointIsDocumentedInAgentsFile(): void
+    public function testEveryPublicCmsEntryPointIsDocumentedInReadme(): void
     {
-        $agents = file_get_contents(BASE_PATH . '/AGENTS.md');
-        self::assertIsString($agents);
+        $readme = file_get_contents(BASE_PATH . '/README.md');
+        self::assertIsString($readme);
 
         $methods = array_map(
             static fn(ReflectionMethod $method): string => $method->getName(),
@@ -30,7 +30,7 @@ final class CmsApiSurfaceDocumentedTest extends TestCase
         foreach ($methods as $method) {
             self::assertStringContainsString(
                 sprintf('cms()->%s(', $method),
-                $agents,
+                $readme,
                 sprintf('Missing CMS API surface documentation for cms()->%s(...).', $method),
             );
         }

@@ -396,18 +396,5 @@ $config = [
         </div>
     </section>
 
-    <div class="fixed inset-0 z-[1200] hidden bg-slate-950/55 p-4 backdrop-blur-sm" data-content-modal>
-        <div class="mx-auto grid max-h-[min(720px,calc(100vh-32px))] w-[min(760px,100%)] overflow-hidden rounded-lg border border-slate-700 bg-slate-950 shadow-2xl">
-            <div class="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
-                <div>
-                    <h2 class="m-0 text-sm font-semibold text-white">Choose block</h2>
-                    <p class="mt-0.5 text-xs text-slate-500">Pick the content block rendered at this template position.</p>
-                </div>
-                <button class="rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300" type="button" data-close-content-modal>Close</button>
-            </div>
-            <div class="grid max-h-[620px] gap-3 overflow-auto p-4" data-content-options></div>
-        </div>
-    </div>
-
 </div>
 <?php $this->endBlock('content'); ?>

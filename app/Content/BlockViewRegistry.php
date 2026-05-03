@@ -29,6 +29,14 @@ final class BlockViewRegistry
             'form' => 'page.blocks.form',
             'heading' => 'page.blocks.heading',
             'text' => 'page.blocks.text',
+            'article-title' => 'page.blocks.article_title',
+            'article-content' => 'page.blocks.article_content',
+            'article-meta' => 'page.blocks.article_meta',
+            'article-related' => 'page.blocks.article_related',
+            'section' => 'page.blocks.section',
+            'stack' => 'page.blocks.stack',
+            'columns' => 'page.blocks.columns',
+            'grid' => 'page.blocks.grid',
         ]);
 
         $aliases = [

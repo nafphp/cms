@@ -106,6 +106,34 @@ final class PageRepositoryTest extends DatabaseTestCase
         $this->assertSame('/about', $translations['en']['path']);
     }
 
+    public function testCustomPageExamplePersistsCustomLayoutMeta(): void
+    {
+        $id = $this->repository->save([
+            'identifier' => 'custom-example',
+            'path' => '/custom-example',
+            'title' => 'Custom example',
+            'language' => 'en',
+            'template_id' => 'custom',
+            'blocks' => [
+                'slot_hero' => ['type' => 'hero', 'props' => ['title' => 'Custom hero']],
+                'slot_text' => ['type' => 'text', 'props' => ['text' => 'Stacked content']],
+            ],
+            'meta' => [
+                'custom_layout' => [
+                    ['id' => 'slot_hero', 'label' => 'Hero', 'region' => 'header', 'size' => 'hero', 'accepts' => ['hero']],
+                    ['id' => 'slot_text', 'label' => 'Text', 'region' => 'main', 'size' => 'medium', 'accepts' => ['text']],
+                ],
+            ],
+        ]);
+
+        $page = $this->repository->find($id);
+
+        self::assertSame('custom', $page['template_id']);
+        self::assertSame(['slot_hero', 'slot_text'], array_keys($page['blocks']));
+        self::assertSame('header', $page['meta']['custom_layout'][0]['region']);
+        self::assertSame(['text'], $page['meta']['custom_layout'][1]['accepts']);
+    }
+
     public function testDeleteRemovesPage(): void
     {
         $id = $this->repository->save([

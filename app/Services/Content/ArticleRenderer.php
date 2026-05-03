@@ -65,6 +65,33 @@ final class ArticleRenderer
         return (string) ($this->article['publishedAt'] ?? '');
     }
 
+    public function author(): string
+    {
+        return (string) ($this->article['author'] ?? '');
+    }
+
+    public function categoryId(): ?int
+    {
+        $categoryId = (int) ($this->article['category_id'] ?? 0);
+        return $categoryId > 0 ? $categoryId : null;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function tags(): array
+    {
+        $tags = $this->article['tags'] ?? [];
+        if (!is_array($tags)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            static fn(mixed $tag): string => trim((string) $tag),
+            $tags
+        )));
+    }
+
     public function showTeaser(): bool
     {
         return (int) ($this->article['show_teaser'] ?? 0) === 1;

@@ -71,6 +71,22 @@ final class MediaApiTest extends DatabaseTestCase
             'metadata_json' => '{"collection":"dashboard"}',
             'created_at' => '2026-05-02 10:00:00',
         ]);
+        $this->insertMedia([
+            'public_id' => 'eeeeeeeeeeeeeeeeeeeeeeee',
+            'original_name' => 'Archive.zip',
+            'mime_type' => 'application/zip',
+            'extension' => 'zip',
+            'size_bytes' => 4096,
+            'created_at' => '2026-04-30 10:00:00',
+        ]);
+        $this->insertMedia([
+            'public_id' => 'ffffffffffffffffffffffff',
+            'original_name' => 'Payload.bin',
+            'mime_type' => 'application/octet-stream',
+            'extension' => 'bin',
+            'size_bytes' => 128,
+            'created_at' => '2026-04-29 10:00:00',
+        ]);
 
         $recent = $this->api->recent(2);
         $summary = $this->api->summary();
@@ -80,7 +96,13 @@ final class MediaApiTest extends DatabaseTestCase
         self::assertSame('image', $recent[0]['kind']);
         self::assertSame('320 x 240', $recent[0]['dimensions_label']);
         self::assertSame(['collection' => 'dashboard'], $recent[0]['metadata']);
-        self::assertSame(['total' => 2, 'images' => 1, 'documents' => 1, 'bytes' => 2560], $summary);
+        self::assertSame(4, $summary['total']);
+        self::assertSame(1, $summary['images']);
+        self::assertSame(1, $summary['documents']);
+        self::assertSame(1, $summary['archives']);
+        self::assertSame(1, $summary['files']);
+        self::assertSame(6784, $summary['bytes']);
+        self::assertSame(['image' => 1, 'document' => 1, 'archive' => 1, 'file' => 1], $summary['kind_counts']);
         self::assertSame('Fresh image.png', $found['original_name'] ?? null);
     }
 

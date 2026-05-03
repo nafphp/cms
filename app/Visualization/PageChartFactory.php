@@ -17,13 +17,19 @@ final class PageChartFactory
     {
         $type = $this->chartType((string) ($props['chartType'] ?? 'bar'));
         $values = $this->values($props);
+        $height = $this->height($props['height'] ?? 320);
+        if ($type === 'metric-bars') {
+            $height = $this->metricBarsHeight($height, count($values));
+        }
+
         $options = [
             'datasetLabel' => t((string) ($props['datasetLabel'] ?? 'Value')),
-            'height' => $this->height($props['height'] ?? 320),
+            'height' => $height,
             'colors' => $this->colors($props),
             'echarts' => [
                 'legend' => [
-                    'show' => filter_var($props['showLegend'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                    'show' => $type !== 'metric-bars'
+                        && filter_var($props['showLegend'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 ],
             ],
         ];
@@ -152,6 +158,13 @@ final class PageChartFactory
     private function height(mixed $value): int
     {
         return max(220, min(720, (int) $value));
+    }
+
+    private function metricBarsHeight(int $requestedHeight, int $metricCount): int
+    {
+        $compactHeight = 72 + max(1, $metricCount) * 28;
+
+        return max(180, min($requestedHeight, $compactHeight));
     }
 
     /**

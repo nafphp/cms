@@ -52,19 +52,46 @@ final class MediaApi
     }
 
     /**
-     * @return array{total:int,images:int,documents:int,bytes:int}
+     * @return array{total:int,images:int,documents:int,archives:int,files:int,bytes:int,kind_counts:array<string, int>}
      */
     public function summary(): array
     {
-        $summary = ['total' => 0, 'images' => 0, 'documents' => 0, 'bytes' => 0];
+        $summary = [
+            'total' => 0,
+            'images' => 0,
+            'documents' => 0,
+            'archives' => 0,
+            'files' => 0,
+            'bytes' => 0,
+            'kind_counts' => [
+                'image' => 0,
+                'document' => 0,
+                'archive' => 0,
+                'file' => 0,
+            ],
+        ];
+
         foreach ($this->storage()->search() as $media) {
             $payload = MediaPayload::fromEntity($media);
+            $kind = (string) ($payload['kind'] ?? 'file');
+            $kind = array_key_exists($kind, $summary['kind_counts']) ? $kind : 'file';
+
             $summary['total']++;
             $summary['bytes'] += (int) ($payload['size_bytes'] ?? 0);
-            if (($payload['kind'] ?? '') === 'image') {
-                $summary['images']++;
-            } else {
-                $summary['documents']++;
+            $summary['kind_counts'][$kind]++;
+
+            switch ($kind) {
+                case 'image':
+                    $summary['images']++;
+                    break;
+                case 'document':
+                    $summary['documents']++;
+                    break;
+                case 'archive':
+                    $summary['archives']++;
+                    break;
+                default:
+                    $summary['files']++;
             }
         }
 

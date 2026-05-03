@@ -24,6 +24,45 @@ const contentWidthPresets = {
     wide: {label: 'Wide', css: '1120px'},
     full: {label: 'Full width', css: '100%'},
 };
+const customLayoutRegions = [
+    {value: 'header', label: 'Header'},
+    {value: 'main', label: 'Main'},
+    {value: 'aside', label: 'Aside'},
+    {value: 'footer', label: 'Footer'},
+];
+const customLayoutSizes = [
+    {value: 'small', label: 'Small width'},
+    {value: 'medium', label: 'Medium width'},
+    {value: 'large', label: 'Large width'},
+    {value: 'aside', label: 'Aside width'},
+    {value: 'hero', label: 'Hero width'},
+];
+const customLayoutPositions = [
+    {value: 'stretch', label: 'Auto'},
+    {value: 'start', label: 'Left'},
+    {value: 'center', label: 'Center'},
+    {value: 'end', label: 'Right'},
+];
+const customLayoutMaxHeights = [
+    {value: 'none', label: 'No max'},
+    {value: '320', label: '320 px'},
+    {value: '480', label: '480 px'},
+    {value: '640', label: '640 px'},
+    {value: '800', label: '800 px'},
+    {value: 'screen', label: 'Viewport'},
+];
+const customLayoutOverflows = [
+    {value: 'visible', label: 'Visible'},
+    {value: 'hidden', label: 'Hidden'},
+    {value: 'auto', label: 'Scroll'},
+];
+const customLayoutSurfaces = [
+    {value: 'none', label: 'None'},
+    {value: 'soft', label: 'Soft'},
+    {value: 'card', label: 'Card'},
+    {value: 'accent', label: 'Accent'},
+];
+const layoutBlockTypes = ['section', 'stack', 'columns', 'grid'];
 
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
     '&': '&amp;',
@@ -32,6 +71,11 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => 
     '"': '&quot;',
     "'": '&#039;',
 }[char]));
+const hasOption = (options, value) => options.some((item) => item.value === String(value ?? ''));
+const optionValue = (options, value, fallback) => hasOption(options, value) ? String(value) : fallback;
+const optionOptions = (options, selected) => options.map((item) => `
+    <option value="${escapeHtml(item.value)}" ${item.value === selected ? 'selected' : ''}>${escapeHtml(item.label)}</option>
+`).join('');
 
 const languageIcon = `
     <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -80,6 +124,19 @@ class PageBuilder {
             value: 'Value',
             language: 'Language',
             apply: 'Apply',
+            addCustomBlock: 'Block hinzufügen',
+            chooseCustomBlock: 'Choose content type',
+            chooseCustomBlockIntro: 'Pick the content block for the new custom slot.',
+            customLayout: 'Custom layout',
+            deleteSlot: 'Delete slot',
+            duplicateSlot: 'A slot with this id already exists.',
+            addChildBlock: 'Block hinzufügen',
+            chooseChildBlock: 'Choose child block',
+            chooseChildBlockIntro: 'Pick the content block to place inside this layout module.',
+            nestedBlocks: 'Nested blocks',
+            backToLayoutBlock: 'Back to layout block',
+            editChildBlock: 'Edit child block',
+            removeChildBlock: 'Remove child block',
             newLanguage: 'New language',
             createLanguage: 'Create language',
             chooseLanguageCode: 'Choose a language code.',
@@ -119,12 +176,15 @@ class PageBuilder {
         this.step = 'template';
         this.templateId = this.templates[0]?.id || '';
         this.selectedBlockId = null;
+        this.selectedNestedPath = '';
         this.blockContent = {};
+        this.customLayout = [];
         this.persistedValues = {};
         this.templatesRendered = false;
         this.previewTemplateId = null;
         this.settingsOpen = false;
         this.previewViewport = 'desktop';
+        this.draggedCustomSlotId = null;
         this.storageKey = `${storageKey}:${window.location.pathname}${window.location.search || ''}`;
         this.saveTimer = null;
         this.saving = false;
@@ -144,8 +204,6 @@ class PageBuilder {
         this.blockCanvas = this.root.querySelector('[data-block-canvas]');
         this.filledCount = this.root.querySelector('[data-filled-count]');
         this.pagePreview = this.root.querySelector('[data-page-preview]');
-        this.contentModal = this.root.querySelector('[data-content-modal]');
-        this.contentOptions = this.root.querySelector('[data-content-options]');
         this.settingsDrawer = this.root.querySelector('[data-settings-drawer]');
         this.contentSettings = this.root.querySelector('[data-content-settings]');
         this.json = this.root.querySelector('[data-builder-json]');
@@ -167,6 +225,7 @@ class PageBuilder {
         } else {
             this.restoreState();
         }
+        this.syncCustomTemplateBlocks();
         if (!this.persistedValues.defaultNavigationIdentifier) {
             this.persistedValues.defaultNavigationIdentifier = this.defaultNavigationIdentifier;
         }
@@ -194,17 +253,15 @@ class PageBuilder {
         this.root.addEventListener('click', (event) => this.handleClick(event));
         this.root.addEventListener('input', (event) => this.handleInput(event));
         this.root.addEventListener('change', (event) => this.handleInput(event));
+        this.root.addEventListener('dragstart', (event) => this.handleDragStart(event));
+        this.root.addEventListener('dragover', (event) => this.handleDragOver(event));
+        this.root.addEventListener('drop', (event) => this.handleDrop(event));
+        this.root.addEventListener('dragend', () => this.handleDragEnd());
         document.addEventListener('click', (event) => this.handleTranslationSuggestionClick(event));
         window.addEventListener('resize', () => this.hideTranslationSuggestions());
         window.addEventListener('scroll', () => this.hideTranslationSuggestions(), true);
-        this.contentModal?.addEventListener('click', (event) => {
-            if (event.target === this.contentModal) {
-                this.closeContentModal();
-            }
-        });
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
-                this.closeContentModal();
                 this.closeSettings();
             }
         });
@@ -226,16 +283,22 @@ class PageBuilder {
             this.templateId = template.id;
         }
 
-        this.step = template?.layout ? 'layout' : 'template';
-        this.selectedBlockId = this.step === 'layout' ? (template?.blocks?.[0]?.id || null) : null;
-
         if (this.initialState.blockContent && typeof this.initialState.blockContent === 'object' && !Array.isArray(this.initialState.blockContent)) {
             this.blockContent = this.initialState.blockContent;
+        }
+
+        if (Array.isArray(this.initialState.customLayout)) {
+            this.customLayout = this.normalizeCustomLayout(this.initialState.customLayout);
+            this.syncCustomTemplateBlocks();
         }
 
         if (this.initialState.persistedValues && typeof this.initialState.persistedValues === 'object' && !Array.isArray(this.initialState.persistedValues)) {
             this.persistedValues = this.initialState.persistedValues;
         }
+
+        const selectedTemplate = this.selectedTemplate();
+        this.step = selectedTemplate?.layout ? 'layout' : 'template';
+        this.selectedBlockId = this.step === 'layout' ? (selectedTemplate?.blocks?.[0]?.id || null) : null;
     }
 
     findTemplate(value) {
@@ -286,12 +349,18 @@ class PageBuilder {
             this.persistedValues = state.persistedValues;
         }
 
+        if (Array.isArray(state.customLayout)) {
+            this.customLayout = this.normalizeCustomLayout(state.customLayout);
+            this.syncCustomTemplateBlocks();
+        }
+
         const blockExists = (this.selectedTemplate()?.blocks || []).some((block) => block.id === state.selectedBlockId);
         if (blockExists) {
             this.selectedBlockId = state.selectedBlockId;
         } else if (this.step === 'layout') {
             this.selectedBlockId = this.selectedTemplate()?.blocks?.[0]?.id || null;
         }
+        this.selectedNestedPath = this.contentAtPath(String(state.selectedNestedPath || '')) ? String(state.selectedNestedPath || '') : '';
 
         this.settingsOpen = Boolean(state.settingsOpen && this.selectedBlockId && this.blockContent[this.selectedBlockId]);
         this.savedId = Number(state.savedId || 0);
@@ -306,7 +375,9 @@ class PageBuilder {
                 templateId: this.templateId,
                 previewViewport: this.previewViewport,
                 selectedBlockId: this.selectedBlockId,
+                selectedNestedPath: this.selectedNestedPath,
                 blockContent: this.blockContent,
+                customLayout: this.customLayout,
                 persistedValues: this.persistedValues,
                 settingsOpen: this.settingsOpen,
                 savedId: this.savedId,
@@ -411,6 +482,7 @@ class PageBuilder {
             'article-detail': '820px',
             'two-column': '960px',
             'full-bleed': '100%',
+            custom: '1120px',
         }[template?.id || ''] || '1120px';
     }
 
@@ -447,9 +519,119 @@ class PageBuilder {
         return this.templates.find((template) => template.id === this.templateId) || this.templates[0] || null;
     }
 
+    isCustomTemplate(template = this.selectedTemplate()) {
+        return (template?.kind || 'static') === 'custom';
+    }
+
+    syncCustomTemplateBlocks() {
+        const customTemplate = this.templates.find((template) => (template?.kind || 'static') === 'custom');
+        if (customTemplate) {
+            customTemplate.blocks = this.customLayout;
+        }
+    }
+
+    normalizeCustomLayout(layout) {
+        const seen = new Set();
+        return (Array.isArray(layout) ? layout : []).reduce((slots, slot) => {
+            if (!slot || typeof slot !== 'object' || Array.isArray(slot)) {
+                return slots;
+            }
+
+            const id = String(slot.id || '').trim();
+            const label = String(slot.label || '').trim();
+            const region = optionValue(customLayoutRegions, slot.region, 'main');
+            const size = optionValue(customLayoutSizes, slot.size, 'medium');
+            const position = optionValue(customLayoutPositions, slot.position, 'stretch');
+            const maxHeight = optionValue(customLayoutMaxHeights, slot.maxHeight, 'none');
+            const overflow = optionValue(customLayoutOverflows, slot.overflow, 'visible');
+            const surface = optionValue(customLayoutSurfaces, slot.surface, 'none');
+            if (!/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(id) || label === '' || seen.has(id)) {
+                return slots;
+            }
+
+            seen.add(id);
+            const definition = {id, label, region, size, position, maxHeight, overflow, surface};
+            const accepts = Array.isArray(slot.accepts)
+                ? [...new Set(slot.accepts.map((type) => String(type || '').trim()).filter((type) => /^[a-z0-9][a-z0-9_-]{0,63}$/.test(type)))]
+                : [];
+            if (accepts.length > 0) {
+                definition.accepts = accepts;
+            }
+            const defaultContentType = String(slot.defaultContentType || '').trim();
+            if (/^[a-z0-9][a-z0-9_-]{0,63}$/.test(defaultContentType)) {
+                definition.defaultContentType = defaultContentType;
+            }
+
+            slots.push(definition);
+            return slots;
+        }, []);
+    }
+
     selectedBlock() {
         const template = this.selectedTemplate();
         return (template?.blocks || []).find((block) => block.id === this.selectedBlockId) || null;
+    }
+
+    selectedContent() {
+        if (!this.selectedBlockId || !this.blockContent[this.selectedBlockId]) {
+            return null;
+        }
+
+        return this.contentAtPath(this.selectedNestedPath || '') || this.blockContent[this.selectedBlockId];
+    }
+
+    pathIndexes(path) {
+        return String(path || '')
+            .split('.')
+            .filter((part) => part !== '')
+            .map((part) => Number(part))
+            .filter((index) => Number.isInteger(index) && index >= 0);
+    }
+
+    pathForChild(parentPath, index) {
+        const parent = String(parentPath || '');
+        return parent === '' ? String(index) : `${parent}.${index}`;
+    }
+
+    parentPath(path) {
+        const parts = String(path || '').split('.').filter((part) => part !== '');
+        parts.pop();
+        return parts.join('.');
+    }
+
+    contentAtPath(path) {
+        let content = this.selectedBlockId ? this.blockContent[this.selectedBlockId] : null;
+        if (!content) {
+            return null;
+        }
+
+        for (const index of this.pathIndexes(path)) {
+            const children = Array.isArray(content?.props?.children) ? content.props.children : [];
+            content = children[index] || null;
+            if (!content) {
+                return null;
+            }
+        }
+
+        return content;
+    }
+
+    childrenForContent(content) {
+        if (!content || typeof content !== 'object') {
+            return [];
+        }
+        content.props = content.props && typeof content.props === 'object' && !Array.isArray(content.props) ? content.props : {};
+        content.props.children = Array.isArray(content.props.children) ? content.props.children : [];
+
+        return content.props.children;
+    }
+
+    childrenAtPath(path = '') {
+        return this.childrenForContent(this.contentAtPath(path));
+    }
+
+    isLayoutContent(content) {
+        return layoutBlockTypes.includes(String(content?.type || ''));
     }
 
     blockRegion(block = this.selectedBlock()) {
@@ -545,6 +727,214 @@ class PageBuilder {
         };
     }
 
+    defaultRegionForContentType(definition) {
+        const regions = Array.isArray(definition?.regions) ? definition.regions : [];
+        return regions.find((region) => hasOption(customLayoutRegions, region)) || 'main';
+    }
+
+    defaultSizeForCustomSlot(definition, region) {
+        if (definition?.type === 'hero') {
+            return 'hero';
+        }
+        if (region === 'aside') {
+            return 'aside';
+        }
+        if (region === 'header' || region === 'footer') {
+            return 'small';
+        }
+
+        return 'medium';
+    }
+
+    uniqueCustomSlotId(label, fallbackType = 'block') {
+        const base = String(label || fallbackType || 'block')
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '_')
+            .replace(/^_+|_+$/g, '')
+            .slice(0, 48) || `slot_${Date.now()}`;
+        let id = base.startsWith('slot_') ? base : `slot_${base}`;
+        const existing = new Set(this.customLayout.map((slot) => slot.id));
+        let index = 2;
+        while (existing.has(id)) {
+            id = `${base.startsWith('slot_') ? base : `slot_${base}`}_${index}`;
+            index += 1;
+        }
+
+        return id;
+    }
+
+    addCustomSlot(type) {
+        const definition = this.contentTypeDefinition(type);
+        if (!definition) {
+            return;
+        }
+
+        const id = this.uniqueCustomSlotId(definition.label, definition.type);
+        if (this.customLayout.some((slot) => slot.id === id)) {
+            toast(this.labels.duplicateSlot);
+            return;
+        }
+
+        const region = this.defaultRegionForContentType(definition);
+        this.customLayout.push({
+            id,
+            label: definition.label || 'Content block',
+            region,
+            size: this.defaultSizeForCustomSlot(definition, region),
+            position: 'stretch',
+            maxHeight: 'none',
+            overflow: 'visible',
+            surface: 'none',
+            accepts: [definition.type],
+        });
+        this.syncCustomTemplateBlocks();
+        this.selectedBlockId = id;
+        this.blockContent[id] = this.contentFromDefinition(definition);
+        this.openSettings();
+        this.previewTemplateId = null;
+        this.persistState();
+        this.render();
+    }
+
+    updateCustomSlot(id, patch, {renderBlocks = true} = {}) {
+        const slot = this.customLayout.find((item) => item.id === id);
+        if (!slot) {
+            return;
+        }
+
+        if (typeof patch.label === 'string') {
+            slot.label = patch.label.trim() || slot.label;
+        }
+        if (hasOption(customLayoutRegions, patch.region)) {
+            slot.region = patch.region;
+        }
+        if (hasOption(customLayoutSizes, patch.size)) {
+            slot.size = patch.size;
+        }
+        if (hasOption(customLayoutPositions, patch.position)) {
+            slot.position = patch.position;
+        }
+        if (hasOption(customLayoutMaxHeights, patch.maxHeight)) {
+            slot.maxHeight = String(patch.maxHeight);
+        }
+        if (hasOption(customLayoutOverflows, patch.overflow)) {
+            slot.overflow = patch.overflow;
+        }
+        if (hasOption(customLayoutSurfaces, patch.surface)) {
+            slot.surface = patch.surface;
+        }
+
+        this.customLayout = this.normalizeCustomLayout(this.customLayout);
+        this.syncCustomTemplateBlocks();
+        this.previewTemplateId = null;
+        if (renderBlocks) {
+            this.renderBlocks();
+            this.renderTemplatePreview();
+            this.renderPagePreview();
+            this.renderSettings();
+        }
+        this.renderJson();
+        this.renderMeta();
+        this.persistState();
+    }
+
+    deleteCustomSlot(id) {
+        this.customLayout = this.customLayout.filter((slot) => slot.id !== id);
+        delete this.blockContent[id];
+        if (this.selectedBlockId === id) {
+            this.selectedBlockId = this.customLayout[0]?.id || null;
+            this.settingsOpen = false;
+        }
+        this.syncCustomTemplateBlocks();
+        this.previewTemplateId = null;
+        this.persistState();
+        this.render();
+    }
+
+    addLayoutChild(parentPath, type) {
+        const parent = this.contentAtPath(parentPath);
+        const definition = this.contentTypeDefinition(type);
+        if (!parent || !definition || !this.isLayoutContent(parent)) {
+            return;
+        }
+
+        const children = this.childrenForContent(parent);
+        children.push(this.contentFromDefinition(definition));
+        this.selectedNestedPath = this.pathForChild(parentPath, children.length - 1);
+        this.openSettings();
+        this.renderBlocks();
+        this.renderPagePreview();
+        this.renderJson();
+        this.renderSettings();
+        this.persistState();
+    }
+
+    deleteLayoutChild(path) {
+        const parts = this.pathIndexes(path);
+        if (parts.length === 0) {
+            return;
+        }
+
+        const index = parts.pop();
+        const parent = this.contentAtPath(parts.join('.'));
+        const children = this.childrenForContent(parent);
+        if (index < 0 || index >= children.length) {
+            return;
+        }
+
+        children.splice(index, 1);
+        this.selectedNestedPath = parts.join('.');
+        this.renderBlocks();
+        this.renderPagePreview();
+        this.renderJson();
+        this.renderSettings();
+        this.persistState();
+    }
+
+    moveLayoutChild(path, direction) {
+        const parts = this.pathIndexes(path);
+        if (parts.length === 0 || ![-1, 1].includes(direction)) {
+            return;
+        }
+
+        const index = parts.pop();
+        const parentPath = parts.join('.');
+        const children = this.childrenAtPath(parentPath);
+        const targetIndex = index + direction;
+        if (index < 0 || targetIndex < 0 || index >= children.length || targetIndex >= children.length) {
+            return;
+        }
+
+        const [child] = children.splice(index, 1);
+        children.splice(targetIndex, 0, child);
+        this.selectedNestedPath = this.pathForChild(parentPath, targetIndex);
+        this.renderBlocks();
+        this.renderPagePreview();
+        this.renderJson();
+        this.renderSettings();
+        this.persistState();
+    }
+
+    reorderCustomSlot(sourceId, targetId) {
+        if (!sourceId || !targetId || sourceId === targetId) {
+            return;
+        }
+
+        const sourceIndex = this.customLayout.findIndex((slot) => slot.id === sourceId);
+        const targetIndex = this.customLayout.findIndex((slot) => slot.id === targetId);
+        if (sourceIndex < 0 || targetIndex < 0) {
+            return;
+        }
+
+        const [slot] = this.customLayout.splice(sourceIndex, 1);
+        this.customLayout.splice(targetIndex, 0, slot);
+        this.syncCustomTemplateBlocks();
+        this.previewTemplateId = null;
+        this.persistState();
+        this.render();
+    }
+
     ensureTemplateDefaults() {
         for (const block of this.selectedTemplate()?.blocks || []) {
             if (this.blockContent[block.id]) {
@@ -614,10 +1004,63 @@ class PageBuilder {
             return;
         }
 
+        if (event.target.closest('[data-add-custom-slot]')) {
+            event.preventDefault();
+            this.openCustomSlotModal();
+            return;
+        }
+
+        const deleteCustomSlot = event.target.closest('[data-delete-custom-slot]');
+        if (deleteCustomSlot) {
+            event.preventDefault();
+            this.deleteCustomSlot(deleteCustomSlot.dataset.deleteCustomSlot || '');
+            return;
+        }
+
+        if (event.target.closest('[data-add-layout-child]')) {
+            event.preventDefault();
+            this.openLayoutChildModal(this.selectedNestedPath || '');
+            return;
+        }
+
+        const editLayoutChild = event.target.closest('[data-edit-layout-child]');
+        if (editLayoutChild) {
+            event.preventDefault();
+            this.selectedNestedPath = editLayoutChild.dataset.editLayoutChild || '';
+            this.openSettings();
+            this.persistState();
+            this.renderSettings();
+            return;
+        }
+
+        const deleteLayoutChild = event.target.closest('[data-delete-layout-child]');
+        if (deleteLayoutChild) {
+            event.preventDefault();
+            this.deleteLayoutChild(deleteLayoutChild.dataset.deleteLayoutChild || '');
+            return;
+        }
+
+        const moveLayoutChild = event.target.closest('[data-move-layout-child]');
+        if (moveLayoutChild) {
+            event.preventDefault();
+            this.moveLayoutChild(moveLayoutChild.dataset.moveLayoutChild || '', Number(moveLayoutChild.dataset.direction || 0));
+            return;
+        }
+
+        const backToLayoutBlock = event.target.closest('[data-back-to-layout-block]');
+        if (backToLayoutBlock) {
+            event.preventDefault();
+            this.selectedNestedPath = this.parentPath(this.selectedNestedPath);
+            this.persistState();
+            this.renderSettings();
+            return;
+        }
+
         const templateCard = event.target.closest('[data-template-id]');
         if (templateCard) {
             this.templateId = templateCard.dataset.templateId || this.templateId;
             this.selectedBlockId = null;
+            this.selectedNestedPath = '';
             this.blockContent = {};
             this.settingsOpen = false;
             this.ensureTemplateDefaults();
@@ -629,6 +1072,7 @@ class PageBuilder {
         if (event.target.closest('[data-next-step]')) {
             this.step = 'layout';
             this.selectedBlockId = this.selectedTemplate()?.blocks?.[0]?.id || null;
+            this.selectedNestedPath = '';
             this.ensureTemplateDefaults();
             this.persistState();
             this.render();
@@ -647,6 +1091,7 @@ class PageBuilder {
         if (event.target.closest('[data-back-layout]')) {
             this.step = 'layout';
             this.selectedBlockId = this.selectedBlockId || this.selectedTemplate()?.blocks?.[0]?.id || null;
+            this.selectedNestedPath = '';
             this.persistState();
             this.render();
             return;
@@ -664,6 +1109,7 @@ class PageBuilder {
         if (clearBlock) {
             delete this.blockContent[clearBlock.dataset.clearBlock || ''];
             if (clearBlock.dataset.clearBlock === this.selectedBlockId) {
+                this.selectedNestedPath = '';
                 this.settingsOpen = false;
             }
             this.persistState();
@@ -674,6 +1120,7 @@ class PageBuilder {
         const editBlock = event.target.closest('[data-edit-block]');
         if (editBlock) {
             this.selectedBlockId = editBlock.dataset.editBlock || null;
+            this.selectedNestedPath = '';
             this.openSettings();
             this.persistState();
             this.render();
@@ -683,9 +1130,10 @@ class PageBuilder {
         const chooseBlock = event.target.closest('[data-choose-block]');
         if (chooseBlock) {
             this.selectedBlockId = chooseBlock.dataset.chooseBlock || null;
-            this.openContentModal();
+            this.selectedNestedPath = '';
             this.persistState();
             this.render();
+            this.openContentModal();
             return;
         }
 
@@ -693,15 +1141,10 @@ class PageBuilder {
         if (contentChoice) {
             const type = contentChoice.dataset.contentType || '';
             this.assignContent(type);
-            this.closeContentModal();
+            this.selectedNestedPath = '';
             this.openSettings();
             this.persistState();
             this.render();
-            return;
-        }
-
-        if (event.target.closest('[data-close-content-modal]')) {
-            this.closeContentModal();
             return;
         }
 
@@ -730,8 +1173,60 @@ class PageBuilder {
             return;
         }
 
+        const customSlotLabel = event.target.closest('[data-custom-slot-label]');
+        if (customSlotLabel) {
+            this.updateCustomSlot(
+                customSlotLabel.dataset.customSlotLabel || '',
+                {label: customSlotLabel.value || ''},
+                {renderBlocks: event.type === 'change'}
+            );
+            return;
+        }
+
+        const customSlotRegion = event.target.closest('[data-custom-slot-region]');
+        if (customSlotRegion) {
+            this.updateCustomSlot(customSlotRegion.dataset.customSlotRegion || '', {region: customSlotRegion.value || 'main'});
+            return;
+        }
+
+        const customSlotSize = event.target.closest('[data-custom-slot-size]');
+        if (customSlotSize) {
+            this.updateCustomSlot(customSlotSize.dataset.customSlotSize || '', {size: customSlotSize.value || 'medium'});
+            return;
+        }
+
+        const customSlotPosition = event.target.closest('[data-custom-slot-position]');
+        if (customSlotPosition) {
+            this.updateCustomSlot(customSlotPosition.dataset.customSlotPosition || '', {position: customSlotPosition.value || 'stretch'});
+            return;
+        }
+
+        const customSlotMaxHeight = event.target.closest('[data-custom-slot-max-height]');
+        if (customSlotMaxHeight) {
+            const id = customSlotMaxHeight.dataset.customSlotMaxHeight || '';
+            const slot = this.customLayout.find((item) => item.id === id);
+            const maxHeight = customSlotMaxHeight.value || 'none';
+            this.updateCustomSlot(id, {
+                maxHeight,
+                ...(maxHeight !== 'none' && (!slot?.overflow || slot.overflow === 'visible') ? {overflow: 'auto'} : {}),
+            });
+            return;
+        }
+
+        const customSlotOverflow = event.target.closest('[data-custom-slot-overflow]');
+        if (customSlotOverflow) {
+            this.updateCustomSlot(customSlotOverflow.dataset.customSlotOverflow || '', {overflow: customSlotOverflow.value || 'visible'});
+            return;
+        }
+
+        const customSlotSurface = event.target.closest('[data-custom-slot-surface]');
+        if (customSlotSurface) {
+            this.updateCustomSlot(customSlotSurface.dataset.customSlotSurface || '', {surface: customSlotSurface.value || 'none'});
+            return;
+        }
+
         const input = event.target.closest('[data-prop-name]');
-        if (!input || !this.selectedBlockId || !this.blockContent[this.selectedBlockId]) {
+        if (!input || !this.selectedContent()) {
             return;
         }
 
@@ -744,11 +1239,13 @@ class PageBuilder {
     }
 
     setBlockProp(name, value, {renderSettings = false} = {}) {
-        if (!name || !this.selectedBlockId || !this.blockContent[this.selectedBlockId]) {
+        const content = this.selectedContent();
+        if (!name || !content) {
             return;
         }
 
-        this.blockContent[this.selectedBlockId].props[name] = value;
+        content.props = content.props && typeof content.props === 'object' && !Array.isArray(content.props) ? content.props : {};
+        content.props[name] = value;
         this.renderBlocks();
         this.renderPagePreview();
         this.renderJson();
@@ -801,11 +1298,159 @@ class PageBuilder {
     }
 
     openContentModal() {
-        this.contentModal?.classList.remove('hidden');
+        const block = this.selectedBlock();
+        const promptPromise = prompt(`
+            <div class="page-builder-content-prompt">
+                <div>
+                    <h2 class="m-0 text-base font-semibold text-[var(--notify-text)]">Choose block</h2>
+                    <p class="mt-1 text-sm text-[var(--notify-muted)]">Pick the content block rendered at this template position.</p>
+                </div>
+                <div class="mt-4 overflow-auto pr-1" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;max-height:min(620px,calc(100vh - 260px));" data-content-options>
+                    ${this.renderContentOptionsHtml(block)}
+                </div>
+            </div>
+        `, {
+            confirmButtonText: this.labels.cancel,
+            showCancelButton: false,
+            style: {width: 'min(920px, calc(100vw - 32px))', maxWidth: 'min(920px, calc(100vw - 32px))'},
+        });
+
+        window.setTimeout(() => this.bindContentPrompt(document.querySelector('.page-builder-content-prompt')), 0);
+
+        return promptPromise;
     }
 
-    closeContentModal() {
-        this.contentModal?.classList.add('hidden');
+    bindContentPrompt(container) {
+        if (!(container instanceof HTMLElement)) {
+            return;
+        }
+
+        container.querySelectorAll('[data-content-type]').forEach((button) => {
+            button.addEventListener('click', () => {
+                this.assignContent(button.getAttribute('data-content-type') || '');
+                this.openSettings();
+                this.persistState();
+                this.render();
+                container.closest('.notify')?.querySelector('.close')?.click();
+            });
+        });
+    }
+
+    openCustomSlotModal() {
+        const promptPromise = prompt(`
+            <div class="page-builder-content-prompt">
+                <div>
+                    <h2 class="m-0 text-base font-semibold text-[var(--notify-text)]">${escapeHtml(this.labels.chooseCustomBlock)}</h2>
+                    <p class="mt-1 text-sm text-[var(--notify-muted)]">${escapeHtml(this.labels.chooseCustomBlockIntro)}</p>
+                </div>
+                <div class="mt-4 overflow-auto pr-1" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;max-height:min(620px,calc(100vh - 260px));" data-content-options>
+                    ${this.renderCustomSlotContentOptionsHtml()}
+                </div>
+            </div>
+        `, {
+            confirmButtonText: this.labels.cancel,
+            showCancelButton: false,
+            style: {width: 'min(920px, calc(100vw - 32px))', maxWidth: 'min(920px, calc(100vw - 32px))'},
+        });
+
+        window.setTimeout(() => this.bindCustomSlotPrompt(document.querySelector('.page-builder-content-prompt')), 0);
+
+        return promptPromise;
+    }
+
+    bindCustomSlotPrompt(container) {
+        if (!(container instanceof HTMLElement)) {
+            return;
+        }
+
+        container.querySelectorAll('[data-custom-slot-content-type]').forEach((button) => {
+            button.addEventListener('click', () => {
+                this.addCustomSlot(button.getAttribute('data-custom-slot-content-type') || '');
+                container.closest('.notify')?.querySelector('.close')?.click();
+            });
+        });
+    }
+
+    openLayoutChildModal(parentPath = '') {
+        const promptPromise = prompt(`
+            <div class="page-builder-content-prompt">
+                <div>
+                    <h2 class="m-0 text-base font-semibold text-[var(--notify-text)]">${escapeHtml(this.labels.chooseChildBlock)}</h2>
+                    <p class="mt-1 text-sm text-[var(--notify-muted)]">${escapeHtml(this.labels.chooseChildBlockIntro)}</p>
+                </div>
+                <div class="mt-4 overflow-auto pr-1" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;max-height:min(620px,calc(100vh - 260px));" data-content-options>
+                    ${this.renderLayoutChildContentOptionsHtml(parentPath)}
+                </div>
+            </div>
+        `, {
+            confirmButtonText: this.labels.cancel,
+            showCancelButton: false,
+            style: {width: 'min(920px, calc(100vw - 32px))', maxWidth: 'min(920px, calc(100vw - 32px))'},
+        });
+
+        window.setTimeout(() => this.bindLayoutChildPrompt(document.querySelector('.page-builder-content-prompt'), parentPath), 0);
+
+        return promptPromise;
+    }
+
+    bindLayoutChildPrompt(container, parentPath = '') {
+        if (!(container instanceof HTMLElement)) {
+            return;
+        }
+
+        container.querySelectorAll('[data-layout-child-content-type]').forEach((button) => {
+            button.addEventListener('click', () => {
+                this.addLayoutChild(parentPath, button.getAttribute('data-layout-child-content-type') || '');
+                container.closest('.notify')?.querySelector('.close')?.click();
+            });
+        });
+    }
+
+    handleDragStart(event) {
+        const handle = event.target.closest('[data-custom-slot-drag]');
+        if (!handle) {
+            return;
+        }
+
+        const id = handle.dataset.customSlotDrag || '';
+        if (id === '') {
+            return;
+        }
+
+        this.draggedCustomSlotId = id;
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', id);
+    }
+
+    handleDragOver(event) {
+        const dropTarget = event.target.closest('[data-custom-slot-drop]');
+        if (!dropTarget || !this.draggedCustomSlotId || dropTarget.dataset.customSlotDrop === this.draggedCustomSlotId) {
+            return;
+        }
+
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+        dropTarget.classList.add('ring-2', 'ring-[var(--admin-page-accent)]/50');
+    }
+
+    handleDrop(event) {
+        const dropTarget = event.target.closest('[data-custom-slot-drop]');
+        if (!dropTarget) {
+            return;
+        }
+
+        event.preventDefault();
+        const sourceId = this.draggedCustomSlotId || event.dataTransfer.getData('text/plain');
+        const targetId = dropTarget.dataset.customSlotDrop || '';
+        this.handleDragEnd();
+        this.reorderCustomSlot(sourceId, targetId);
+    }
+
+    handleDragEnd() {
+        this.draggedCustomSlotId = null;
+        this.root.querySelectorAll('[data-custom-slot-drop]').forEach((slot) => {
+            slot.classList.remove('ring-2', 'ring-[var(--admin-page-accent)]/50');
+        });
     }
 
     openSettings() {
@@ -845,7 +1490,6 @@ class PageBuilder {
         this.renderTemplatePreview();
         this.renderPreviewChrome();
         this.renderBlocks();
-        this.renderContentOptions();
         this.renderSettings();
         this.renderPagePreview();
         this.renderMeta();
@@ -872,6 +1516,7 @@ class PageBuilder {
                         <span class="block text-base font-semibold text-white">${escapeHtml(template.label)}</span>
                         <span class="flex shrink-0 flex-wrap justify-end gap-1">
                             ${template.kind === 'dynamic' ? `<span class="rounded-md bg-[var(--admin-page-accent)]/20 px-2 py-1 text-[11px] font-semibold text-[var(--admin-page-accent)]">${escapeHtml(template.contentType || 'dynamic')}</span>` : ''}
+                            ${template.kind === 'custom' ? `<span class="rounded-md bg-emerald-500/15 px-2 py-1 text-[11px] font-semibold text-emerald-300">${escapeHtml(this.labels.customLayout)}</span>` : ''}
                             <span class="rounded-md bg-white/5 px-2 py-1 text-[11px] font-semibold text-slate-500">${escapeHtml((template.blocks || []).length)} Blocks</span>
                         </span>
                     </span>
@@ -997,6 +1642,10 @@ class PageBuilder {
             const block = blockById.get(id);
             return block ? this.templateDummyBlock(block, className) : '';
         };
+
+        if (this.isCustomTemplate(template)) {
+            return this.customLayoutShell(blocks, (block) => this.templateDummyBlock(block));
+        }
 
         if (template.id === 'landing') {
             return `
@@ -1178,6 +1827,120 @@ class PageBuilder {
         `;
     }
 
+    customSlotRegion(block) {
+        return optionValue(customLayoutRegions, block?.region, 'main');
+    }
+
+    customSlotSize(block) {
+        return optionValue(customLayoutSizes, block?.size, 'medium');
+    }
+
+    customLayoutShell(blocks, renderBlock, {interactive = false} = {}) {
+        const blockGroups = customLayoutRegions.reduce((groups, region) => {
+            groups[region.value] = blocks.filter((block) => this.customSlotRegion(block) === region.value);
+            return groups;
+        }, {});
+        const renderSlot = (block) => {
+            const region = this.customSlotRegion(block);
+            const size = this.customSlotSize(block);
+            const position = optionValue(customLayoutPositions, block?.position, 'stretch');
+            const maxHeight = optionValue(customLayoutMaxHeights, block?.maxHeight, 'none');
+            const overflow = optionValue(customLayoutOverflows, block?.overflow, 'visible');
+            const surface = optionValue(customLayoutSurfaces, block?.surface, 'none');
+            return `
+                <section class="page-template-region page-template-custom-slot page-template-custom-slot--${escapeHtml(region)} page-template-custom-slot--${escapeHtml(size)} page-template-custom-slot--position-${escapeHtml(position)} page-template-custom-slot--max-${escapeHtml(maxHeight)} page-template-custom-slot--overflow-${escapeHtml(overflow)} page-template-custom-slot--surface-${escapeHtml(surface)}" data-region="${escapeHtml(region)}" data-size="${escapeHtml(size)}" data-position="${escapeHtml(position)}" data-max-height="${escapeHtml(maxHeight)}" ${interactive ? `data-custom-slot-drop="${escapeHtml(block.id)}"` : ''}>
+                    ${interactive ? this.customSlotControls(block) : ''}
+                    ${renderBlock(block)}
+                </section>
+            `;
+        };
+        const renderRegion = (region) => blockGroups[region].map(renderSlot).join('');
+        const main = blockGroups.main;
+        const aside = blockGroups.aside;
+        const mainContent = main.length === 0 && aside.length === 0
+            ? '<section class="page-template-region page-template-custom-empty"></section>'
+            : aside.length > 0
+                ? `<div class="page-template-custom-grid">
+                    <div class="page-template-custom-stack">${main.map(renderSlot).join('')}</div>
+                    <aside class="page-template-custom-stack">${aside.map(renderSlot).join('')}</aside>
+                </div>`
+                : `<div class="page-template-custom-stack">${main.map(renderSlot).join('')}</div>`;
+
+        return `
+            <div class="page-template-shell page-template-shell--custom">
+                ${blockGroups.header.length > 0 ? `<div class="page-template-custom-region page-template-custom-region--header">${renderRegion('header')}</div>` : ''}
+                <main class="page-template-main page-template-main--custom">${mainContent}</main>
+                ${blockGroups.footer.length > 0 ? `<div class="page-template-custom-region page-template-custom-region--footer">${renderRegion('footer')}</div>` : ''}
+            </div>
+        `;
+    }
+
+    customSlotControls(block) {
+        const position = optionValue(customLayoutPositions, block?.position, 'stretch');
+        const maxHeight = optionValue(customLayoutMaxHeights, block?.maxHeight, 'none');
+        const overflow = optionValue(customLayoutOverflows, block?.overflow, 'visible');
+        const surface = optionValue(customLayoutSurfaces, block?.surface, 'none');
+        const regionOptions = optionOptions(customLayoutRegions, this.customSlotRegion(block));
+        const sizeOptions = optionOptions(customLayoutSizes, this.customSlotSize(block));
+        const positionOptions = optionOptions(customLayoutPositions, position);
+        const maxHeightOptions = optionOptions(customLayoutMaxHeights, maxHeight);
+        const overflowOptions = optionOptions(customLayoutOverflows, overflow);
+        const surfaceOptions = optionOptions(customLayoutSurfaces, surface);
+
+        return `
+            <div class="pointer-events-auto mb-3 grid gap-2 rounded-lg border border-slate-700 bg-slate-950/80 p-2 text-slate-100 shadow-[0_12px_28px_rgba(0,0,0,.20)]">
+                <div class="grid gap-2 md:grid-cols-[36px_minmax(150px,1fr)_minmax(108px,132px)_minmax(116px,150px)_36px]">
+                <button class="grid h-9 w-9 cursor-grab place-items-center rounded-md border border-slate-700 bg-[#0b1017] text-slate-400 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" draggable="true" data-custom-slot-drag="${escapeHtml(block.id)}" aria-label="Reorder slot">
+                    <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M8 6h.01"></path><path d="M16 6h.01"></path>
+                        <path d="M8 12h.01"></path><path d="M16 12h.01"></path>
+                        <path d="M8 18h.01"></path><path d="M16 18h.01"></path>
+                    </svg>
+                </button>
+                <label class="min-w-0">
+                    <span class="sr-only">Slot label</span>
+                    <input class="${inputClass}" type="text" value="${escapeHtml(block.label)}" data-custom-slot-label="${escapeHtml(block.id)}">
+                </label>
+                <label class="min-w-0">
+                    <span class="sr-only">Region</span>
+                    <select class="${inputClass}" data-styled-select data-custom-slot-region="${escapeHtml(block.id)}">${regionOptions}</select>
+                </label>
+                <label class="min-w-0">
+                    <span class="sr-only">Size</span>
+                    <select class="${inputClass}" data-styled-select data-custom-slot-size="${escapeHtml(block.id)}">${sizeOptions}</select>
+                </label>
+                <button class="grid h-9 w-9 place-items-center rounded-md border border-rose-900/70 bg-rose-950/20 text-rose-300 transition hover:border-rose-500 hover:bg-rose-950/50" type="button" data-delete-custom-slot="${escapeHtml(block.id)}" aria-label="${escapeHtml(this.labels.deleteSlot)}">
+                    <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"></path>
+                        <path d="M8 6V4h8v2"></path>
+                        <path d="M19 6l-1 14H6L5 6"></path>
+                        <path d="M10 11v5"></path>
+                        <path d="M14 11v5"></path>
+                    </svg>
+                </button>
+                </div>
+                <div class="grid gap-2 md:grid-cols-4">
+                    <label class="min-w-0">
+                        <span class="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500">Position</span>
+                        <select class="${inputClass}" data-styled-select data-custom-slot-position="${escapeHtml(block.id)}">${positionOptions}</select>
+                    </label>
+                    <label class="min-w-0">
+                        <span class="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500">Max height</span>
+                        <select class="${inputClass}" data-styled-select data-custom-slot-max-height="${escapeHtml(block.id)}">${maxHeightOptions}</select>
+                    </label>
+                    <label class="min-w-0">
+                        <span class="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500">Overflow</span>
+                        <select class="${inputClass}" data-styled-select data-custom-slot-overflow="${escapeHtml(block.id)}">${overflowOptions}</select>
+                    </label>
+                    <label class="min-w-0">
+                        <span class="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500">Surface</span>
+                        <select class="${inputClass}" data-styled-select data-custom-slot-surface="${escapeHtml(block.id)}">${surfaceOptions}</select>
+                    </label>
+                </div>
+            </div>
+        `;
+    }
+
     renderBlocks() {
         const template = this.selectedTemplate();
         const blocks = template?.blocks || [];
@@ -1187,6 +1950,7 @@ class PageBuilder {
         }
         if (this.blockCanvas) {
             this.blockCanvas.innerHTML = this.blockLayout(template, true);
+            initStyledSelects(this.blockCanvas.querySelectorAll('select[data-styled-select]'));
         }
     }
 
@@ -1380,6 +2144,26 @@ class PageBuilder {
 
     blockLayout(template, interactive) {
         const blocks = template?.blocks || [];
+        if (this.isCustomTemplate(template)) {
+            const toolbar = interactive ? `
+                <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800 bg-[#121820] px-4 py-3">
+                    <div class="grid gap-0.5">
+                        <span class="text-[11px] font-bold uppercase text-slate-500">${escapeHtml(this.labels.customLayout)}</span>
+                        <strong class="text-sm font-semibold text-white">${escapeHtml(blocks.length)} custom slots</strong>
+                    </div>
+                    <button class="inline-flex min-h-9 items-center justify-center rounded-md bg-[var(--admin-page-accent)] px-3 text-xs font-bold text-white transition hover:brightness-110" type="button" data-add-custom-slot>
+                        ${escapeHtml(this.labels.addCustomBlock)}
+                    </button>
+                </div>
+            ` : '';
+
+            return `${toolbar}${this.customLayoutShell(
+                blocks,
+                (block) => this.blockCard(block, interactive, template.id),
+                {interactive}
+            )}`;
+        }
+
         if (blocks.length === 0) {
             return '<div class="rounded-lg border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700">No blocks defined.</div>';
         }
@@ -1609,7 +2393,35 @@ class PageBuilder {
         `;
     }
 
-    contentMiniPreview(content) {
+    contentMiniPreview(content, depth = 0) {
+        content = content && typeof content === 'object' ? content : {type: '', props: {}};
+        if (layoutBlockTypes.includes(content.type)) {
+            const children = Array.isArray(content.props?.children) ? content.props.children : [];
+            const childPreview = children.slice(0, 6).map((child) => `
+                <div class="min-w-0 rounded-md border border-[var(--page-card-border)] bg-slate-950/20 p-2">
+                    ${depth > 2 ? `<span class="text-xs text-[var(--page-muted)]">${escapeHtml(child?.label || child?.type || 'Block')}</span>` : this.contentMiniPreview(child, depth + 1)}
+                </div>
+            `).join('');
+            const empty = '<div class="rounded-md border border-dashed border-[var(--page-border)] p-3 text-center text-xs text-[var(--page-muted)]">Empty layout module</div>';
+            const columns = content.type === 'columns' ? Math.max(2, Math.min(4, Number(content.props?.columns || 2))) : Math.max(2, Math.min(4, Number(content.props?.columns || 3)));
+            const layoutClass = content.type === 'stack' || content.type === 'section'
+                ? 'grid gap-2'
+                : 'grid gap-2';
+            const layoutStyle = content.type === 'stack' || content.type === 'section' || this.isMobilePreview()
+                ? ''
+                : ` style="grid-template-columns:repeat(${columns},minmax(0,1fr));"`;
+
+            return `
+                <div class="grid gap-2 rounded-md border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-3">
+                    <div class="flex items-center justify-between gap-3">
+                        <strong class="text-sm font-bold text-[var(--page-text)]">${escapeHtml(content.label || content.previewTitle || content.type)}</strong>
+                        <span class="rounded bg-white/10 px-2 py-1 text-[11px] font-bold uppercase text-[var(--page-muted)]">${escapeHtml(content.type)}</span>
+                    </div>
+                    <div class="${layoutClass}"${layoutStyle}>${childPreview || empty}</div>
+                </div>
+            `;
+        }
+
         if (content.type === 'header') {
             const compact = this.isMobilePreview();
             return `
@@ -1836,26 +2648,48 @@ class PageBuilder {
             `;
         }
 
-        if (content.type === 'article-header') {
+        if (content.type === 'article-title') {
             return `
                 <div class="grid gap-2 rounded-md bg-slate-950/60 p-4">
-                    <div class="flex flex-wrap gap-1.5 text-[10px] font-bold uppercase text-slate-500">
-                        <span class="rounded bg-white/10 px-1.5 py-1">Current article</span>
-                        ${content.props?.showMeta ? '<span class="rounded bg-white/10 px-1.5 py-1">Published</span>' : ''}
-                    </div>
                     <strong class="text-lg font-extrabold leading-tight text-slate-50">Resolved article title</strong>
                     ${content.props?.showTeaser ? '<span class="text-xs leading-relaxed text-slate-400">Article teaser from the resolved version.</span>' : ''}
                 </div>
             `;
         }
 
-        if (content.type === 'article-body') {
+        if (content.type === 'article-content') {
             return `
                 <div class="grid gap-2 rounded-md bg-slate-950/45 p-4">
                     <span class="text-xs font-semibold text-slate-400">Editor.js body from current article</span>
                     <span class="h-2.5 rounded bg-slate-700"></span>
                     <span class="h-2.5 w-10/12 rounded bg-slate-700"></span>
                     <span class="h-2.5 w-8/12 rounded bg-slate-800"></span>
+                </div>
+            `;
+        }
+
+        if (content.type === 'article-meta') {
+            return `
+                <div class="grid gap-2 rounded-md bg-slate-950/45 p-4 text-xs">
+                    <div class="flex items-center justify-between gap-3"><span class="text-slate-500">Language</span><strong class="text-slate-100">Current</strong></div>
+                    <div class="flex items-center justify-between gap-3"><span class="text-slate-500">Published</span><strong class="text-slate-100">Date</strong></div>
+                    ${content.props?.showTags ? '<div class="flex flex-wrap gap-1.5 pt-1"><span class="rounded-full bg-white/10 px-2 py-1 text-slate-300">tag</span><span class="rounded-full bg-white/10 px-2 py-1 text-slate-300">topic</span></div>' : ''}
+                </div>
+            `;
+        }
+
+        if (content.type === 'article-related') {
+            return `
+                <div class="rounded-md border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-3">
+                    <div class="flex items-center justify-between gap-3 text-xs">
+                        <span class="font-semibold">${escapeHtml(content.props?.title || content.previewTitle || 'Related articles')}</span>
+                        <span class="rounded bg-white px-2 py-1 font-mono dark:bg-slate-800">${escapeHtml(content.props?.presentation || 'cards')}</span>
+                    </div>
+                    <div class="mt-2 grid gap-1.5">
+                        <span class="h-2 rounded bg-slate-300 dark:bg-slate-700"></span>
+                        <span class="h-2 w-10/12 rounded bg-slate-300 dark:bg-slate-700"></span>
+                        <span class="h-2 w-8/12 rounded bg-slate-300 dark:bg-slate-700"></span>
+                    </div>
                 </div>
             `;
         }
@@ -1875,36 +2709,163 @@ class PageBuilder {
         return '<div class="rounded-md bg-slate-100 p-3 text-xs text-slate-500 dark:bg-slate-900">Content preview</div>';
     }
 
-    renderContentOptions() {
-        const block = this.selectedBlock();
+    renderContentOptionsHtml(block = this.selectedBlock()) {
         const types = this.compatibleContentTypes(block);
         const region = this.blockRegion(block);
 
         if (types.length === 0) {
-            this.contentOptions.innerHTML = `
+            return `
                 <div class="rounded-lg border border-dashed border-slate-700 p-6 text-center text-sm text-slate-500">
                     No content blocks are available for the ${escapeHtml(region)} region.
                 </div>
             `;
-            return;
         }
 
-        this.contentOptions.innerHTML = types.map((type) => `
-            <button class="${cardClass}" type="button" data-content-type="${escapeHtml(type.type)}">
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <h3 class="m-0 text-sm font-semibold">${escapeHtml(type.label)}</h3>
-                        <p class="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">${escapeHtml(type.description)}</p>
-                    </div>
-                    <span class="rounded-md bg-slate-900/5 px-2 py-1 text-xs font-bold dark:bg-white/10">Select</span>
-                </div>
-                <div class="mt-3">${this.contentMiniPreview({type: type.type, previewTitle: type.previewTitle, props: type.defaults || {}})}</div>
+        return types.map((type) => {
+            const preview = this.compactContentPreview(type);
+            return `
+            <button class="rounded-lg border border-slate-700 bg-[#121820] p-3 text-left text-slate-100 transition hover:border-[var(--admin-page-accent)] hover:bg-[#151d27] focus:outline-none focus:ring-2 focus:ring-[var(--admin-page-accent)]/40" style="display:grid;min-height:150px;align-content:space-between;gap:10px;" type="button" data-content-type="${escapeHtml(type.type)}">
+                <span style="display:grid;gap:8px;">
+                    <span class="flex items-start justify-between gap-3">
+                        <span class="min-w-0">
+                            <span class="block truncate text-sm font-semibold">${escapeHtml(type.label)}</span>
+                            <span class="mt-1 block overflow-hidden text-xs leading-relaxed text-slate-500 dark:text-slate-400" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${escapeHtml(type.description)}</span>
+                        </span>
+                        <span class="shrink-0 rounded-md bg-white/10 px-2 py-1 text-[11px] font-bold text-slate-300">Select</span>
+                    </span>
+                    <span class="overflow-hidden rounded-md border border-slate-800 bg-slate-950/45 p-2" style="display:grid;height:48px;align-content:center;">
+                        ${preview}
+                    </span>
+                </span>
+                <span class="block truncate font-mono text-[10px] uppercase tracking-wide text-slate-500">${escapeHtml(type.type)}</span>
             </button>
-        `).join('');
+        `;
+        }).join('');
+    }
+
+    renderCustomSlotContentOptionsHtml() {
+        if (this.contentTypes.length === 0) {
+            return `
+                <div class="rounded-lg border border-dashed border-slate-700 p-6 text-center text-sm text-slate-500">
+                    No content blocks are available.
+                </div>
+            `;
+        }
+
+        return this.contentTypes.map((type) => {
+            const preview = this.compactContentPreview(type);
+            const region = this.defaultRegionForContentType(type);
+            return `
+            <button class="rounded-lg border border-slate-700 bg-[#121820] p-3 text-left text-slate-100 transition hover:border-[var(--admin-page-accent)] hover:bg-[#151d27] focus:outline-none focus:ring-2 focus:ring-[var(--admin-page-accent)]/40" style="display:grid;min-height:150px;align-content:space-between;gap:10px;" type="button" data-custom-slot-content-type="${escapeHtml(type.type)}">
+                <span style="display:grid;gap:8px;">
+                    <span class="flex items-start justify-between gap-3">
+                        <span class="min-w-0">
+                            <span class="block truncate text-sm font-semibold">${escapeHtml(type.label)}</span>
+                            <span class="mt-1 block overflow-hidden text-xs leading-relaxed text-slate-500 dark:text-slate-400" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${escapeHtml(type.description)}</span>
+                        </span>
+                        <span class="shrink-0 rounded-md bg-white/10 px-2 py-1 text-[11px] font-bold text-slate-300">${escapeHtml(region)}</span>
+                    </span>
+                    <span class="overflow-hidden rounded-md border border-slate-800 bg-slate-950/45 p-2" style="display:grid;height:48px;align-content:center;">
+                        ${preview}
+                    </span>
+                </span>
+                <span class="block truncate font-mono text-[10px] uppercase tracking-wide text-slate-500">${escapeHtml(type.type)}</span>
+            </button>
+        `;
+        }).join('');
+    }
+
+    renderLayoutChildContentOptionsHtml(parentPath = '') {
+        const parent = this.contentAtPath(parentPath);
+        if (!this.isLayoutContent(parent)) {
+            return `
+                <div class="rounded-lg border border-dashed border-slate-700 p-6 text-center text-sm text-slate-500">
+                    Choose a layout block before adding children.
+                </div>
+            `;
+        }
+
+        return this.contentTypes.map((type) => {
+            const preview = this.compactContentPreview(type);
+            const isLayout = layoutBlockTypes.includes(type.type);
+            return `
+            <button class="rounded-lg border border-slate-700 bg-[#121820] p-3 text-left text-slate-100 transition hover:border-[var(--admin-page-accent)] hover:bg-[#151d27] focus:outline-none focus:ring-2 focus:ring-[var(--admin-page-accent)]/40" style="display:grid;min-height:150px;align-content:space-between;gap:10px;" type="button" data-layout-child-content-type="${escapeHtml(type.type)}">
+                <span style="display:grid;gap:8px;">
+                    <span class="flex items-start justify-between gap-3">
+                        <span class="min-w-0">
+                            <span class="block truncate text-sm font-semibold">${escapeHtml(type.label)}</span>
+                            <span class="mt-1 block overflow-hidden text-xs leading-relaxed text-slate-500 dark:text-slate-400" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${escapeHtml(type.description)}</span>
+                        </span>
+                        <span class="shrink-0 rounded-md bg-white/10 px-2 py-1 text-[11px] font-bold text-slate-300">${escapeHtml(isLayout ? 'layout' : 'content')}</span>
+                    </span>
+                    <span class="overflow-hidden rounded-md border border-slate-800 bg-slate-950/45 p-2" style="display:grid;height:48px;align-content:center;">
+                        ${preview}
+                    </span>
+                </span>
+                <span class="block truncate font-mono text-[10px] uppercase tracking-wide text-slate-500">${escapeHtml(type.type)}</span>
+            </button>
+        `;
+        }).join('');
+    }
+
+    compactContentPreview(type) {
+        const contentType = String(type?.type || '');
+        const props = type?.defaults || {};
+
+        if (contentType.includes('article')) {
+            return `
+                <span class="grid gap-1.5">
+                    <span class="h-2.5 w-8/12 rounded bg-slate-500"></span>
+                    <span class="h-2 w-full rounded bg-slate-700"></span>
+                    <span class="h-2 w-10/12 rounded bg-slate-800"></span>
+                </span>
+            `;
+        }
+
+        if (['image', 'media', 'hero'].includes(contentType)) {
+            return `
+                <span class="grid h-full grid-cols-[minmax(0,1fr)_42px] items-center gap-2">
+                    <span class="grid gap-1.5">
+                        <span class="h-2.5 w-9/12 rounded bg-slate-500"></span>
+                        <span class="h-2 w-full rounded bg-slate-700"></span>
+                    </span>
+                    <span class="h-10 rounded border border-dashed border-slate-700 bg-slate-900"></span>
+                </span>
+            `;
+        }
+
+        if (contentType === 'chart' || contentType === 'stats') {
+            return `
+                <span class="flex h-full items-end gap-1.5">
+                    <span class="h-5 flex-1 rounded-t bg-sky-500/70"></span>
+                    <span class="h-8 flex-1 rounded-t bg-emerald-500/70"></span>
+                    <span class="h-3 flex-1 rounded-t bg-amber-500/70"></span>
+                    <span class="h-10 flex-1 rounded-t bg-violet-500/70"></span>
+                </span>
+            `;
+        }
+
+        if (contentType === 'navigation' || contentType === 'header' || contentType === 'footer') {
+            return `
+                <span class="flex items-center gap-1.5">
+                    <span class="h-6 w-6 rounded bg-[var(--admin-page-accent)]"></span>
+                    <span class="h-2 flex-1 rounded bg-slate-700"></span>
+                    <span class="h-2 w-8 rounded bg-slate-800"></span>
+                </span>
+            `;
+        }
+
+        return `
+            <span class="grid gap-1.5">
+                <span class="h-2.5 w-7/12 rounded bg-slate-500"></span>
+                <span class="h-2 w-full rounded bg-slate-700"></span>
+                <span class="h-2 w-9/12 rounded bg-slate-800"></span>
+            </span>
+        `;
     }
 
     renderSettings() {
-        const content = this.selectedBlockId ? this.blockContent[this.selectedBlockId] : null;
+        const content = this.selectedContent();
         const block = this.selectedBlock();
 
         if (!content || !block) {
@@ -1916,17 +2877,83 @@ class PageBuilder {
         const fields = Array.isArray(definition?.fields) && definition.fields.length > 0
             ? definition.fields
             : Object.keys(content.props || {}).map((key) => ({name: key, label: key}));
+        const visibleFields = fields.filter((field) => field.name !== 'children');
+        const isNested = this.selectedNestedPath !== '';
 
         this.contentSettings.innerHTML = `
             <div class="mb-4 rounded-lg bg-slate-100 p-3 dark:bg-slate-900">
-                <p class="m-0 text-[11px] font-bold uppercase tracking-wide text-slate-400">${escapeHtml(block.label)}</p>
+                ${isNested ? `<button class="mb-2 inline-flex min-h-8 items-center rounded-md border border-slate-700 px-2.5 text-xs font-semibold text-slate-300 transition hover:border-[var(--admin-page-accent)]" type="button" data-back-to-layout-block>${escapeHtml(this.labels.backToLayoutBlock)}</button>` : ''}
+                <p class="m-0 text-[11px] font-bold uppercase tracking-wide text-slate-400">${escapeHtml(isNested ? this.labels.editChildBlock : block.label)}</p>
                 <h3 class="m-0 text-sm font-semibold">${escapeHtml(content.label)}</h3>
             </div>
             <div class="grid gap-3">
-                ${fields.map((field) => this.renderField(field.name, content.props?.[field.name] ?? '', content.type, field)).join('')}
+                ${visibleFields.map((field) => this.renderField(field.name, content.props?.[field.name] ?? '', content.type, field)).join('')}
+                ${this.isLayoutContent(content) ? this.renderLayoutChildrenEditor(this.selectedNestedPath || '') : ''}
             </div>
         `;
         initStyledSelects(this.contentSettings.querySelectorAll('select[data-styled-select]'));
+    }
+
+    renderLayoutChildrenEditor(parentPath = '') {
+        const children = this.childrenAtPath(parentPath);
+        const rows = children.map((child, index) => {
+            const path = this.pathForChild(parentPath, index);
+            const label = child?.label || child?.previewTitle || child?.type || 'Block';
+            const type = child?.type || '';
+            return `
+                <div class="grid gap-2 rounded-md border border-slate-700 bg-[#0b1017] p-3">
+                    <div class="flex min-w-0 items-center gap-2">
+                        <div class="min-w-0 flex-1">
+                            <strong class="block truncate text-sm text-slate-100">${escapeHtml(label)}</strong>
+                            <span class="block truncate font-mono text-[11px] uppercase text-slate-500">${escapeHtml(type)}</span>
+                        </div>
+                        <button class="grid h-8 w-8 place-items-center rounded-md border border-slate-700 text-xs text-slate-400 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-move-layout-child="${escapeHtml(path)}" data-direction="-1" aria-label="Move up">
+                            <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m18 15-6-6-6 6"></path>
+                            </svg>
+                        </button>
+                        <button class="grid h-8 w-8 place-items-center rounded-md border border-slate-700 text-xs text-slate-400 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-move-layout-child="${escapeHtml(path)}" data-direction="1" aria-label="Move down">
+                            <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m6 9 6 6 6-6"></path>
+                            </svg>
+                        </button>
+                        <button class="grid h-8 w-8 place-items-center rounded-md border border-slate-700 text-xs text-[var(--admin-page-accent)] transition hover:border-[var(--admin-page-accent)]" type="button" data-edit-layout-child="${escapeHtml(path)}" aria-label="${escapeHtml(this.labels.editChildBlock)}">
+                            <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 20h9"></path>
+                                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                            </svg>
+                        </button>
+                        <button class="grid h-8 w-8 place-items-center rounded-md border border-rose-900/70 text-rose-300 transition hover:border-rose-500 hover:bg-rose-950/50" type="button" data-delete-layout-child="${escapeHtml(path)}" aria-label="${escapeHtml(this.labels.removeChildBlock)}">
+                            <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 6h18"></path>
+                                <path d="M8 6V4h8v2"></path>
+                                <path d="M19 6l-1 14H6L5 6"></path>
+                                <path d="M10 11v5"></path>
+                                <path d="M14 11v5"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="overflow-hidden rounded border border-slate-800 bg-slate-950/45 p-2">
+                        ${this.contentMiniPreview(child)}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="mt-2 grid gap-3 rounded-lg border border-slate-700 bg-slate-950/45 p-3">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <p class="m-0 text-[11px] font-bold uppercase tracking-wide text-slate-500">${escapeHtml(this.labels.nestedBlocks)}</p>
+                        <p class="m-0 mt-0.5 text-xs text-slate-500">${escapeHtml(children.length)} blocks</p>
+                    </div>
+                    <button class="inline-flex min-h-9 items-center justify-center rounded-md bg-[var(--admin-page-accent)] px-3 text-xs font-bold text-white transition hover:brightness-110" type="button" data-add-layout-child>
+                        ${escapeHtml(this.labels.addChildBlock)}
+                    </button>
+                </div>
+                ${rows || '<div class="rounded-md border border-dashed border-slate-700 p-4 text-center text-xs text-slate-500">No child blocks yet.</div>'}
+            </div>
+        `;
     }
 
     renderField(key, value, contentType = '', field = null) {
@@ -1979,7 +3006,7 @@ class PageBuilder {
                 : ['list', 'cards', 'compact'], label);
         }
         if (key === 'source' && contentType === 'articles') {
-            return this.renderSelect(key, value, ['latest', 'featured', 'category'], label);
+            return this.renderSelect(key, value, ['latest', 'featured', 'category', 'related'], label);
         }
         if (key === 'language') {
             return this.renderSelect(key, value, ['current', 'de', 'en', 'fr', 'es', 'it'], label);
@@ -2139,11 +3166,12 @@ class PageBuilder {
     }
 
     async openTranslationPicker(propName) {
-        if (!propName || !this.selectedBlockId || !this.blockContent[this.selectedBlockId]) {
+        const content = this.selectedContent();
+        if (!propName || !content) {
             return;
         }
 
-        const currentValue = String(this.blockContent[this.selectedBlockId].props?.[propName] || '');
+        const currentValue = String(content.props?.[propName] || '');
         const language = this.translationLanguage();
         const initialValue = this.findTranslationSuggestion(language, currentValue)?.value || '';
         const promptResult = prompt(this.translationPromptHtml(language, currentValue, initialValue), {
@@ -2396,12 +3424,13 @@ class PageBuilder {
     }
 
     async openMediaPicker(propName, altTarget = '') {
-        if (!propName || !this.selectedBlockId || !this.blockContent[this.selectedBlockId]) {
+        const content = this.selectedContent();
+        if (!propName || !content) {
             return;
         }
 
         let selected = null;
-        const currentUrl = String(this.blockContent[this.selectedBlockId].props?.[propName] || '');
+        const currentUrl = String(content.props?.[propName] || '');
         const mediaItems = await this.fetchMediaItems();
         const visibilityOptions = this.media.visibilityOptions || {
             public: this.labels.public,
@@ -2424,7 +3453,7 @@ class PageBuilder {
                     </label>
                     <label class="notify-field">
                         <span class="notify-field-label">${escapeHtml(this.labels.altText)}</span>
-                        <input type="text" value="${escapeHtml(String(this.blockContent[this.selectedBlockId].props?.[altTarget] || ''))}" data-page-media-alt>
+                        <input type="text" value="${escapeHtml(String(content.props?.[altTarget] || ''))}" data-page-media-alt>
                     </label>
                 </div>
                 <div class="media-picker-upload ${this.media.canUpload ? '' : 'hidden'}">
@@ -2446,6 +3475,7 @@ class PageBuilder {
             confirmButtonText: this.labels.mediaUse,
             cancelButtonText: this.labels.cancel,
             showCancelButton: true,
+            style: {width: 'min(920px, calc(100vw - 32px))', maxWidth: 'min(920px, calc(100vw - 32px))'},
             confirmCallback: (promptInstance) => {
                 const container = promptInstance.container;
                 const url = String(selected?.public_url || currentUrl || '').trim();
@@ -2490,14 +3520,16 @@ class PageBuilder {
                 }
             };
 
-            modal.querySelectorAll('[data-page-media-choice]').forEach((item) => {
-                item.addEventListener('click', () => {
-                    setSelected({
-                        public_url: String(item.getAttribute('data-page-media-choice') || ''),
-                        alt_text: String(item.getAttribute('data-page-media-alt-value') || ''),
+            const bindChoices = () => {
+                modal.querySelectorAll('[data-page-media-choice]').forEach((item) => {
+                    item.addEventListener('click', () => {
+                        setSelected({
+                            public_url: String(item.getAttribute('data-page-media-choice') || ''),
+                            alt_text: String(item.getAttribute('data-page-media-alt-value') || ''),
+                        });
                     });
                 });
-            });
+            };
 
             const fileInput = modal.querySelector('[data-page-media-file]');
             const uploadButton = modal.querySelector('[data-page-media-upload]');
@@ -2540,15 +3572,9 @@ class PageBuilder {
                     setSelected(data.media);
                     const library = modal.querySelector('[data-page-media-library]');
                     if (library) {
-                        library.innerHTML = this.renderMediaPickerItems([data.media, ...mediaItems], String(data.media.public_url || ''));
-                        library.querySelectorAll('[data-page-media-choice]').forEach((item) => {
-                            item.addEventListener('click', () => {
-                                setSelected({
-                                    public_url: String(item.getAttribute('data-page-media-choice') || ''),
-                                    alt_text: String(item.getAttribute('data-page-media-alt-value') || ''),
-                                });
-                            });
-                        });
+                        mediaItems.unshift(data.media);
+                        library.innerHTML = this.renderMediaPickerItems(mediaItems, String(data.media.public_url || ''));
+                        bindChoices();
                     }
                 } catch (error) {
                     toast(this.labels.mediaUploadFailed);
@@ -2558,13 +3584,16 @@ class PageBuilder {
                 }
             });
 
+            bindChoices();
+            if (currentUrl !== '') {
+                setSelected({public_url: currentUrl, alt_text: ''});
+            }
             if (notify instanceof HTMLElement) {
                 notify.classList.add('media-picker-notify');
             }
         }, 0);
 
-        const result = await promptResult;
-        return result;
+        return await promptResult;
     }
 
     validateMediaUpload(file) {
@@ -2653,6 +3682,11 @@ class PageBuilder {
                     contentWidthIncludesChrome: this.contentWidthIncludesChrome(),
                 } : null,
                 blocks,
+                meta: {
+                    custom_layout: this.isCustomTemplate(template) || this.customLayout.length > 0
+                        ? this.normalizeCustomLayout(this.customLayout)
+                        : [],
+                },
             }, null, 2);
         }
     }
@@ -2674,6 +3708,7 @@ class PageBuilder {
                 ['Width', this.contentWidthDisplay()],
                 ['Header/Footer', this.contentWidthIncludesChrome() ? 'Bounded' : 'Full width'],
                 ['Template', payload.templateId || ''],
+                ...(this.isCustomTemplate(template) || this.customLayout.length > 0 ? [['Custom slots', String(this.customLayout.length)]] : []),
             ];
             this.metaSummary.innerHTML = rows.map(([label, value]) => `
                 <div class="grid grid-cols-[92px_minmax(0,1fr)] gap-3">
@@ -2703,6 +3738,25 @@ class PageBuilder {
 
         const title = String(this.persistedValues.title || template?.label || 'Untitled page').trim();
         const path = String(this.persistedValues.path || '/').trim();
+        const meta = {
+            version: 1,
+            seo: {
+                description: this.persistedValues['seo.description'] || '',
+                robots: this.persistedValues['seo.robots'] || 'index,follow',
+                canonicalUrl: this.persistedValues['seo.canonicalUrl'] || null,
+            },
+            theme: {
+                accent: this.pageAccent(),
+                contentWidth: this.contentWidthKey(),
+                contentWidthIncludesChrome: this.contentWidthIncludesChrome(),
+            },
+            extra: {
+                defaultNavigationIdentifier: this.selectedDefaultNavigationIdentifier(),
+            },
+        };
+        if (this.isCustomTemplate(template) || this.customLayout.length > 0) {
+            meta.custom_layout = this.normalizeCustomLayout(this.customLayout);
+        }
 
         return {
             id: this.savedId || 0,
@@ -2713,22 +3767,7 @@ class PageBuilder {
             status: this.persistedValues.status || 'draft',
             templateId: template?.id || this.templateId,
             blocks,
-            meta: {
-                version: 1,
-                seo: {
-                    description: this.persistedValues['seo.description'] || '',
-                    robots: this.persistedValues['seo.robots'] || 'index,follow',
-                    canonicalUrl: this.persistedValues['seo.canonicalUrl'] || null,
-                },
-                theme: {
-                    accent: this.pageAccent(),
-                    contentWidth: this.contentWidthKey(),
-                    contentWidthIncludesChrome: this.contentWidthIncludesChrome(),
-                },
-                extra: {
-                    defaultNavigationIdentifier: this.selectedDefaultNavigationIdentifier(),
-                },
-            },
+            meta,
         };
     }
 
@@ -2774,7 +3813,9 @@ class PageBuilder {
                     templateId: this.templateId,
                     previewViewport: this.previewViewport,
                     selectedBlockId: this.selectedBlockId,
+                    selectedNestedPath: this.selectedNestedPath,
                     blockContent: this.blockContent,
+                    customLayout: this.customLayout,
                     persistedValues: this.persistedValues,
                     settingsOpen: this.settingsOpen,
                     savedId: this.savedId,

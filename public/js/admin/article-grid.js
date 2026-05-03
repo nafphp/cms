@@ -1,7 +1,7 @@
 import prompt from '../lib/notifyJs/Modules/Prompt.js';
 import toast from '../lib/notifyJs/Modules/Toast.js';
 import {actionMenuMarkup} from '../components/actionMenu.js';
-import {AdminDataGrid} from '../components/dataGrid.js';
+import {AdminDataGrid, formatDate, statusChip as dataGridStatusChip} from '../components/dataGrid.js';
 import {initStyledSelects} from '../components/styledSelect.js';
 
 const reviewableStatuses = new Set(['draft', 'declined']);
@@ -19,17 +19,17 @@ const languageFlags = {
     es: '🇪🇸',
     it: '🇮🇹',
 };
-const tableCellClass = '[&_td]:h-[78px] [&_td]:border-b [&_td]:border-slate-900/10 [&_td]:px-[18px] [&_td]:py-4 [&_td]:text-left [&_td]:text-[rgba(48,48,48,.86)] dark:[&_td]:border-slate-400/15 dark:[&_td]:text-slate-100 [&_th]:h-[46px] [&_th]:border-b [&_th]:border-slate-900/10 [&_th]:bg-slate-200/70 [&_th]:px-[18px] [&_th]:py-[11px] [&_th]:text-left [&_th]:text-[13px] [&_th]:font-semibold [&_th]:leading-tight [&_th]:text-slate-700 dark:[&_th]:border-slate-400/15 dark:[&_th]:bg-slate-800/50 dark:[&_th]:text-slate-300';
+const tableCellClass = '[&_td]:h-[64px] [&_td]:border-b [&_td]:border-slate-900/10 [&_td]:px-[18px] [&_td]:py-3 [&_td]:text-left [&_td]:text-[rgba(48,48,48,.84)] dark:[&_td]:border-slate-400/10 dark:[&_td]:text-slate-200 [&_tbody_tr:last-child_td]:border-b-0';
 const rowClass = 'article-grid-row cursor-pointer hover:[&_td]:bg-slate-900/[.035] dark:hover:[&_td]:bg-white/[.035]';
-const titleCellClass = 'font-semibold text-[#303030] dark:text-slate-50';
+const titleCellClass = '!pl-6 font-semibold text-slate-950 dark:text-white';
 const wideCellClass = 'article-grid-wide wide:table-cell max-wide:hidden';
-const statusClass = 'article-status-chip inline-flex min-h-6 items-center justify-center rounded-md bg-slate-900/5 px-2 text-xs font-bold text-slate-700 dark:bg-transparent dark:text-slate-100';
 const languageBadgeWrapClass = 'article-language-badges inline-flex flex-nowrap items-center gap-1.5';
-const languageFlagClass = 'article-language-flag inline-flex min-h-8 min-w-8 items-center justify-center rounded-md border border-slate-900/10 bg-slate-900/5 px-0 text-xs font-bold text-slate-700 dark:border-slate-400/30 dark:bg-slate-500/30 dark:text-white';
-const languageSummaryClass = 'article-language-summary relative inline-flex min-h-8 items-center justify-center whitespace-nowrap rounded-md border border-slate-900/10 bg-slate-900/5 px-2.5 text-xs font-bold text-slate-700 dark:border-slate-400/30 dark:bg-slate-500/30 dark:text-white';
+const languageFlagClass = 'article-language-flag inline-flex rounded-md bg-slate-900/5 px-2 py-1 text-xs font-bold uppercase text-slate-700 dark:bg-white/10 dark:text-slate-200';
+const languageSummaryClass = 'article-language-summary relative inline-flex items-center justify-center whitespace-nowrap rounded-md bg-slate-900/5 px-2 py-1 text-xs font-bold text-slate-700 dark:bg-white/10 dark:text-slate-200';
 const languagePopoverClass = 'article-language-popover pointer-events-none fixed z-[1001] grid min-w-45 -translate-y-0.5 gap-1 rounded-lg border border-slate-300 bg-white p-2 opacity-0 shadow-[0_20px_70px_rgba(0,0,0,.18)] transition dark:border-slate-400/30 dark:bg-slate-900 dark:shadow-[0_20px_70px_rgba(0,0,0,.38)]';
-const detailsClass = 'bg-slate-200/40 px-3 pb-3 pt-0 dark:bg-slate-950/40';
-const nestedTableClass = 'article-version-table w-full min-w-[1240px] table-fixed border-separate border-spacing-0 rounded border border-slate-300/70 bg-white/80 text-sm dark:border-slate-400/15 dark:bg-slate-950/50';
+const detailsClass = 'bg-slate-200/45 px-4 py-4 dark:bg-[#111a2a]/70';
+const nestedTableClass = 'article-version-table w-full min-w-[1180px] table-fixed border-separate border-spacing-0 bg-transparent text-sm';
+const nestedRowClass = 'bg-transparent hover:bg-slate-900/[.025] dark:hover:bg-white/[.025]';
 const stateClass = 'py-8 text-center text-sm text-slate-500';
 
 class ArticleGrid {
@@ -39,12 +39,13 @@ class ArticleGrid {
         this.grid = new AdminDataGrid(root, {
             frameSelector: '[data-article-grid-frame], [data-admin-grid-frame]',
             searchSelector: '[data-article-search], [data-admin-grid-search]',
-            defaultSort: {key: 'id', direction: 'asc'},
+            defaultSort: {key: 'title', direction: 'asc'},
             columns: this.columns(),
             rowId: (row) => row.id,
             rowClass: (row) => `${rowClass} admin-data-grid-row`,
             renderCell: (row, column) => this.renderCell(row, column),
             renderDetails: (row) => this.renderDetailsContent(row),
+            detailsRowClass: 'admin-data-grid-details-row [&>td]:!h-auto [&>td]:!border-b [&>td]:!border-slate-900/10 [&>td]:!p-0 dark:[&>td]:!border-slate-400/15',
             searchableValues: (row) => this.searchValues(row),
             sortValue: (row, key) => sortValue(row, key),
             afterRender: () => {
@@ -71,25 +72,23 @@ class ArticleGrid {
 
     columns() {
         return [
-            {key: 'id', label: '#', colClass: 'w-[5%]'},
-            {key: 'title', labelKey: 'title', colClass: 'w-[20%]', cellClass: titleCellClass},
-            {key: 'slug', label: 'Slug', colClass: 'w-[18%]', className: wideCellClass},
+            {key: 'title', labelKey: 'title', colClass: 'w-[23%]', cellClass: titleCellClass, headerClass: '!pl-6'},
+            {key: 'slug', label: 'Slug', colClass: 'w-[17%]', className: wideCellClass},
             {key: 'author', label: 'Author', colClass: 'w-[13%]'},
             {key: 'publishedAt', labelKey: 'publishedAt', colClass: 'w-[16%]', className: wideCellClass},
             {key: 'lastVersion', labelKey: 'version', colClass: 'w-[7%]'},
-            {key: 'status', labelKey: 'status', colClass: 'w-[8%]'},
-            {key: 'languages', labelKey: 'languages', sortable: false, colClass: 'w-[7%]'},
-            {key: 'actions', labelKey: 'actions', sortable: false, colClass: 'w-[6%]', headerClass: 'text-right'},
+            {key: 'status', labelKey: 'status', colClass: 'w-[9%]'},
+            {key: 'languages', labelKey: 'languages', sortable: false, colClass: 'w-[8%]'},
+            {key: 'actions', labelKey: 'actions', sortable: false, colClass: 'w-[7%]', headerClass: 'text-right'},
         ];
     }
 
     renderCell(row, column) {
         const key = column.key;
         const renderers = {
-            id: () => escapeHtml(row.id || '-'),
             title: () => escapeHtml(row.title || '-'),
-            slug: () => escapeHtml(row.slug || '-'),
-            author: () => escapeHtml(row.author || '-'),
+            slug: () => `<code class="rounded bg-slate-900/5 px-2 py-1 text-xs text-slate-700 dark:bg-white/10 dark:text-slate-200">${escapeHtml(row.slug || '-')}</code>`,
+            author: () => `<span class="text-slate-600 dark:text-slate-300">${escapeHtml(row.author || '-')}</span>`,
             publishedAt: () => escapeHtml(formatDate(row.publishedAt)),
             lastVersion: () => escapeHtml(row.lastVersion ? `v${Number(row.lastVersion)}` : '-'),
             status: () => statusChip(row.status),
@@ -162,11 +161,10 @@ class ArticleGrid {
         });
 
         return `
-            <tr>
-                <td>${escapeHtml(version.articleVersionId || version.id || '-')}</td>
-                <td>${editable ? `<a class="font-semibold text-blue-700 hover:text-blue-900 dark:text-slate-50 dark:hover:text-blue-300" href="${escapeAttr(editUrl)}">${escapeHtml(version.title || '-')}</a>` : escapeHtml(version.title || '-')}</td>
-                <td>${escapeHtml(version.slug || '-')}</td>
-                <td>${escapeHtml(row.author || '-')}</td>
+            <tr class="${nestedRowClass}">
+                <td class="!pl-6">${editable ? `<a class="font-semibold text-blue-700 hover:text-blue-900 dark:text-slate-100 dark:hover:text-blue-300" href="${escapeAttr(editUrl)}">${escapeHtml(version.title || '-')}</a>` : `<span class="font-medium text-slate-800 dark:text-slate-200">${escapeHtml(version.title || '-')}</span>`}</td>
+                <td><code class="rounded bg-slate-900/5 px-2 py-1 text-xs text-slate-700 dark:bg-white/10 dark:text-slate-200">${escapeHtml(version.slug || '-')}</code></td>
+                <td><span class="text-slate-600 dark:text-slate-300">${escapeHtml(row.author || '-')}</span></td>
                 <td class="whitespace-nowrap">${escapeHtml(formatDate(version.publishedAt))}</td>
                 <td class="whitespace-nowrap">v${Number(version.version || 0)}</td>
                 <td class="whitespace-nowrap">${statusChip(version.status)}</td>
@@ -538,7 +536,6 @@ class ArticleGrid {
 
     searchValues(row) {
         return [
-            row.id,
             row.title,
             row.slug,
             row.author,
@@ -590,7 +587,7 @@ class ArticleGrid {
         }
 
         return `<span class="${languageBadgeWrapClass}">
-            ${normalized.map((language) => `<span class="${languageFlagClass}" title="${escapeAttr(languageLabel(language))}">${escapeHtml(languageFlags[language] || language.toUpperCase())}</span>`).join('')}
+            ${normalized.map((language) => `<span class="${languageFlagClass}" title="${escapeAttr(languageLabel(language))}">${escapeHtml(language.toUpperCase())}</span>`).join('')}
         </span>`;
     }
 
@@ -620,42 +617,12 @@ function languageLabel(language) {
     return languageTitles[normalized] || normalized.toUpperCase();
 }
 
-function formatDate(value) {
-    const raw = String(value || '').trim();
-    if (raw === '') {
-        return '-';
-    }
-
-    const parsed = new Date(raw.includes('T') ? raw : raw.replace(' ', 'T'));
-    if (Number.isNaN(parsed.getTime())) {
-        return raw;
-    }
-
-    return parsed.toLocaleString('de-DE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-}
-
 function statusChip(status) {
-    const value = String(status || '-').trim().toLowerCase();
-    const label = escapeHtml(value || '-');
-    const tone = {
-        draft: 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300',
-        review: 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300',
-        published: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300',
-        declined: 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300',
-        archived: 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300',
-        scheduled: 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300',
-    }[value] || '';
-    return `<span class="${statusClass} ${tone}" data-status="${escapeAttr(value)}">${label}</span>`;
+    return dataGridStatusChip(status);
 }
 
 function sortValue(row, key) {
-    if (key === 'id' || key === 'lastVersion') {
+    if (key === 'lastVersion') {
         return Number(row?.[key] ?? 0);
     }
 
@@ -681,15 +648,14 @@ function compareSortValues(left, right) {
 function tableColumnGroup() {
     return `
         <colgroup>
-            <col class="w-[5%]">
-            <col class="w-[20%]">
-            <col class="w-[18%]">
+            <col class="w-[23%]">
+            <col class="w-[17%]">
             <col class="w-[13%]">
             <col class="w-[16%]">
             <col class="w-[7%]">
+            <col class="w-[9%]">
             <col class="w-[8%]">
             <col class="w-[7%]">
-            <col class="w-[6%]">
         </colgroup>
     `;
 }

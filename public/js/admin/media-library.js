@@ -15,6 +15,13 @@ class MediaLibrary {
         this.dropzone = root.querySelector('[data-media-dropzone]');
         this.uploadVisibility = root.querySelector('[data-media-upload-visibility]');
         this.viewButtons = [...root.querySelectorAll('[data-media-view]')];
+        this.statTotal = root.querySelector('[data-media-stat-total]');
+        this.statBytes = root.querySelector('[data-media-stat-bytes]');
+        this.typeChart = root.querySelector('[data-media-type-chart]');
+        this.typeCenterValue = root.querySelector('[data-media-type-center-value]');
+        this.typeCenterLabel = root.querySelector('[data-media-type-center-label]');
+        this.typeLegend = root.querySelector('[data-media-type-legend]');
+        this.summary = this.normalizeSummary(this.config.summary);
         this.activeTree = 'all';
         this.viewMode = this.storedViewMode();
         this.uploading = false;
@@ -136,6 +143,12 @@ class MediaLibrary {
             }
 
             const uploaded = Array.isArray(data?.files) ? data.files : (data?.media ? [data.media] : []);
+            const existingIds = new Set(this.files.map((item) => String(item.id)));
+            uploaded.forEach((item) => {
+                if (!existingIds.has(String(item.id))) {
+                    this.adjustSummary(item, 1);
+                }
+            });
             this.files = [
                 ...uploaded,
                 ...this.files.filter((existing) => !uploaded.some((item) => String(item.id) === String(existing.id))),
@@ -287,7 +300,11 @@ class MediaLibrary {
                 return;
             }
 
+            const deleted = this.files.find((item) => String(item.id) === id);
             this.files = this.files.filter((item) => String(item.id) !== id);
+            if (deleted) {
+                this.adjustSummary(deleted, -1);
+            }
             this.render();
             toast(this.label('deleted'));
         } catch (error) {
@@ -296,10 +313,49 @@ class MediaLibrary {
     }
 
     render() {
+        this.renderSummary();
         this.renderTree();
         this.renderFiles();
         this.updateViewButtons();
         this.initStyledSelects();
+    }
+
+    renderSummary() {
+        const summary = this.summary || this.summaryFromFiles(this.files);
+        const total = Math.max(0, Number(summary.total || 0));
+        const bytes = Math.max(0, Number(summary.bytes || 0));
+
+        if (this.statTotal) {
+            this.statTotal.textContent = String(total);
+        }
+
+        if (this.statBytes) {
+            this.statBytes.textContent = this.formatBytes(bytes);
+        }
+
+        const entries = this.typeEntries(summary).filter((entry) => entry.count > 0);
+        const dominant = this.dominantType(entries);
+
+        if (this.typeChart) {
+            this.typeChart.style.background = this.pieBackground(entries, total);
+            this.typeChart.setAttribute('aria-label', this.typeAriaLabel(entries, total));
+        }
+
+        if (this.typeCenterValue) {
+            this.typeCenterValue.textContent = dominant && total > 0
+                ? `${Math.round((dominant.count / total) * 100)}%`
+                : '0';
+        }
+
+        if (this.typeCenterLabel) {
+            this.typeCenterLabel.textContent = dominant ? dominant.label : this.label('allFiles');
+        }
+
+        if (this.typeLegend) {
+            this.typeLegend.innerHTML = entries.length > 0
+                ? entries.map((entry) => this.typeLegendItem(entry, total)).join('')
+                : `<li class="rounded-md border border-dashed border-[rgba(148,163,184,.22)] px-3 py-2 text-sm text-slate-500">${escapeHtml(this.label('empty'))}</li>`;
+        }
     }
 
     renderTree() {
@@ -587,8 +643,172 @@ class MediaLibrary {
         return this.files.filter(predicate).length;
     }
 
+    normalizeSummary(source) {
+        if (!source || typeof source !== 'object') {
+            return this.summaryFromFiles(this.files);
+        }
+
+        const kindCounts = this.normalizedKindCounts(source.kind_counts || {});
+        if (Object.values(kindCounts).every((count) => count === 0)) {
+            kindCounts.image = Math.max(0, Number(source.images || 0));
+            kindCounts.document = Math.max(0, Number(source.documents || 0));
+            kindCounts.archive = Math.max(0, Number(source.archives || 0));
+            kindCounts.file = Math.max(0, Number(source.files || 0));
+        }
+
+        const countTotal = Object.values(kindCounts).reduce((sum, count) => sum + count, 0);
+
+        return {
+            total: Math.max(0, Number(source.total || countTotal)),
+            bytes: Math.max(0, Number(source.bytes || 0)),
+            kind_counts: kindCounts,
+            images: kindCounts.image,
+            documents: kindCounts.document,
+            archives: kindCounts.archive,
+            files: kindCounts.file,
+        };
+    }
+
+    summaryFromFiles(files) {
+        return files.reduce((summary, file) => {
+            const kind = this.normalizedKind(file.kind);
+            const size = Math.max(0, Number(file.size_bytes || 0));
+
+            summary.total += 1;
+            summary.bytes += size;
+            summary.kind_counts[kind] += 1;
+            summary.images = summary.kind_counts.image;
+            summary.documents = summary.kind_counts.document;
+            summary.archives = summary.kind_counts.archive;
+            summary.files = summary.kind_counts.file;
+
+            return summary;
+        }, {
+            total: 0,
+            bytes: 0,
+            kind_counts: this.normalizedKindCounts({}),
+            images: 0,
+            documents: 0,
+            archives: 0,
+            files: 0,
+        });
+    }
+
+    adjustSummary(file, direction) {
+        const kind = this.normalizedKind(file.kind);
+        const size = Math.max(0, Number(file.size_bytes || 0));
+        const delta = direction >= 0 ? 1 : -1;
+        const summary = this.summary || this.summaryFromFiles(this.files);
+
+        summary.total = Math.max(0, Number(summary.total || 0) + delta);
+        summary.bytes = Math.max(0, Number(summary.bytes || 0) + (size * delta));
+        summary.kind_counts = this.normalizedKindCounts(summary.kind_counts || {});
+        summary.kind_counts[kind] = Math.max(0, Number(summary.kind_counts[kind] || 0) + delta);
+        summary.images = summary.kind_counts.image;
+        summary.documents = summary.kind_counts.document;
+        summary.archives = summary.kind_counts.archive;
+        summary.files = summary.kind_counts.file;
+        this.summary = summary;
+    }
+
+    normalizedKindCounts(counts) {
+        return ['image', 'document', 'archive', 'file'].reduce((normalized, kind) => {
+            normalized[kind] = Math.max(0, Number(counts?.[kind] || 0));
+            return normalized;
+        }, {});
+    }
+
+    normalizedKind(kind) {
+        const normalized = String(kind || 'file').toLowerCase();
+        return ['image', 'document', 'archive', 'file'].includes(normalized) ? normalized : 'file';
+    }
+
+    typeEntries(summary) {
+        const counts = this.normalizedKindCounts(summary.kind_counts || {});
+
+        return ['image', 'document', 'archive', 'file'].map((kind) => ({
+            kind,
+            count: counts[kind],
+            label: this.typeLabel(kind),
+            color: this.typeColor(kind),
+        }));
+    }
+
+    dominantType(entries) {
+        return entries.reduce((dominant, entry) => (
+            !dominant || entry.count > dominant.count ? entry : dominant
+        ), null);
+    }
+
+    typeLegendItem(entry, total) {
+        const percent = total > 0 ? Math.round((entry.count / total) * 100) : 0;
+
+        return `<li class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-[rgba(148,163,184,.18)] bg-[rgba(15,23,42,.44)] px-3 py-2">
+            <span class="h-2.5 w-2.5 rounded-full shadow-[0_0_18px_currentColor]" style="color:${escapeAttr(entry.color)};background:${escapeAttr(entry.color)}" aria-hidden="true"></span>
+            <span class="min-w-0 truncate text-sm font-semibold text-slate-200">${escapeHtml(entry.label)}</span>
+            <span class="text-xs font-semibold text-slate-400">${Number(entry.count)} (${percent}%)</span>
+        </li>`;
+    }
+
+    pieBackground(entries, total) {
+        if (entries.length === 0 || total <= 0) {
+            return 'rgba(148, 163, 184, .18)';
+        }
+
+        let cursor = 0;
+        const stops = entries.map((entry, index) => {
+            const start = cursor;
+            const end = index === entries.length - 1
+                ? 360
+                : Math.min(360, cursor + (entry.count / total) * 360);
+            cursor = end;
+
+            return `${entry.color} ${start.toFixed(2)}deg ${end.toFixed(2)}deg`;
+        });
+
+        return `conic-gradient(${stops.join(', ')})`;
+    }
+
+    typeAriaLabel(entries, total) {
+        if (entries.length === 0 || total <= 0) {
+            return this.label('empty');
+        }
+
+        return entries
+            .map((entry) => `${entry.label}: ${entry.count}`)
+            .join(', ');
+    }
+
+    typeLabel(kind) {
+        return String(this.config.typeLabels?.[kind] || kind);
+    }
+
+    typeColor(kind) {
+        const colors = this.config.typeColors || {};
+        const fallback = {
+            image: '#38bdf8',
+            document: '#22c55e',
+            archive: '#f59e0b',
+            file: '#f43f5e',
+        };
+
+        return /^#[0-9a-fA-F]{6}$/.test(String(colors[kind] || '')) ? colors[kind] : fallback[kind];
+    }
+
     fileMeta(file) {
         return [file.mime_type, file.size_label, file.dimensions_label].filter(Boolean).join(' / ');
+    }
+
+    formatBytes(bytes) {
+        if (bytes < 1024) {
+            return `${bytes} B`;
+        }
+
+        if (bytes < 1024 * 1024) {
+            return `${(bytes / 1024).toFixed(1)} KB`;
+        }
+
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     }
 
     inputClass(extra = '') {

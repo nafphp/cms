@@ -89,4 +89,41 @@ final class PageFactoryTest extends TestCase
         $this->assertSame('page.blocks.empty', $blocks['main']->view());
         $this->assertSame('page.blocks.footer', $blocks['site_footer']->view());
     }
+
+    public function testCustomTemplateUsesStoredMetaLayoutBlocks(): void
+    {
+        $page = (new PageFactory())->fromStoredRow([
+            'id' => 15,
+            'path' => '/custom',
+            'title' => 'Custom',
+            'language' => 'en',
+            'status' => 'published',
+            'blocks' => [
+                'slot_intro' => ['type' => 'heading', 'props' => ['text' => 'Hello']],
+                'slot_body' => ['type' => 'text', 'props' => ['text' => 'Body']],
+            ],
+            'meta' => [
+                'custom_layout' => [
+                    ['id' => 'slot_intro', 'label' => 'Intro', 'region' => 'header', 'size' => 'small', 'position' => 'center', 'maxHeight' => '480', 'overflow' => 'auto', 'surface' => 'soft'],
+                    ['id' => 'slot_body', 'label' => 'Body', 'region' => 'main', 'size' => 'large'],
+                ],
+            ],
+        ], [
+            'id' => 'custom',
+            'kind' => 'custom',
+            'view' => 'page.templates.custom',
+            'blocks' => [],
+        ]);
+
+        $blocks = $page->template()?->blocks() ?? [];
+
+        self::assertSame(['slot_intro', 'slot_body'], array_keys($blocks));
+        self::assertSame('page.blocks.heading', $blocks['slot_intro']->view());
+        self::assertSame('header', $blocks['slot_intro']->data()['region']);
+        self::assertSame('center', $blocks['slot_intro']->data()['position']);
+        self::assertSame('480', $blocks['slot_intro']->data()['maxHeight']);
+        self::assertSame('auto', $blocks['slot_intro']->data()['overflow']);
+        self::assertSame('soft', $blocks['slot_intro']->data()['surface']);
+        self::assertSame('large', $blocks['slot_body']->data()['size']);
+    }
 }

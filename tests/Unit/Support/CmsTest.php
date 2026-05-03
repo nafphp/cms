@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Support;
 
 use NixCMS\Support\Cms;
+use NixCMS\Content\Page\Block\BlockTypeRegistry;
 use NixCMS\Visualization\VisualizationRegistry;
 use PHPUnit\Framework\TestCase;
 
@@ -25,6 +26,14 @@ final class CmsTest extends TestCase
 
         self::assertInstanceOf(VisualizationRegistry::class, $cms->visualizations());
         self::assertSame($cms->visualizations(), $cms->visualizations());
+    }
+
+    public function testCmsExposesPageBuilderBlockTypeRegistry(): void
+    {
+        $cms = new Cms();
+
+        self::assertInstanceOf(BlockTypeRegistry::class, $cms->blockTypes());
+        self::assertSame($cms->blockTypes(), $cms->blockTypes());
     }
 
     public function testCmsLoadsDefaultFrontendNavigation(): void

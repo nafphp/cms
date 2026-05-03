@@ -21,9 +21,71 @@ $formatBytes = static function (int $bytes): string {
     }
     return number_format($bytes / (1024 * 1024), 1) . ' MB';
 };
+$mediaTypeLabels = [
+    'image' => t('Images'),
+    'document' => t('Documents'),
+    'archive' => t('Archives'),
+    'file' => t('Other files'),
+];
+$mediaTypeColors = [
+    'image' => '#38bdf8',
+    'document' => '#22c55e',
+    'archive' => '#f59e0b',
+    'file' => '#f43f5e',
+];
+$rawKindCounts = is_array($summary['kind_counts'] ?? null)
+    ? $summary['kind_counts']
+    : [
+        'image' => (int) ($summary['images'] ?? 0),
+        'document' => (int) ($summary['documents'] ?? 0),
+        'archive' => (int) ($summary['archives'] ?? 0),
+        'file' => (int) ($summary['files'] ?? 0),
+    ];
+$mediaTypeTotal = max(0, (int) ($summary['total'] ?? 0));
+$mediaTypeSegments = [];
+foreach ($mediaTypeLabels as $kind => $label) {
+    $count = max(0, (int) ($rawKindCounts[$kind] ?? 0));
+    $percent = $mediaTypeTotal > 0 ? (int) round(($count / $mediaTypeTotal) * 100) : 0;
+    $mediaTypeSegments[] = [
+        'kind' => $kind,
+        'label' => $label,
+        'count' => $count,
+        'percent' => $percent,
+        'color' => $mediaTypeColors[$kind],
+    ];
+}
+$visibleMediaTypeSegments = array_values(array_filter(
+    $mediaTypeSegments,
+    static fn(array $segment): bool => (int) $segment['count'] > 0,
+));
+$mediaTypeStops = [];
+$mediaTypeCursor = 0.0;
+foreach ($visibleMediaTypeSegments as $index => $segment) {
+    $degrees = $mediaTypeTotal > 0 ? ((int) $segment['count'] / $mediaTypeTotal) * 360 : 0.0;
+    $start = $mediaTypeCursor;
+    $end = $index === array_key_last($visibleMediaTypeSegments)
+        ? 360.0
+        : min(360.0, $mediaTypeCursor + $degrees);
+    $mediaTypeStops[] = sprintf('%s %.2fdeg %.2fdeg', $segment['color'], $start, $end);
+    $mediaTypeCursor = $end;
+}
+$mediaTypeChartBackground = $mediaTypeStops !== []
+    ? 'conic-gradient(' . implode(', ', $mediaTypeStops) . ')'
+    : 'rgba(148, 163, 184, .18)';
+$dominantMediaType = $visibleMediaTypeSegments[0] ?? null;
+foreach ($visibleMediaTypeSegments as $segment) {
+    if ($dominantMediaType === null || (int) $segment['count'] > (int) $dominantMediaType['count']) {
+        $dominantMediaType = $segment;
+    }
+}
+$mediaTypeCenterValue = $dominantMediaType !== null ? (int) $dominantMediaType['percent'] . '%' : '0';
+$mediaTypeCenterLabel = $dominantMediaType !== null ? (string) $dominantMediaType['label'] : t('Files');
 
 $config = [
     'files' => $media,
+    'summary' => $summary,
+    'typeLabels' => $mediaTypeLabels,
+    'typeColors' => $mediaTypeColors,
     'urls' => [
         'list' => (string) ($listUrl ?? ''),
         'upload' => (string) ($uploadUrl ?? ''),
@@ -81,7 +143,7 @@ asset()->add('/js/admin/media-library.js', 'module');
 
 <?php $this->block('content'); ?>
 <div class="grid gap-4" data-media-library data-config="<?= s(json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '{}') ?>">
-    <div class="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+    <div class="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
         <section class="rounded-lg border border-[rgba(134,158,190,.32)] bg-[linear-gradient(135deg,rgba(16,24,39,.94),rgba(20,29,48,.82))] p-5 shadow-[0_20px_58px_rgba(0,0,0,.20)]" data-media-dropzone>
             <div class="grid h-full content-between gap-4">
                 <div class="flex items-start justify-between gap-4 max-admin:flex-col">
@@ -131,13 +193,48 @@ asset()->add('/js/admin/media-library.js', 'module');
             <dl class="grid grid-cols-2 gap-3 text-sm">
                 <div class="rounded-md border border-[rgba(148,163,184,.22)] bg-[rgba(2,6,23,.36)] p-3">
                     <dt class="text-xs uppercase text-slate-400"><?= s(t('Files')) ?></dt>
-                    <dd class="mt-1 text-2xl font-bold text-white"><?= (int) ($summary['total'] ?? 0) ?></dd>
+                    <dd class="mt-1 text-2xl font-bold text-white" data-media-stat-total><?= (int) ($summary['total'] ?? 0) ?></dd>
                 </div>
                 <div class="rounded-md border border-[rgba(148,163,184,.22)] bg-[rgba(2,6,23,.36)] p-3">
                     <dt class="text-xs uppercase text-slate-400"><?= s(t('Storage')) ?></dt>
-                    <dd class="mt-1 text-2xl font-bold text-white"><?= s($formatBytes((int) ($summary['bytes'] ?? 0))) ?></dd>
+                    <dd class="mt-1 text-2xl font-bold text-white" data-media-stat-bytes><?= s($formatBytes((int) ($summary['bytes'] ?? 0))) ?></dd>
                 </div>
             </dl>
+
+            <div class="grid gap-4 rounded-md border border-[rgba(148,163,184,.18)] bg-[rgba(2,6,23,.28)] p-3">
+                <div class="flex items-center justify-between gap-3">
+                    <h3 class="m-0 text-sm font-semibold text-white"><?= s(t('Files by type')) ?></h3>
+                    <span class="text-xs font-semibold uppercase text-slate-500"><?= s(t('Type')) ?></span>
+                </div>
+                <div class="grid items-center gap-4 sm:grid-cols-[150px_minmax(0,1fr)] xl:grid-cols-1 2xl:grid-cols-[150px_minmax(0,1fr)]">
+                    <div
+                        class="relative mx-auto aspect-square w-36 rounded-full border border-[rgba(148,163,184,.20)] shadow-[0_18px_42px_rgba(0,0,0,.24)]"
+                        role="img"
+                        aria-label="<?= s(t('Files by type')) ?>"
+                        data-media-type-chart
+                        style="background: <?= s($mediaTypeChartBackground) ?>;"
+                    >
+                        <div class="absolute inset-[10%] flex flex-col items-center justify-center gap-0 rounded-full border border-[rgba(148,163,184,.18)] bg-[rgba(15,23,42,.94)] text-center leading-none shadow-[inset_0_0_0_1px_rgba(255,255,255,.04)]">
+                            <span class="text-2xl font-bold leading-none text-white" data-media-type-center-value><?= s($mediaTypeCenterValue) ?></span>
+                            <span class="mt-1 max-w-20 truncate text-[11px] font-semibold uppercase leading-none text-slate-500" data-media-type-center-label><?= s($mediaTypeCenterLabel) ?></span>
+                        </div>
+                    </div>
+
+                    <ul class="grid gap-2" data-media-type-legend>
+                        <?php if ($visibleMediaTypeSegments === []): ?>
+                            <li class="rounded-md border border-dashed border-[rgba(148,163,184,.22)] px-3 py-2 text-sm text-slate-500"><?= s(t('No media files yet.')) ?></li>
+                        <?php else: ?>
+                            <?php foreach ($visibleMediaTypeSegments as $segment): ?>
+                                <li class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-[rgba(148,163,184,.18)] bg-[rgba(15,23,42,.44)] px-3 py-2">
+                                    <span class="h-2.5 w-2.5 rounded-full shadow-[0_0_18px_currentColor]" style="color: <?= s($segment['color']) ?>; background: <?= s($segment['color']) ?>;" aria-hidden="true"></span>
+                                    <span class="min-w-0 truncate text-sm font-semibold text-slate-200"><?= s((string) $segment['label']) ?></span>
+                                    <span class="text-xs font-semibold text-slate-400"><?= (int) $segment['count'] ?> (<?= (int) $segment['percent'] ?>%)</span>
+                                </li>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+            </div>
         </section>
     </div>
 

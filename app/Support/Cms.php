@@ -11,6 +11,7 @@ use NixCMS\Api\MediaApi;
 use NixCMS\Api\NavigationApi;
 use NixCMS\Content\BlockViewRegistry;
 use NixCMS\Content\ContentRegistry;
+use NixCMS\Content\Page\Block\BlockTypeRegistry;
 use NixCMS\Localization\LanguageRegistry;
 use NixCMS\Models\Article;
 use NixCMS\Models\Form;
@@ -33,6 +34,7 @@ final class Cms
     private ?VisualizationRegistry $visualizationRegistry = null;
     private ?LanguageRegistry $languageRegistry = null;
     private ?BlockViewRegistry $blockViewRegistry = null;
+    private ?BlockTypeRegistry $blockTypeRegistry = null;
 
     public function settings(): Settings
     {
@@ -108,6 +110,11 @@ final class Cms
     public function blocks(): BlockViewRegistry
     {
         return $this->blockViewRegistry ??= new BlockViewRegistry();
+    }
+
+    public function blockTypes(): BlockTypeRegistry
+    {
+        return $this->blockTypeRegistry ??= new BlockTypeRegistry();
     }
 
     public function articles(): ArticleApi

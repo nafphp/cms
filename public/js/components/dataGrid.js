@@ -66,6 +66,7 @@ export class AdminDataGrid {
             return;
         }
 
+        this.frame.style.overflowX = '';
         const table = document.createElement('table');
         table.className = `${this.options.tableClass || dataGridClasses.table} ${this.options.cellClass || dataGridClasses.cells}`;
         table.innerHTML = `
@@ -290,6 +291,7 @@ export class AdminDataGrid {
     }
 
     renderState(message) {
+        this.frame.style.overflowX = 'hidden';
         this.frame.innerHTML = `<div class="${dataGridClasses.state}">${escapeHtml(message)}</div>`;
     }
 }

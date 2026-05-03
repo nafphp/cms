@@ -7,6 +7,8 @@ error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 require_once __DIR__ . '/vendor/autoload.php';
 
 use NixCMS\Commands\CreateUserCommand;
+use NixCMS\Commands\DocsCheckCommand;
+use NixCMS\Commands\DocsSyncCommand;
 use NixCMS\Commands\FakeDataCommand;
 use NixCMS\Commands\InstallDatabaseCommand;
 use NixCMS\Events\AdminGuardEvent;
@@ -30,6 +32,10 @@ event()->listen(Event::CONTROLLER_CALLING, [AdminGuardEvent::class, 'handle']);
 command()->add(InstallDatabaseCommand::class);
 command()->add(CreateUserCommand::class);
 command()->add(FakeDataCommand::class);
+command()->add(DocsSyncCommand::class);
+command()->add(DocsCheckCommand::class);
+
+cms()->blockTypes()->addMany(require __DIR__ . '/app/blockTypes.php');
 
 if (app()->hasPlugin('nixphp/mcp')) {
     tool()->register(new SystemHealthTool());

@@ -54,6 +54,7 @@ final class PageChartFactoryTest extends TestCase
 
         self::assertSame('metric-bars', $chart->type);
         self::assertSame(['Review'], $chart->labels);
+        self::assertSame(180, $chart->height);
     }
 
     public function testFactoryFallsBackToBarForUnknownChartType(): void

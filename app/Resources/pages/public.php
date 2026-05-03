@@ -28,16 +28,10 @@ $articleTemplate = Template::create('article_detail')
         'size' => 'small',
         'preview' => 'navigation',
     ])
-    ->addBlock('header', 'page.blocks.article_header')
-    ->addBlock('body', 'page.blocks.article_body')
-    ->addBlock('aside', 'page.blocks.placeholder', [
-        'label' => 'Reading aside',
-        'size' => 'aside',
-    ])
-    ->addBlock('related', 'page.blocks.placeholder', [
-        'label' => 'Related content',
-        'size' => 'small',
-    ])
+    ->addBlock('header', 'page.blocks.article_title')
+    ->addBlock('body', 'page.blocks.article_content')
+    ->addBlock('aside', 'page.blocks.article_meta')
+    ->addBlock('related', 'page.blocks.article_related')
     ->addBlock('site_footer', 'page.blocks.placeholder', [
         'label' => 'Site footer',
         'size' => 'small',

@@ -248,6 +248,7 @@ class Article extends AbstractModel implements \JsonSerializable
             'status' => $this->getStatus()?->value,
             'language' => $this->getLanguageCode(),
             'author' => $authorName,
+            'category_id' => $this->getCategoryId(),
             'createdAt' => $this->createdAt,
             'publishedAt' => $this->getPublishedAt()?->format('d.m.Y, H:i'),
             'languages' => array_values(array_filter(array_map(

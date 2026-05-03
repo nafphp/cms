@@ -27,7 +27,13 @@ final class PageFactory
             ->addBodyClass('min-h-screen bg-[var(--page-bg)] text-[var(--page-text)]');
 
         $storedBlocks = is_array($row['blocks'] ?? null) ? $row['blocks'] : [];
-        foreach (is_array($definition['blocks'] ?? null) ? $definition['blocks'] : [] as $block) {
+        $meta = is_array($row['meta'] ?? null) ? $row['meta'] : [];
+        $definitionBlocks = is_array($definition['blocks'] ?? null) ? $definition['blocks'] : [];
+        if ((string) ($definition['kind'] ?? 'static') === 'custom') {
+            $definitionBlocks = is_array($meta['custom_layout'] ?? null) ? $meta['custom_layout'] : [];
+        }
+
+        foreach ($definitionBlocks as $block) {
             if (!is_array($block)) {
                 continue;
             }
@@ -40,20 +46,17 @@ final class PageFactory
             $content = is_array($storedBlocks[$id] ?? null) ? $storedBlocks[$id] : [];
             $type = trim((string) ($content['type'] ?? $this->defaultContentType($id, $block)));
             if ($type === '') {
-                $template->addBlock($id, 'page.blocks.empty', [
-                    'label' => (string) ($block['label'] ?? $id),
-                    'size' => (string) ($block['size'] ?? 'medium'),
+                $template->addBlock($id, 'page.blocks.empty', $this->blockData($id, $block, [
                     'content' => [],
-                ]);
+                ]));
                 continue;
             }
 
-            $template->addBlock($id, $this->blockViews()->viewFor($type), [
+            $template->addBlock($id, $this->blockViews()->viewFor($type), $this->blockData($id, $block, [
                 'label' => (string) ($content['label'] ?? $block['label'] ?? $id),
-                'size' => (string) ($block['size'] ?? 'medium'),
                 'preview' => (string) ($block['preview'] ?? $type),
                 'content' => $content,
-            ]);
+            ]));
         }
 
         $page = Page::create('db.page.' . (int) ($row['id'] ?? 0))
@@ -68,6 +71,25 @@ final class PageFactory
         }
 
         return $page;
+    }
+
+    /**
+     * @param array<string, mixed> $block
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    private function blockData(string $id, array $block, array $data = []): array
+    {
+        return [
+            'label' => (string) ($block['label'] ?? $id),
+            'region' => (string) ($block['region'] ?? 'main'),
+            'size' => (string) ($block['size'] ?? 'medium'),
+            'position' => (string) ($block['position'] ?? 'stretch'),
+            'maxHeight' => (string) ($block['maxHeight'] ?? 'none'),
+            'overflow' => (string) ($block['overflow'] ?? 'visible'),
+            'surface' => (string) ($block['surface'] ?? 'none'),
+            ...$data,
+        ];
     }
 
     private function blockViews(): BlockViewRegistry

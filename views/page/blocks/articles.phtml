@@ -1,21 +1,29 @@
 <?php
 
 use NixCMS\Repositories\ArticleRepository;
+use NixCMS\Services\Content\ArticleRenderer;
 use function NixPHP\ORM\repo;
 use function NixPHP\View\s;
 
+/** @var ArticleRenderer|null $article */
 $content = is_array($content ?? null) ? $content : [];
 $props = is_array($content['props'] ?? null) ? $content['props'] : [];
 $limit = max(1, min(12, (int) ($props['limit'] ?? 5)));
-$categoryId = (string) ($props['source'] ?? '') === 'category' ? (int) ($props['categoryId'] ?? 0) : 0;
+$source = (string) ($props['source'] ?? '');
+$currentArticle = ($article ?? null) instanceof ArticleRenderer ? $article : null;
+$categoryId = $source === 'category' ? (int) ($props['categoryId'] ?? 0) : 0;
+if ($source === 'related' && $currentArticle?->categoryId() !== null) {
+    $categoryId = $currentArticle->categoryId();
+}
 $language = (string) ($props['language'] ?? 'current');
-$language = $language === 'current' ? cms()->settings()->currentLanguage() : $language;
+$language = $language === 'current' ? ($currentArticle?->language() ?: cms()->settings()->currentLanguage()) : $language;
 
 try {
     $articles = repo(ArticleRepository::class)->findPublishedWithLatestVersionByCategoryAndLanguage(
         $categoryId > 0 ? $categoryId : null,
         $limit,
         $language,
+        $source === 'related' && $currentArticle ? [$currentArticle->articleId()] : [],
     );
 } catch (Throwable) {
     $articles = [];

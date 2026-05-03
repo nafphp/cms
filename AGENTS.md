@@ -170,219 +170,11 @@ There should eventually be two kinds of project guidance:
 
 The shipped project should include its own `AGENTS.md` that explains the application structure, extension points, commands, conventions, and safe editing rules from the perspective of someone using NixCMS, not building the NixCMS source distribution.
 
-## CMS API Surface
+## CMS API Reference
 
-NixCMS provides a public API surface through the `cms()` helper function, which returns a singleton `NixCMS\Support\Cms` instance.
+The public `cms()` entry points and registry-derived reference tables live in the README's Auto Reference section. Keep this file focused on vision, conventions, and safe editing guidance; when public pages, API endpoints, content types, permissions, MCP tools, or examples change, update the source registry and run `bin/nix docs:sync`.
 
-### Entry Points
-
-The main entry points are:
-
-- `cms()->pages()` — returns the `PageRegistry`; source of truth for renderable HTTP pages, including path, title, layout, auth, role/permission requirements, optional data handlers, and content callbacks.
-- `cms()->api()` — returns the `ApiRegistry`; source of truth for JSON/API endpoints, including path, method, auth, role/permission requirements, and a handler that returns a PSR response.
-- `cms()->contentTypes()` — returns the `ContentRegistry`; source of truth for registered content types such as Article.
-- `cms()->content(Article::class)` — resolves the registered content type for the model and returns its content API.
-- `cms()->articles()` — convenience doorway to the registered Article content type API. Do not treat articles as a special HTTP architecture category; they are the first registered content type.
-- `cms()->forms()` — convenience doorway to the registered Form content type API.
-- `cms()->media()` — convenience doorway to the registered Media content type API.
-- `cms()->navigation()` — convenience doorway to the registered SiteNavigation content type API.
-- `cms()->storage(Model::class)` — returns an `EntityStorage` for Criteria-based model reads and ORM-backed writes above `db()`/PDO and below domain APIs such as `cms()->media()`.
-- `cms()->navigationRegistry()` — returns the `NavigationRegistry`; source of truth for named frontend/admin navigation trees.
-- `cms()->visualizations()` — returns the `VisualizationRegistry`; source of truth for registered chart definitions and chart rendering.
-- `cms()->blocks()` — returns the `BlockViewRegistry`; source of truth for page-builder block type to view mappings.
-- `cms()->languages()` — returns the `LanguageRegistry`; source of truth for enabled, available, and discovered language codes.
-- `cms()->settings()` — returns the runtime `Settings` helper for reading resolved setting values.
-- `cms()->settingsRegistry()` — returns the `SettingsRegistry`; source of truth for admin-editable setting sections and fields.
-
-### Examples
-
-Create a draft article:
-
-```php
-$result = cms()->content(Article::class)->create([
-    'title' => 'My Article',
-    'slug' => 'my-article',
-    'content' => ['blocks' => [...]],
-    'language' => 'de',
-], $authorId);
-
-echo $result['articleId'];
-echo $result['articleVersionId'];
-```
-
-Publish an article:
-
-```php
-cms()->content(Article::class)->publish($articleId, 'de');
-```
-
-Register a renderable page:
-
-```php
-cms()->pages()->add(
-    Page::create('admin.users')
-        ->setPath('/admin/users')
-        ->setTitle('Users')
-        ->setLayout('admin')
-        ->requirePermission(Permission::USERS_VIEW)
-        ->setContent(fn () => view('admin.users.index', [
-            'users' => repo(UserRepository::class)->findAllWithRolesAndPermissions(),
-        ]))
-);
-```
-
-Register a page with a POST data handler on the same URL:
-
-```php
-Page::create('admin.users.create')
-    ->setPath('/admin/users/create')
-    ->setTitle('Create user')
-    ->setLayout('admin')
-    ->requirePermission(Permission::USERS_CREATE)
-    ->setDataHandler(StoreUser::class, 'POST', Permission::USERS_CREATE)
-    ->setContent(fn () => view('admin.users.form', ['user' => null]));
-```
-
-Register an API endpoint:
-
-```php
-cms()->api()->add(
-    ApiEndpoint::post('api.admin.users.store', '/api/admin/users/store')
-        ->requirePermission(Permission::USERS_CREATE)
-        ->setHandler(StoreUser::class)
-);
-```
-
-Register a content type:
-
-```php
-cms()->contentTypes()->add(new ArticleContentType());
-```
-
-Use a registered content type to create, restore, and delete versions:
-
-```php
-$contentApi = cms()->content(Article::class);
-
-// Create a new draft
-$result = $contentApi->create(['title' => 'Draft', ...], $authorId);
-
-// Restore a specific version as a new draft
-$restored = $contentApi->restoreVersion($articleId, 'de', $versionNumber);
-
-// List versions
-$versions = $contentApi->versions($articleId);
-
-// Delete a language or specific version
-$contentApi->deleteLocale($articleId, 'de');
-$contentApi->deleteVersion($articleId, 'de', $versionNumber);
-```
-
-Create a form draft through the registered Form content type:
-
-```php
-$formId = cms()->forms()->save([
-    'title' => 'Contact',
-    'fields' => [['type' => 'email', 'name' => 'email']],
-]);
-```
-
-Store media through the registered Media content type:
-
-```php
-$media = cms()->media()->storeUploadedFile($uploadedFile, $authorId, [
-    'alt' => 'Dashboard preview',
-]);
-```
-
-Search CMS model storage with Criteria:
-
-```php
-$media = cms()->storage(Media::class)->search(
-    Criteria::create()
-        ->equals('visibility', 'public')
-        ->contains('original_name', 'dashboard')
-        ->sort('created_at', 'DESC')
-        ->limit(20)
-);
-```
-
-Create or update CMS model storage through the NixPHP ORM layer:
-
-```php
-$media = cms()->storage(Media::class)->create([
-    'public_id' => 'generated-id',
-    'visibility' => 'public',
-    'original_name' => 'dashboard.png',
-    'stored_name' => 'dashboard.png',
-    'storage_path' => 'media/dashboard.png',
-    'file_path' => 'media/dashboard.png',
-    'public_url' => '/media/dashboard.png',
-    'mime_type' => 'image/png',
-    'extension' => 'png',
-    'size_bytes' => 12345,
-]);
-
-cms()->storage(Media::class)->update($media->getId(), [
-    'alt_text' => 'Dashboard preview',
-]);
-```
-
-Publish a named site navigation through the registered navigation content API:
-
-```php
-cms()->navigation()->save([
-    'identifier' => 'main',
-    'title' => 'Main navigation',
-    'items' => [['label' => 'Home', 'url' => '/']],
-]);
-```
-
-Register frontend navigation metadata:
-
-```php
-cms()->navigationRegistry()->addNavigation(
-    Navigation::create('footer', 'Footer navigation')
-);
-```
-
-Register and render a chart:
-
-```php
-cms()->visualizations()->add(ChartDefinition::bar('content-status', [
-    'Draft' => 4,
-    'Published' => 12,
-]));
-```
-
-Register a page-builder block view:
-
-```php
-cms()->blocks()->add('mycustom', 'page.blocks.mycustom');
-echo cms()->blocks()->viewFor('mycustom');
-```
-
-List language options for admin selectors:
-
-```php
-$options = cms()->languages()->options();
-echo $options['de'] ?? 'DE';
-```
-
-Read a runtime setting:
-
-```php
-$siteName = cms()->settings()->value('app.name', 'NixCMS');
-echo $siteName;
-```
-
-Register an admin settings section:
-
-```php
-cms()->settingsRegistry()->add(
-    SettingSection::create('site', 'Site')
-);
-```
+## CMS Registry Conventions
 
 ### Data Access Hierarchy
 
@@ -463,6 +255,14 @@ Follow these rules when extending HTTP behavior:
 - Keep `cms()->articles()` as a convenience doorway to `cms()->content(Article::class)` unless a repeated cross-type pattern proves a better abstraction.
 - Do not add a type alias before its model exists.
 - Abstract `ContentApi` only after at least two real content types reveal a shared shape.
+
+### Page Builder Block Types
+
+- Register page-builder block metadata through `cms()->blockTypes()`.
+- Core defaults live under `app/Content/Page/Block/Types`; each block type is a small PHP class implementing `BlockTypeInterface`.
+- A block type describes `id()`, `label()`, `regions()`, `defaults()`, and `fields()` for the admin builder.
+- Plugins may call `cms()->blockTypes()->add(new MyPluginBlockType())` during bootstrap.
+- Keep block type metadata separate from rendering. `cms()->blockTypes()` tells the builder what can be edited; `cms()->blocks()` maps a saved type to a `.phtml` view.
 
 ### Block View Registry
 

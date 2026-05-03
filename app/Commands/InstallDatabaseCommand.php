@@ -12,7 +12,7 @@ use function NixPHP\app;
 
 class InstallDatabaseCommand extends AbstractCommand
 {
-    public const string NAME = 'db:install';
+    public const string NAME = 'install:database';
 
     protected function configure(): void
     {
@@ -27,8 +27,8 @@ class InstallDatabaseCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine('    php bin/nix db:install');
-            $output->writeLine('    php bin/nix db:install --force');
+            $output->writeLine(sprintf('    php bin/nix %s', static::NAME));
+            $output->writeLine(sprintf('    php bin/nix %s --force', static::NAME));
             $output->writeLine('  Creates the configured database if needed, then runs db:migrate up.');
             $output->writeLine('  --force drops the configured database before recreating it.');
             return self::SUCCESS;

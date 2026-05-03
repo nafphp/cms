@@ -15,6 +15,10 @@ final class BlockViewRegistryTest extends TestCase
 
         self::assertSame('page.blocks.header', $registry->viewFor('header'));
         self::assertSame('page.blocks.chart', $registry->viewFor('chart'));
+        self::assertSame('page.blocks.article_title', $registry->viewFor('article-title'));
+        self::assertSame('page.blocks.article_related', $registry->viewFor('article-related'));
+        self::assertSame('page.blocks.section', $registry->viewFor('section'));
+        self::assertSame('page.blocks.columns', $registry->viewFor('columns'));
         self::assertSame('page.blocks.text', $registry->viewFor(' text '));
         self::assertSame('page.blocks.chart', $registry->all()['chart']);
     }
