@@ -8,6 +8,8 @@ final class PageThemeMeta
 {
     public function __construct(
         public ?string $accent = null,
+        public ?string $contentWidth = null,
+        public bool $contentWidthIncludesChrome = false,
     ) {
     }
 
@@ -15,6 +17,8 @@ final class PageThemeMeta
     {
         return new self(
             accent: isset($data['accent']) ? (string) $data['accent'] : null,
+            contentWidth: isset($data['contentWidth']) ? (string) $data['contentWidth'] : null,
+            contentWidthIncludesChrome: filter_var($data['contentWidthIncludesChrome'] ?? false, FILTER_VALIDATE_BOOLEAN),
         );
     }
 
@@ -22,6 +26,8 @@ final class PageThemeMeta
     {
         return [
             'accent' => $this->accent,
+            'contentWidth' => $this->contentWidth,
+            'contentWidthIncludesChrome' => $this->contentWidthIncludesChrome,
         ];
     }
 }

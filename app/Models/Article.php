@@ -89,14 +89,14 @@ class Article extends AbstractModel implements \JsonSerializable
     }
 
     /**
-     * @return array<int, ?Language>
+     * @return array<int, string>
      */
     public function getLanguages(): array
     {
-        return array_map(
-            static fn(ArticleVersion $version): ?Language => $version->getLanguage(),
+        return array_values(array_filter(array_map(
+            static fn(ArticleVersion $version): ?string => $version->getLanguageCode(),
             $this->getVersions()
-        );
+        )));
     }
 
     public function getCategory(): Category|EntityInterface|null
@@ -126,6 +126,11 @@ class Article extends AbstractModel implements \JsonSerializable
     public function getLanguage(): ?Language
     {
         return $this->currentVersion?->getLanguage();
+    }
+
+    public function getLanguageCode(): ?string
+    {
+        return $this->currentVersion?->getLanguageCode();
     }
 
     public function getSlug(): ?string
@@ -241,12 +246,12 @@ class Article extends AbstractModel implements \JsonSerializable
             'teaser' => $this->getTeaser(),
             'content' => $this->getContent(),
             'status' => $this->getStatus()?->value,
-            'language' => $this->getLanguage()?->value,
+            'language' => $this->getLanguageCode(),
             'author' => $authorName,
             'createdAt' => $this->createdAt,
             'publishedAt' => $this->getPublishedAt()?->format('d.m.Y, H:i'),
             'languages' => array_values(array_filter(array_map(
-                static fn(?Language $lang): ?string => $lang?->value,
+                static fn(string $lang): string => $lang,
                 $this->getLanguages()
             ))),
             'versions' => $this->getVersions(),

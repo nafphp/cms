@@ -1,16 +1,27 @@
 <?php
 
 use function NixPHP\View\s;
+use function NixPHP\I18n\lang;
+use function NixPHP\I18n\t;
 
 if (!function_exists('nixcms_page_block_nav_items')) {
-    function nixcms_page_block_nav_items(?string $identifier, ?string $language = null): array
+    function nixcms_page_block_nav_items(?string $identifier, ?string $language = null, ?string $fallbackIdentifier = 'main'): array
     {
         $identifier = trim((string) $identifier);
         if ($identifier === '') {
             return [];
         }
 
-        return cms()->navigation()->tree($identifier, $language === '' ? null : $language);
+        $language = $language === null ? lang() : $language;
+        $language = $language === '' ? null : $language;
+
+        $items = cms()->navigation()->tree($identifier, $language);
+        $fallbackIdentifier = trim((string) $fallbackIdentifier);
+        if ($items === [] && $fallbackIdentifier !== '' && $fallbackIdentifier !== $identifier) {
+            return cms()->navigation()->tree($fallbackIdentifier, $language);
+        }
+
+        return $items;
     }
 }
 
@@ -25,7 +36,7 @@ if (!function_exists('nixcms_page_block_nav')) {
         foreach (array_slice($items, 0, 8) as $item) {
             $href = (string) ($item['href'] ?? '#');
             $html .= '<a class="text-sm font-semibold text-[var(--page-muted)] transition hover:text-[var(--page-text)]" href="' . s($href) . '">'
-                . s((string) ($item['label'] ?? $item['title'] ?? $item['key'] ?? 'Item'))
+                . s(t((string) ($item['label'] ?? $item['title'] ?? $item['key'] ?? 'Item')))
                 . '</a>';
         }
         $html .= '</nav>';

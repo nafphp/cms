@@ -1,6 +1,7 @@
 <?php
 
 use function NixPHP\I18n\t;
+use function NixPHP\View\asset;
 use function NixPHP\View\s;
 
 $form = is_array($form ?? null) ? $form : null;
@@ -24,8 +25,10 @@ $payload = [
         'submitLabelKey' => (string) ($settings['submitLabelKey'] ?? ''),
         'successMessage' => (string) ($settings['successMessage'] ?? ''),
         'successMessageKey' => (string) ($settings['successMessageKey'] ?? ''),
+        'actions' => is_array($settings['actions'] ?? null) ? $settings['actions'] : [],
     ],
 ];
+asset()->add('/js/admin/form-builder.js', 'module');
 
 ?>
 <?php $this->setLayout('layouts.admin') ?>
@@ -87,6 +90,18 @@ $payload = [
     <section class="grid gap-4 rounded-lg border border-slate-300/70 bg-white/85 p-5 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-slate-400/25 dark:bg-slate-950/50 dark:shadow-none">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
+                <h2 class="m-0 text-base font-semibold text-slate-950 dark:text-white"><?= s(t('Submission actions')) ?></h2>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400"><?= s(t('Choose what happens after validation. Store is the current default behavior.')) ?></p>
+                <span class="hidden text-sm text-rose-600 dark:text-rose-300" data-error-for="actions"></span>
+            </div>
+            <button class="inline-flex min-h-9 items-center rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:border-[var(--admin-page-accent)] dark:border-slate-700 dark:text-slate-200" type="button" data-add-webhook-action><?= s(t('Add webhook')) ?></button>
+        </div>
+        <div class="grid gap-3" data-actions></div>
+    </section>
+
+    <section class="grid gap-4 rounded-lg border border-slate-300/70 bg-white/85 p-5 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-slate-400/25 dark:bg-slate-950/50 dark:shadow-none">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
                 <h2 class="m-0 text-base font-semibold text-slate-950 dark:text-white"><?= s(t('Fields')) ?></h2>
                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400"><?= s(t('Create the reusable field schema rendered by form blocks.')) ?></p>
                 <span class="hidden text-sm text-rose-600 dark:text-rose-300" data-error-for="fields"></span>
@@ -104,5 +119,4 @@ $payload = [
         </div>
     </div>
 </form>
-<script type="module" src="/js/admin/form-builder.js"></script>
 <?php $this->endBlock('content'); ?>

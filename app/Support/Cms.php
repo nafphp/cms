@@ -7,14 +7,19 @@ namespace NixCMS\Support;
 use NixCMS\Api\ArticleApi;
 use NixCMS\Api\ApiRegistry;
 use NixCMS\Api\FormApi;
+use NixCMS\Api\MediaApi;
 use NixCMS\Api\NavigationApi;
+use NixCMS\Content\BlockViewRegistry;
 use NixCMS\Content\ContentRegistry;
+use NixCMS\Localization\LanguageRegistry;
 use NixCMS\Models\Article;
 use NixCMS\Models\Form;
+use NixCMS\Models\Media;
 use NixCMS\Models\SiteNavigation;
 use NixCMS\Navigation\NavigationRegistry;
 use NixCMS\Page\PageRegistry;
 use NixCMS\Settings\SettingsRegistry;
+use NixCMS\Visualization\VisualizationRegistry;
 
 final class Cms
 {
@@ -24,10 +29,18 @@ final class Cms
     private ?PageRegistry $pageRegistry = null;
     private ?NavigationRegistry $navigationRegistry = null;
     private ?SettingsRegistry $settingsRegistry = null;
+    private ?VisualizationRegistry $visualizationRegistry = null;
+    private ?LanguageRegistry $languageRegistry = null;
+    private ?BlockViewRegistry $blockViewRegistry = null;
 
     public function settings(): Settings
     {
         return $this->settings ??= new Settings();
+    }
+
+    public function languages(): LanguageRegistry
+    {
+        return $this->languageRegistry ??= new LanguageRegistry();
     }
 
     public function settingsRegistry(): SettingsRegistry
@@ -86,6 +99,16 @@ final class Cms
         return $this->apiRegistry ??= new ApiRegistry();
     }
 
+    public function visualizations(): VisualizationRegistry
+    {
+        return $this->visualizationRegistry ??= new VisualizationRegistry();
+    }
+
+    public function blocks(): BlockViewRegistry
+    {
+        return $this->blockViewRegistry ??= new BlockViewRegistry();
+    }
+
     public function articles(): ArticleApi
     {
         /** @var ArticleApi $api */
@@ -97,6 +120,13 @@ final class Cms
     {
         /** @var FormApi $api */
         $api = $this->content(Form::class);
+        return $api;
+    }
+
+    public function media(): MediaApi
+    {
+        /** @var MediaApi $api */
+        $api = $this->content(Media::class);
         return $api;
     }
 

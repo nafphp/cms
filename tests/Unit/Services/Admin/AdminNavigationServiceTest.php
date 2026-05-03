@@ -270,6 +270,85 @@ final class AdminNavigationServiceTest extends TestCase
         self::assertSame(['admin.pages'], $content['routeNames']);
     }
 
+    public function testAccentForPathInheritsParentNavigationAccent(): void
+    {
+        $navigation = new NavigationRegistry();
+        $navigation->add(
+            NavigationItem::create('content')
+                ->setLabel('Content')
+                ->setScope('admin')
+        );
+
+        $pages = new PageRegistry();
+        $pages->addMany([
+            Page::create('admin.forms')
+                ->setPath('/admin/forms')
+                ->setAdminNavigation('Formulare', parent: 'content', key: 'forms'),
+            Page::create('admin.forms.create')
+                ->setPath('/admin/forms/create')
+                ->hideFromAdminNavigation('forms'),
+            Page::create('admin.forms.edit')
+                ->setPath('/admin/forms/{formId}/edit')
+                ->hideFromAdminNavigation('forms'),
+        ]);
+
+        $service = new AdminNavigationService(
+            $navigation,
+            $pages,
+            includeConfiguredItems: false,
+            accentColors: [
+                'content' => '#3f7fbd',
+                'forms' => '#ef4444',
+                'settings' => '#8b5cf6',
+            ],
+        );
+
+        self::assertSame('#3f7fbd', $service->accentForPath('/admin/forms'));
+        self::assertSame('#3f7fbd', $service->accentForPath('/admin/forms/create'));
+        self::assertSame('#3f7fbd', $service->accentForPath('/admin/forms/42/edit'));
+
+        $forms = $this->findNode($service->items(), 'forms');
+        self::assertNotNull($forms);
+        self::assertSame('#3f7fbd', $forms['accent']);
+    }
+
+    public function testAccentForPathAllowsNavigationMetaOverride(): void
+    {
+        $navigation = new NavigationRegistry();
+        $navigation->addMany([
+            NavigationItem::create('plugins')
+                ->setLabel('Plugins')
+                ->setScope('admin')
+                ->setMeta(['accent' => '#22c55e']),
+            NavigationItem::create('plugins.forms')
+                ->setLabel('Forms')
+                ->setParent('plugins')
+                ->setScope('admin'),
+        ]);
+
+        $pages = new PageRegistry();
+        $pages->add(
+            Page::create('admin.plugins.forms')
+                ->setPath('/admin/plugins/forms')
+                ->setAdminNavigation('Forms', parent: 'plugins.forms', key: 'plugins.forms.home')
+        );
+
+        $service = new AdminNavigationService(
+            $navigation,
+            $pages,
+            includeConfiguredItems: false,
+            accentColors: [
+                'settings' => '#8b5cf6',
+            ],
+        );
+
+        self::assertSame('#22c55e', $service->accentForPath('/admin/plugins/forms'));
+
+        $home = $this->findNode($service->items(), 'plugins.forms.home');
+        self::assertNotNull($home);
+        self::assertSame('#22c55e', $home['accent']);
+    }
+
     /**
      * @param array<int, array<string, mixed>> $nodes
      * @return array<string, mixed>|null

@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use function NixPHP\View\s;
+use function NixPHP\View\asset;
 use function NixPHP\I18n\t;
 
 $settings = cms()->settings();
 $currentLanguage = $settings->currentLanguage();
+asset()->add('/css/nixcms.css');
 
 ?>
 <!doctype html>
@@ -15,7 +17,7 @@ $currentLanguage = $settings->currentLanguage();
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= s($settings->pageTitle(t('403 Forbidden'))) ?></title>
-    <link rel="stylesheet" href="/css/nixcms.css">
+    <?= asset()->render('css') ?>
 </head>
 <body class="grid min-h-screen place-items-center bg-slate-50 p-8 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
 <main class="w-[min(420px,100%)] rounded-xl border border-slate-200 bg-white p-6 shadow-[0_18px_48px_rgba(15,23,42,.08)] dark:border-slate-800 dark:bg-slate-900">

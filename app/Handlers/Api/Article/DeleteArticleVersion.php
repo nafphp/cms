@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace NixCMS\Handlers\Api\Article;
 
 use NixCMS\Enums\ArticleStatus;
-use NixCMS\Enums\Language;
 use NixCMS\Models\Article;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
@@ -14,8 +13,8 @@ final class DeleteArticleVersion
 {
     public function __invoke(string $articleId, string $language, string $version): ResponseInterface
     {
-        $lang = Language::tryFrom(strtolower(trim($language)));
-        if (!$lang instanceof Language || (int) $articleId <= 0 || (int) $version <= 0) {
+        $lang = \cms()->languages()->normalize($language);
+        if ($lang === null || !\cms()->languages()->isKnown($lang) || (int) $articleId <= 0 || (int) $version <= 0) {
             return json(['success' => false, 'reason' => 'Invalid article, language, or version.'], 400);
         }
 

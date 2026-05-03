@@ -1,4 +1,6 @@
 import notifyAlert from '../lib/notifyJs/Modules/Alert.js';
+import prompt from '../lib/notifyJs/Modules/Prompt.js';
+import toast from '../lib/notifyJs/Modules/Toast.js';
 import {initStyledSelects} from '../components/styledSelect.js';
 
 const cardClass = 'rounded-lg border border-slate-700 bg-[#121820] p-3 text-left text-slate-100 transition hover:border-[var(--admin-page-accent)] hover:shadow-sm';
@@ -10,6 +12,18 @@ const previewFrameClass = 'pointer-events-none block aspect-video w-full rounded
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const storageKey = 'nixcms:page-builder:draft';
 const flashToastKey = 'nixcms:flash-toast';
+const previewViewports = {
+    desktop: {label: 'Desktop', width: 1280},
+    tablet: {label: 'Tablet', width: 768},
+    mobile: {label: 'Mobile', width: 390},
+};
+const contentWidthPresets = {
+    template: {label: 'Template default', css: ''},
+    narrow: {label: 'Narrow', css: '760px'},
+    comfortable: {label: 'Comfortable', css: '960px'},
+    wide: {label: 'Wide', css: '1120px'},
+    full: {label: 'Full width', css: '100%'},
+};
 
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
     '&': '&amp;',
@@ -18,6 +32,17 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => 
     '"': '&quot;',
     "'": '&#039;',
 }[char]));
+
+const languageIcon = `
+    <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m5 8 6 6"></path>
+        <path d="m4 14 6-6 2-3"></path>
+        <path d="M2 5h12"></path>
+        <path d="M7 2h1"></path>
+        <path d="m22 22-5-10-5 10"></path>
+        <path d="M14 18h6"></path>
+    </svg>
+`;
 
 class PageBuilder {
     constructor(root) {
@@ -28,13 +53,64 @@ class PageBuilder {
         this.labels = {
             saved: 'Page saved.',
             couldNotSave: 'Page could not be saved.',
+            cancel: 'Cancel',
+            mediaPickerTitle: 'Select media',
+            mediaPickerIntro: 'Upload a new image or choose an existing media item.',
+            mediaUpload: 'Upload image',
+            mediaChooseFile: 'Choose image',
+            mediaLibrary: 'Media library',
+            mediaUse: 'Use media',
+            mediaNoSelection: 'Please select or upload a media item.',
+            mediaUploadFailed: 'Upload failed.',
+            mediaFileTooLarge: 'File is too large.',
+            mediaInvalidExtension: 'File type is not allowed.',
+            mediaNoFiles: 'No media files yet.',
+            mediaEmptyUrl: 'No media selected.',
+            mediaReplace: 'Replace media',
+            mediaSelect: 'Select media',
+            mediaClear: 'Clear',
+            visibility: 'Visibility',
+            altText: 'Alt text',
+            public: 'Public',
+            registered: 'Registered',
+            private: 'Private',
+            translationKey: 'Translation key',
+            searchCreateTranslationKey: 'Search or create a translation key for this field.',
+            key: 'Key',
+            value: 'Value',
+            language: 'Language',
+            apply: 'Apply',
+            newLanguage: 'New language',
+            createLanguage: 'Create language',
+            enterLanguageCode: 'Enter a language code, for example nl or pt-br.',
+            invalidLanguage: 'Please enter a valid language code.',
+            languageCreated: 'Language created.',
+            translationSaved: 'Translation saved.',
+            emptyTranslationKey: 'Please enter a translation key.',
+            storesOnlyTranslationKey: 'The field stores only the translation key.',
             ...(this.config.labels || {}),
+        };
+        this.media = {
+            urls: {},
+            acceptedExtensions: [],
+            maxUploadSize: 0,
+            canUpload: false,
+            visibilityOptions: {
+                public: this.labels.public,
+                registered: this.labels.registered,
+                private: this.labels.private,
+            },
+            ...(this.config.media || {}),
         };
         this.templates = Array.isArray(this.config.templates) ? this.config.templates : [];
         this.contentTypes = Array.isArray(this.config.contentTypes) ? this.config.contentTypes : [];
         this.navigationChoices = Array.isArray(this.config.navigationChoices) ? this.config.navigationChoices : [];
         this.languages = Array.isArray(this.config.languages) ? this.config.languages : [];
         this.defaultLanguage = this.config.defaultLanguage || this.languages[0] || 'en';
+        this.translationSuggestionsByLanguage = this.normalizeTranslationSuggestionsByLanguage(this.config.translationSuggestions || {});
+        this.translationEndpoint = this.config.translationEndpoint || '/api/admin/translations/{language}';
+        this.translationSuggestBox = null;
+        this.activeTranslationSuggestInput = null;
         this.defaultNavigationIdentifier = this.config.defaultNavigationIdentifier || this.navigationChoices[0]?.identifier || 'main';
         this.queryParams = new URLSearchParams(window.location.search);
         this.initialState = this.config.initialState && typeof this.config.initialState === 'object' ? this.config.initialState : {};
@@ -47,7 +123,8 @@ class PageBuilder {
         this.templatesRendered = false;
         this.previewTemplateId = null;
         this.settingsOpen = false;
-        this.storageKey = `${storageKey}:${window.location.pathname}`;
+        this.previewViewport = 'desktop';
+        this.storageKey = `${storageKey}:${window.location.pathname}${window.location.search || ''}`;
         this.saveTimer = null;
         this.saving = false;
         this.savedId = Number(this.initialState.id || 0);
@@ -71,6 +148,11 @@ class PageBuilder {
         this.settingsDrawer = this.root.querySelector('[data-settings-drawer]');
         this.contentSettings = this.root.querySelector('[data-content-settings]');
         this.json = this.root.querySelector('[data-builder-json]');
+        this.previewStage = this.root.querySelector('[data-preview-stage]');
+        this.previewFrame = this.root.querySelector('[data-preview-frame]');
+        this.previewTitle = this.root.querySelector('[data-preview-title]');
+        this.previewViewportLabel = this.root.querySelector('[data-preview-viewport-label]');
+        this.contentWidthLabel = this.root.querySelector('[data-content-width-label]');
         this.saveButton = this.root.querySelector('[data-save-page]');
         this.metaTemplate = this.root.querySelector('[data-meta-template]');
         this.metaSummary = this.root.querySelector('[data-meta-summary]');
@@ -78,7 +160,12 @@ class PageBuilder {
         this.metaPreviewPath = this.root.querySelector('[data-meta-preview-path]');
         this.metaPreviewDescription = this.root.querySelector('[data-meta-preview-description]');
 
-        this.editMode ? this.applyInitialState() : this.restoreState();
+        if (this.editMode) {
+            this.applyInitialState();
+            this.restoreState();
+        } else {
+            this.restoreState();
+        }
         if (!this.persistedValues.defaultNavigationIdentifier) {
             this.persistedValues.defaultNavigationIdentifier = this.defaultNavigationIdentifier;
         }
@@ -94,12 +181,21 @@ class PageBuilder {
         if (!this.persistedValues['theme.accent']) {
             this.persistedValues['theme.accent'] = '#3f7fbd';
         }
+        if (!this.persistedValues['theme.contentWidth']) {
+            this.persistedValues['theme.contentWidth'] = 'template';
+        }
+        if (!Object.prototype.hasOwnProperty.call(this.persistedValues, 'theme.contentWidthIncludesChrome')) {
+            this.persistedValues['theme.contentWidthIncludesChrome'] = false;
+        }
         this.ensureTemplateDefaults();
         this.syncPageTheme();
 
         this.root.addEventListener('click', (event) => this.handleClick(event));
         this.root.addEventListener('input', (event) => this.handleInput(event));
         this.root.addEventListener('change', (event) => this.handleInput(event));
+        document.addEventListener('click', (event) => this.handleTranslationSuggestionClick(event));
+        window.addEventListener('resize', () => this.hideTranslationSuggestions());
+        window.addEventListener('scroll', () => this.hideTranslationSuggestions(), true);
         this.contentModal?.addEventListener('click', (event) => {
             if (event.target === this.contentModal) {
                 this.closeContentModal();
@@ -158,7 +254,8 @@ class PageBuilder {
     restoreState() {
         let state = null;
         try {
-            state = JSON.parse(window.localStorage.getItem(this.storageKey) || window.localStorage.getItem(storageKey) || 'null');
+            const fallback = this.editMode ? null : window.localStorage.getItem(storageKey);
+            state = JSON.parse(window.localStorage.getItem(this.storageKey) || fallback || 'null');
         } catch (error) {
             state = null;
         }
@@ -174,6 +271,10 @@ class PageBuilder {
 
         if (state.step === 'template' || state.step === 'layout' || state.step === 'meta') {
             this.step = state.step;
+        }
+
+        if (previewViewports[state.previewViewport]) {
+            this.previewViewport = state.previewViewport;
         }
 
         if (state.blockContent && typeof state.blockContent === 'object' && !Array.isArray(state.blockContent)) {
@@ -196,16 +297,13 @@ class PageBuilder {
     }
 
     persistState() {
-        if (this.editMode) {
-            return;
-        }
-
         this.collectPersistedFields();
 
         try {
             window.localStorage.setItem(this.storageKey, JSON.stringify({
                 step: this.step,
                 templateId: this.templateId,
+                previewViewport: this.previewViewport,
                 selectedBlockId: this.selectedBlockId,
                 blockContent: this.blockContent,
                 persistedValues: this.persistedValues,
@@ -294,9 +392,54 @@ class PageBuilder {
         return this.normalizeColor(this.persistedValues['theme.accent']) || '#3f7fbd';
     }
 
+    contentWidthKey() {
+        const key = String(this.persistedValues['theme.contentWidth'] || 'template').trim();
+        return contentWidthPresets[key] ? key : 'template';
+    }
+
+    contentWidthCssValue() {
+        return contentWidthPresets[this.contentWidthKey()]?.css || '';
+    }
+
+    templateDefaultWidth(template = this.selectedTemplate()) {
+        return {
+            public: '100%',
+            landing: '1120px',
+            editorial: '1040px',
+            'feature-grid': '1120px',
+            'article-detail': '820px',
+            'two-column': '960px',
+            'full-bleed': '100%',
+        }[template?.id || ''] || '1120px';
+    }
+
+    contentWidthDisplay() {
+        const key = this.contentWidthKey();
+        const chromeSuffix = this.contentWidthIncludesChrome() ? ' · Header/footer' : '';
+        if (key === 'template') {
+            return `Template · ${this.templateDefaultWidth()}${chromeSuffix}`;
+        }
+
+        const preset = contentWidthPresets[key];
+        return preset.css === '100%' ? `${preset.label}${chromeSuffix}` : `${preset.label} · ${preset.css}${chromeSuffix}`;
+    }
+
+    contentWidthIncludesChrome() {
+        const value = this.persistedValues['theme.contentWidthIncludesChrome'];
+        return value === true || value === 'true' || value === 1 || value === '1';
+    }
+
     syncPageTheme() {
         this.root.style.setProperty('--page-accent', this.pageAccent());
         this.root.style.setProperty('--admin-page-accent', this.pageAccent());
+        this.root.style.setProperty('--page-template-default-width', this.templateDefaultWidth());
+        this.root.dataset.contentWidthIncludesChrome = this.contentWidthIncludesChrome() ? 'true' : 'false';
+        const width = this.contentWidthCssValue();
+        if (width !== '') {
+            this.root.style.setProperty('--page-content-max-width', width);
+        } else {
+            this.root.style.removeProperty('--page-content-max-width');
+        }
     }
 
     selectedTemplate() {
@@ -435,6 +578,41 @@ class PageBuilder {
     }
 
     handleClick(event) {
+        const translationField = event.target.closest('[data-translate-prop]');
+        if (translationField) {
+            event.preventDefault();
+            this.openTranslationPicker(translationField.dataset.translateProp || '');
+            return;
+        }
+
+        const mediaField = event.target.closest('[data-media-field]');
+        if (mediaField) {
+            event.preventDefault();
+            this.openMediaPicker(mediaField.dataset.mediaField || '', mediaField.dataset.mediaAltTarget || '');
+            return;
+        }
+
+        const mediaClear = event.target.closest('[data-media-clear]');
+        if (mediaClear) {
+            event.preventDefault();
+            const field = mediaClear.dataset.mediaClear || '';
+            if (field !== '') {
+                this.setBlockProp(field, '');
+            }
+            return;
+        }
+
+        const previewMode = event.target.closest('[data-preview-mode]');
+        if (previewMode) {
+            const mode = previewMode.dataset.previewMode || 'desktop';
+            if (previewViewports[mode]) {
+                this.previewViewport = mode;
+                this.persistState();
+                this.render();
+            }
+            return;
+        }
+
         const templateCard = event.target.closest('[data-template-id]');
         if (templateCard) {
             this.templateId = templateCard.dataset.templateId || this.templateId;
@@ -557,16 +735,26 @@ class PageBuilder {
         }
 
         const name = input.dataset.propName || '';
-        this.blockContent[this.selectedBlockId].props[name] = input.type === 'checkbox'
+        this.setBlockProp(name, input.type === 'checkbox'
             ? input.checked
             : input.type === 'number'
                 ? Number(input.value || 0)
-                : input.value;
+                : input.value);
+    }
 
+    setBlockProp(name, value, {renderSettings = false} = {}) {
+        if (!name || !this.selectedBlockId || !this.blockContent[this.selectedBlockId]) {
+            return;
+        }
+
+        this.blockContent[this.selectedBlockId].props[name] = value;
         this.renderBlocks();
         this.renderPagePreview();
         this.renderJson();
         this.persistState();
+        if (renderSettings) {
+            this.renderSettings();
+        }
     }
 
     handlePersistedInput(event) {
@@ -581,11 +769,24 @@ class PageBuilder {
         }
 
         this.persistedValues[key] = this.readPersistedField(field);
-        if (key === 'theme.accent') {
+        this.syncPersistedControls(key, field);
+        if (key.startsWith('theme.')) {
             this.syncPageTheme();
+        }
+        if (key === 'theme.contentWidth' || key === 'theme.contentWidthIncludesChrome') {
+            this.renderPreviewChrome();
         }
         this.renderMeta();
         this.persistState();
+    }
+
+    syncPersistedControls(key, source = null) {
+        this.root.querySelectorAll(`[data-persist-key="${CSS.escape(key)}"]`).forEach((field) => {
+            if (field === source) {
+                return;
+            }
+            this.writePersistedField(field, this.persistedValues[key]);
+        });
     }
 
     assignContent(type) {
@@ -641,6 +842,7 @@ class PageBuilder {
         this.renderTemplatesOnce();
         this.updateActiveTemplate();
         this.renderTemplatePreview();
+        this.renderPreviewChrome();
         this.renderBlocks();
         this.renderContentOptions();
         this.renderSettings();
@@ -653,6 +855,7 @@ class PageBuilder {
             this.closeSettings();
         }
         this.applyPersistedFields();
+        this.renderPreviewChrome();
         this.renderMeta();
     }
 
@@ -739,6 +942,36 @@ class PageBuilder {
         this.templatePreview.innerHTML = this.livePreview(template);
         this.armPreviewFrames(this.templatePreview);
         this.previewTemplateId = previewKey;
+    }
+
+    renderPreviewChrome() {
+        const viewport = previewViewports[this.previewViewport] || previewViewports.desktop;
+        this.root.dataset.previewViewport = this.previewViewport;
+
+        if (this.previewFrame) {
+            this.previewFrame.style.width = `${viewport.width}px`;
+            this.previewFrame.style.maxWidth = '100%';
+        }
+        if (this.previewStage) {
+            this.previewStage.style.maxWidth = this.previewViewport === 'desktop' ? '1380px' : `${Math.min(viewport.width + 48, 1380)}px`;
+        }
+        if (this.previewTitle) {
+            this.previewTitle.textContent = `${viewport.label} preview`;
+        }
+        if (this.previewViewportLabel) {
+            this.previewViewportLabel.textContent = `${viewport.label} · ${viewport.width}px viewport`;
+        }
+        if (this.contentWidthLabel) {
+            this.contentWidthLabel.textContent = `Content: ${this.contentWidthDisplay()}`;
+        }
+
+        this.root.querySelectorAll('[data-preview-mode]').forEach((button) => {
+            const active = button.dataset.previewMode === this.previewViewport;
+            button.classList.toggle('bg-[var(--admin-page-accent)]', active);
+            button.classList.toggle('text-white', active);
+            button.classList.toggle('shadow-[0_8px_18px_rgba(0,0,0,.22)]', active);
+            button.classList.toggle('text-slate-400', !active);
+        });
     }
 
     livePreview(template) {
@@ -914,19 +1147,23 @@ class PageBuilder {
 
         if (block.preview === 'navigation') {
             return `
-                <div class="flex min-h-16 items-center gap-4 border-b border-[var(--page-border)] bg-[var(--page-header-bg)] px-6 py-4 text-[var(--page-header-text)] ${className}">
-                    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[var(--page-accent)] text-sm font-black text-white">N</span>
-                    <strong class="text-base font-bold">NixCMS</strong>
-                    <div class="ml-auto">${this.renderNavigationItems(this.selectedDefaultNavigationIdentifier(), 'horizontal')}</div>
+                <div class="border-b border-[var(--page-border)] bg-[var(--page-header-bg)] text-[var(--page-header-text)] ${className}">
+                    <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 px-6 py-4">
+                        <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[var(--page-accent)] text-sm font-black text-white">N</span>
+                        <strong class="text-base font-bold">NixCMS</strong>
+                        <div class="ml-auto">${this.renderNavigationItems(this.selectedDefaultNavigationIdentifier(), 'horizontal')}</div>
+                    </div>
                 </div>
             `;
         }
 
         if (block.preview === 'footer') {
             return `
-                <div class="flex min-h-16 flex-wrap items-center justify-between gap-3 border-t border-[var(--page-border)] bg-[var(--page-footer-bg)] px-6 py-4 ${className}">
-                    <span class="text-xs font-medium text-[var(--page-footer-text)]">Powered by NixCMS</span>
-                    <div>${this.renderNavigationItems(this.selectedDefaultNavigationIdentifier(), 'compact')}</div>
+                <div class="border-t border-[var(--page-border)] bg-[var(--page-footer-bg)] ${className}">
+                    <div class="page-template-chrome-inner flex min-h-16 flex-wrap items-center justify-between gap-3 px-6 py-4">
+                        <span class="text-xs font-medium text-[var(--page-footer-text)]">Powered by NixCMS</span>
+                        <div>${this.renderNavigationItems(this.selectedDefaultNavigationIdentifier(), 'compact')}</div>
+                    </div>
                 </div>
             `;
         }
@@ -952,6 +1189,187 @@ class PageBuilder {
         }
     }
 
+    normalizeTranslationSuggestionsByLanguage(suggestions) {
+        if (Array.isArray(suggestions)) {
+            return {
+                '': this.normalizeTranslationSuggestions(suggestions),
+            };
+        }
+
+        if (!suggestions || typeof suggestions !== 'object') {
+            return {};
+        }
+
+        return Object.fromEntries(Object.entries(suggestions).map(([language, entries]) => [
+            this.normalizeLanguageCode(language) || language,
+            this.normalizeTranslationSuggestions(entries),
+        ]));
+    }
+
+    normalizeTranslationSuggestions(suggestions) {
+        return (Array.isArray(suggestions) ? suggestions : [])
+            .map((suggestion) => ({
+                key: String(suggestion?.key || ''),
+                value: String(suggestion?.value || ''),
+            }))
+            .filter((suggestion) => suggestion.key !== '');
+    }
+
+    translationLanguage() {
+        const language = String(this.persistedValues.language || this.defaultLanguage || this.languages[0] || 'en');
+        return language === 'current' ? this.defaultLanguage : language;
+    }
+
+    currentTranslationSuggestions(language = this.translationLanguage()) {
+        const normalized = this.normalizeLanguageCode(language) || language || this.translationLanguage();
+        if (!this.translationSuggestionsByLanguage[normalized] && Array.isArray(this.translationSuggestionsByLanguage[''])) {
+            return this.translationSuggestionsByLanguage[''];
+        }
+        this.translationSuggestionsByLanguage[normalized] = Array.isArray(this.translationSuggestionsByLanguage[normalized])
+            ? this.translationSuggestionsByLanguage[normalized]
+            : [];
+
+        return this.translationSuggestionsByLanguage[normalized];
+    }
+
+    findTranslationSuggestion(language, key) {
+        const normalizedKey = String(key || '').trim();
+        if (normalizedKey === '') {
+            return null;
+        }
+
+        return this.currentTranslationSuggestions(language).find((suggestion) => suggestion.key === normalizedKey) || null;
+    }
+
+    setTranslationSuggestion(language, key, value) {
+        const suggestions = this.currentTranslationSuggestions(language);
+        const existing = suggestions.find((suggestion) => suggestion.key === key);
+        if (existing) {
+            existing.value = value;
+            return;
+        }
+
+        suggestions.push({key, value});
+        suggestions.sort((a, b) => a.key.localeCompare(b.key));
+    }
+
+    matchingTranslationSuggestions(language, value) {
+        const query = String(value || '').trim().toLowerCase();
+        if (query === '') {
+            return this.currentTranslationSuggestions(language).slice(0, 8);
+        }
+
+        const parts = query.split(/\s+/).filter(Boolean);
+        return this.currentTranslationSuggestions(language)
+            .map((suggestion) => ({
+                ...suggestion,
+                score: this.translationSuggestionScore(suggestion, parts),
+            }))
+            .filter((suggestion) => suggestion.score > 0)
+            .sort((a, b) => b.score - a.score || a.key.localeCompare(b.key))
+            .slice(0, 8);
+    }
+
+    translationSuggestionScore(suggestion, parts) {
+        const key = suggestion.key.toLowerCase();
+        const value = suggestion.value.toLowerCase();
+        let score = key.startsWith('page.') || key.startsWith('pages.') ? 12 : 0;
+
+        for (const part of parts) {
+            if (key === part) {
+                score += 120;
+            } else if (key.startsWith(part)) {
+                score += 80;
+            } else if (key.includes(part)) {
+                score += 45;
+            }
+
+            if (value === part) {
+                score += 100;
+            } else if (value.startsWith(part)) {
+                score += 70;
+            } else if (value.includes(part)) {
+                score += 55;
+            }
+        }
+
+        return score;
+    }
+
+    showTranslationSuggestions(input) {
+        const promptContainer = input?.closest('.notify');
+        const language = promptContainer?.querySelector('[data-page-translation-language]')?.value || this.translationLanguage();
+        const matches = this.matchingTranslationSuggestions(language, input?.value || '');
+        if (matches.length === 0) {
+            this.hideTranslationSuggestions();
+            return;
+        }
+
+        const suggestBox = this.ensureTranslationSuggestBox();
+        this.activeTranslationSuggestInput = input;
+        const rect = input.getBoundingClientRect();
+        suggestBox.style.left = `${rect.left}px`;
+        suggestBox.style.top = `${rect.bottom + 6}px`;
+        suggestBox.style.width = `${Math.max(rect.width, 320)}px`;
+        suggestBox.innerHTML = matches.map((suggestion) => `
+            <button type="button" class="grid w-full gap-0.5 rounded px-2.5 py-2 text-left transition hover:bg-slate-100 dark:hover:bg-slate-900" data-page-translation-suggestion-key="${escapeHtml(suggestion.key)}">
+                <span class="font-mono text-xs font-semibold text-slate-900 dark:text-slate-100">${this.highlight(suggestion.key, input.value)}</span>
+                <span class="truncate text-xs text-slate-500 dark:text-slate-400">${escapeHtml(suggestion.value)}</span>
+            </button>
+        `).join('');
+        suggestBox.classList.remove('hidden');
+    }
+
+    hideTranslationSuggestions() {
+        this.activeTranslationSuggestInput = null;
+        if (!this.translationSuggestBox) {
+            return;
+        }
+        this.translationSuggestBox.classList.add('hidden');
+        this.translationSuggestBox.innerHTML = '';
+    }
+
+    ensureTranslationSuggestBox() {
+        if (this.translationSuggestBox instanceof HTMLElement) {
+            return this.translationSuggestBox;
+        }
+
+        this.translationSuggestBox = document.createElement('div');
+        this.translationSuggestBox.className = 'fixed z-50 hidden max-h-64 overflow-auto rounded-md border border-slate-300 bg-white p-1 text-sm shadow-xl dark:border-slate-700 dark:bg-slate-950';
+        this.translationSuggestBox.dataset.pageTranslationSuggestBox = 'true';
+        document.body.appendChild(this.translationSuggestBox);
+
+        return this.translationSuggestBox;
+    }
+
+    handleTranslationSuggestionClick(event) {
+        if (!(event.target instanceof Element)) {
+            return;
+        }
+
+        const option = event.target.closest('[data-page-translation-suggestion-key]');
+        if (option && this.activeTranslationSuggestInput instanceof HTMLInputElement) {
+            this.activeTranslationSuggestInput.value = option.dataset.pageTranslationSuggestionKey || '';
+            const promptContainer = this.activeTranslationSuggestInput.closest('.notify');
+            const language = promptContainer?.querySelector('[data-page-translation-language]')?.value || this.translationLanguage();
+            const suggestion = this.findTranslationSuggestion(language, this.activeTranslationSuggestInput.value);
+            const valueInput = promptContainer?.querySelector('[data-page-translation-value]');
+            if (suggestion && valueInput instanceof HTMLInputElement && valueInput.value.trim() === '') {
+                valueInput.value = suggestion.value;
+            }
+            this.hideTranslationSuggestions();
+            return;
+        }
+
+        if (!event.target.closest('[data-page-translation-key]') && !event.target.closest('[data-page-translation-suggest-box]')) {
+            this.hideTranslationSuggestions();
+        }
+    }
+
+    isMobilePreview() {
+        return this.previewViewport === 'mobile';
+    }
+
     blockLayout(template, interactive) {
         const blocks = template?.blocks || [];
         if (blocks.length === 0) {
@@ -963,6 +1381,20 @@ class PageBuilder {
             const block = blockById.get(id);
             return block ? this.blockCard(block, interactive, template.id, className) : '';
         };
+        const twoColumnGrid = this.isMobilePreview()
+            ? 'grid gap-5'
+            : 'grid gap-5 grid-cols-2';
+        const editorialGrid = this.isMobilePreview()
+            ? 'grid gap-5'
+            : 'grid gap-5 grid-cols-[minmax(0,1fr)_minmax(180px,.36fr)]';
+        const articleGrid = this.isMobilePreview()
+            ? 'grid gap-5'
+            : 'grid gap-5 grid-cols-[minmax(0,1fr)_minmax(220px,.34fr)]';
+        const featureGrid = this.isMobilePreview()
+            ? 'grid gap-5'
+            : this.previewViewport === 'tablet'
+                ? 'grid gap-5 grid-cols-2'
+                : 'grid gap-5 grid-cols-3';
 
         if (template.id === 'landing') {
             return `
@@ -984,7 +1416,7 @@ class PageBuilder {
                     ${renderBlock('site_header')}
                     <main class="page-template-main page-template-main--editorial">
                         <section class="page-template-region">${renderBlock('intro')}</section>
-                        <div class="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(160px,.36fr)]">
+                        <div class="${editorialGrid}">
                             <section class="page-template-region">${renderBlock('content')}</section>
                             <aside class="page-template-region">${renderBlock('aside')}</aside>
                         </div>
@@ -999,7 +1431,7 @@ class PageBuilder {
                 <div class="page-template-shell">
                     ${renderBlock('site_header')}
                     <main class="page-template-main page-template-main--two-column">
-                        <div class="grid gap-5 md:grid-cols-2">
+                        <div class="${twoColumnGrid}">
                             <section class="page-template-region">${renderBlock('primary')}</section>
                             <section class="page-template-region">${renderBlock('secondary')}</section>
                         </div>
@@ -1015,7 +1447,7 @@ class PageBuilder {
                     ${renderBlock('site_header')}
                     <main class="page-template-main page-template-main--feature-grid">
                         <section class="page-template-region">${renderBlock('intro')}</section>
-                        <div class="grid gap-5 md:grid-cols-3">
+                        <div class="${featureGrid}">
                             <section class="page-template-region">${renderBlock('feature_a')}</section>
                             <section class="page-template-region">${renderBlock('feature_b')}</section>
                             <section class="page-template-region">${renderBlock('feature_c')}</section>
@@ -1033,7 +1465,7 @@ class PageBuilder {
                     ${renderBlock('site_header')}
                     <main class="page-template-main page-template-main--article-detail">
                         <header class="page-template-region">${renderBlock('header')}</header>
-                        <div class="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(220px,.34fr)]">
+                        <div class="${articleGrid}">
                             <article class="page-template-region">${renderBlock('body')}</article>
                             <aside class="page-template-region">${renderBlock('aside')}</aside>
                         </div>
@@ -1078,7 +1510,7 @@ class PageBuilder {
             ? (content ? `data-edit-block="${escapeHtml(block.id)}"` : `data-choose-block="${escapeHtml(block.id)}"`)
             : '';
         const frameClass = [
-            'group/page-block relative grid content-center overflow-hidden rounded-xl border border-transparent p-6 text-left transition',
+            'group/page-block relative grid w-full min-w-0 justify-self-stretch content-center overflow-hidden rounded-xl border border-transparent p-6 text-left transition',
             minHeight,
             className,
             'bg-transparent hover:border-[var(--page-card-border)] hover:bg-[var(--page-card-bg)] focus:border-[var(--page-accent)] focus:bg-[var(--page-card-bg)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--page-accent)]/40',
@@ -1152,7 +1584,7 @@ class PageBuilder {
     }
 
     renderNavigationItems(identifier, presentation = 'horizontal', language = '') {
-        const items = this.navigationPreviewItems(identifier, language);
+        const items = this.navigationPreviewItems(identifier, language, this.isMobilePreview() ? 3 : 5);
         const vertical = presentation === 'vertical';
         const compact = presentation === 'compact';
         const className = vertical
@@ -1171,20 +1603,26 @@ class PageBuilder {
 
     contentMiniPreview(content) {
         if (content.type === 'header') {
+            const compact = this.isMobilePreview();
             return `
-                <div class="flex min-h-14 items-center gap-4 rounded-lg border border-[var(--page-border)] bg-[var(--page-header-bg)] px-4 text-[var(--page-header-text)]">
-                    <span class="grid h-8 w-8 place-items-center rounded-md bg-[var(--page-accent)] text-xs font-black text-white">${escapeHtml((content.props?.logoText || 'N').slice(0, 1))}</span>
-                    <strong class="text-sm font-bold">${escapeHtml(content.props?.logoText || 'NixCMS')}</strong>
-                    <div class="ml-auto">${this.renderNavigationItems(content.props?.navigationIdentifier, content.props?.presentation || 'horizontal')}</div>
+                <div class="rounded-lg border border-[var(--page-border)] bg-[var(--page-header-bg)] text-[var(--page-header-text)]">
+                    <div class="page-template-chrome-inner ${compact ? 'grid' : 'flex'} min-h-14 items-center gap-4 px-4 py-3">
+                        <span class="grid h-8 w-8 place-items-center rounded-md bg-[var(--page-accent)] text-xs font-black text-white">${escapeHtml((content.props?.logoText || 'N').slice(0, 1))}</span>
+                        <strong class="text-sm font-bold">${escapeHtml(content.props?.logoText || 'NixCMS')}</strong>
+                        <div class="${compact ? '' : 'ml-auto'}">${this.renderNavigationItems(content.props?.navigationIdentifier, compact ? 'compact' : (content.props?.presentation || 'horizontal'))}</div>
+                    </div>
                 </div>
             `;
         }
 
         if (content.type === 'footer') {
+            const compact = this.isMobilePreview();
             return `
-                <div class="flex min-h-14 flex-wrap items-center justify-between gap-3 rounded-lg border border-[var(--page-border)] bg-[var(--page-footer-bg)] px-4 py-3">
-                    <span class="text-xs text-[var(--page-footer-text)]">${escapeHtml(content.props?.text || 'Powered by NixCMS')}</span>
-                    ${this.renderNavigationItems(content.props?.navigationIdentifier, content.props?.presentation || 'compact')}
+                <div class="rounded-lg border border-[var(--page-border)] bg-[var(--page-footer-bg)]">
+                    <div class="page-template-chrome-inner flex min-h-14 flex-wrap ${compact ? 'items-start' : 'items-center justify-between'} gap-3 px-4 py-3">
+                        <span class="text-xs text-[var(--page-footer-text)]">${escapeHtml(content.props?.text || 'Powered by NixCMS')}</span>
+                        ${this.renderNavigationItems(content.props?.navigationIdentifier, content.props?.presentation || 'compact')}
+                    </div>
                 </div>
             `;
         }
@@ -1235,14 +1673,134 @@ class PageBuilder {
         }
 
         if (content.type === 'hero') {
+            const compact = this.isMobilePreview();
             return `
-                <div class="grid gap-3 rounded-lg bg-[var(--page-card-bg)] p-5 md:grid-cols-[minmax(0,1fr)_160px]">
+                <div class="grid gap-3 rounded-lg bg-[var(--page-card-bg)] p-5 ${compact ? '' : 'grid-cols-[minmax(0,1fr)_160px]'}">
                     <div class="grid gap-2">
                         <span class="text-[11px] font-bold uppercase text-[var(--page-accent)]">${escapeHtml(content.props?.eyebrow || 'Hero')}</span>
                         <strong class="text-2xl font-black leading-tight text-[var(--page-text)]">${escapeHtml(content.props?.title || 'Hero title')}</strong>
                         <span class="text-sm leading-relaxed text-[var(--page-muted)]">${escapeHtml(content.props?.text || '')}</span>
                     </div>
-                    <span class="hidden rounded-md border border-dashed border-[var(--page-border)] md:block"></span>
+                    <span class="${compact ? 'hidden' : 'block'} rounded-md border border-dashed border-[var(--page-border)]"></span>
+                </div>
+            `;
+        }
+
+        if (content.type === 'chart') {
+            const count = Math.max(1, Math.min(6, Number(content.props?.metricCount || 3)));
+            const type = content.props?.chartType || 'metric-bars';
+            const labels = Array.from({length: count}, (_, index) => content.props?.[`label${index + 1}`] || `Metric ${index + 1}`);
+            const values = Array.from({length: count}, (_, index) => Number(content.props?.[`value${index + 1}`] || 0));
+            const colors = Array.from({length: count}, (_, index) => this.normalizeColor(content.props?.[`color${index + 1}`]) || ['#3b82f6', '#f59e0b', '#22c55e', '#8b5cf6', '#64748b', '#ef4444'][index]);
+            const max = Math.max(...values, 1);
+            const linePoints = values.map((value, index) => ({
+                x: count === 1 ? 160 : 28 + ((index / (count - 1)) * 264),
+                y: 112 - ((value / max) * 74),
+            }));
+            const linePath = linePoints.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(' ');
+            const lastLinePoint = linePoints[linePoints.length - 1] || {x: 292, y: 118};
+            const firstLinePoint = linePoints[0] || {x: 28, y: 118};
+            const areaPath = `${linePath} L ${lastLinePoint.x.toFixed(1)} 118 L ${firstLinePoint.x.toFixed(1)} 118 Z`;
+            const pieSegments = labels.map((label, index) => {
+                const offset = labels.slice(0, index).reduce((sum, _, colorIndex) => sum + Math.max(6, values[colorIndex]), 0);
+                const total = values.reduce((sum, value) => sum + Math.max(6, value), 0) || 1;
+                const dash = (Math.max(6, values[index]) / total) * 100;
+                return `<circle cx="50" cy="50" r="${type === 'pie' ? 28 : 24}" fill="none" stroke="${escapeHtml(colors[index])}" stroke-width="${type === 'pie' ? 56 : 18}" stroke-dasharray="${dash} ${100 - dash}" stroke-dashoffset="${100 - ((offset / total) * 100)}" pathLength="100" transform="rotate(-90 50 50)"><title>${escapeHtml(label)}</title></circle>`;
+            }).join('');
+
+            const chartPreview = type === 'line'
+                ? `<div class="rounded-lg border border-white/5 bg-slate-950/20 px-3 py-3">
+                    <svg class="h-32 w-full" viewBox="0 0 320 132" aria-hidden="true">
+                        <path d="M28 118H300" stroke="rgba(148,163,184,.20)" stroke-width="1"></path>
+                        <path d="M28 90H300" stroke="rgba(148,163,184,.13)" stroke-width="1"></path>
+                        <path d="M28 62H300" stroke="rgba(148,163,184,.13)" stroke-width="1"></path>
+                        <path d="M28 34H300" stroke="rgba(148,163,184,.13)" stroke-width="1"></path>
+                        <path d="${areaPath}" fill="${escapeHtml(colors[0])}" opacity=".12"></path>
+                        <path d="${linePath}" fill="none" stroke="${escapeHtml(colors[0])}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+                        ${linePoints.map((point, index) => `<circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="4.2" fill="var(--page-card-bg)" stroke="${escapeHtml(colors[index])}" stroke-width="3"><title>${escapeHtml(labels[index])}: ${escapeHtml(values[index])}</title></circle>`).join('')}
+                    </svg>
+                    <div class="mt-1 flex justify-between gap-2 px-6 text-[10px] text-[var(--page-muted)]">
+                        ${labels.map((label) => `<span class="truncate">${escapeHtml(label)}</span>`).join('')}
+                    </div>
+                </div>`
+                : type === 'bar'
+                    ? `<div class="flex min-h-28 items-end gap-2 border-b border-white/10 px-1">
+                        ${labels.map((label, index) => `<span class="grid flex-1 content-end gap-1 text-center" title="${escapeHtml(label)}">
+                            <span class="mx-auto block w-full rounded-t" style="height:${Math.max(18, (values[index] / max) * 104)}px;background:${escapeHtml(colors[index])};"></span>
+                            <span class="truncate text-[10px] text-[var(--page-muted)]">${escapeHtml(label)}</span>
+                        </span>`).join('')}
+                    </div>`
+                    : type === 'doughnut' || type === 'pie'
+                        ? `<div class="flex min-h-28 items-center gap-4">
+                            <svg class="h-28 w-28 shrink-0" viewBox="0 0 100 100" aria-hidden="true">
+                                <circle cx="50" cy="50" r="${type === 'pie' ? 28 : 24}" fill="${type === 'pie' ? colors[0] : 'rgba(148,163,184,.12)'}"></circle>
+                                ${pieSegments}
+                                ${type === 'doughnut' ? '<circle cx="50" cy="50" r="15" fill="var(--page-card-bg)"></circle>' : ''}
+                            </svg>
+                            <div class="grid min-w-0 flex-1 gap-1.5">
+                                ${labels.map((label, index) => `<span class="grid grid-cols-[10px_minmax(0,1fr)_34px] items-center gap-2 text-[11px] text-[var(--page-muted)]">
+                                    <span class="h-2.5 w-2.5 rounded-full" style="background:${escapeHtml(colors[index])};"></span>
+                                    <span class="truncate">${escapeHtml(label)}</span>
+                                    <span class="text-right font-mono">${escapeHtml(values[index])}</span>
+                                </span>`).join('')}
+                            </div>
+                        </div>`
+                        : `<div class="grid min-h-28 gap-1.5">
+                            ${labels.map((label, index) => `<span class="grid grid-cols-[86px_minmax(0,1fr)_34px] items-center gap-2 text-[11px] text-[var(--page-muted)]">
+                                <span class="truncate">${escapeHtml(label)}</span>
+                                <span class="h-2 overflow-hidden rounded-full bg-white/10"><span class="block h-full rounded-full" style="width:${Math.max(4, (values[index] / max) * 100)}%;background:${escapeHtml(colors[index])};"></span></span>
+                                <span class="text-right font-mono">${escapeHtml(values[index])}</span>
+                            </span>`).join('')}
+                        </div>`;
+
+            return `
+                <div class="grid gap-3 rounded-md border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-4">
+                    <div class="flex min-w-0 items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <strong class="block truncate text-base font-bold text-[var(--page-text)]">${escapeHtml(content.props?.title || content.previewTitle || 'Diagram')}</strong>
+                            <span class="mt-1 block truncate text-xs text-[var(--page-muted)]">${escapeHtml(content.props?.subtitle || type)}</span>
+                        </div>
+                        <span class="shrink-0 rounded bg-white/10 px-2 py-1 text-[11px] font-bold uppercase text-[var(--page-muted)]">${escapeHtml(type.replace('-', ' '))}</span>
+                    </div>
+                    ${chartPreview}
+                </div>
+            `;
+        }
+
+        if (content.type === 'image') {
+            const src = String(content.props?.src || '');
+            return `
+                <figure class="m-0 grid gap-2 rounded-md border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-3">
+                    ${src
+                        ? `<img class="aspect-video w-full rounded object-cover" src="${escapeHtml(src)}" alt="">`
+                        : '<span class="grid aspect-video place-items-center rounded border border-dashed border-[var(--page-border)] text-xs text-[var(--page-muted)]">Image</span>'}
+                    <figcaption class="truncate text-xs text-[var(--page-muted)]">${escapeHtml(content.props?.caption || content.props?.alt || '')}</figcaption>
+                </figure>
+            `;
+        }
+
+        if (content.type === 'embed') {
+            return `
+                <div class="grid gap-2 rounded-md border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-4">
+                    <div class="grid aspect-video place-items-center rounded border border-dashed border-[var(--page-border)] bg-slate-950/10">
+                        <span class="text-xs font-semibold text-[var(--page-muted)]">External embed</span>
+                    </div>
+                    <strong class="truncate text-sm text-[var(--page-text)]">${escapeHtml(content.props?.title || 'External content')}</strong>
+                    <span class="truncate font-mono text-[11px] text-[var(--page-muted)]">${escapeHtml(content.props?.url || '')}</span>
+                </div>
+            `;
+        }
+
+        if (content.type === 'map') {
+            return `
+                <div class="grid gap-2 rounded-md border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-4">
+                    <div class="relative grid aspect-video place-items-center overflow-hidden rounded bg-slate-950/20">
+                        <span class="absolute inset-x-0 top-1/3 h-px bg-[var(--page-border)]"></span>
+                        <span class="absolute inset-y-0 left-1/3 w-px bg-[var(--page-border)]"></span>
+                        <span class="grid h-10 w-10 place-items-center rounded-full bg-[var(--page-accent)] text-xs font-black text-white">Map</span>
+                    </div>
+                    <strong class="truncate text-sm text-[var(--page-text)]">${escapeHtml(content.props?.title || 'Map')}</strong>
+                    <span class="truncate text-xs text-[var(--page-muted)]">${escapeHtml(content.props?.query || content.props?.embedUrl || '')}</span>
                 </div>
             `;
         }
@@ -1370,10 +1928,30 @@ class PageBuilder {
         }
 
         if (field?.type === 'textarea') {
+            if (this.isTranslatableField(key, value, field)) {
+                return this.renderTranslatableInput(key, value, label, true);
+            }
+
             return `
                 <label class="grid gap-1.5">
                     <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${escapeHtml(label)}</span>
                     <textarea class="${inputClass} min-h-24 resize-y" data-prop-name="${escapeHtml(key)}">${escapeHtml(value)}</textarea>
+                </label>
+            `;
+        }
+
+        if (field?.type === 'media') {
+            return this.renderMediaField(key, value, label, field);
+        }
+
+        if (field?.type === 'color') {
+            return `
+                <label class="grid gap-1.5">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${escapeHtml(label)}</span>
+                    <span class="grid grid-cols-[42px_minmax(0,1fr)] gap-2">
+                        <input class="h-10 w-full rounded-md border border-slate-700 bg-[#0b1017] p-1" type="color" value="${escapeHtml(this.normalizeColor(value) || '#3f7fbd')}" data-prop-name="${escapeHtml(key)}">
+                        <input class="${inputClass}" type="text" value="${escapeHtml(this.normalizeColor(value) || '#3f7fbd')}" data-prop-name="${escapeHtml(key)}">
+                    </span>
                 </label>
             `;
         }
@@ -1392,7 +1970,7 @@ class PageBuilder {
                 ? ['horizontal', 'vertical', 'compact']
                 : ['list', 'cards', 'compact'], label);
         }
-        if (key === 'source') {
+        if (key === 'source' && contentType === 'articles') {
             return this.renderSelect(key, value, ['latest', 'featured', 'category'], label);
         }
         if (key === 'language') {
@@ -1409,6 +1987,10 @@ class PageBuilder {
         }
 
         if (key === 'text') {
+            if (this.isTranslatableField(key, value, field)) {
+                return this.renderTranslatableInput(key, value, label, true);
+            }
+
             return `
                 <label class="grid gap-1.5">
                     <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${escapeHtml(label)}</span>
@@ -1417,11 +1999,39 @@ class PageBuilder {
             `;
         }
 
+        if (this.isTranslatableField(key, value, field)) {
+            return this.renderTranslatableInput(key, value, label, false);
+        }
+
         return `
             <label class="grid gap-1.5">
                 <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${escapeHtml(label)}</span>
-                <input class="${inputClass}" type="${typeof value === 'number' ? 'number' : 'text'}" value="${escapeHtml(value)}" data-prop-name="${escapeHtml(key)}">
+                <input class="${inputClass}" type="${field?.type === 'number' || typeof value === 'number' ? 'number' : 'text'}" value="${escapeHtml(value)}" ${field?.min !== undefined ? `min="${escapeHtml(field.min)}"` : ''} ${field?.max !== undefined ? `max="${escapeHtml(field.max)}"` : ''} ${field?.step !== undefined ? `step="${escapeHtml(field.step)}"` : ''} data-prop-name="${escapeHtml(key)}">
             </label>
+        `;
+    }
+
+    renderMediaField(key, value, label, field = null) {
+        const url = String(value || '');
+        const hasMedia = url !== '';
+        const altTarget = String(field?.altTarget || '');
+        const preview = hasMedia
+            ? `<img class="h-full w-full object-cover" src="${escapeHtml(url)}" alt="">`
+            : `<span class="text-xs font-semibold text-slate-500">${escapeHtml(this.labels.mediaEmptyUrl)}</span>`;
+
+        return `
+            <div class="grid gap-1.5">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${escapeHtml(label)}</span>
+                <div class="grid gap-2 rounded-md border border-slate-700 bg-[#0b1017] p-2">
+                    <div class="grid h-32 place-items-center overflow-hidden rounded border border-slate-800 bg-slate-950/60">${preview}</div>
+                    <input type="hidden" value="${escapeHtml(url)}" data-prop-name="${escapeHtml(key)}">
+                    <div class="flex items-center gap-2">
+                        <input class="${inputClass} min-w-0 flex-1 text-xs" type="text" value="${escapeHtml(url)}" readonly>
+                        <button class="inline-flex min-h-9 items-center justify-center rounded-md border border-slate-700 px-3 text-xs font-semibold text-slate-200 transition hover:border-[var(--admin-page-accent)]" type="button" data-media-field="${escapeHtml(key)}" data-media-alt-target="${escapeHtml(altTarget)}">${escapeHtml(hasMedia ? this.labels.mediaReplace : this.labels.mediaSelect)}</button>
+                        ${hasMedia ? `<button class="inline-flex min-h-9 items-center justify-center rounded-md border border-rose-400/30 px-3 text-xs font-semibold text-rose-200 transition hover:bg-rose-500/10" type="button" data-media-clear="${escapeHtml(key)}">${escapeHtml(this.labels.mediaClear)}</button>` : ''}
+                    </div>
+                </div>
+            </div>
         `;
     }
 
@@ -1447,6 +2057,552 @@ class PageBuilder {
         `;
     }
 
+    renderTranslatableInput(key, value, label, multiline = false) {
+        const escapedKey = escapeHtml(key);
+        const escapedValue = escapeHtml(value);
+        const title = escapeHtml(this.labels.translationKey);
+
+        if (multiline) {
+            return `
+                <label class="grid gap-1.5">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${escapeHtml(label)}</span>
+                    <span class="relative block">
+                        <textarea class="${inputClass} min-h-24 resize-y pr-16" data-prop-name="${escapedKey}">${escapedValue}</textarea>
+                        <button class="absolute right-px top-px inline-flex h-10 w-14 items-center justify-center rounded-bl-md rounded-tr-md border-b border-l border-slate-700 bg-slate-900/80 text-slate-500 transition hover:bg-slate-800 hover:text-slate-300" type="button" data-translate-prop="${escapedKey}" title="${title}" aria-label="${title}">
+                            ${languageIcon}
+                        </button>
+                    </span>
+                </label>
+            `;
+        }
+
+        return `
+            <label class="grid gap-1.5">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${escapeHtml(label)}</span>
+                <span class="flex min-h-9 overflow-hidden rounded-md border border-slate-700 bg-[#0b1017] focus-within:border-[var(--admin-page-accent)]">
+                    <input class="min-h-9 min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-sm text-slate-100 outline-none" type="text" value="${escapedValue}" data-prop-name="${escapedKey}">
+                    <button class="inline-flex min-h-9 w-14 shrink-0 items-center justify-center border-l border-slate-700 bg-slate-900/70 px-2 text-slate-500 transition hover:bg-slate-800 hover:text-slate-300" type="button" data-translate-prop="${escapedKey}" title="${title}" aria-label="${title}">
+                        ${languageIcon}
+                    </button>
+                </span>
+            </label>
+        `;
+    }
+
+    isTranslatableField(key, value, field = null) {
+        if (field?.translatable === false) {
+            return false;
+        }
+        if (field?.translatable === true) {
+            return true;
+        }
+        if (field?.type && !['text', 'textarea'].includes(field.type)) {
+            return false;
+        }
+        if (typeof value === 'boolean' || typeof value === 'number') {
+            return false;
+        }
+
+        const normalized = String(key || '').toLowerCase();
+        const excluded = [
+            'url',
+            'href',
+            'path',
+            'image',
+            'media',
+            'color',
+            'identifier',
+            'language',
+            'presentation',
+            'align',
+            'level',
+            'tone',
+            'limit',
+            'count',
+            'width',
+            'height',
+            'category',
+            'slug',
+            'query',
+            'embed',
+        ];
+
+        return !excluded.some((part) => normalized.includes(part));
+    }
+
+    async openTranslationPicker(propName) {
+        if (!propName || !this.selectedBlockId || !this.blockContent[this.selectedBlockId]) {
+            return;
+        }
+
+        const currentValue = String(this.blockContent[this.selectedBlockId].props?.[propName] || '');
+        const language = this.translationLanguage();
+        const initialValue = this.findTranslationSuggestion(language, currentValue)?.value || '';
+        const promptResult = prompt(this.translationPromptHtml(language, currentValue, initialValue), {
+            confirmButtonText: this.labels.apply,
+            cancelButtonText: this.labels.cancel,
+            showCancelButton: true,
+            style: {width: 'min(720px, calc(100vw - 32px))'},
+            confirmCallback: (promptInstance) => {
+                this.applyTranslationPicker(promptInstance, propName);
+                return true;
+            },
+        });
+
+        window.setTimeout(() => this.bindTranslationPrompt(document.querySelector('.page-builder-translation-prompt')), 0);
+        await promptResult;
+        this.hideTranslationSuggestions();
+    }
+
+    async applyTranslationPicker(promptInstance, propName) {
+        const container = promptInstance.container;
+        const language = this.normalizeLanguageCode(container.querySelector('[data-page-translation-language]')?.value) || this.translationLanguage();
+        const keyInput = container.querySelector('[data-page-translation-key]');
+        const key = String(keyInput?.value || '').trim();
+        const value = String(container.querySelector('[data-page-translation-value]')?.value || '');
+        if (key === '') {
+            toast(this.labels.emptyTranslationKey);
+            keyInput?.focus();
+            return;
+        }
+
+        if (value.trim() !== '' || !this.findTranslationSuggestion(language, key)) {
+            const saved = await this.saveTranslation(language, key, value);
+            if (!saved) {
+                return;
+            }
+            toast(this.labels.translationSaved);
+        }
+
+        this.setBlockProp(propName, key, {renderSettings: true});
+        promptInstance.promise.resolve(true);
+        promptInstance.remove();
+    }
+
+    translationPromptHtml(language, key, value) {
+        return `
+            <div>${escapeHtml(this.labels.translationKey)}</div>
+            <div class="page-builder-translation-prompt notify-form">
+                <p class="notify-form-intro">${escapeHtml(this.labels.searchCreateTranslationKey)}</p>
+                <div class="notify-form-grid">
+                    <label class="notify-field">
+                        <span class="notify-field-label">${escapeHtml(this.labels.language)}</span>
+                        <div class="flex gap-2">
+                            <select data-styled-select data-page-translation-language>
+                                ${this.translationLanguageOptions(language)}
+                            </select>
+                            <button class="inline-flex min-h-10 items-center rounded-md border border-[var(--notify-border)] px-3 text-sm font-semibold text-[var(--notify-muted)] transition hover:border-[var(--notify-accent)] hover:text-[var(--notify-text)]" type="button" data-page-translation-new-language>
+                                ${escapeHtml(this.labels.newLanguage)}
+                            </button>
+                        </div>
+                    </label>
+                    <label class="notify-field">
+                        <span class="notify-field-label">${escapeHtml(this.labels.key)}</span>
+                        <input class="font-mono" type="text" value="${escapeHtml(key)}" placeholder="page.contact.title" autocomplete="off" data-page-translation-key>
+                    </label>
+                </div>
+                <label class="notify-field">
+                    <span class="notify-field-label">${escapeHtml(this.labels.value)}</span>
+                    <input type="text" value="${escapeHtml(value)}" placeholder="Contact" data-page-translation-value>
+                </label>
+                <p class="notify-form-intro">${escapeHtml(this.labels.storesOnlyTranslationKey)}</p>
+            </div>
+        `;
+    }
+
+    translationLanguageOptions(selectedLanguage = this.translationLanguage()) {
+        const languages = [...this.languages];
+        if (!languages.includes(selectedLanguage) && selectedLanguage !== '') {
+            languages.unshift(selectedLanguage);
+        }
+
+        return languages.map((language) => `
+            <option value="${escapeHtml(language)}" ${language === selectedLanguage ? 'selected' : ''}>${escapeHtml(this.labelForLanguage(language))}</option>
+        `).join('');
+    }
+
+    bindTranslationPrompt(modal) {
+        if (!(modal instanceof HTMLElement)) {
+            return;
+        }
+
+        const languageSelect = modal.querySelector('[data-page-translation-language]');
+        const keyInput = modal.querySelector('[data-page-translation-key]');
+        const valueInput = modal.querySelector('[data-page-translation-value]');
+        initStyledSelects(modal.querySelectorAll('select[data-styled-select]'));
+        keyInput?.focus({preventScroll: true});
+
+        languageSelect?.addEventListener('change', () => {
+            const existing = this.findTranslationSuggestion(languageSelect.value, keyInput?.value);
+            if (existing && valueInput instanceof HTMLInputElement && valueInput.value.trim() === '') {
+                valueInput.value = existing.value;
+            }
+            this.showTranslationSuggestions(keyInput);
+        });
+        keyInput?.addEventListener('focus', () => this.showTranslationSuggestions(keyInput));
+        keyInput?.addEventListener('input', () => {
+            const existing = this.findTranslationSuggestion(languageSelect?.value || this.translationLanguage(), keyInput.value);
+            if (existing && valueInput instanceof HTMLInputElement && valueInput.value.trim() === '') {
+                valueInput.value = existing.value;
+            }
+            this.showTranslationSuggestions(keyInput);
+        });
+        modal.querySelector('[data-page-translation-new-language]')?.addEventListener('click', async () => {
+            const language = await this.openLanguagePrompt();
+            if (!language || !(languageSelect instanceof HTMLSelectElement)) {
+                return;
+            }
+
+            languageSelect.innerHTML = this.translationLanguageOptions(language);
+            languageSelect.value = language;
+            languageSelect.dispatchEvent(new Event('change', {bubbles: true}));
+            keyInput?.focus({preventScroll: true});
+        });
+    }
+
+    async openLanguagePrompt() {
+        let createdLanguage = null;
+        const confirmed = await prompt(`
+            <div>${escapeHtml(this.labels.newLanguage)}</div>
+            <div class="notify-form">
+                <p class="notify-form-intro">${escapeHtml(this.labels.enterLanguageCode)}</p>
+                <label class="notify-field">
+                    <span class="notify-field-label">${escapeHtml(this.labels.language)}</span>
+                    <input id="page-builder-language-code-input" class="font-mono" type="text" placeholder="nl">
+                </label>
+            </div>
+        `, {
+            confirmButtonText: this.labels.createLanguage,
+            cancelButtonText: this.labels.cancel,
+            showCancelButton: true,
+            confirmCallback: async (promptInstance) => {
+                const input = promptInstance.container.querySelector('#page-builder-language-code-input');
+                const language = this.normalizeLanguageCode(input?.value);
+                if (language === null) {
+                    toast(this.labels.invalidLanguage);
+                    input?.focus();
+                    return true;
+                }
+
+                const created = await this.createLanguage(language);
+                if (!created) {
+                    return true;
+                }
+
+                createdLanguage = language;
+                promptInstance.promise.resolve(true);
+                promptInstance.remove();
+                return true;
+            },
+        });
+
+        return confirmed === true ? createdLanguage : null;
+    }
+
+    async createLanguage(language) {
+        language = this.normalizeLanguageCode(language);
+        if (language === null) {
+            toast(this.labels.invalidLanguage);
+            return false;
+        }
+
+        const response = await (window.NixCMS?.json || fetch)(this.translationEndpointFor(language), {
+            method: 'POST',
+            body: JSON.stringify({entries: {}}),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.success) {
+            toast(result.reason || this.labels.couldNotSave);
+            return false;
+        }
+
+        if (!this.languages.includes(language)) {
+            this.languages.push(language);
+            this.languages.sort();
+        }
+        this.translationSuggestionsByLanguage[language] = this.translationSuggestionsByLanguage[language] || [];
+        toast(this.labels.languageCreated);
+        return true;
+    }
+
+    async saveTranslation(language, key, value) {
+        const entries = Object.fromEntries(this.currentTranslationSuggestions(language).map((suggestion) => [suggestion.key, suggestion.value]));
+        entries[key] = value;
+        const response = await (window.NixCMS?.json || fetch)(this.translationEndpointFor(language), {
+            method: 'POST',
+            body: JSON.stringify({entries}),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.success) {
+            toast(result.reason || this.labels.couldNotSave);
+            return false;
+        }
+
+        this.setTranslationSuggestion(language, key, value);
+        return true;
+    }
+
+    translationEndpointFor(language) {
+        return String(this.translationEndpoint || '/api/admin/translations/{language}')
+            .replace('{language}', encodeURIComponent(language));
+    }
+
+    normalizeLanguageCode(value) {
+        const language = String(value || '').trim().toLowerCase();
+        return /^[a-z]{2,3}(?:-[a-z0-9]{2,4})?$/.test(language) && language.length <= 8 ? language : null;
+    }
+
+    labelForLanguage(language) {
+        return String(language || '').toUpperCase();
+    }
+
+    highlight(value, query) {
+        const safe = escapeHtml(value);
+        const term = String(query || '').trim().split(/\s+/).find(Boolean);
+        if (!term) {
+            return safe;
+        }
+
+        const index = value.toLowerCase().indexOf(term.toLowerCase());
+        if (index < 0) {
+            return safe;
+        }
+
+        return `${escapeHtml(value.slice(0, index))}<mark class="rounded bg-sky-500/20 px-0.5 text-inherit">${escapeHtml(value.slice(index, index + term.length))}</mark>${escapeHtml(value.slice(index + term.length))}`;
+    }
+
+    async openMediaPicker(propName, altTarget = '') {
+        if (!propName || !this.selectedBlockId || !this.blockContent[this.selectedBlockId]) {
+            return;
+        }
+
+        let selected = null;
+        const currentUrl = String(this.blockContent[this.selectedBlockId].props?.[propName] || '');
+        const mediaItems = await this.fetchMediaItems();
+        const visibilityOptions = this.media.visibilityOptions || {
+            public: this.labels.public,
+            registered: this.labels.registered,
+            private: this.labels.private,
+        };
+
+        const promptResult = prompt(`
+            <div class="media-picker-modal notify-form">
+                <div>
+                    <div>${escapeHtml(this.labels.mediaPickerTitle)}</div>
+                    <p class="notify-form-intro">${escapeHtml(this.labels.mediaPickerIntro)}</p>
+                </div>
+                <div class="notify-form-grid">
+                    <label class="notify-field">
+                        <span class="notify-field-label">${escapeHtml(this.labels.visibility)}</span>
+                        <select data-page-media-visibility>
+                            ${Object.entries(visibilityOptions).map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`).join('')}
+                        </select>
+                    </label>
+                    <label class="notify-field">
+                        <span class="notify-field-label">${escapeHtml(this.labels.altText)}</span>
+                        <input type="text" value="${escapeHtml(String(this.blockContent[this.selectedBlockId].props?.[altTarget] || ''))}" data-page-media-alt>
+                    </label>
+                </div>
+                <div class="media-picker-upload ${this.media.canUpload ? '' : 'hidden'}">
+                    <input class="hidden" type="file" accept="${escapeHtml(this.mediaAcceptAttribute())}" data-page-media-file>
+                    <button class="media-picker-drop" type="button" data-page-media-upload>
+                        <span class="media-picker-icon" aria-hidden="true">↑</span>
+                        <span>${escapeHtml(this.labels.mediaChooseFile)}</span>
+                    </button>
+                </div>
+                <div class="media-picker-selected" data-page-media-selected>${currentUrl ? escapeHtml(currentUrl) : escapeHtml(this.labels.mediaEmptyUrl)}</div>
+                <div>
+                    <div class="notify-section-head"><span>${escapeHtml(this.labels.mediaLibrary)}</span><span>${mediaItems.length}</span></div>
+                    <div class="media-picker-grid" data-page-media-library>
+                        ${this.renderMediaPickerItems(mediaItems, currentUrl)}
+                    </div>
+                </div>
+            </div>
+        `, {
+            confirmButtonText: this.labels.mediaUse,
+            cancelButtonText: this.labels.cancel,
+            showCancelButton: true,
+            confirmCallback: (promptInstance) => {
+                const container = promptInstance.container;
+                const url = String(selected?.public_url || currentUrl || '').trim();
+                if (url === '') {
+                    toast(this.labels.mediaNoSelection);
+                    return true;
+                }
+
+                this.setBlockProp(propName, url, {renderSettings: true});
+                if (altTarget !== '') {
+                    const alt = String(container.querySelector('[data-page-media-alt]')?.value || '').trim();
+                    if (alt !== '') {
+                        this.setBlockProp(altTarget, alt, {renderSettings: true});
+                    }
+                }
+
+                promptInstance.promise.resolve(true);
+                promptInstance.remove();
+                return true;
+            },
+        });
+
+        window.setTimeout(() => {
+            const modal = document.querySelector('.media-picker-modal');
+            if (!(modal instanceof HTMLElement)) {
+                return;
+            }
+
+            const notify = modal.closest('.notify');
+            const selectedLabel = modal.querySelector('[data-page-media-selected]');
+            const setSelected = (media) => {
+                selected = media;
+                if (selectedLabel) {
+                    selectedLabel.textContent = String(media?.public_url || this.labels.mediaEmptyUrl);
+                }
+                modal.querySelectorAll('[data-page-media-choice]').forEach((item) => {
+                    item.classList.toggle('is-selected', String(item.getAttribute('data-page-media-choice') || '') === String(media?.public_url || ''));
+                });
+                const altInput = modal.querySelector('[data-page-media-alt]');
+                if (altInput instanceof HTMLInputElement && String(altInput.value || '') === '') {
+                    altInput.value = String(media?.alt_text || '');
+                }
+            };
+
+            modal.querySelectorAll('[data-page-media-choice]').forEach((item) => {
+                item.addEventListener('click', () => {
+                    setSelected({
+                        public_url: String(item.getAttribute('data-page-media-choice') || ''),
+                        alt_text: String(item.getAttribute('data-page-media-alt-value') || ''),
+                    });
+                });
+            });
+
+            const fileInput = modal.querySelector('[data-page-media-file]');
+            const uploadButton = modal.querySelector('[data-page-media-upload]');
+            uploadButton?.addEventListener('click', () => {
+                if (fileInput instanceof HTMLInputElement) {
+                    fileInput.click();
+                }
+            });
+
+            fileInput?.addEventListener('change', async () => {
+                if (!(fileInput instanceof HTMLInputElement) || !fileInput.files?.[0]) {
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                if (!this.validateMediaUpload(file)) {
+                    fileInput.value = '';
+                    return;
+                }
+
+                uploadButton?.setAttribute('disabled', 'disabled');
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file, file.name);
+                    formData.append('visibility', String(modal.querySelector('[data-page-media-visibility]')?.value || 'public'));
+                    formData.append('alt_text', String(modal.querySelector('[data-page-media-alt]')?.value || ''));
+                    formData.append('collection', 'pages');
+
+                    const response = await (window.NixCMS?.fetch || fetch)(String(this.media.urls?.upload || ''), {
+                        method: 'POST',
+                        headers: {'Accept': 'application/json'},
+                        body: formData,
+                    });
+                    const data = await response.json().catch(() => null);
+                    if (!response.ok || data?.success === false || !data?.media) {
+                        toast(data?.reason || this.labels.mediaUploadFailed);
+                        return;
+                    }
+
+                    setSelected(data.media);
+                    const library = modal.querySelector('[data-page-media-library]');
+                    if (library) {
+                        library.innerHTML = this.renderMediaPickerItems([data.media, ...mediaItems], String(data.media.public_url || ''));
+                        library.querySelectorAll('[data-page-media-choice]').forEach((item) => {
+                            item.addEventListener('click', () => {
+                                setSelected({
+                                    public_url: String(item.getAttribute('data-page-media-choice') || ''),
+                                    alt_text: String(item.getAttribute('data-page-media-alt-value') || ''),
+                                });
+                            });
+                        });
+                    }
+                } catch (error) {
+                    toast(this.labels.mediaUploadFailed);
+                } finally {
+                    uploadButton?.removeAttribute('disabled');
+                    fileInput.value = '';
+                }
+            });
+
+            if (notify instanceof HTMLElement) {
+                notify.classList.add('media-picker-notify');
+            }
+        }, 0);
+
+        const result = await promptResult;
+        return result;
+    }
+
+    validateMediaUpload(file) {
+        const maxUploadSize = Number(this.media.maxUploadSize || 0);
+        if (maxUploadSize > 0 && file.size > maxUploadSize) {
+            toast(this.labels.mediaFileTooLarge);
+            return false;
+        }
+
+        const extension = String(file.name || '').split('.').pop().toLowerCase();
+        const allowed = Array.isArray(this.media.acceptedExtensions) ? this.media.acceptedExtensions : [];
+        const imageAllowed = allowed.filter((item) => ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(String(item).toLowerCase()));
+        if (imageAllowed.length > 0 && !imageAllowed.includes(extension)) {
+            toast(this.labels.mediaInvalidExtension);
+            return false;
+        }
+
+        return true;
+    }
+
+    renderMediaPickerItems(items, currentUrl = '') {
+        if (!Array.isArray(items) || items.length === 0) {
+            return `<div class="media-picker-empty">${escapeHtml(this.labels.mediaNoFiles)}</div>`;
+        }
+
+        return items
+            .filter((item) => item.kind === 'image')
+            .map((item) => {
+                const url = String(item.public_url || '');
+                const title = String(item.original_name || item.stored_name || url);
+                const active = url !== '' && url === currentUrl;
+                return `
+                    <button class="media-picker-item ${active ? 'is-selected' : ''}" type="button" data-page-media-choice="${escapeHtml(url)}" data-page-media-alt-value="${escapeHtml(item.alt_text || '')}">
+                        <span class="media-picker-thumb">${url ? `<img src="${escapeHtml(url)}" alt="">` : ''}</span>
+                        <span class="media-picker-name">${escapeHtml(title)}</span>
+                    </button>
+                `;
+            })
+            .join('') || `<div class="media-picker-empty">${escapeHtml(this.labels.mediaNoFiles)}</div>`;
+    }
+
+    async fetchMediaItems() {
+        const url = String(this.media.urls?.list || '');
+        if (url === '') {
+            return [];
+        }
+
+        try {
+            const response = await (window.NixCMS?.fetch || fetch)(url);
+            const data = await response.json();
+            return Array.isArray(data?.rows) ? data.rows : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    mediaAcceptAttribute() {
+        const extensions = Array.isArray(this.media.acceptedExtensions) ? this.media.acceptedExtensions : [];
+        const imageExtensions = extensions.filter((extension) => ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(String(extension).toLowerCase()));
+        return imageExtensions.length > 0 ? imageExtensions.map((extension) => `.${extension}`).join(',') : 'image/*';
+    }
+
     renderPagePreview() {
         const template = this.selectedTemplate();
         if (this.pagePreview) {
@@ -1469,6 +2625,8 @@ class PageBuilder {
                     kind: template.kind || 'static',
                     contentType: template.contentType || null,
                     routePattern: template.routePattern || null,
+                    contentWidth: this.contentWidthKey(),
+                    contentWidthIncludesChrome: this.contentWidthIncludesChrome(),
                 } : null,
                 blocks,
             }, null, 2);
@@ -1489,6 +2647,8 @@ class PageBuilder {
                 ['Language', String(payload.language || '').toUpperCase()],
                 ['Status', payload.status || 'draft'],
                 ['Accent', payload.meta?.theme?.accent || '#3f7fbd'],
+                ['Width', this.contentWidthDisplay()],
+                ['Header/Footer', this.contentWidthIncludesChrome() ? 'Bounded' : 'Full width'],
                 ['Template', payload.templateId || ''],
             ];
             this.metaSummary.innerHTML = rows.map(([label, value]) => `
@@ -1538,6 +2698,8 @@ class PageBuilder {
                 },
                 theme: {
                     accent: this.pageAccent(),
+                    contentWidth: this.contentWidthKey(),
+                    contentWidthIncludesChrome: this.contentWidthIncludesChrome(),
                 },
                 extra: {
                     defaultNavigationIdentifier: this.selectedDefaultNavigationIdentifier(),
@@ -1561,7 +2723,8 @@ class PageBuilder {
         }
 
         const payload = this.pagePayload();
-        if (!force && (!payload.title || !payload.path || payload.path === '/')) {
+        const explicitPath = String(this.persistedValues.path || '').trim();
+        if (!force && (!payload.title || !payload.path || !explicitPath)) {
             return;
         }
 
@@ -1585,6 +2748,7 @@ class PageBuilder {
                 window.localStorage.setItem(this.storageKey, JSON.stringify({
                     step: this.step,
                     templateId: this.templateId,
+                    previewViewport: this.previewViewport,
                     selectedBlockId: this.selectedBlockId,
                     blockContent: this.blockContent,
                     persistedValues: this.persistedValues,

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NixCMS\Handlers\Api\Form;
 
 use NixCMS\Handlers\Support\ReadsJsonBody;
+use NixCMS\Services\Form\FormSubmissionActionRunner;
 use NixCMS\Services\Form\FormTextTranslator;
 use NixCMS\Services\Form\FormSubmissionValidator;
 use Psr\Http\Message\ResponseInterface;
@@ -41,10 +42,18 @@ final class SubmitForm
             }
         }
 
-        \cms()->forms()->storeSubmission((int) ($form['id'] ?? 0), $values, [
+        $meta = [
             'ip' => request()->getServerParams()['REMOTE_ADDR'] ?? '',
             'userAgent' => request()->getServerParams()['HTTP_USER_AGENT'] ?? '',
-        ]);
+        ];
+
+        $actionResult = (new FormSubmissionActionRunner())->run($form, $values, $meta);
+        if ($actionResult['success'] !== true) {
+            return json([
+                'success' => false,
+                'reason' => implode(' ', $actionResult['errors']) ?: 'Form action failed.',
+            ], 502);
+        }
 
         $settings = is_array($form['settings'] ?? null) ? $form['settings'] : [];
 

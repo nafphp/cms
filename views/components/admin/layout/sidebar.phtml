@@ -16,6 +16,7 @@ $renderIcon = static function (string $icon, bool $compact = false): string {
         'article' => '<path d="M7 3.5h7l3 3V20.5H7V3.5Z"/><path d="M14 3.5V7h3M9.5 11h5M9.5 14h5M9.5 17h3"/>',
         'navigation' => '<path d="M4 6h7a3 3 0 0 1 3 3v1"/><path d="M4 18h7a3 3 0 0 0 3-3v-1"/><path d="M16 8l2 2-2 2"/><path d="M16 12l2 2-2 2"/>',
         'form' => '<path d="M6.5 3.5h11v17h-11v-17Z"/><path d="M9.5 7.5h5M9.5 11.5h5M9.5 15.5h2"/><path d="M14 15.5h1.5"/>',
+        'media' => '<path d="M4.5 6.5A2.5 2.5 0 0 1 7 4h10a2.5 2.5 0 0 1 2.5 2.5v11A2.5 2.5 0 0 1 17 20H7a2.5 2.5 0 0 1-2.5-2.5v-11Z"/><path d="m7.5 16 3.2-3.4 2.4 2.5 1.6-1.7 2.8 2.6"/><path d="M9 8.5h.01"/>',
         'category' => '<path d="m20 12.7-7.3 7.3a2 2 0 0 1-2.8 0L4 14.1a2 2 0 0 1-.6-1.4V5.5a2 2 0 0 1 2-2h7.2a2 2 0 0 1 1.4.6l6 5.8a2 2 0 0 1 0 2.8Z"/><path d="M7.7 7.7h.1"/>',
         'user' => '<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>',
         'lock' => '<path d="M7 10V8a5 5 0 0 1 10 0v2"/><path d="M5.5 10h13v10h-13V10Z"/>',
@@ -64,7 +65,7 @@ $renderItems = static function (array $items, int $depth = 0, string $parentKey 
             >
                 <summary class="<?= s($submenuItemClass) ?> flex <?= s($heightClass) ?> cursor-pointer list-none items-center <?= s($gapClass) ?> border-0 border-l-[3px] <?= s($paddingClass) ?> text-slate-300 transition after:ml-auto after:h-2 after:w-2 after:rotate-45 after:border-b-2 after:border-r-2 after:border-current after:opacity-60 after:content-[''] hover:bg-[rgba(86,119,164,.10)] hover:text-slate-100 group-[.is-menu-collapsed]:after:hidden <?= s($collapsedClass) ?> <?= $isActive ? $activeClassName : 'border-l-transparent' ?>" title="<?= s($displayLabel) ?>">
                     <?= $renderIcon($icon, !$isRoot) ?>
-                    <span class="<?= s($textClass) ?> font-normal group-[.is-menu-collapsed]:hidden"><?= s($displayLabel) ?></span>
+                    <span class="admin-menu-expanded-only <?= s($textClass) ?> font-normal group-[.is-menu-collapsed]:hidden"><?= s($displayLabel) ?></span>
                 </summary>
                 <div class="grid gap-0 group-[.is-menu-collapsed]:hidden" data-admin-navigation-list data-admin-navigation-parent="<?= s($key) ?>">
                     <?php $renderItems($children, $depth + 1, $key); ?>
@@ -82,7 +83,7 @@ $renderItems = static function (array $items, int $depth = 0, string $parentKey 
             draggable="true"
         >
             <?= $renderIcon($icon, !$isRoot) ?>
-            <span class="<?= s($textClass) ?> font-normal text-slate-200/95 group-[.is-menu-collapsed]:hidden"><?= s($displayLabel) ?></span>
+            <span class="admin-menu-expanded-only <?= s($textClass) ?> font-normal text-slate-200/95 group-[.is-menu-collapsed]:hidden"><?= s($displayLabel) ?></span>
         </a>
         <?php
     }
@@ -92,18 +93,24 @@ $renderItems = static function (array $items, int $depth = 0, string $parentKey 
 <aside class="sticky top-0 hidden h-screen border-r border-[rgba(134,158,190,.24)] bg-[linear-gradient(115deg,rgba(23,52,83,.86),rgba(8,14,25,.96)_34%,#060b14)] admin:block">
     <div class="flex h-[74px] items-center border-b border-white/10 px-[26px] group-[.is-menu-collapsed]:justify-center group-[.is-menu-collapsed]:px-3">
         <a class="inline-flex min-w-0 items-center gap-3.5" href="<?= route('admin.dashboard') ?>">
-            <span class="text-[22px] font-bold uppercase leading-none text-white group-[.is-menu-collapsed]:hidden"><?= s($settings->name()) ?></span>
-            <span class="hidden text-[22px] font-bold uppercase leading-none text-white group-[.is-menu-collapsed]:block"><?= s($settings->shortName()) ?></span>
-            <span class="h-6 w-px bg-slate-400/25 group-[.is-menu-collapsed]:hidden" aria-hidden="true"></span>
-            <span class="text-sm font-medium text-slate-300 group-[.is-menu-collapsed]:hidden"><?= s(t('Admin')) ?></span>
+            <span class="admin-menu-expanded-only text-[22px] font-bold uppercase leading-none text-white group-[.is-menu-collapsed]:hidden"><?= s($settings->name()) ?></span>
+            <span class="admin-menu-collapsed-only hidden text-[22px] font-bold uppercase leading-none text-white group-[.is-menu-collapsed]:block"><?= s($settings->shortName()) ?></span>
+            <span class="admin-menu-expanded-only h-6 w-px bg-slate-400/25 group-[.is-menu-collapsed]:hidden" aria-hidden="true"></span>
+            <span class="admin-menu-expanded-only text-sm font-medium text-slate-300 group-[.is-menu-collapsed]:hidden"><?= s(t('Admin')) ?></span>
         </a>
     </div>
     <nav class="admin-menu open flex h-[calc(100vh-74px)] flex-col justify-between px-3 py-4" aria-label="<?= s(t('Administration')) ?>">
         <div class="grid gap-0" data-admin-navigation-list data-admin-navigation-parent="">
             <?php $renderItems($items); ?>
         </div>
-        <button class="admin-menu-trigger flex min-h-[42px] w-full items-center gap-3 border-l-[3px] border-transparent px-3 text-slate-400 transition hover:bg-[rgba(86,119,164,.10)] hover:text-slate-100 group-[.is-menu-collapsed]:justify-center group-[.is-menu-collapsed]:px-0" type="button" title="<?= s(t('Toggle menu')) ?>" aria-label="<?= s(t('Toggle menu')) ?>">
-            <span class="block h-0 w-0 border-y-8 border-r-[10px] border-y-transparent border-r-current transition-transform group-[.is-menu-collapsed]:rotate-180" aria-hidden="true"></span>
+        <button class="admin-menu-trigger group/toggle flex min-h-[42px] w-full items-center gap-3 border-l-[3px] border-transparent px-3 text-slate-400 transition hover:text-slate-100 group-[.is-menu-collapsed]:justify-center group-[.is-menu-collapsed]:px-0" type="button" aria-label="<?= s(t('Toggle menu')) ?>">
+            <span class="grid h-9 w-9 place-items-center rounded-md border border-white/10 bg-white/[.035] shadow-[inset_0_1px_0_rgba(255,255,255,.08),0_10px_24px_rgba(0,0,0,.18)] transition group-hover/toggle:border-white/18 group-hover/toggle:bg-white/[.07]" aria-hidden="true">
+                <svg class="h-[18px] w-[18px] fill-none stroke-current stroke-2 transition-transform [stroke-linecap:round] [stroke-linejoin:round] group-[.is-menu-collapsed]:rotate-180" viewBox="0 0 24 24" focusable="false">
+                    <path d="M5 4.5h14a1.5 1.5 0 0 1 1.5 1.5v12A1.5 1.5 0 0 1 19 19.5H5A1.5 1.5 0 0 1 3.5 18V6A1.5 1.5 0 0 1 5 4.5Z"/>
+                    <path d="M9 4.5v15"/>
+                    <path d="m15 9-3 3 3 3"/>
+                </svg>
+            </span>
         </button>
     </nav>
 </aside>

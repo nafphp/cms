@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace NixCMS\Repositories;
 
 use NixCMS\Enums\ArticleStatus;
-use NixCMS\Enums\Language;
 use NixCMS\Models\Article;
 use NixCMS\Models\ArticleVersion;
 use NixCMS\Models\Category;
@@ -236,7 +235,7 @@ class ArticleRepository extends AbstractRepository
         foreach ($articles as $article) {
             $languageVersions = array_filter(
                 $article->getVersions(),
-                static fn(ArticleVersion $version): bool => $version->getLanguage()?->value === $language
+                static fn(ArticleVersion $version): bool => $version->getLanguageCode() === $language
             );
 
             usort(
@@ -268,7 +267,7 @@ class ArticleRepository extends AbstractRepository
 
         foreach ($articles as $article) {
             foreach ($article->getVersions() as $version) {
-                if ($version->getLanguage()?->value !== $language) {
+                if ($version->getLanguageCode() !== $language) {
                     continue;
                 }
 
@@ -343,7 +342,7 @@ class ArticleRepository extends AbstractRepository
             : $this->resolveActiveLanguage();
 
         foreach ($article->getVersions() as $version) {
-            if ($version->getLanguage()?->value !== $language) {
+            if ($version->getLanguageCode() !== $language) {
                 continue;
             }
 
@@ -430,8 +429,8 @@ class ArticleRepository extends AbstractRepository
             $articleId = (int) ($data['article_id'] ?? 0);
             $hideLeadImageInContent = filter_var($data['hide_lead_image_in_content'] ?? true, FILTER_VALIDATE_BOOLEAN);
             $showTeaser = filter_var($data['show_teaser'] ?? false, FILTER_VALIDATE_BOOLEAN);
-            $language = Language::tryFrom(strtolower(trim((string) ($data['language'] ?? ''))));
-            if (!$language instanceof Language) {
+            $language = \cms()->languages()->normalize((string) ($data['language'] ?? ''));
+            if ($language === null || !\cms()->languages()->isKnown($language)) {
                 throw new \InvalidArgumentException('Invalid article language.');
             }
 
@@ -513,9 +512,9 @@ class ArticleRepository extends AbstractRepository
         }
     }
 
-    public function publishLatestLanguageVersion(int $articleId, Language $language): bool
+    public function publishLatestLanguageVersion(int $articleId, string $language): bool
     {
-        $article = $this->findWithVersion($articleId, $language->value);
+        $article = $this->findWithVersion($articleId, $language);
         $version = $article?->getVersion();
         if (!$version instanceof ArticleVersion || $version->getStatus() === ArticleStatus::PUBLISHED) {
             return false;
@@ -739,7 +738,7 @@ class ArticleRepository extends AbstractRepository
         );
     }
 
-    public function deleteLanguageVersions(int $articleId, Language $language): bool
+    public function deleteLanguageVersions(int $articleId, string $language): bool
     {
         if ($articleId <= 0) {
             return false;
@@ -752,7 +751,7 @@ class ArticleRepository extends AbstractRepository
             );
             $deleteStmt->execute([
                 'article_id' => $articleId,
-                'language' => $language->value,
+                'language' => $language,
             ]);
 
             $deleted = $deleteStmt->rowCount() > 0;
@@ -851,7 +850,7 @@ class ArticleRepository extends AbstractRepository
         }
     }
 
-    public function deleteSpecificVersion(int $articleId, Language $language, int $versionNumber): bool
+    public function deleteSpecificVersion(int $articleId, string $language, int $versionNumber): bool
     {
         if ($articleId <= 0 || $versionNumber <= 0) {
             return false;
@@ -865,7 +864,7 @@ class ArticleRepository extends AbstractRepository
             );
             $deleteStmt->execute([
                 'article_id' => $articleId,
-                'language' => $language->value,
+                'language' => $language,
                 'version' => $versionNumber,
             ]);
 
@@ -896,7 +895,7 @@ class ArticleRepository extends AbstractRepository
 
     private function resolveActiveLanguage(): string
     {
-        return Language::tryFrom(strtolower((string) lang()))?->value
+        return \cms()->languages()->normalize((string) lang())
             ?? (string) config('language', 'en');
     }
 }

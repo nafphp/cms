@@ -14,6 +14,8 @@ final class PageRegistry
 {
     /** @var array<string, Page> */
     private array $pages = [];
+    /** @var array<string, string> */
+    private array $routeAliases = [];
     private ?PageRepository $repository = null;
     private bool $storedPagesLoaded = false;
 
@@ -49,6 +51,8 @@ final class PageRegistry
 
     public function findByPath(string $path, string $method = 'GET'): ?Page
     {
+        $this->loadStoredPages();
+
         $normalizedPath = $this->normalizePath($path);
         $normalizedMethod = strtoupper($method);
 
@@ -91,6 +95,10 @@ final class PageRegistry
 
         foreach ($this->pages as $page) {
             route()->add($page->method(), $page->path(), [PageController::class, 'show'], $page->id());
+
+            foreach ($this->routeAliasesFor($page) as $routeName) {
+                route()->add($page->method(), $page->path(), [PageController::class, 'show'], $routeName);
+            }
 
             foreach ($page->dataHandlers() as $dataHandler) {
                 route()->add(
@@ -171,11 +179,42 @@ final class PageRegistry
         foreach ($this->repository()->pagesForRouting($templates) as $page) {
             $collision = $this->findCodePageByPath($page->path(), $page->method());
             if ($collision instanceof Page && !str_starts_with($collision->id(), 'db.page.')) {
-                continue;
+                if (!$this->storedPageMayReplaceCodePage($page, $collision)) {
+                    continue;
+                }
+
+                $this->routeAliases[$collision->id()] = $page->id();
+                unset($this->pages[$collision->id()]);
             }
 
             $this->add($page, true);
         }
+    }
+
+    private function storedPageMayReplaceCodePage(Page $storedPage, Page $codePage): bool
+    {
+        if ($storedPage->path() !== '/' || $storedPage->method() !== 'GET') {
+            return false;
+        }
+
+        if ($codePage->id() !== 'home') {
+            return false;
+        }
+
+        return !in_array(Permission::PAGES_VIEW, $storedPage->requiredPermissions(), true);
+    }
+
+    /** @return array<int, string> */
+    private function routeAliasesFor(Page $page): array
+    {
+        $aliases = [];
+        foreach ($this->routeAliases as $routeName => $pageId) {
+            if ($pageId === $page->id()) {
+                $aliases[] = $routeName;
+            }
+        }
+
+        return $aliases;
     }
 
     private function repository(): PageRepository

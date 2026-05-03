@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Page;
 
+use NixCMS\Enums\Permission;
 use NixCMS\Page\Page;
 use NixCMS\Page\PageRegistry;
 use PHPUnit\Framework\TestCase;
@@ -58,5 +59,35 @@ final class PageRegistryTest extends TestCase
         self::assertSame($page, $registry->findByPath('/admin/login', 'POST'));
         self::assertSame('auth.login.post', $registry->dataRouteName($page, $page->dataHandler('POST')));
         self::assertSame($page, $registry->findByDataRouteName('auth.login.post'));
+    }
+
+    public function testPublishedStoredHomePageMayReplaceCodeHomePage(): void
+    {
+        $registry = new PageRegistry();
+        $method = new \ReflectionMethod($registry, 'storedPageMayReplaceCodePage');
+
+        $codeHome = Page::create('home')->setPath('/');
+        $publishedStoredHome = Page::create('db.page.1')->setPath('/');
+        $draftStoredHome = Page::create('db.page.2')
+            ->setPath('/')
+            ->requirePermission(Permission::PAGES_VIEW);
+        $publishedStoredAbout = Page::create('db.page.3')->setPath('/about');
+
+        self::assertTrue($method->invoke($registry, $publishedStoredHome, $codeHome));
+        self::assertFalse($method->invoke($registry, $draftStoredHome, $codeHome));
+        self::assertFalse($method->invoke($registry, $publishedStoredAbout, $codeHome));
+    }
+
+    public function testStoredHomePageKeepsHomeRouteAlias(): void
+    {
+        $registry = new PageRegistry();
+        $storedHome = Page::create('db.page.1')->setPath('/');
+
+        $property = new \ReflectionProperty($registry, 'routeAliases');
+        $property->setValue($registry, ['home' => 'db.page.1']);
+
+        $method = new \ReflectionMethod($registry, 'routeAliasesFor');
+
+        self::assertSame(['home'], $method->invoke($registry, $storedHome));
     }
 }

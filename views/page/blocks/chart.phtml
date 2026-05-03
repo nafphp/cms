@@ -1,0 +1,12 @@
+<?php
+
+use NixCMS\Visualization\PageChartFactory;
+
+$content = is_array($content ?? null) ? $content : [];
+$props = is_array($content['props'] ?? null) ? $content['props'] : [];
+$blockId = isset($block) && $block instanceof \NixCMS\Page\PageBlock ? $block->id() : 'chart';
+
+$chart = (new PageChartFactory())->fromBlockProps($props, $blockId);
+
+?>
+<?= cms()->visualizations()->render($chart) ?>

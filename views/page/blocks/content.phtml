@@ -1,6 +1,8 @@
 <?php
 
 use NixCMS\Repositories\ArticleRepository;
+use function NixPHP\I18n\lang;
+use function NixPHP\I18n\t;
 use function NixPHP\ORM\repo;
 use function NixPHP\View\s;
 
@@ -8,14 +10,24 @@ $content = is_array($content ?? null) ? $content : [];
 $type = (string) ($content['type'] ?? $preview ?? 'block');
 $props = is_array($content['props'] ?? null) ? $content['props'] : [];
 $label = (string) ($content['label'] ?? $label ?? 'Content block');
+$pageObject = isset($page) && is_object($page) ? $page : null;
+$fallbackNavigationIdentifier = (string) ($pageObject?->meta()->extra->defaultNavigationIdentifier ?? 'main');
 
-$navItems = static function (?string $identifier, ?string $language = null): array {
+$navItems = static function (?string $identifier, ?string $language = null) use ($fallbackNavigationIdentifier): array {
     $identifier = trim((string) $identifier);
     if ($identifier === '') {
         return [];
     }
 
-    return cms()->navigation()->tree($identifier, $language === '' ? null : $language);
+    $language = $language === null ? lang() : $language;
+    $language = $language === '' ? null : $language;
+    $items = cms()->navigation()->tree($identifier, $language);
+
+    if ($items === [] && $fallbackNavigationIdentifier !== '' && $fallbackNavigationIdentifier !== $identifier) {
+        return cms()->navigation()->tree($fallbackNavigationIdentifier, $language);
+    }
+
+    return $items;
 };
 
 $renderNav = static function (array $items, string $presentation = 'horizontal'): string {
@@ -27,7 +39,7 @@ $renderNav = static function (array $items, string $presentation = 'horizontal')
     foreach (array_slice($items, 0, 8) as $item) {
         $href = (string) ($item['href'] ?? '#');
         $html .= '<a class="text-sm font-semibold text-[var(--page-muted)] transition hover:text-[var(--page-text)]" href="' . s($href) . '">'
-            . s((string) ($item['label'] ?? $item['title'] ?? $item['key'] ?? 'Item'))
+            . s(t((string) ($item['label'] ?? $item['title'] ?? $item['key'] ?? 'Item')))
             . '</a>';
     }
     $html .= '</nav>';
@@ -37,28 +49,28 @@ $renderNav = static function (array $items, string $presentation = 'horizontal')
 
 ?>
 <?php if ($type === 'header'): ?>
-    <?php $items = $navItems((string) ($props['navigationIdentifier'] ?? 'main')); ?>
+    <?php $items = $navItems((string) ($props['navigationIdentifier'] ?? 'main'), $pageObject?->language()); ?>
     <header class="flex min-h-16 items-center gap-4 border-b border-[var(--page-border)] bg-[var(--page-header-bg)] px-6 py-4 text-[var(--page-header-text)]">
         <strong class="text-base font-bold"><?= s(cms()->settings()->name()) ?></strong>
         <div class="ml-auto"><?= $renderNav($items, (string) ($props['presentation'] ?? 'horizontal')) ?></div>
     </header>
 <?php elseif ($type === 'footer'): ?>
-    <?php $items = $navItems((string) ($props['navigationIdentifier'] ?? 'main')); ?>
+    <?php $items = $navItems((string) ($props['navigationIdentifier'] ?? 'main'), $pageObject?->language()); ?>
     <footer class="flex min-h-16 flex-wrap items-center justify-between gap-3 border-t border-[var(--page-border)] bg-[var(--page-footer-bg)] px-6 py-4">
-        <span class="text-xs font-medium text-[var(--page-footer-text)]"><?= s((string) ($props['text'] ?? 'Powered by NixCMS')) ?></span>
+        <span class="text-xs font-medium text-[var(--page-footer-text)]"><?= s(t((string) ($props['text'] ?? 'Powered by NixCMS'))) ?></span>
         <?= $renderNav($items, (string) ($props['presentation'] ?? 'compact')) ?>
     </footer>
 <?php elseif ($type === 'navigation'): ?>
-    <?php $items = $navItems((string) ($props['identifier'] ?? 'main'), (string) (($props['language'] ?? '') === 'current' ? '' : ($props['language'] ?? ''))); ?>
+    <?php $items = $navItems((string) ($props['identifier'] ?? 'main'), ($props['language'] ?? '') === 'current' ? $pageObject?->language() : (string) ($props['language'] ?? '')); ?>
     <div class="rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-5">
         <?= $renderNav($items, (string) ($props['presentation'] ?? 'horizontal')) ?>
     </div>
 <?php elseif ($type === 'heading'): ?>
     <<?= in_array((string) ($props['level'] ?? 'h2'), ['h1', 'h2', 'h3'], true) ? s((string) $props['level']) : 'h2' ?> class="text-3xl font-extrabold leading-tight text-[var(--page-text)]">
-        <?= s((string) ($props['text'] ?? $label)) ?>
+        <?= s(t((string) ($props['text'] ?? $label))) ?>
     </<?= in_array((string) ($props['level'] ?? 'h2'), ['h1', 'h2', 'h3'], true) ? s((string) $props['level']) : 'h2' ?>>
 <?php elseif ($type === 'text'): ?>
-    <p class="max-w-[68ch] text-base leading-relaxed text-[var(--page-muted)]"><?= nl2br(s((string) ($props['text'] ?? $label))) ?></p>
+    <p class="max-w-[68ch] text-base leading-relaxed text-[var(--page-muted)]"><?= nl2br(s(t((string) ($props['text'] ?? $label)))) ?></p>
 <?php elseif ($type === 'articles'): ?>
     <?php
     $limit = max(1, min(12, (int) ($props['limit'] ?? 5)));

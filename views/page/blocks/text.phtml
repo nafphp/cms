@@ -1,10 +1,11 @@
 <?php
 
 use function NixPHP\View\s;
+use function NixPHP\I18n\t;
 
 $content = is_array($content ?? null) ? $content : [];
 $props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$text = (string) ($props['text'] ?? $label ?? '');
+$text = t((string) ($props['text'] ?? $label ?? ''));
 
 ?>
 <p class="max-w-[68ch] text-base leading-relaxed text-[var(--page-muted)]"><?= nl2br(s($text)) ?></p>

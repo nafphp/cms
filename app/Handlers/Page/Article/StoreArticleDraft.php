@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NixCMS\Handlers\Page\Article;
 
-use NixCMS\Enums\Language;
 use NixCMS\Handlers\Support\ReadsJsonBody;
 use NixCMS\Models\Article;
 use Psr\Http\Message\ResponseInterface;
@@ -59,7 +58,8 @@ final class StoreArticleDraft
         if ($teaser !== '' && mb_strlen($teaser) < 60) {
             $errors['teaser'][] = 'Please enter a teaser with at least 60 characters.';
         }
-        if (Language::tryFrom(strtolower(trim((string) ($data['language'] ?? '')))) === null) {
+        $language = \cms()->languages()->normalize((string) ($data['language'] ?? ''));
+        if ($language === null || !\cms()->languages()->isKnown($language)) {
             $errors['language'][] = 'Please choose a valid language.';
         }
         if (!isset($data['content']) || !is_array($data['content'])) {

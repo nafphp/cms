@@ -1,21 +1,41 @@
 <?php
 
 use function NixPHP\View\s;
+use function NixPHP\View\asset;
+use function NixPHP\I18n\t;
 
-require_once __DIR__ . '/_navigation_helpers.php';
+require_once __DIR__ . '/_helpers/navigation.php';
 
 $content = is_array($content ?? null) ? $content : [];
 $props = is_array($content['props'] ?? null) ? $content['props'] : [];
 $logoText = trim((string) ($props['logoText'] ?? ''));
 $logoText = $logoText !== '' ? $logoText : cms()->settings()->logoText();
+$logoText = t($logoText);
 $logoImage = cms()->settings()->logoImage();
-$items = nixcms_page_block_nav_items((string) ($props['navigationIdentifier'] ?? 'main'));
+$pageObject = isset($page) && is_object($page) ? $page : null;
+$fallbackIdentifier = (string) ($pageObject?->meta()->extra->defaultNavigationIdentifier ?? 'main');
+$language = $pageObject?->language();
+$items = nixcms_page_block_nav_items((string) ($props['navigationIdentifier'] ?? 'main'), $language, $fallbackIdentifier);
+$drawerId = 'page-mobile-navigation-' . substr(md5(($pageObject?->id() ?? 'page') . ':' . serialize($items)), 0, 10);
+
+asset()->add('/js/page-mobile-navigation.js', 'module');
 
 ?>
-<header class="flex min-h-16 items-center gap-4 border-b border-[var(--page-border)] bg-[var(--page-header-bg)] px-6 py-4 text-[var(--page-header-text)]">
-    <?php if ($logoImage !== ''): ?>
-        <img class="h-8 w-auto" src="<?= s($logoImage) ?>" alt="">
-    <?php endif; ?>
-    <strong class="text-base font-bold"><?= s($logoText) ?></strong>
-    <div class="ml-auto"><?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'horizontal')) ?></div>
+<header class="page-site-header border-b border-[var(--page-border)] bg-[var(--page-header-bg)] text-[var(--page-header-text)]" data-page-header>
+    <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 px-6 py-4">
+        <a class="inline-flex min-h-10 items-center gap-3 text-[var(--page-header-text)] transition hover:text-[var(--page-accent)]" href="/" aria-label="<?= s($logoText) ?>">
+            <?php if ($logoImage !== ''): ?>
+                <img class="h-8 w-auto" src="<?= s($logoImage) ?>" alt="">
+            <?php endif; ?>
+            <strong class="text-base font-bold"><?= s($logoText) ?></strong>
+        </a>
+        <div class="page-desktop-navigation ml-auto"><?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'horizontal')) ?></div>
+        <div class="page-mobile-navigation ml-auto" data-page-mobile-navigation>
+            <?= $this->render('page.blocks._partials.mobile-navigation-drawer', [
+                'items' => $items,
+                'logoText' => $logoText,
+                'drawerId' => $drawerId,
+            ]) ?>
+        </div>
+    </div>
 </header>

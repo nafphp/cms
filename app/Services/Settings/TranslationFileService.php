@@ -12,17 +12,14 @@ final class TranslationFileService
     public function languages(string $activeLanguage = ''): array
     {
         $languages = array_values(array_unique([
+            ...\cms()->languages()->available(),
             ...\cms()->settings()->languages(),
-            ...array_map(
-                static fn(string $file): string => basename($file, '.json'),
-                glob($this->directory() . '/*.json') ?: [],
-            ),
         ]));
         sort($languages);
 
         return array_map(static fn(string $language): array => [
             'code' => $language,
-            'label' => \NixPHP\I18n\t($language),
+            'label' => \cms()->languages()->label($language),
             'active' => $language === $activeLanguage,
         ], $languages);
     }
@@ -49,10 +46,6 @@ final class TranslationFileService
 
         $old = $this->read($language);
         $new = $this->normalizeEntries($entries);
-        if ($new === []) {
-            return ['success' => false, 'errors' => ['entries' => ['Please provide at least one translation.']], 'changed' => 0];
-        }
-
         ksort($new, SORT_NATURAL | SORT_FLAG_CASE);
         $json = json_encode($new, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         if (!is_string($json)) {
@@ -153,7 +146,6 @@ final class TranslationFileService
 
     private function normalizeLanguage(string $language): string
     {
-        $language = strtolower(trim($language));
-        return preg_match('/^[a-z]{2,3}$/', $language) === 1 ? $language : '';
+        return \cms()->languages()->normalize($language) ?? '';
     }
 }

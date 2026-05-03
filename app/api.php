@@ -10,5 +10,6 @@ return [
     ...require __DIR__ . '/Resources/api/pages.php',
     ...require __DIR__ . '/Resources/api/navigation.php',
     ...require __DIR__ . '/Resources/api/forms.php',
+    ...require __DIR__ . '/Resources/api/media.php',
     ...require __DIR__ . '/Resources/api/settings.php',
 ];

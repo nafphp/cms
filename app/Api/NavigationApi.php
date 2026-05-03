@@ -6,6 +6,7 @@ namespace NixCMS\Api;
 
 use NixCMS\Navigation\Navigation;
 use NixCMS\Repositories\NavigationRepository;
+use function NixPHP\I18n\t;
 
 final class NavigationApi
 {
@@ -33,7 +34,7 @@ final class NavigationApi
             return [];
         }
 
-        return $navigation->toArray()['items'];
+        return $this->translateItems($navigation->toArray()['items']);
     }
 
     /**
@@ -73,5 +74,27 @@ final class NavigationApi
     public function delete(int $id): bool
     {
         return $this->repository->delete($id);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function translateItems(array $items): array
+    {
+        foreach ($items as &$item) {
+            foreach (['label', 'title'] as $field) {
+                if (isset($item[$field]) && is_string($item[$field]) && trim($item[$field]) !== '') {
+                    $item[$field] = t($item[$field]);
+                }
+            }
+
+            if (is_array($item['children'] ?? null)) {
+                $item['children'] = $this->translateItems($item['children']);
+            }
+        }
+        unset($item);
+
+        return $items;
     }
 }

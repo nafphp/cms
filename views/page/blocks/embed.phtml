@@ -1,0 +1,35 @@
+<?php
+
+use function NixPHP\View\s;
+use function NixPHP\I18n\t;
+
+$content = is_array($content ?? null) ? $content : [];
+$props = is_array($content['props'] ?? null) ? $content['props'] : [];
+$url = trim((string) ($props['url'] ?? ''));
+$title = trim(t((string) ($props['title'] ?? 'Embedded content')));
+$caption = trim(t((string) ($props['caption'] ?? '')));
+$height = max(220, min(900, (int) ($props['height'] ?? 420)));
+$isSafeUrl = $url !== '' && filter_var($url, FILTER_VALIDATE_URL) !== false && preg_match('/^https?:\/\//i', $url) === 1;
+
+?>
+<section class="grid gap-3">
+    <?php if ($isSafeUrl): ?>
+        <iframe
+            class="w-full rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)]"
+            src="<?= s($url) ?>"
+            title="<?= s($title !== '' ? $title : 'Embedded content') ?>"
+            height="<?= s((string) $height) ?>"
+            loading="lazy"
+            referrerpolicy="strict-origin-when-cross-origin"
+            sandbox="allow-forms allow-popups allow-same-origin allow-scripts"
+        ></iframe>
+        <a class="text-sm font-semibold text-[var(--page-accent)]" href="<?= s($url) ?>" target="_blank" rel="noopener noreferrer"><?= s($title !== '' ? $title : t('Open embedded page')) ?></a>
+    <?php else: ?>
+        <div class="grid min-h-56 place-items-center rounded-lg border border-dashed border-[var(--page-border)] bg-[var(--page-card-bg)] p-5 text-center text-sm text-[var(--page-muted)]">
+            Enter a valid http or https URL.
+        </div>
+    <?php endif; ?>
+    <?php if ($caption !== ''): ?>
+        <p class="m-0 text-sm leading-relaxed text-[var(--page-muted)]"><?= s($caption) ?></p>
+    <?php endif; ?>
+</section>

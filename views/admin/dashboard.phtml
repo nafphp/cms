@@ -19,22 +19,33 @@ use function NixPHP\View\view;
         <?= view('components.admin.metric-card', ['label' => t('Users'), 'value' => (string) (int) ($summary['users'] ?? 0), 'hint' => t('Registered accounts')]) ?>
     </div>
 
-    <?php $connectors = function () use ($summary): string { ob_start(); ?>
-        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <?php foreach (($summary['connectors'] ?? []) as $connector): ?>
+    <?php $charts = array_filter(
+        is_array($summary['charts'] ?? null) ? $summary['charts'] : [],
+        static fn(mixed $chart): bool => $chart instanceof \NixCMS\Visualization\ChartDefinition,
+    ); ?>
+    <?php if ($charts !== []): ?>
+        <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            <?php foreach ($charts as $chart): ?>
+                <?= cms()->visualizations()->render($chart) ?>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <?php $platformStats = function () use ($summary): string { ob_start(); ?>
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <?php foreach (($summary['platform_stats'] ?? []) as $stat): ?>
                 <article class="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/40">
-                    <span class="block text-xs font-extrabold uppercase text-slate-500 dark:text-slate-400"><?= s((string) ($connector['group'] ?? '')) ?></span>
-                    <strong class="mt-1 block text-slate-950 dark:text-white"><?= s((string) ($connector['label'] ?? '')) ?></strong>
-                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400"><?= s((string) ($connector['detail'] ?? '')) ?></p>
-                    <?= view('components.admin.badge', ['label' => (string) ($connector['status'] ?? '')]) ?>
+                    <span class="block text-xs font-extrabold uppercase text-slate-500 dark:text-slate-400"><?= s((string) ($stat['label'] ?? '')) ?></span>
+                    <strong class="mt-2 block text-3xl font-black tracking-tight text-slate-950 dark:text-white"><?= s((string) (int) ($stat['value'] ?? 0)) ?></strong>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400"><?= s((string) ($stat['detail'] ?? '')) ?></p>
                 </article>
             <?php endforeach; ?>
         </div>
     <?php return ob_get_clean(); }; ?>
     <?= view('components.admin.panel', [
-        'title' => t('Connectors'),
-        'subtitle' => t('Runtime capabilities discovered from core and plugins.'),
-        'content' => $connectors(),
+        'title' => t('Platform statistics'),
+        'subtitle' => t('Live counts from the CMS registries, router, users, plugins, and MCP tools.'),
+        'content' => $platformStats(),
     ]) ?>
 </div>
 <?php $this->endBlock('content'); ?>

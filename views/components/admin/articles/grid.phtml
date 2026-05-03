@@ -1,12 +1,11 @@
 <?php
 
-use NixCMS\Enums\Language;
 use function NixPHP\Form\csrf;
 use function NixPHP\I18n\t;
 use function NixPHP\route;
 use function NixPHP\View\view;
 
-$languages = array_map(static fn(Language $language): string => $language->value, Language::cases());
+$languages = cms()->settings()->languages();
 $endpoint = (string) ($endpoint ?? route('api.admin.articles'));
 
 $config = [

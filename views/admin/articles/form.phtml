@@ -1,6 +1,6 @@
 <?php
 
-use NixCMS\Enums\Language;
+use NixPHP\View\Core\Asset;
 use function NixPHP\Form\csrf;
 use function NixPHP\I18n\t;
 use function NixPHP\request;
@@ -14,27 +14,19 @@ $tagSuggestions = is_array($tagSuggestions ?? null) ? $tagSuggestions : [];
 $mode = (string) ($mode ?? 'create');
 $articleId = (int) ($articleId ?? ($article['id'] ?? 0));
 $articleVersionId = $mode === 'version' || $mode === 'translation' ? 0 : (int) ($article['article_version_id'] ?? 0);
-$selectedLanguage = strtolower((string) ($language ?? ($article['language'] ?? Language::DE->value)));
-$languageLabels = [
-    Language::DE->value => t('de'),
-    Language::EN->value => t('en'),
-    Language::FR->value => t('fr'),
-    Language::ES->value => t('es'),
-    Language::IT->value => t('it'),
-];
-$languageOptions = [
-    Language::DE->value => $languageLabels[Language::DE->value],
-    Language::EN->value => $languageLabels[Language::EN->value],
-    Language::FR->value => $languageLabels[Language::FR->value],
-    Language::ES->value => $languageLabels[Language::ES->value],
-    Language::IT->value => $languageLabels[Language::IT->value],
-];
+$selectedLanguage = strtolower((string) ($language ?? ($article['language'] ?? cms()->settings()->language())));
+$languageOptions = array_intersect_key(
+    cms()->languages()->options(),
+    array_flip(cms()->settings()->languages()),
+);
 $hideLeadImageInContent = (int) ($article['hide_lead_image_in_content'] ?? 1) === 1;
 $showTeaser = (int) ($article['show_teaser'] ?? 0) === 1;
 $initialTagNames = array_values(array_filter(array_map('strval', $article['tags'] ?? [])));
 $content = (string) ($article['content'] ?? '');
 $publishDate = (string) ($article['publishedAt'] ?? '');
 $publishDateValue = $publishDate !== '' ? date('Y-m-d\TH:i', strtotime($publishDate) ?: time()) : date('Y-m-d\TH:i');
+$fieldErrorAssets = new Asset();
+$fieldErrorAssets->add('/js/components/formFieldErrors.js');
 
 ?>
 <?php $this->setLayout('layouts.admin') ?>
@@ -83,7 +75,7 @@ $publishDateValue = $publishDate !== '' ? date('Y-m-d\TH:i', strtotime($publishD
                     'name' => 'content',
                     'label' => t('Content'),
                     'value' => $content !== '' ? $content : null,
-                    'uploadUrl' => route('admin.articles.image'),
+                    'uploadUrl' => route('api.admin.media.upload'),
                 ]) ?>
             </div>
 
@@ -194,7 +186,7 @@ $publishDateValue = $publishDate !== '' ? date('Y-m-d\TH:i', strtotime($publishD
     </form>
 </div>
 
-<script src="/js/components/formFieldErrors.js"></script>
+<?= $fieldErrorAssets->render('js') ?>
 <script type="module">
     const articleId = <?= $articleId > 0 ? $articleId : 'null' ?>;
     const categoryNames = <?= json_encode(array_values($categories), JSON_UNESCAPED_UNICODE) ?>;

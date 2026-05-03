@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NixCMS\Handlers\Api\Article;
 
-use NixCMS\Enums\Language;
 use NixCMS\Models\Article;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
@@ -14,8 +13,8 @@ final class PublishArticle
 {
     public function __invoke(string $articleId, string $language): ResponseInterface
     {
-        $lang = Language::tryFrom(strtolower(trim($language)));
-        if (!$lang instanceof Language || (int) $articleId <= 0) {
+        $lang = \cms()->languages()->normalize($language);
+        if ($lang === null || !\cms()->languages()->isKnown($lang) || (int) $articleId <= 0) {
             return json(['success' => false, 'reason' => 'Invalid article or language.'], 400);
         }
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NixCMS\Support;
 
-use NixCMS\Enums\Language;
 use NixCMS\Repositories\SettingRepository;
 use NixPHP\I18n\Core\Translator;
 use function NixPHP\app;
@@ -70,17 +69,7 @@ final class Settings
             $configured = preg_split('/[,\s]+/', $configured) ?: [];
         }
 
-        $languages = is_array($configured) ? $configured : [];
-        $languages = array_values(array_filter(array_map(
-            static fn(mixed $language): string => strtolower(trim((string) $language)),
-            $languages
-        )));
-
-        if ($languages === []) {
-            $languages = array_map(static fn(Language $language): string => $language->value, Language::cases());
-        }
-
-        return array_values(array_unique($languages));
+        return \cms()->languages()->enabled($configured);
     }
 
     public function currentLanguage(): string
@@ -112,7 +101,7 @@ final class Settings
     public function fallbackLanguage(): string
     {
         $configured = strtolower(trim((string) $this->value('fallback_language', 'en')));
-        if (preg_match('/^[a-z]{2,3}$/', $configured) === 1) {
+        if (\cms()->languages()->normalize($configured) !== null) {
             return $configured;
         }
 
@@ -132,7 +121,7 @@ final class Settings
     public function translationFileExists(string $language): bool
     {
         $language = strtolower(trim($language));
-        if (preg_match('/^[a-z]{2,3}$/', $language) !== 1) {
+        if (\cms()->languages()->normalize($language) === null) {
             return false;
         }
 

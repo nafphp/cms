@@ -1,7 +1,9 @@
 <?php
 
 use NixCMS\Services\Form\FormTextTranslator;
+use function NixPHP\Form\csrf;
 use function NixPHP\I18n\t;
+use function NixPHP\Session\session;
 use function NixPHP\View\s;
 
 $content = is_array($content ?? null) ? $content : [];
@@ -11,12 +13,16 @@ $form = $identifier !== '' ? cms()->forms()->findByIdentifier($identifier, true)
 $fields = is_array($form['fields'] ?? null) ? $form['fields'] : [];
 $settings = is_array($form['settings'] ?? null) ? $form['settings'] : [];
 $translator = new FormTextTranslator();
-$title = trim((string) ($props['title'] ?? $translator->translate(
+$title = trim(t((string) ($props['title'] ?? $translator->translate(
     is_string($settings['titleKey'] ?? null) ? $settings['titleKey'] : null,
     (string) ($form['title'] ?? 'Contact')
-)));
-$intro = trim((string) ($props['intro'] ?? ''));
-$submitLabel = (string) ($props['submitLabel'] ?? $translator->setting($settings, 'submitLabel', t('Send')));
+))));
+$intro = trim(t((string) ($props['intro'] ?? '')));
+$submitLabel = t((string) ($props['submitLabel'] ?? $translator->setting($settings, 'submitLabel', t('Send'))));
+$csrfToken = session()->get('_csrf');
+if (!is_string($csrfToken) || $csrfToken === '') {
+    $csrfToken = csrf()->generate();
+}
 
 ?>
 <section class="grid gap-5 rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-6">
@@ -28,6 +34,7 @@ $submitLabel = (string) ($props['submitLabel'] ?? $translator->setting($settings
     </div>
     <?php if (is_array($form) && $fields !== []): ?>
         <form class="grid gap-4" method="post" data-public-form action="/api/forms/<?= s((string) ($form['identifier'] ?? '')) ?>/submit">
+            <input type="hidden" name="_csrf" value="<?= s($csrfToken) ?>">
             <?php foreach ($fields as $field): ?>
                 <?php
                 if (!is_array($field)) {

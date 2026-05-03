@@ -39,17 +39,22 @@ $entries = is_array($entries ?? null) ? $entries : [];
         <p class="mt-1 text-sm text-slate-500 dark:text-slate-400"><?= s(t('Edit translation values for the selected language.')) ?></p>
     </div>
 
-    <div class="flex flex-wrap gap-2">
-        <?php foreach ($languages as $entry): ?>
-            <?php $code = (string) ($entry['code'] ?? ''); ?>
-            <a
-                class="inline-flex min-h-10 items-center rounded-lg border px-3 text-sm font-semibold transition <?= $code === $language ? 'border-accent bg-[color-mix(in_srgb,var(--admin-page-accent)_14%,transparent)] text-accent' : 'border-[var(--border)] bg-panel text-slate-500 hover:border-accent hover:text-accent dark:text-slate-400' ?>"
-                href="<?= s(route('admin.translations') . '?language=' . rawurlencode($code)) ?>"
-                <?= $code === $language ? 'aria-current="page"' : '' ?>
-            >
-                <?= s((string) ($entry['label'] ?? strtoupper($code))) ?>
-            </a>
-        <?php endforeach; ?>
+    <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap gap-2">
+            <?php foreach ($languages as $entry): ?>
+                <?php $code = (string) ($entry['code'] ?? ''); ?>
+                <a
+                    class="inline-flex min-h-10 items-center rounded-lg border px-3 text-sm font-semibold transition <?= $code === $language ? 'border-accent bg-[color-mix(in_srgb,var(--admin-page-accent)_14%,transparent)] text-accent' : 'border-[var(--border)] bg-panel text-slate-500 hover:border-accent hover:text-accent dark:text-slate-400' ?>"
+                    href="<?= s(route('admin.translations') . '?language=' . rawurlencode($code)) ?>"
+                    <?= $code === $language ? 'aria-current="page"' : '' ?>
+                >
+                    <?= s((string) ($entry['label'] ?? strtoupper($code))) ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+        <button type="button" class="inline-flex min-h-10 items-center rounded-lg border border-[var(--border)] bg-panel px-3 text-sm font-semibold text-slate-500 transition hover:border-accent hover:text-accent dark:text-slate-400" data-create-language>
+            <?= s(t('Add language')) ?>
+        </button>
     </div>
 
     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -146,6 +151,10 @@ $entries = is_array($entries ?? null) ? $entries : [];
         'settingsCouldNotSave' => t('Could not save settings.'),
         'dirty' => t('Unsaved changes.'),
         'clean' => t('No unsaved changes.'),
+        'createLanguage' => t('Create language'),
+        'newLanguagePrompt' => t('Enter a language code, for example nl or pt-br.'),
+        'invalidLanguage' => t('Please enter a valid language code.'),
+        'languageCreated' => t('Language created.'),
         'deleteConfirm' => t('Delete translation?'),
         'delete' => t('Delete'),
         'cancel' => t('Cancel'),
@@ -263,6 +272,37 @@ $entries = is_array($entries ?? null) ? $entries : [];
         const template = document.getElementById('translation-row-template');
         rows.append(template.content.cloneNode(true));
         openModal(rows.lastElementChild);
+    });
+
+    document.querySelector('[data-create-language]')?.addEventListener('click', async () => {
+        const entered = await prompt(`<div class="my-5">${escapeHtml(labels.newLanguagePrompt)}</div>`, {
+            showInput: true,
+            confirmButtonText: labels.createLanguage,
+            cancelButtonText: labels.cancel,
+            showCancelButton: true,
+            validators: [],
+        });
+        if (!entered) return;
+
+        const newLanguage = String(entered || '').trim().toLowerCase();
+        if (!/^[a-z]{2,3}(?:-[a-z0-9]{2,4})?$/.test(newLanguage) || newLanguage.length > 8) {
+            toast(labels.invalidLanguage);
+            return;
+        }
+
+        const response = await (window.NixCMS?.json || fetch)(<?= json_encode('/api/admin/translations/{language}') ?>.replace('{language}', encodeURIComponent(newLanguage)), {
+            method: 'POST',
+            body: JSON.stringify({entries: {}}),
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok || !result.success) {
+            toast(result.reason || labels.couldNotSave);
+            return;
+        }
+
+        toast(labels.languageCreated);
+        window.location.href = <?= json_encode(route('admin.translations') . '?language=') ?> + encodeURIComponent(newLanguage);
     });
 
     document.querySelector('[data-translation-search]')?.addEventListener('input', (event) => {

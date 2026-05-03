@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace NixCMS\Api;
 
-use NixCMS\Enums\Language;
 use NixCMS\Models\Article;
 use NixCMS\Models\ArticleVersion;
+use NixCMS\Localization\LanguageRegistry;
 use NixCMS\Repositories\ArticleRepository;
 
 /**
@@ -184,13 +184,14 @@ final class ArticleApi
         return $this->articleRepository->findPublishedWithLatestVersionByCategory($categoryId, $limit, $excludeIds);
     }
 
-    private function resolveLocale(string $locale): Language
+    private function resolveLocale(string $locale): string
     {
-        $language = Language::tryFrom(strtolower($locale));
-        if (!$language instanceof Language) {
-            throw new \InvalidArgumentException("Unknown locale: {$locale}");
+        $languages = new LanguageRegistry();
+        $language = $languages->normalize($locale);
+        if ($language !== null && $languages->isKnown($language)) {
+            return $language;
         }
 
-        return $language;
+        throw new \InvalidArgumentException("Unknown locale: {$locale}");
     }
 }

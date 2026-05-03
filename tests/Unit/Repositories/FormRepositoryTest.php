@@ -54,6 +54,15 @@ final class FormRepositoryTest extends DatabaseTestCase
                 'submitLabelKey' => 'Forms Contact Submit',
                 'successMessage' => 'Thank you.',
                 'successMessageKey' => 'Forms Contact Success',
+                'actions' => [
+                    ['type' => 'store'],
+                    [
+                        'type' => 'webhook',
+                        'url' => 'https://example.test/leads',
+                        'method' => 'patch',
+                        'failOnError' => true,
+                    ],
+                ],
             ],
             'fields' => [
                 [
@@ -80,5 +89,9 @@ final class FormRepositoryTest extends DatabaseTestCase
         self::assertSame('email-address', $form['fields'][0]['name']);
         self::assertSame('forms.contact.email.label', $form['fields'][0]['labelKey']);
         self::assertSame('forms.contact.email.placeholder', $form['fields'][0]['placeholderKey']);
+        self::assertSame('store', $form['settings']['actions'][0]['type']);
+        self::assertSame('webhook', $form['settings']['actions'][1]['type']);
+        self::assertSame('PATCH', $form['settings']['actions'][1]['method']);
+        self::assertTrue($form['settings']['actions'][1]['failOnError']);
     }
 }

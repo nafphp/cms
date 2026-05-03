@@ -159,6 +159,9 @@ final class StorePage
     private function collidesWithCodePage(string $path): bool
     {
         $path = $this->normalizePath($path);
+        if ($path === '/') {
+            return false;
+        }
 
         foreach (\cms()->pages()->all() as $page) {
             if (str_starts_with($page->id(), 'db.page.')) {

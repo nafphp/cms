@@ -1,16 +1,17 @@
 <?php
 
 use function NixPHP\View\s;
+use function NixPHP\I18n\t;
 
 $content = is_array($content ?? null) ? $content : [];
 $props = is_array($content['props'] ?? null) ? $content['props'] : [];
 $src = trim((string) ($props['src'] ?? ''));
-$caption = trim((string) ($props['caption'] ?? ''));
+$caption = trim(t((string) ($props['caption'] ?? '')));
 
 ?>
 <figure class="m-0 grid gap-3">
     <?php if ($src !== ''): ?>
-        <img class="w-full rounded-lg border border-[var(--page-card-border)] object-cover" src="<?= s($src) ?>" alt="<?= s((string) ($props['alt'] ?? '')) ?>">
+        <img class="w-full rounded-lg border border-[var(--page-card-border)] object-cover" src="<?= s($src) ?>" alt="<?= s(t((string) ($props['alt'] ?? ''))) ?>">
     <?php else: ?>
         <div class="aspect-video rounded-lg border border-dashed border-[var(--page-border)] bg-[var(--page-card-bg)]"></div>
     <?php endif; ?>

@@ -16,6 +16,7 @@ class PageGrid {
                 event.preventDefault();
                 await this.handleAction(target);
             },
+            onRowClick: (id) => this.editRowById(id),
         });
     }
 
@@ -67,7 +68,7 @@ class PageGrid {
         }
 
         if (target.dataset.gridAction === 'edit') {
-            window.location.href = this.url('edit', row);
+            this.edit(row);
             return;
         }
 
@@ -79,6 +80,17 @@ class PageGrid {
         if (target.dataset.gridAction === 'delete') {
             await this.delete(row);
         }
+    }
+
+    editRowById(id) {
+        const row = this.grid.rowById(id);
+        if (row) {
+            this.edit(row);
+        }
+    }
+
+    edit(row) {
+        window.location.href = this.url('edit', row);
     }
 
     async delete(row) {

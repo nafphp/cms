@@ -1,6 +1,7 @@
 <?php
 
 use function NixPHP\View\s;
+use function NixPHP\View\asset;
 
 /** @var string|null $content */
 /** @var \NixCMS\Page\Page $page */
@@ -9,6 +10,8 @@ use function NixPHP\View\s;
 
 $settings = cms()->settings();
 $currentLanguage = $page->language() ?? $settings->currentLanguage();
+$stylesheetTags = [];
+$scriptTags = [];
 $attributeString = static function (array $attributes): string {
     $html = '';
 
@@ -32,8 +35,28 @@ $themeStyles = [];
 if (preg_match('/^#[0-9a-fA-F]{6}$/', $accent) === 1) {
     $themeStyles[] = '--page-accent: ' . $accent;
 }
+$templateDefaultWidth = match ($template->view()) {
+    'page.templates.public', 'page.templates.full_bleed' => '100%',
+    'page.templates.article_detail' => '820px',
+    'page.templates.editorial' => '1040px',
+    'page.templates.landing', 'page.templates.feature_grid' => '1120px',
+    'page.templates.two_column' => '960px',
+    default => '1120px',
+};
+$themeStyles[] = '--page-template-default-width: ' . $templateDefaultWidth;
+$contentWidth = match ((string) ($page->meta()->theme->contentWidth ?? '')) {
+    'narrow' => '760px',
+    'comfortable' => '960px',
+    'wide' => '1120px',
+    'full' => '100%',
+    default => '',
+};
+if ($contentWidth !== '') {
+    $themeStyles[] = '--page-content-max-width: ' . $contentWidth;
+}
 $bodyClasses = trim(implode(' ', [
     'page-theme',
+    ($page->meta()->theme->contentWidthIncludesChrome ?? false) ? 'page-theme--bounded-chrome' : '',
     ...$template->bodyClasses(),
     ...$page->bodyClasses(),
 ]));
@@ -43,6 +66,31 @@ if ($bodyClasses !== '') {
 if ($themeStyles !== []) {
     $style = trim((string) ($bodyAttributes['style'] ?? ''));
     $bodyAttributes['style'] = trim($style . ($style !== '' && !str_ends_with($style, ';') ? '; ' : ' ') . implode('; ', $themeStyles));
+}
+
+foreach ([...$template->stylesheets(), ...$page->stylesheets()] as $stylesheet) {
+    if ($stylesheet['attributes'] === []) {
+        asset()->add($stylesheet['href']);
+        continue;
+    }
+
+    $stylesheetTags[] = $stylesheet;
+}
+
+foreach ([...$template->scripts(), ...$page->scripts()] as $script) {
+    $attributes = $script['attributes'];
+    $type = strtolower((string) ($attributes['type'] ?? ''));
+    if ($attributes === []) {
+        asset()->add($script['src']);
+        continue;
+    }
+
+    if (count($attributes) === 1 && $type === 'module') {
+        asset()->add($script['src'], 'module');
+        continue;
+    }
+
+    $scriptTags[] = $script;
 }
 
 ?>
@@ -61,13 +109,15 @@ if ($themeStyles !== []) {
     <?php if ($page->meta()->seo->canonicalUrl !== null && $page->meta()->seo->canonicalUrl !== ''): ?>
         <link rel="canonical" href="<?= s($page->meta()->seo->canonicalUrl) ?>">
     <?php endif; ?>
-    <?php foreach ([...$template->stylesheets(), ...$page->stylesheets()] as $stylesheet): ?>
+    <?= asset()->render('css') ?>
+    <?php foreach ($stylesheetTags as $stylesheet): ?>
         <link rel="stylesheet" href="<?= s($stylesheet['href']) ?>"<?= $attributeString($stylesheet['attributes']) ?>>
     <?php endforeach; ?>
 </head>
 <body<?= $attributeString($bodyAttributes) ?>>
     <?= $this->renderBlock('content', $content ?? '') ?>
-    <?php foreach ([...$template->scripts(), ...$page->scripts()] as $script): ?>
+    <?= asset()->render('js') ?>
+    <?php foreach ($scriptTags as $script): ?>
         <script src="<?= s($script['src']) ?>"<?= $attributeString($script['attributes']) ?>></script>
     <?php endforeach; ?>
 </body>

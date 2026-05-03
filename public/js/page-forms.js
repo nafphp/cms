@@ -4,6 +4,7 @@ document.querySelectorAll('[data-public-form]').forEach((form) => {
         const state = form.querySelector('[data-public-form-state]');
         const submit = form.querySelector('[type="submit"]');
         const payload = Object.fromEntries(new FormData(form).entries());
+        const csrfToken = String(payload._csrf || form.querySelector('input[name="_csrf"]')?.value || '');
 
         submit?.setAttribute('disabled', 'disabled');
         if (state) {
@@ -14,7 +15,11 @@ document.querySelectorAll('[data-public-form]').forEach((form) => {
         try {
             const response = await fetch(form.action, {
                 method: 'POST',
-                headers: {'Accept': 'application/json', 'Content-Type': 'application/json'},
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    ...(csrfToken !== '' ? {'X-CSRF-Token': csrfToken} : {}),
+                },
                 body: JSON.stringify(payload),
             });
             const result = await response.json().catch(() => ({}));

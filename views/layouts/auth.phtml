@@ -3,15 +3,12 @@
 declare(strict_types=1);
 
 use function NixPHP\View\s;
+use function NixPHP\View\asset;
 use function NixPHP\I18n\t;
 
 $settings = cms()->settings();
 $currentLanguage = $settings->currentLanguage();
-$assetWithVersion = static function (string $publicPath): string {
-    $file = dirname(__DIR__, 2) . '/public/' . ltrim($publicPath, '/');
-    $version = is_file($file) ? filemtime($file) : null;
-    return is_int($version) ? $publicPath . '?v=' . $version : $publicPath;
-};
+asset()->add('/css/nixcms.css');
 
 ?>
 <!doctype html>
@@ -32,7 +29,7 @@ $assetWithVersion = static function (string $publicPath): string {
             root.style.colorScheme = useDark ? 'dark' : 'light';
         })();
     </script>
-    <link rel="stylesheet" href="<?= s($assetWithVersion('/css/nixcms.css')) ?>">
+    <?= asset()->render('css') ?>
 </head>
 <body class="grid min-h-screen place-items-center bg-slate-50 p-8 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
 <main class="flex min-h-screen items-center justify-center px-4">

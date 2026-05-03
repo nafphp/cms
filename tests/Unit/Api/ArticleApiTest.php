@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Api;
 
 use NixCMS\Api\ArticleApi;
-use NixCMS\Enums\Language;
 use NixCMS\Models\Article;
 use NixCMS\Repositories\ArticleRepository;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -51,12 +50,12 @@ final class ArticleApiTest extends NixPHPTestCase
         self::assertSame($expected, $this->articleApi->draft(1, $data, 5));
     }
 
-    public function testPublishResolvesLocaleStringToLanguageEnum(): void
+    public function testPublishNormalizesLocaleString(): void
     {
         $this->articleRepository
             ->expects($this->once())
             ->method('publishLatestLanguageVersion')
-            ->with(1, Language::DE)
+            ->with(1, 'de')
             ->willReturn(true);
 
         self::assertTrue($this->articleApi->publish(1, 'de'));
@@ -67,7 +66,7 @@ final class ArticleApiTest extends NixPHPTestCase
         $this->articleRepository
             ->expects($this->once())
             ->method('publishLatestLanguageVersion')
-            ->with(42, Language::EN)
+            ->with(42, 'en')
             ->willReturn(true);
 
         self::assertTrue($this->articleApi->publish(42, 'en'));
@@ -85,12 +84,12 @@ final class ArticleApiTest extends NixPHPTestCase
         $this->articleApi->publish(1, 'xx');
     }
 
-    public function testDeleteLocaleResolvesLanguageEnum(): void
+    public function testDeleteLocaleNormalizesLanguage(): void
     {
         $this->articleRepository
             ->expects($this->once())
             ->method('deleteLanguageVersions')
-            ->with(1, Language::EN)
+            ->with(1, 'en')
             ->willReturn(true);
 
         self::assertTrue($this->articleApi->deleteLocale(1, 'en'));
@@ -108,12 +107,12 @@ final class ArticleApiTest extends NixPHPTestCase
         $this->articleApi->deleteLocale(1, 'xx');
     }
 
-    public function testDeleteVersionResolvesLanguageEnum(): void
+    public function testDeleteVersionNormalizesLanguage(): void
     {
         $this->articleRepository
             ->expects($this->once())
             ->method('deleteSpecificVersion')
-            ->with(1, Language::FR, 2)
+            ->with(1, 'fr', 2)
             ->willReturn(true);
 
         self::assertTrue($this->articleApi->deleteVersion(1, 'fr', 2));

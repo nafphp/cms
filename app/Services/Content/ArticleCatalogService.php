@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NixCMS\Services\Content;
 
 use NixCMS\Enums\ArticleStatus;
-use NixCMS\Enums\Language;
+use NixCMS\Localization\LanguageRegistry;
 use PDO;
 use Throwable;
 use function NixPHP\Database\database;
@@ -20,7 +20,7 @@ final class ArticleCatalogService
     {
         return [
             'statuses' => array_map(static fn(ArticleStatus $status) => $status->value, ArticleStatus::cases()),
-            'languages' => array_map(static fn(Language $language) => $language->value, Language::cases()),
+            'languages' => (new LanguageRegistry())->enabled(),
             'articles' => $this->articles(),
         ];
     }

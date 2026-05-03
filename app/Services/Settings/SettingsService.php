@@ -8,6 +8,7 @@ use NixCMS\Repositories\SettingRepository;
 use NixCMS\Settings\SettingField;
 use NixCMS\Settings\SettingSection;
 use function NixPHP\config;
+use function NixPHP\I18n\t;
 
 final class SettingsService
 {
@@ -72,19 +73,19 @@ final class SettingsService
         foreach ($section->fields() as $field) {
             $fields[] = [
                 'key' => $field->key(),
-                'label' => $field->label(),
+                'label' => t($field->label()),
                 'type' => $field->type(),
-                'description' => $field->description(),
+                'description' => $field->description() !== null ? t($field->description()) : null,
                 'value' => $stored[$field->key()] ?? $this->defaultValue($field),
                 'source' => $this->source($field, $stored),
-                'options' => $field->options(),
+                'options' => $this->translatedOptions($field->options()),
             ];
         }
 
         return [
             'id' => $section->id(),
-            'label' => $section->label(),
-            'description' => $section->description(),
+            'label' => t($section->label()),
+            'description' => $section->description() !== null ? t($section->description()) : null,
             'group' => $section->group(),
             'icon' => $section->icon(),
             'order' => $section->order(),
@@ -94,12 +95,25 @@ final class SettingsService
         ];
     }
 
+    /**
+     * @param array<string, string> $options
+     * @return array<string, string>
+     */
+    private function translatedOptions(array $options): array
+    {
+        foreach ($options as $key => $label) {
+            $options[$key] = t($label);
+        }
+
+        return $options;
+    }
+
     private function normalizeValue(SettingField $field, mixed $value): ?string
     {
         if ($field->type() === 'multiselect') {
             $values = is_array($value) ? $value : preg_split('/[,\s]+/', (string) $value);
             $selected = array_values(array_unique(array_filter(array_map(
-                static fn(mixed $entry): string => strtolower(trim((string) $entry)),
+                static fn(mixed $entry): ?string => \cms()->languages()->normalize((string) $entry),
                 $values ?: [],
             ))));
             $selected = array_values(array_filter(
@@ -118,7 +132,7 @@ final class SettingsService
 
         if ($field->key() === 'cms.languages') {
             $languages = array_values(array_unique(array_filter(array_map(
-                static fn(string $language): string => strtolower(trim($language)),
+                static fn(string $language): ?string => \cms()->languages()->normalize($language),
                 preg_split('/[,\s]+/', $value) ?: [],
             ))));
 

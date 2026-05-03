@@ -1,14 +1,15 @@
 <?php
 
 use function NixPHP\View\s;
+use function NixPHP\I18n\t;
 
 $content = is_array($content ?? null) ? $content : [];
 $props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$title = (string) ($props['title'] ?? 'Build with NixCMS');
-$eyebrow = trim((string) ($props['eyebrow'] ?? ''));
-$text = trim((string) ($props['text'] ?? ''));
+$title = t((string) ($props['title'] ?? 'Build with NixCMS'));
+$eyebrow = trim(t((string) ($props['eyebrow'] ?? '')));
+$text = trim(t((string) ($props['text'] ?? '')));
 $image = trim((string) ($props['image'] ?? ''));
-$buttonLabel = trim((string) ($props['buttonLabel'] ?? ''));
+$buttonLabel = trim(t((string) ($props['buttonLabel'] ?? '')));
 $buttonUrl = trim((string) ($props['buttonUrl'] ?? '#'));
 
 ?>

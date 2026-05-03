@@ -1,5 +1,7 @@
 <?php
 
+use NixCMS\Enums\Permission;
+use NixCMS\Services\Settings\TranslationFileService;
 use function NixPHP\View\s;
 use function NixPHP\I18n\t;
 use function NixPHP\route;
@@ -11,6 +13,32 @@ $languages = is_array($languages ?? null) ? array_values($languages) : ['en'];
 $defaultLanguage = (string) ($defaultLanguage ?? ($languages[0] ?? 'en'));
 $initialState = is_array($initialState ?? null) ? $initialState : [];
 $mode = (string) ($mode ?? 'create');
+$mediaAcceptedExtensions = \cms()->media()->acceptedExtensions();
+$mediaMaxUploadSize = \cms()->media()->maxUploadSize();
+$canUploadMedia = \user()?->can(Permission::MEDIA_UPLOAD) === true;
+$translationService = new TranslationFileService();
+$translationLanguages = array_values(array_unique([
+    ...$languages,
+    ...\cms()->settings()->languages(),
+    ...array_map(
+        static fn(array $language): string => (string) ($language['code'] ?? ''),
+        $translationService->languages($defaultLanguage),
+    ),
+]));
+$translationSuggestions = [];
+foreach ($translationLanguages as $language) {
+    $language = \cms()->languages()->normalize((string) $language);
+    if ($language === null) {
+        continue;
+    }
+
+    $entries = $translationService->entries($language);
+    $translationSuggestions[$language] = array_map(
+        static fn(string $key, string $value): array => ['key' => $key, 'value' => $value],
+        array_keys($entries),
+        array_values($entries),
+    );
+}
 
 $config = [
     'templates' => $templates,
@@ -19,13 +47,64 @@ $config = [
     'defaultNavigationIdentifier' => (string) ($defaultNavigationIdentifier ?? ($navigationChoices[0]['identifier'] ?? 'main')),
     'languages' => $languages,
     'defaultLanguage' => $defaultLanguage,
+    'translationSuggestions' => $translationSuggestions,
+    'translationEndpoint' => '/api/admin/translations/{language}',
     'saveUrl' => (string) ($saveUrl ?? '/admin/pages'),
     'overviewUrl' => (string) ($overviewUrl ?? route('admin.pages')),
     'initialState' => $initialState,
     'mode' => $mode,
+    'media' => [
+        'urls' => [
+            'list' => route('api.admin.media'),
+            'upload' => route('api.admin.media.upload'),
+        ],
+        'acceptedExtensions' => array_values($mediaAcceptedExtensions),
+        'maxUploadSize' => $mediaMaxUploadSize,
+        'canUpload' => $canUploadMedia,
+        'visibilityOptions' => [
+            'public' => t('Public'),
+            'registered' => t('Registered'),
+            'private' => t('Private'),
+        ],
+    ],
     'labels' => [
         'saved' => t('Page saved.'),
         'couldNotSave' => t('Page could not be saved.'),
+        'cancel' => t('Cancel'),
+        'mediaPickerTitle' => t('Select media'),
+        'mediaPickerIntro' => t('Upload a new image or choose an existing media item.'),
+        'mediaUpload' => t('Upload image'),
+        'mediaChooseFile' => t('Choose image'),
+        'mediaLibrary' => t('Media library'),
+        'mediaUse' => t('Use media'),
+        'mediaNoSelection' => t('Please select or upload a media item.'),
+        'mediaUploadFailed' => t('Upload failed.'),
+        'mediaFileTooLarge' => t('File is too large.'),
+        'mediaInvalidExtension' => t('File type is not allowed.'),
+        'mediaNoFiles' => t('No media files yet.'),
+        'mediaEmptyUrl' => t('No media selected.'),
+        'mediaReplace' => t('Replace media'),
+        'mediaSelect' => t('Select media'),
+        'mediaClear' => t('Clear'),
+        'visibility' => t('Visibility'),
+        'altText' => t('Alt text'),
+        'public' => t('Public'),
+        'registered' => t('Registered'),
+        'private' => t('Private'),
+        'translationKey' => t('Translation key'),
+        'searchCreateTranslationKey' => t('Search or create a translation key for this field.'),
+        'key' => t('Key'),
+        'value' => t('Value'),
+        'language' => t('Language'),
+        'apply' => t('Apply'),
+        'newLanguage' => t('New language'),
+        'createLanguage' => t('Create language'),
+        'enterLanguageCode' => t('Enter a language code, for example nl or pt-br.'),
+        'invalidLanguage' => t('Please enter a valid language code.'),
+        'languageCreated' => t('Language created.'),
+        'translationSaved' => t('Translation saved.'),
+        'emptyTranslationKey' => t('Please enter a translation key.'),
+        'storesOnlyTranslationKey' => t('The field stores only the translation key.'),
     ],
 ];
 
@@ -119,18 +198,54 @@ $config = [
         </header>
 
         <div class="grid min-h-[686px] grid-cols-[minmax(0,1fr)_auto]">
-            <div class="grid place-items-start px-8 py-10">
-                <div class="mx-auto w-[min(880px,100%)] overflow-hidden rounded-lg border border-slate-800 bg-[#020617] shadow-[0_18px_52px_rgba(0,0,0,.28)]">
-                    <div class="grid gap-0" data-block-canvas></div>
+            <div class="grid min-h-0 grid-rows-[auto_minmax(0,1fr)]">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 bg-[#0f1721] px-6 py-4">
+                    <div class="grid gap-0.5">
+                        <span class="text-[11px] font-bold uppercase text-slate-500">Preview canvas</span>
+                        <strong class="text-sm font-semibold text-white" data-preview-title>Desktop preview</strong>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="inline-flex rounded-md border border-slate-700 bg-[#070d15] p-1" role="group" aria-label="Preview viewport" data-preview-mode-controls>
+                            <button class="min-h-9 rounded px-3 text-xs font-semibold text-slate-400 transition hover:text-white" type="button" data-preview-mode="desktop">Desktop</button>
+                            <button class="min-h-9 rounded px-3 text-xs font-semibold text-slate-400 transition hover:text-white" type="button" data-preview-mode="tablet">Tablet</button>
+                            <button class="min-h-9 rounded px-3 text-xs font-semibold text-slate-400 transition hover:text-white" type="button" data-preview-mode="mobile">Mobile</button>
+                        </div>
+                        <label class="flex min-w-[240px] items-center gap-2 text-xs font-semibold text-slate-500">
+                            <span>Content width</span>
+                            <select class="min-h-9 min-w-0 flex-1 rounded-md border border-slate-700 bg-[#070d15] px-3 text-xs text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-styled-select data-content-width-control data-persist-key="theme.contentWidth">
+                                <option value="template">Template</option>
+                                <option value="narrow">Narrow · 760px</option>
+                                <option value="comfortable">Comfortable · 960px</option>
+                                <option value="wide">Wide · 1120px</option>
+                                <option value="full">Full width</option>
+                            </select>
+                        </label>
+                        <label class="flex min-h-9 items-center gap-2 rounded-md border border-slate-700 bg-[#070d15] px-3 text-xs font-semibold text-slate-300">
+                            <input class="h-4 w-4 rounded border-slate-600 bg-slate-950 accent-[var(--admin-page-accent)]" type="checkbox" data-persist-key="theme.contentWidthIncludesChrome">
+                            <span>Header/Footer</span>
+                        </label>
+                    </div>
                 </div>
-                <div class="mx-auto mt-4 rounded-md border border-dashed border-slate-700 px-4 py-2 text-xs text-slate-500">Block anklicken → Drawer öffnet</div>
 
-                <details class="mx-auto mt-8 w-[min(880px,100%)] rounded-lg border border-slate-800 bg-[#121820] p-3 text-xs">
-                    <summary class="cursor-pointer font-semibold text-slate-400">Generated shape</summary>
-                    <pre class="mt-3 max-h-72 overflow-auto rounded-lg bg-slate-950 p-3 text-xs leading-relaxed text-slate-100" data-builder-json></pre>
-                </details>
-                <div class="hidden" data-page-preview></div>
-                <span class="hidden" data-filled-count></span>
+                <div class="min-h-0 overflow-auto px-6 py-8">
+                    <div class="mx-auto grid w-full max-w-[1380px] gap-4" data-preview-stage>
+                        <div class="mx-auto flex w-full max-w-full flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800 bg-[#121820] px-4 py-3 text-xs text-slate-500" data-preview-ruler>
+                            <span class="font-semibold text-slate-300" data-preview-viewport-label>Desktop · 1280px</span>
+                            <span data-content-width-label>Template width</span>
+                        </div>
+                        <div class="mx-auto w-full max-w-full overflow-hidden rounded-lg border border-slate-800 bg-[#020617] shadow-[0_18px_52px_rgba(0,0,0,.28)] transition-[width] duration-200 ease-out" data-preview-frame>
+                            <div class="grid gap-0" data-block-canvas></div>
+                        </div>
+                    </div>
+                    <div class="mx-auto mt-4 w-max max-w-full rounded-md border border-dashed border-slate-700 px-4 py-2 text-xs text-slate-500">Block anklicken → Drawer öffnet</div>
+
+                    <details class="mx-auto mt-8 w-[min(980px,100%)] rounded-lg border border-slate-800 bg-[#121820] p-3 text-xs">
+                        <summary class="cursor-pointer font-semibold text-slate-400">Generated shape</summary>
+                        <pre class="mt-3 max-h-72 overflow-auto rounded-lg bg-slate-950 p-3 text-xs leading-relaxed text-slate-100" data-builder-json></pre>
+                    </details>
+                    <div class="hidden" data-page-preview></div>
+                    <span class="hidden" data-filled-count></span>
+                </div>
             </div>
 
             <aside class="w-0 overflow-hidden border-l border-transparent bg-slate-950 opacity-0 transition-[width,opacity,border-color] duration-200 ease-out" data-settings-drawer>
@@ -245,10 +360,26 @@ $config = [
                 <div>
                     <h2 class="m-0 text-sm font-semibold text-white">Theme</h2>
                 </div>
-                <label class="grid max-w-[260px] gap-1.5">
-                    <span class="text-xs font-semibold text-slate-500">Accent</span>
-                    <input class="h-10 w-full rounded-md border border-slate-700 bg-[#0b1017] p-1.5 outline-none focus:border-[var(--admin-page-accent)]" type="color" data-persist-key="theme.accent" value="#3f7fbd" aria-label="Accent color">
-                </label>
+                <div class="grid gap-4 md:grid-cols-2">
+                    <label class="grid gap-1.5">
+                        <span class="text-xs font-semibold text-slate-500">Content width</span>
+                        <select class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-styled-select data-content-width-control data-persist-key="theme.contentWidth">
+                            <option value="template">Template default</option>
+                            <option value="narrow">Narrow · 760px</option>
+                            <option value="comfortable">Comfortable · 960px</option>
+                            <option value="wide">Wide · 1120px</option>
+                            <option value="full">Full width</option>
+                        </select>
+                    </label>
+                    <label class="grid gap-1.5">
+                        <span class="text-xs font-semibold text-slate-500">Accent</span>
+                        <input class="h-10 w-full rounded-md border border-slate-700 bg-[#0b1017] p-1.5 outline-none focus:border-[var(--admin-page-accent)]" type="color" data-persist-key="theme.accent" value="#3f7fbd" aria-label="Accent color">
+                    </label>
+                    <label class="flex min-h-11 items-center gap-3 rounded-md border border-slate-700 bg-[#0b1017] px-3 md:col-span-2">
+                        <input class="h-4 w-4 rounded border-slate-600 bg-slate-950 accent-[var(--admin-page-accent)]" type="checkbox" data-persist-key="theme.contentWidthIncludesChrome">
+                        <span class="text-xs font-semibold text-slate-400">Apply content width to header and footer</span>
+                    </label>
+                </div>
             </div>
 
             <aside class="grid content-start gap-4 rounded-lg border border-slate-800 bg-[#121820] p-5">

@@ -174,6 +174,15 @@ The main entry points are:
 - `cms()->contentTypes()` — returns the `ContentRegistry`; source of truth for registered content types such as Article.
 - `cms()->content(Article::class)` — resolves the registered content type for the model and returns its content API.
 - `cms()->articles()` — convenience doorway to the registered Article content type API. Do not treat articles as a special HTTP architecture category; they are the first registered content type.
+- `cms()->forms()` — convenience doorway to the registered Form content type API.
+- `cms()->media()` — convenience doorway to the registered Media content type API.
+- `cms()->navigation()` — convenience doorway to the registered SiteNavigation content type API.
+- `cms()->navigationRegistry()` — returns the `NavigationRegistry`; source of truth for named frontend/admin navigation trees.
+- `cms()->visualizations()` — returns the `VisualizationRegistry`; source of truth for registered chart definitions and chart rendering.
+- `cms()->blocks()` — returns the `BlockViewRegistry`; source of truth for page-builder block type to view mappings.
+- `cms()->languages()` — returns the `LanguageRegistry`; source of truth for enabled, available, and discovered language codes.
+- `cms()->settings()` — returns the runtime `Settings` helper for reading resolved setting values.
+- `cms()->settingsRegistry()` — returns the `SettingsRegistry`; source of truth for admin-editable setting sections and fields.
 
 ### Examples
 
@@ -259,6 +268,79 @@ $contentApi->deleteLocale($articleId, 'de');
 $contentApi->deleteVersion($articleId, 'de', $versionNumber);
 ```
 
+Create a form draft through the registered Form content type:
+
+```php
+$formId = cms()->forms()->save([
+    'title' => 'Contact',
+    'fields' => [['type' => 'email', 'name' => 'email']],
+]);
+```
+
+Store media through the registered Media content type:
+
+```php
+$media = cms()->media()->storeUploadedFile($uploadedFile, $authorId, [
+    'alt' => 'Dashboard preview',
+]);
+```
+
+Publish a named site navigation through the registered navigation content API:
+
+```php
+cms()->navigation()->save([
+    'identifier' => 'main',
+    'title' => 'Main navigation',
+    'items' => [['label' => 'Home', 'url' => '/']],
+]);
+```
+
+Register frontend navigation metadata:
+
+```php
+cms()->navigationRegistry()->addNavigation(
+    Navigation::create('footer', 'Footer navigation')
+);
+```
+
+Register and render a chart:
+
+```php
+cms()->visualizations()->add(ChartDefinition::bar('content-status', [
+    'Draft' => 4,
+    'Published' => 12,
+]));
+```
+
+Register a page-builder block view:
+
+```php
+cms()->blocks()->add('mycustom', 'page.blocks.mycustom');
+echo cms()->blocks()->viewFor('mycustom');
+```
+
+List language options for admin selectors:
+
+```php
+$options = cms()->languages()->options();
+echo $options['de'] ?? 'DE';
+```
+
+Read a runtime setting:
+
+```php
+$siteName = cms()->settings()->value('app.name', 'NixCMS');
+echo $siteName;
+```
+
+Register an admin settings section:
+
+```php
+cms()->settingsRegistry()->add(
+    SettingSection::create('site', 'Site')
+);
+```
+
 ### HTTP Registries
 
 Follow these rules when extending HTTP behavior:
@@ -299,6 +381,14 @@ Follow these rules when extending HTTP behavior:
 - Keep `cms()->articles()` as a convenience doorway to `cms()->content(Article::class)` unless a repeated cross-type pattern proves a better abstraction.
 - Do not add a type alias before its model exists.
 - Abstract `ContentApi` only after at least two real content types reveal a shared shape.
+
+### Block View Registry
+
+- Register page-builder block view mappings through `cms()->blocks()`.
+- Core defaults live in `NixCMS\Content\BlockViewRegistry`; plugins may call `cms()->blocks()->add('mycustom', 'page.blocks.mycustom')` during bootstrap.
+- Keep aliases explicit in the registry constructor so agents can grep which block types share a view.
+- Unknown block types must fall back to `page.blocks.placeholder`.
+- Block views live under `views/page/blocks`; files directly inside that directory should be renderable blocks, while shared helpers belong in `views/page/blocks/_helpers`.
 
 ## Service Design Rules
 

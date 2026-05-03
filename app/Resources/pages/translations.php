@@ -19,7 +19,8 @@ return [
         ->setAdminNavigation('Languages', parent: 'settings', icon: 'content', order: 20, key: 'settings.translations')
         ->setContent(static function () {
             $service = new TranslationFileService();
-            $language = strtolower(trim((string) (request()->getQueryParams()['language'] ?? \cms()->settings()->currentLanguage())));
+            $language = \cms()->languages()->normalize((string) (request()->getQueryParams()['language'] ?? \cms()->settings()->currentLanguage()))
+                ?? \cms()->settings()->currentLanguage();
             $settingSections = (new SettingsService())->sections('languages');
 
             return render('admin.settings.translations', [

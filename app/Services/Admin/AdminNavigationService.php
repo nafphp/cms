@@ -19,12 +19,19 @@ final class AdminNavigationService
         private ?PageRegistry $pages = null,
         private bool $includeConfiguredItems = true,
         private mixed $userResolver = null,
+        private ?array $accentColors = null,
     ) {
     }
 
     public function items(): array
     {
-        return $this->filterTreeByAuthorization($this->buildTree($this->flatItems()));
+        return $this->filterTreeByAuthorization(
+            $this->applyInheritedAccents(
+                $this->buildTree($this->flatItems()),
+                null,
+                $this->resolvedAccentColors(),
+            )
+        );
     }
 
     /**
@@ -136,6 +143,9 @@ final class AdminNavigationService
      *     icon:string,
      *     order:int,
      *     visible:bool,
+     *     scope:string,
+     *     meta:array<string, mixed>,
+     *     accent:string|null,
      *     routeNames:array<int, string>,
      *     children:array<int, array<string, mixed>>
      * }
@@ -155,6 +165,10 @@ final class AdminNavigationService
             'order' => (int) ($item['order'] ?? 100),
             'visible' => (bool) ($item['visible'] ?? true),
             'scope' => (string) ($item['scope'] ?? self::SCOPE),
+            'meta' => is_array($item['meta'] ?? null) ? $item['meta'] : [],
+            'accent' => isset($item['accent']) && trim((string) $item['accent']) !== ''
+                ? trim((string) $item['accent'])
+                : null,
             'routeNames' => $this->routeNames(is_array($item['routeNames'] ?? null) ? $item['routeNames'] : []),
             'children' => [],
         ];
@@ -408,6 +422,216 @@ final class AdminNavigationService
         return substr($key, 0, (int) strrpos($key, '.')) ?: null;
     }
 
+    /**
+     * @param array<int, array<string, mixed>> $items
+     * @param array<string, string> $colors
+     * @return array<int, array<string, mixed>>
+     */
+    private function applyInheritedAccents(array $items, ?string $inheritedAccent, array $colors): array
+    {
+        foreach ($items as &$item) {
+            $directAccent = $this->directAccentForItem($item, $colors);
+            $accent = $inheritedAccent ?? $directAccent ?? $this->fallbackAccent($colors);
+            $item['accent'] = $accent;
+            $item['children'] = $this->applyInheritedAccents(
+                is_array($item['children'] ?? null) ? $item['children'] : [],
+                $inheritedAccent ?? $directAccent,
+                $colors,
+            );
+        }
+        unset($item);
+
+        return $items;
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     * @param array<string, string> $colors
+     */
+    private function directAccentForItem(array $item, array $colors): ?string
+    {
+        $accent = isset($item['accent']) ? trim((string) $item['accent']) : '';
+        if ($accent !== '') {
+            return $accent;
+        }
+
+        $meta = is_array($item['meta'] ?? null) ? $item['meta'] : [];
+        foreach (['accent', 'adminAccent', 'admin_accent'] as $metaKey) {
+            $accent = isset($meta[$metaKey]) ? trim((string) $meta[$metaKey]) : '';
+            if ($accent !== '') {
+                return $accent;
+            }
+        }
+
+        $key = (string) ($item['key'] ?? '');
+        $accent = isset($colors[$key]) ? trim((string) $colors[$key]) : '';
+
+        return $accent !== '' ? $accent : null;
+    }
+
+    /**
+     * @param array<string, array<string, mixed>> $items
+     * @param array<string, string> $colors
+     */
+    private function accentForNavigationKey(string $key, array $items, array $colors): ?string
+    {
+        $visited = [];
+        $chain = [];
+        $key = trim($key);
+
+        while ($key !== '' && !isset($visited[$key])) {
+            $visited[$key] = true;
+            $item = $items[$key] ?? [
+                'key' => $key,
+                'parent' => $this->parentFromKey($key),
+            ];
+            array_unshift($chain, $item);
+
+            $parent = isset($item['parent']) ? trim((string) $item['parent']) : '';
+            if ($parent === '') {
+                $parent = (string) ($this->parentFromKey($key) ?? '');
+            }
+
+            if ($parent === '' || $parent === $key) {
+                break;
+            }
+
+            $key = $parent;
+        }
+
+        foreach ($chain as $item) {
+            $accent = $this->directAccentForItem($item, $colors);
+            if ($accent !== null) {
+                return $accent;
+            }
+        }
+
+        return null;
+    }
+
+    private function navigationKeyForPath(string $path): ?string
+    {
+        $path = $this->normalizePath($path);
+        $bestKey = null;
+        $bestScore = -1;
+
+        foreach ($this->pages()->all() as $page) {
+            try {
+                $pagePath = $page->path();
+            } catch (\LogicException) {
+                continue;
+            }
+
+            if (!$this->pagePathMatches($pagePath, $path)) {
+                continue;
+            }
+
+            $navigation = $page->meta()->navigation;
+            if ($navigation->scope !== self::SCOPE) {
+                continue;
+            }
+
+            $key = $navigation->visible && $navigation->label !== null
+                ? ($navigation->key ?? $page->id())
+                : $navigation->parentKey();
+
+            if ($key === null || trim($key) === '') {
+                continue;
+            }
+
+            $score = strlen($pagePath) + ($this->normalizePath($pagePath) === $path ? 1000 : 0);
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $bestKey = trim($key);
+            }
+        }
+
+        return $bestKey;
+    }
+
+    private function pathSegmentNavigationKey(string $path): ?string
+    {
+        $path = $this->normalizePath($path);
+        if ($path === '/admin') {
+            return 'dashboard';
+        }
+
+        if (!str_starts_with($path, '/admin/')) {
+            return null;
+        }
+
+        $parts = explode('/', trim($path, '/'));
+        $key = trim((string) ($parts[1] ?? ''));
+
+        return $key !== '' ? $key : null;
+    }
+
+    private function normalizePath(string $path): string
+    {
+        $path = parse_url($path, PHP_URL_PATH);
+        $path = is_string($path) ? '/' . ltrim(trim($path), '/') : '/';
+
+        return $path === '/' ? '/' : rtrim($path, '/');
+    }
+
+    private function pagePathMatches(string $pagePath, string $path): bool
+    {
+        $pagePath = $this->normalizePath($pagePath);
+        if ($pagePath === $path) {
+            return true;
+        }
+
+        $quoted = preg_quote($pagePath, '#');
+        $pattern = preg_replace('#\\\\\{[^}]+\\\\\}#', '[^/]+', $quoted);
+        if (!is_string($pattern)) {
+            return false;
+        }
+
+        return preg_match('#^' . $pattern . '$#', $path) === 1;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function resolvedAccentColors(): array
+    {
+        $colors = $this->accentColors;
+        if ($colors === null) {
+            try {
+                $configured = config('cms:admin:accent_colors', []);
+                $colors = is_array($configured) ? $configured : [];
+            } catch (\Throwable) {
+                $colors = [];
+            }
+        }
+
+        $normalized = [];
+        foreach ($colors as $key => $color) {
+            $key = trim((string) $key);
+            $color = trim((string) $color);
+            if ($key !== '' && $color !== '') {
+                $normalized[$key] = $color;
+            }
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param array<string, string> $colors
+     */
+    private function fallbackAccent(array $colors): string
+    {
+        foreach (['content', 'articles', 'dashboard', 'settings'] as $key) {
+            $color = trim((string) ($colors[$key] ?? ''));
+            if ($color !== '') {
+                return $color;
+            }
+        }
+
+        return '#64748b';
+    }
+
     private function navigation(): NavigationRegistry
     {
         return $this->navigation ??= \cms()->navigationRegistry();
@@ -420,24 +644,17 @@ final class AdminNavigationService
 
     public function accentForPath(string $path): string
     {
-        $colors = config('cms:admin:accent_colors', []);
-        if (!is_array($colors)) {
-            $colors = [];
+        $colors = $this->resolvedAccentColors();
+        $items = $this->flatItems();
+
+        $key = $this->navigationKeyForPath($path) ?? $this->pathSegmentNavigationKey($path);
+        if ($key !== null) {
+            $accent = $this->accentForNavigationKey($key, $items, $colors);
+            if ($accent !== null) {
+                return $accent;
+            }
         }
 
-        $key = match (true) {
-            $path === '/admin' => 'dashboard',
-            str_starts_with($path, '/admin/pages') => 'content',
-            str_starts_with($path, '/admin/articles') => 'content',
-            str_starts_with($path, '/admin/navigation') => 'content',
-            str_starts_with($path, '/admin/users') => 'users',
-            str_starts_with($path, '/admin/roles') => 'roles',
-            str_starts_with($path, '/admin/translations') => 'settings',
-            str_starts_with($path, '/admin/settings/audit') => 'settings',
-            str_starts_with($path, '/admin/settings') => 'settings',
-            default => 'settings',
-        };
-
-        return (string) ($colors[$key] ?? $colors['articles'] ?? '#64748b');
+        return $this->fallbackAccent($colors);
     }
 }

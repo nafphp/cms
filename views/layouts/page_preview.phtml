@@ -1,5 +1,6 @@
 <?php
 
+use NixPHP\View\Core\Asset;
 use function NixPHP\View\s;
 
 /** @var string|null $content */
@@ -9,6 +10,8 @@ use function NixPHP\View\s;
 
 $settings = cms()->settings();
 $currentLanguage = $page->language() ?? $settings->currentLanguage();
+$assets = new Asset();
+$stylesheetTags = [];
 
 $attributeString = static function (array $attributes): string {
     $html = '';
@@ -33,8 +36,28 @@ $themeStyles = [];
 if (preg_match('/^#[0-9a-fA-F]{6}$/', $accent) === 1) {
     $themeStyles[] = '--page-accent: ' . $accent;
 }
+$templateDefaultWidth = match ($template->view()) {
+    'page.templates.public', 'page.templates.full_bleed' => '100%',
+    'page.templates.article_detail' => '820px',
+    'page.templates.editorial' => '1040px',
+    'page.templates.landing', 'page.templates.feature_grid' => '1120px',
+    'page.templates.two_column' => '960px',
+    default => '1120px',
+};
+$themeStyles[] = '--page-template-default-width: ' . $templateDefaultWidth;
+$contentWidth = match ((string) ($page->meta()->theme->contentWidth ?? '')) {
+    'narrow' => '760px',
+    'comfortable' => '960px',
+    'wide' => '1120px',
+    'full' => '100%',
+    default => '',
+};
+if ($contentWidth !== '') {
+    $themeStyles[] = '--page-content-max-width: ' . $contentWidth;
+}
 $bodyClasses = trim(implode(' ', [
     'page-theme',
+    ($page->meta()->theme->contentWidthIncludesChrome ?? false) ? 'page-theme--bounded-chrome' : '',
     ...$template->bodyClasses(),
     ...$page->bodyClasses(),
 ]));
@@ -44,6 +67,15 @@ if ($bodyClasses !== '') {
 if ($themeStyles !== []) {
     $style = trim((string) ($bodyAttributes['style'] ?? ''));
     $bodyAttributes['style'] = trim($style . ($style !== '' && !str_ends_with($style, ';') ? '; ' : ' ') . implode('; ', $themeStyles));
+}
+
+foreach ([...$template->stylesheets(), ...$page->stylesheets()] as $stylesheet) {
+    if ($stylesheet['attributes'] === []) {
+        $assets->add($stylesheet['href']);
+        continue;
+    }
+
+    $stylesheetTags[] = $stylesheet;
 }
 
 ?>
@@ -61,7 +93,8 @@ if ($themeStyles !== []) {
             overflow: hidden;
         }
     </style>
-    <?php foreach ([...$template->stylesheets(), ...$page->stylesheets()] as $stylesheet): ?>
+    <?= $assets->render('css') ?>
+    <?php foreach ($stylesheetTags as $stylesheet): ?>
         <link rel="stylesheet" href="<?= s($stylesheet['href']) ?>"<?= $attributeString($stylesheet['attributes']) ?>>
     <?php endforeach; ?>
 </head>

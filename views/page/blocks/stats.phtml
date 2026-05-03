@@ -1,6 +1,7 @@
 <?php
 
 use function NixPHP\View\s;
+use function NixPHP\I18n\t;
 
 $content = is_array($content ?? null) ? $content : [];
 $props = is_array($content['props'] ?? null) ? $content['props'] : [];
@@ -15,7 +16,7 @@ $items = [
     <?php foreach ($items as $item): ?>
         <div class="rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-5">
             <strong class="block text-3xl font-black text-[var(--page-text)]"><?= s($item['value']) ?></strong>
-            <span class="mt-1 block text-sm text-[var(--page-muted)]"><?= s($item['label']) ?></span>
+            <span class="mt-1 block text-sm text-[var(--page-muted)]"><?= s(t($item['label'])) ?></span>
         </div>
     <?php endforeach; ?>
 </section>

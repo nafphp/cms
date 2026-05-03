@@ -9,6 +9,7 @@ return [
     ...require __DIR__ . '/Resources/pages/pages.php',
     ...require __DIR__ . '/Resources/pages/navigation.php',
     ...require __DIR__ . '/Resources/pages/forms.php',
+    ...require __DIR__ . '/Resources/pages/media.php',
     ...require __DIR__ . '/Resources/pages/articles.php',
     ...require __DIR__ . '/Resources/pages/users.php',
     ...require __DIR__ . '/Resources/pages/roles.php',

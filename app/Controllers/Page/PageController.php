@@ -11,6 +11,7 @@ use NixCMS\Page\PageBuilderRenderer;
 use NixCMS\Support\HandlerInvoker;
 use Psr\Http\Message\ResponseInterface;
 use function cms;
+use function NixPHP\I18n\t;
 use function NixPHP\request;
 use function NixPHP\response;
 use function NixPHP\route;
@@ -118,8 +119,8 @@ final class PageController
         }
 
         return response(view('page.shell', [
-            'title' => $page->title(),
-            'pageTitle' => $page->title(),
+            'title' => t($page->title()),
+            'pageTitle' => t($page->title()),
             'page' => $page,
             'content' => $content,
             'layout' => $page->layout(),

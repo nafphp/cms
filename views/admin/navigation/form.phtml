@@ -6,6 +6,7 @@ use function NixPHP\View\s;
 
 $navigation = is_array($navigation ?? null) ? $navigation : null;
 $translations = is_array($translations ?? null) ? $translations : [];
+$translationSuggestions = is_array($translationSuggestions ?? null) ? $translationSuggestions : [];
 $languages = is_array($languages ?? null) ? array_values(array_map('strval', $languages)) : ['de', 'en'];
 $pageChoices = is_array($pageChoices ?? null) ? $pageChoices : [];
 $mode = (string) ($mode ?? 'create');
@@ -65,6 +66,7 @@ $languageLabels = [
     data-endpoint="<?= s($endpoint) ?>"
     data-navigation="<?= s(json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)) ?>"
     data-pages="<?= s(json_encode($pageChoices, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)) ?>"
+    data-translation-suggestions="<?= s(json_encode($translationSuggestions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)) ?>"
 >
     <section class="grid gap-4 rounded-lg border border-slate-300/70 bg-white/85 p-5 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-slate-400/25 dark:bg-slate-950/50 dark:shadow-none">
         <div class="grid gap-4 lg:grid-cols-[1fr_300px]">
@@ -82,13 +84,17 @@ $languageLabels = [
 
         <div class="grid gap-2">
             <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Languages')) ?></span>
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap gap-2" data-language-options>
                 <?php foreach ($languages as $language): ?>
                     <label class="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                         <input class="h-4 w-4 accent-[var(--admin-page-accent)]" type="checkbox" name="languages[]" value="<?= s($language) ?>" <?= in_array($language, $selectedLanguages, true) ? 'checked' : '' ?> data-language-toggle>
                         <span><?= s($languageLabels[$language] ?? strtoupper($language)) ?></span>
                     </label>
                 <?php endforeach; ?>
+                <button class="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-[var(--admin-page-accent)] hover:text-slate-950 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:text-white" type="button" data-open-language-modal>
+                    <span class="grid h-5 w-5 place-items-center rounded-full bg-[color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)] text-[13px] text-[var(--admin-page-accent)]" aria-hidden="true">+</span>
+                    <?= s(t('Add language')) ?>
+                </button>
             </div>
             <span class="hidden text-sm text-rose-600 dark:text-rose-300" data-error-for="languages"></span>
         </div>
@@ -115,6 +121,7 @@ $languageLabels = [
 </form>
 
 <script type="module">
+    import prompt from '/js/lib/notifyJs/Modules/Prompt.js';
     import toast from '/js/lib/notifyJs/Modules/Toast.js';
     import {initStyledSelects} from '/js/components/styledSelect.js';
 
@@ -123,21 +130,41 @@ $languageLabels = [
     const state = form.querySelector('[data-save-state]');
     const tabsRoot = form.querySelector('[data-language-tabs]');
     const itemsRoot = form.querySelector('[data-navigation-items]');
+    const languageOptionsRoot = form.querySelector('[data-language-options]');
+    const translationSuggestionsByLanguage = normalizeTranslationSuggestionsByLanguage(JSON.parse(form.dataset.translationSuggestions || '{}'));
     const languageLabels = <?= json_encode($languageLabels, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     const labels = <?= json_encode([
         'addChild' => t('Add child'),
+        'cancel' => t('Cancel'),
         'couldNotSave' => t('Could not save navigation.'),
         'dirty' => t('Unsaved changes.'),
         'empty' => t('No items yet.'),
+        'enterLanguageCode' => t('Enter a language code, for example nl or pt-br.'),
         'path' => t('Path or URL'),
         'remove' => t('Remove'),
         'saved' => t('Navigation draft saved.'),
         'clean' => t('No unsaved changes.'),
+        'apply' => t('Apply'),
+        'createLanguage' => t('Create language'),
+        'invalidLanguage' => t('Please enter a valid language code.'),
+        'languageCreated' => t('Language created.'),
+        'newLanguage' => t('New language'),
+        'language' => t('Language'),
+        'translationKey' => t('Translation key'),
+        'searchCreateTranslationKey' => t('Search or create a translation key for this navigation label.'),
+        'key' => t('Key'),
+        'value' => t('Value'),
+        'home' => t('Home'),
+        'storesOnlyTranslationKey' => t('The navigation item stores only the translation key.'),
+        'translationSaved' => t('Translation saved.'),
+        'emptyTranslationKey' => t('Please enter a translation key.'),
+        'selectPage' => t('Select page'),
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     let data = JSON.parse(form.dataset.navigation || '{}');
     const pageChoices = JSON.parse(form.dataset.pages || '[]');
     let activeLanguage = data.languages?.[0] || 'de';
     let identifierTouched = Boolean(data.identifier);
+    let activeTranslationPath = null;
 
     const blankItem = () => ({
         key: `item-${Date.now().toString(36)}`,
@@ -168,6 +195,10 @@ $languageLabels = [
         }
         return item;
     };
+    const suggestBox = document.createElement('div');
+    suggestBox.className = 'fixed z-50 hidden max-h-72 overflow-auto rounded-md border border-slate-300 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-950';
+    document.body.appendChild(suggestBox);
+    let activeSuggestInput = null;
 
     const renderTabs = () => {
         const languages = selectedLanguages();
@@ -193,14 +224,24 @@ $languageLabels = [
             const type = item.type || 'url';
             const targetControl = type === 'page'
                 ? `<select class="${inputClass}" data-styled-select data-field="target">
-                    <option value="">Select page</option>
+                    <option value="">${escapeHtml(labels.selectPage)}</option>
                     ${pageChoices.map((page) => `<option value="${escapeHtml(page.id)}" data-path="${escapeHtml(page.path)}" ${String(item.target || '') === String(page.id) ? 'selected' : ''}>${escapeHtml(page.title)} (${escapeHtml(page.path)})</option>`).join('')}
                 </select>`
                 : `<input class="${inputClass}" data-field="href" value="${escapeHtml(item.href || '')}" placeholder="${escapeHtml(labels.path)}">`;
 
             return `<div class="grid gap-3 rounded-lg border border-slate-300/70 bg-slate-50/80 p-3 dark:border-slate-700 dark:bg-slate-900/55" data-item-path="${encodedPath}">
                 <div class="grid gap-3 lg:grid-cols-[1fr_150px_1.5fr_auto]">
-                    <input class="${inputClass}" data-field="label" value="${escapeHtml(item.label || '')}" placeholder="Label">
+                    <label class="grid gap-1.5">
+                        <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Label')) ?></span>
+                        <span class="flex min-w-0 overflow-hidden rounded-md border border-slate-300 bg-white transition focus-within:border-[var(--admin-page-accent)] focus-within:ring-2 focus-within:ring-[color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)] dark:border-slate-700 dark:bg-slate-900">
+                            <input class="min-h-10 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm font-medium text-slate-950 outline-none dark:text-white" data-field="label" value="${escapeHtml(item.label || '')}" placeholder="navigation.home">
+                            <button class="inline-flex min-h-10 w-16 shrink-0 items-center justify-center border-l border-slate-300 bg-slate-50/70 px-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300" type="button" data-open-translation-modal="${encodedPath}" title="<?= s(t('Translation key')) ?>" aria-label="<?= s(t('Translation key')) ?>">
+                                <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path>
+                                </svg>
+                            </button>
+                        </span>
+                    </label>
                     <select class="${inputClass}" data-styled-select data-field="type">
                         ${[['url', 'URL'], ['page', 'Page']].map(([value, label]) => `<option value="${value}" ${value === type ? 'selected' : ''}>${label}</option>`).join('')}
                     </select>
@@ -288,8 +329,13 @@ $languageLabels = [
         if (field) field.dispatchEvent(new Event('input', {bubbles: true}));
     });
     itemsRoot.addEventListener('click', (event) => {
+        const translationButton = event.target.closest('[data-open-translation-modal]');
         const addChild = event.target.closest('[data-add-child]');
         const remove = event.target.closest('[data-remove-item]');
+        if (translationButton) {
+            openTranslationModal(translationButton.dataset.openTranslationModal);
+            return;
+        }
         if (addChild) {
             const item = itemByPath(addChild.dataset.addChild.split('.').map(Number));
             if (item) {
@@ -309,6 +355,9 @@ $languageLabels = [
     form.querySelector('[data-add-root]').addEventListener('click', () => {
         activeItems().push(blankItem());
         render();
+    });
+    form.querySelector('[data-open-language-modal]')?.addEventListener('click', () => {
+        openLanguagePrompt(true);
     });
     const slugifyIdentifier = (value) => String(value || '')
         .replace(/ä/g, 'ae')
@@ -332,6 +381,30 @@ $languageLabels = [
         identifierTouched = form.elements.identifier.value !== slugifyIdentifier(form.elements.title.value);
     });
     form.addEventListener('input', updateState);
+    document.addEventListener('click', (event) => {
+        const option = event.target.closest('[data-translation-suggestion-key]');
+        if (option && activeSuggestInput) {
+            activeSuggestInput.value = option.dataset.translationSuggestionKey || '';
+            const promptContainer = activeSuggestInput.closest('.notify');
+            const language = promptContainer?.querySelector('[data-navigation-translation-language]')?.value || activeLanguage;
+            const suggestion = findTranslationSuggestion(language, activeSuggestInput.value);
+            if (suggestion) {
+                const valueInput = promptContainer?.querySelector('[data-navigation-translation-value]');
+                if (valueInput instanceof HTMLInputElement) {
+                    valueInput.value = suggestion.value;
+                }
+            }
+            activeSuggestInput.dispatchEvent(new Event('input', {bubbles: true}));
+            hideTranslationSuggestions();
+            return;
+        }
+
+        if (!event.target.closest('[data-navigation-translation-key]') && !event.target.closest('[data-translation-suggest-box]')) {
+            hideTranslationSuggestions();
+        }
+    });
+    window.addEventListener('resize', hideTranslationSuggestions);
+    window.addEventListener('scroll', hideTranslationSuggestions, true);
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
         clearErrors();
@@ -353,5 +426,401 @@ $languageLabels = [
     });
 
     render();
+
+    function normalizeTranslationSuggestionsByLanguage(suggestions) {
+        if (Array.isArray(suggestions)) {
+            return {
+                '': normalizeTranslationSuggestions(suggestions),
+            };
+        }
+
+        if (!suggestions || typeof suggestions !== 'object') {
+            return {};
+        }
+
+        return Object.fromEntries(Object.entries(suggestions).map(([language, entries]) => [
+            normalizeLanguageCode(language) || language,
+            normalizeTranslationSuggestions(entries),
+        ]));
+    }
+
+    function normalizeTranslationSuggestions(suggestions) {
+        return (Array.isArray(suggestions) ? suggestions : [])
+            .map((suggestion) => ({
+                key: String(suggestion?.key || ''),
+                value: String(suggestion?.value || ''),
+            }))
+            .filter((suggestion) => suggestion.key !== '');
+    }
+
+    function showTranslationSuggestions(input) {
+        const promptContainer = input?.closest('.notify');
+        const language = promptContainer?.querySelector('[data-navigation-translation-language]')?.value || activeLanguage;
+        const matches = matchingTranslationSuggestions(language, input?.value || '');
+        if (matches.length === 0) {
+            hideTranslationSuggestions();
+            return;
+        }
+
+        activeSuggestInput = input;
+        const rect = input.getBoundingClientRect();
+        suggestBox.dataset.translationSuggestBox = 'true';
+        suggestBox.style.left = `${rect.left}px`;
+        suggestBox.style.top = `${rect.bottom + 6}px`;
+        suggestBox.style.width = `${Math.max(rect.width, 320)}px`;
+        suggestBox.innerHTML = matches.map((suggestion) => `
+            <button type="button" class="grid w-full gap-0.5 rounded px-2.5 py-2 text-left transition hover:bg-slate-100 dark:hover:bg-slate-900" data-translation-suggestion-key="${escapeHtml(suggestion.key)}">
+                <span class="font-mono text-xs font-semibold text-slate-900 dark:text-slate-100">${highlight(suggestion.key, input.value)}</span>
+                <span class="truncate text-xs text-slate-500 dark:text-slate-400">${escapeHtml(suggestion.value)}</span>
+            </button>
+        `).join('');
+        suggestBox.classList.remove('hidden');
+    }
+
+    function hideTranslationSuggestions() {
+        activeSuggestInput = null;
+        suggestBox.classList.add('hidden');
+        suggestBox.innerHTML = '';
+    }
+
+    function matchingTranslationSuggestions(language, value) {
+        const query = String(value || '').trim().toLowerCase();
+        if (query === '') {
+            return currentTranslationSuggestions(language).slice(0, 8);
+        }
+
+        const parts = query.split(/\s+/).filter(Boolean);
+        return currentTranslationSuggestions(language)
+            .map((suggestion) => ({
+                ...suggestion,
+                score: translationSuggestionScore(suggestion, parts),
+            }))
+            .filter((suggestion) => suggestion.score > 0)
+            .sort((a, b) => b.score - a.score || a.key.localeCompare(b.key))
+            .slice(0, 8);
+    }
+
+    function translationSuggestionScore(suggestion, parts) {
+        const key = suggestion.key.toLowerCase();
+        const value = suggestion.value.toLowerCase();
+        let score = key.startsWith('navigation.') ? 12 : 0;
+
+        for (const part of parts) {
+            if (key === part) {
+                score += 120;
+            } else if (key.startsWith(part)) {
+                score += 80;
+            } else if (key.includes(part)) {
+                score += 45;
+            }
+
+            if (value === part) {
+                score += 100;
+            } else if (value.startsWith(part)) {
+                score += 70;
+            } else if (value.includes(part)) {
+                score += 55;
+            }
+        }
+
+        return score;
+    }
+
+    function currentTranslationSuggestions(language = activeLanguage) {
+        const normalized = normalizeLanguageCode(language) || language || activeLanguage;
+        if (!translationSuggestionsByLanguage[normalized] && Array.isArray(translationSuggestionsByLanguage[''])) {
+            return translationSuggestionsByLanguage[''];
+        }
+        translationSuggestionsByLanguage[normalized] = Array.isArray(translationSuggestionsByLanguage[normalized])
+            ? translationSuggestionsByLanguage[normalized]
+            : [];
+
+        return translationSuggestionsByLanguage[normalized];
+    }
+
+    function findTranslationSuggestion(language, key) {
+        const normalizedKey = String(key || '').trim();
+        if (normalizedKey === '') {
+            return null;
+        }
+
+        return currentTranslationSuggestions(language).find((suggestion) => suggestion.key === normalizedKey) || null;
+    }
+
+    function setTranslationSuggestion(language, key, value) {
+        const suggestions = currentTranslationSuggestions(language);
+        const existing = suggestions.find((suggestion) => suggestion.key === key);
+        if (existing) {
+            existing.value = value;
+            return;
+        }
+
+        suggestions.push({key, value});
+        suggestions.sort((a, b) => a.key.localeCompare(b.key));
+    }
+
+    async function openTranslationModal(path) {
+        activeTranslationPath = String(path || '');
+        const item = itemByPath(activeTranslationPath.split('.').map(Number));
+        if (!item) {
+            return;
+        }
+
+        const initialKey = String(item.label || '');
+        const initialValue = findTranslationSuggestion(activeLanguage, initialKey)?.value || '';
+        const promptResult = prompt(translationPromptHtml(activeLanguage, initialKey, initialValue), {
+            confirmButtonText: labels.apply,
+            cancelButtonText: labels.cancel,
+            showCancelButton: true,
+            style: {width: 'min(720px, calc(100vw - 32px))'},
+            confirmCallback: (promptInstance) => {
+                applyTranslationPrompt(promptInstance);
+                return true;
+            },
+        });
+
+        window.setTimeout(() => bindTranslationPrompt(document.querySelector('.navigation-translation-prompt')), 0);
+        await promptResult;
+        activeTranslationPath = null;
+        hideTranslationSuggestions();
+    }
+
+    async function applyTranslationPrompt(promptInstance) {
+        const container = promptInstance.container;
+        const language = normalizeLanguageCode(container.querySelector('[data-navigation-translation-language]')?.value) || activeLanguage;
+        const keyInput = container.querySelector('[data-navigation-translation-key]');
+        const key = String(keyInput?.value || '').trim();
+        const value = String(container.querySelector('[data-navigation-translation-value]')?.value || '');
+        if (key === '') {
+            toast(labels.emptyTranslationKey);
+            keyInput?.focus();
+            return;
+        }
+
+        if (value.trim() !== '' || !findTranslationSuggestion(language, key)) {
+            const saved = await saveTranslation(language, key, value);
+            if (!saved) {
+                return;
+            }
+            toast(labels.translationSaved);
+        }
+
+        const item = activeTranslationPath ? itemByPath(activeTranslationPath.split('.').map(Number)) : null;
+        if (item) {
+            item.label = key;
+            item.key = slugifyIdentifier(key) || item.key;
+            render();
+        }
+
+        promptInstance.promise.resolve(true);
+        promptInstance.remove();
+    }
+
+    async function openLanguagePrompt(makeActive = false) {
+        let createdLanguage = null;
+        const confirmed = await prompt(`
+            <div>${escapeHtml(labels.newLanguage)}</div>
+            <div class="notify-form">
+                <p class="notify-form-intro">${escapeHtml(labels.enterLanguageCode)}</p>
+                <label class="notify-field">
+                    <span class="notify-field-label">${escapeHtml(labels.language)}</span>
+                    <input id="navigation-language-code-input" class="font-mono" type="text" placeholder="nl">
+                </label>
+            </div>
+        `, {
+            confirmButtonText: labels.createLanguage,
+            cancelButtonText: labels.cancel,
+            showCancelButton: true,
+            confirmCallback: async (promptInstance) => {
+                const input = promptInstance.container.querySelector('#navigation-language-code-input');
+                const language = normalizeLanguageCode(input?.value);
+                if (language === null) {
+                    toast(labels.invalidLanguage);
+                    input?.focus();
+                    return true;
+                }
+
+                const created = await createLanguage(language, makeActive);
+                if (!created) {
+                    return true;
+                }
+
+                createdLanguage = language;
+                promptInstance.promise.resolve(true);
+                promptInstance.remove();
+                return true;
+            },
+        });
+
+        return confirmed === true ? createdLanguage : null;
+    }
+
+    async function createLanguage(language, makeActive = false) {
+        language = normalizeLanguageCode(language);
+        if (language === null) {
+            toast(labels.invalidLanguage);
+            return false;
+        }
+
+        const response = await (window.NixCMS?.json || fetch)(`/api/admin/translations/${encodeURIComponent(language)}`, {
+            method: 'POST',
+            body: JSON.stringify({entries: {}}),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.success) {
+            toast(result.reason || labels.couldNotSave);
+            return false;
+        }
+
+        ensureLanguageOption(language, true);
+        data.itemsByLanguage = data.itemsByLanguage || {};
+        data.itemsByLanguage[language] = Array.isArray(data.itemsByLanguage[language]) ? data.itemsByLanguage[language] : [];
+        translationSuggestionsByLanguage[language] = translationSuggestionsByLanguage[language] || [];
+        if (makeActive) {
+            activeLanguage = language;
+            render();
+        }
+        toast(labels.languageCreated);
+        return true;
+    }
+
+    function ensureLanguageOption(language, checked = true) {
+        if (form.querySelector(`[data-language-toggle][value="${CSS.escape(language)}"]`)) {
+            form.querySelector(`[data-language-toggle][value="${CSS.escape(language)}"]`).checked = checked;
+            return;
+        }
+
+        const button = form.querySelector('[data-open-language-modal]');
+        const label = document.createElement('label');
+        label.className = 'inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200';
+        label.innerHTML = `
+            <input class="h-4 w-4 accent-[var(--admin-page-accent)]" type="checkbox" name="languages[]" value="${escapeHtml(language)}" checked data-language-toggle>
+            <span>${escapeHtml(labelForLanguage(language))}</span>
+        `;
+        languageOptionsRoot.insertBefore(label, button);
+    }
+
+    function translationPromptHtml(language, key, value) {
+        return `
+            <div>${escapeHtml(labels.translationKey)}</div>
+            <div class="navigation-translation-prompt notify-form">
+                <p class="notify-form-intro">${escapeHtml(labels.searchCreateTranslationKey)}</p>
+                <div class="notify-form-grid">
+                    <label class="notify-field">
+                        <span class="notify-field-label">${escapeHtml(labels.language)}</span>
+                        <div class="flex gap-2">
+                            <select data-styled-select data-navigation-translation-language>
+                                ${translationLanguageOptions(language)}
+                            </select>
+                            <button class="inline-flex min-h-10 items-center rounded-md border border-[var(--notify-border)] px-3 text-sm font-semibold text-[var(--notify-muted)] transition hover:border-[var(--notify-accent)] hover:text-[var(--notify-text)]" type="button" data-navigation-translation-new-language>
+                                ${escapeHtml(labels.newLanguage)}
+                            </button>
+                        </div>
+                    </label>
+                    <label class="notify-field">
+                        <span class="notify-field-label">${escapeHtml(labels.key)}</span>
+                        <input class="font-mono" type="text" value="${escapeHtml(key)}" placeholder="navigation.home" autocomplete="off" data-navigation-translation-key>
+                    </label>
+                </div>
+                <label class="notify-field">
+                    <span class="notify-field-label">${escapeHtml(labels.value)}</span>
+                    <input type="text" value="${escapeHtml(value)}" placeholder="${escapeHtml(labels.home)}" data-navigation-translation-value>
+                </label>
+                <p class="notify-form-intro">${escapeHtml(labels.storesOnlyTranslationKey)}</p>
+            </div>
+        `;
+    }
+
+    function translationLanguageOptions(selectedLanguage = activeLanguage) {
+        const languages = selectedLanguages();
+        if (!languages.includes(selectedLanguage) && selectedLanguage !== '') {
+            languages.unshift(selectedLanguage);
+        }
+
+        return languages.map((language) => `
+            <option value="${escapeHtml(language)}" ${language === selectedLanguage ? 'selected' : ''}>${escapeHtml(labelForLanguage(language))}</option>
+        `).join('');
+    }
+
+    function bindTranslationPrompt(modal) {
+        if (!(modal instanceof HTMLElement)) {
+            return;
+        }
+
+        const notify = modal.closest('.notify');
+        if (notify instanceof HTMLElement) {
+            notify.classList.add('navigation-translation-notify');
+        }
+
+        const languageSelect = modal.querySelector('[data-navigation-translation-language]');
+        const keyInput = modal.querySelector('[data-navigation-translation-key]');
+        const valueInput = modal.querySelector('[data-navigation-translation-value]');
+        initStyledSelects(modal.querySelectorAll('select[data-styled-select]'));
+        keyInput?.focus({preventScroll: true});
+
+        languageSelect?.addEventListener('change', () => {
+            const existing = findTranslationSuggestion(languageSelect.value, keyInput?.value);
+            if (existing && valueInput instanceof HTMLInputElement && valueInput.value.trim() === '') {
+                valueInput.value = existing.value;
+            }
+            showTranslationSuggestions(keyInput);
+        });
+        keyInput?.addEventListener('focus', () => showTranslationSuggestions(keyInput));
+        keyInput?.addEventListener('input', () => {
+            const existing = findTranslationSuggestion(languageSelect?.value || activeLanguage, keyInput.value);
+            if (existing && valueInput instanceof HTMLInputElement && valueInput.value.trim() === '') {
+                valueInput.value = existing.value;
+            }
+            showTranslationSuggestions(keyInput);
+        });
+        modal.querySelector('[data-navigation-translation-new-language]')?.addEventListener('click', async () => {
+            const language = await openLanguagePrompt(false);
+            if (!language || !(languageSelect instanceof HTMLSelectElement)) {
+                return;
+            }
+
+            languageSelect.innerHTML = translationLanguageOptions(language);
+            languageSelect.value = language;
+            languageSelect.dispatchEvent(new Event('change', {bubbles: true}));
+            keyInput?.focus({preventScroll: true});
+        });
+    }
+
+    async function saveTranslation(language, key, value) {
+        const entries = Object.fromEntries(currentTranslationSuggestions(language).map((suggestion) => [suggestion.key, suggestion.value]));
+        entries[key] = value;
+        const response = await (window.NixCMS?.json || fetch)(`/api/admin/translations/${encodeURIComponent(language)}`, {
+            method: 'POST',
+            body: JSON.stringify({entries}),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.success) {
+            toast(result.reason || labels.couldNotSave);
+            return false;
+        }
+
+        setTranslationSuggestion(language, key, value);
+        return true;
+    }
+
+    function normalizeLanguageCode(value) {
+        const language = String(value || '').trim().toLowerCase();
+        return /^[a-z]{2,3}(?:-[a-z0-9]{2,4})?$/.test(language) && language.length <= 8 ? language : null;
+    }
+
+    function highlight(value, query) {
+        const safe = escapeHtml(value);
+        const term = String(query || '').trim().split(/\s+/).find(Boolean);
+        if (!term) {
+            return safe;
+        }
+
+        const index = value.toLowerCase().indexOf(term.toLowerCase());
+        if (index < 0) {
+            return safe;
+        }
+
+        return `${escapeHtml(value.slice(0, index))}<mark class="rounded bg-yellow-200 px-0.5 text-slate-950">${escapeHtml(value.slice(index, index + term.length))}</mark>${escapeHtml(value.slice(index + term.length))}`;
+    }
 </script>
 <?php $this->endBlock('content'); ?>

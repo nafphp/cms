@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace NixCMS\Repositories;
 
 use NixCMS\Enums\ArticleStatus;
-use NixCMS\Enums\Language;
 use NixCMS\Models\ArticleVersion;
 use NixPHP\ORM\Repository\AbstractRepository;
 use function NixPHP\ORM\em;
@@ -32,7 +31,7 @@ class ArticleVersionRepository extends AbstractRepository
         return (int) $stmt->fetchColumn();
     }
 
-    public function getNextVersion(int $articleId, Language $language): int
+    public function getNextVersion(int $articleId, string $language): int
     {
         $sql = "SELECT COALESCE(MAX(version), 0) + 1 AS next_version
                 FROM {$this->getTable()}
@@ -41,7 +40,7 @@ class ArticleVersionRepository extends AbstractRepository
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'article_id' => $articleId,
-            'language' => $language->value,
+            'language' => $language,
         ]);
 
         return (int) $stmt->fetchColumn();
@@ -49,7 +48,7 @@ class ArticleVersionRepository extends AbstractRepository
 
     public function createNewVersion(
         int $articleId,
-        Language $language,
+        string $language,
         string $slug,
         string $title,
         string $teaser,
@@ -62,7 +61,7 @@ class ArticleVersionRepository extends AbstractRepository
         $entityClass = $this->getEntityClass();
         $version = new $entityClass([
             'article_id' => $articleId,
-            'language' => $language->value,
+            'language' => $language,
             'slug' => $slug,
             'version' => $nextVersion,
             'status' => ArticleStatus::DRAFT->value,

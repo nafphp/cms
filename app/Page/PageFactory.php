@@ -23,6 +23,7 @@ final class PageFactory
             ->setLayout((string) ($row['layout'] ?? $definition['layout'] ?? 'layouts.page'))
             ->addStylesheet('/css/nixcms.css')
             ->addScript('/js/page-forms.js', ['type' => 'module'])
+            ->addScript('/js/admin/diagrams.js', ['type' => 'module'])
             ->addBodyClass('min-h-screen bg-[var(--page-bg)] text-[var(--page-text)]');
 
         $storedBlocks = is_array($row['blocks'] ?? null) ? $row['blocks'] : [];
@@ -71,7 +72,11 @@ final class PageFactory
 
     private function blockViews(): BlockViewRegistry
     {
-        return $this->blockViews ??= new BlockViewRegistry();
+        if ($this->blockViews !== null) {
+            return $this->blockViews;
+        }
+
+        return $this->blockViews = function_exists('\cms') ? \cms()->blocks() : new BlockViewRegistry();
     }
 
     /**

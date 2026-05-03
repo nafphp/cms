@@ -1,13 +1,16 @@
 <?php
 
-require_once __DIR__ . '/_navigation_helpers.php';
+require_once __DIR__ . '/_helpers/navigation.php';
 
 $content = is_array($content ?? null) ? $content : [];
 $props = is_array($content['props'] ?? null) ? $content['props'] : [];
 $language = (string) ($props['language'] ?? '');
+$pageObject = isset($page) && is_object($page) ? $page : null;
+$fallbackIdentifier = (string) ($pageObject?->meta()->extra->defaultNavigationIdentifier ?? 'main');
 $items = nixcms_page_block_nav_items(
     (string) ($props['identifier'] ?? 'main'),
-    $language === 'current' ? '' : $language
+    $language === 'current' ? $pageObject?->language() : $language,
+    $fallbackIdentifier
 );
 
 ?>

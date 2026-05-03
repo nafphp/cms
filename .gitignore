@@ -7,6 +7,8 @@
 /storage/mcp/tokens.json
 /storage/queue/**/*.job
 /storage/queue/**/*.lock
+/storage/media/*
+!/storage/media/.gitkeep
 /.phpunit.cache/
 /.phpunit.result.cache
 .claude/

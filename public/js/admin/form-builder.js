@@ -6,6 +6,7 @@ const buttonClass = 'inline-flex min-h-8 items-center rounded-md border border-s
 const escapeHtml = (value) => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 const slug = (value) => String(value || '').trim().toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^[-._]+|[-._]+$/g, '');
 const fieldTypes = ['text', 'email', 'textarea', 'select', 'checkbox'];
+const actionMethods = ['POST', 'PUT', 'PATCH'];
 const validatorRules = [
     {value: 'required', label: 'required'},
     {value: 'email', label: 'email'},
@@ -21,6 +22,7 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
     const data = JSON.parse(root.dataset.form || '{}');
     const translationSuggestions = normalizeTranslationSuggestions(JSON.parse(root.dataset.translationSuggestions || '[]'));
     const fieldsRoot = root.querySelector('[data-fields]');
+    const actionsRoot = root.querySelector('[data-actions]');
     const state = root.querySelector('[data-save-state]');
     const overviewUrl = root.dataset.overviewUrl || '/admin/forms';
     let identifierTouched = Boolean(data.identifier && data.identifier !== 'contact');
@@ -43,6 +45,7 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
             nameTouched: Boolean(field?.name),
         }))
         : [];
+    const actions = normalizeActions(data.settings?.actions);
     const payload = () => ({
         id: Number(data.id || 0),
         title: root.elements.title.value,
@@ -55,6 +58,7 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
             submitLabelKey: root.elements.submitLabelKey.value,
             successMessage: root.elements.successMessage.value,
             successMessageKey: root.elements.successMessageKey.value,
+            actions,
         },
     });
     const initial = JSON.stringify(payload());
@@ -72,6 +76,7 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
         nameTouched: false,
     });
     const blankValidator = () => ({rule: 'required', param: ''});
+    const blankWebhook = () => ({type: 'webhook', enabled: true, url: '', method: 'POST', failOnError: false});
 
     const render = () => {
         fieldsRoot.innerHTML = fields.map((field, index) => `
@@ -145,7 +150,56 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
             </article>
         `).join('');
         initStyledSelects(fieldsRoot.querySelectorAll('select[data-styled-select]'));
+        renderActions();
         state.textContent = JSON.stringify(payload()) === initial ? 'No unsaved changes.' : 'Unsaved changes.';
+    };
+
+    const renderActions = () => {
+        if (!actionsRoot) {
+            return;
+        }
+
+        const store = actions.find((action) => action.type === 'store') || {type: 'store', enabled: true};
+        const webhooks = actions.filter((action) => action.type === 'webhook');
+        actionsRoot.innerHTML = `
+            <article class="rounded-lg border border-slate-300/70 bg-slate-50/80 p-4 dark:border-slate-700 dark:bg-slate-900/55" data-action-type="store">
+                <label class="flex items-start gap-3">
+                    <input class="mt-1 h-4 w-4 accent-[var(--admin-page-accent)]" type="checkbox" data-store-action-enabled ${store.enabled !== false ? 'checked' : ''}>
+                    <span class="grid gap-1">
+                        <span class="text-sm font-semibold text-slate-950 dark:text-white">Store submission</span>
+                        <span class="text-sm text-slate-500 dark:text-slate-400">Save validated values in NixCMS form submissions.</span>
+                    </span>
+                </label>
+            </article>
+            ${webhooks.map((action, index) => `
+                <article class="grid gap-3 rounded-lg border border-slate-300/70 bg-slate-50/80 p-4 dark:border-slate-700 dark:bg-slate-900/55" data-webhook-index="${index}">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h3 class="m-0 text-sm font-semibold text-slate-950 dark:text-white">Webhook</h3>
+                            <p class="m-0 mt-1 text-xs text-slate-500">Send the validated submission as JSON to an external endpoint.</p>
+                        </div>
+                        <button class="${buttonClass}" type="button" data-remove-webhook-action="${index}">Remove webhook</button>
+                    </div>
+                    <div class="grid gap-3 lg:grid-cols-[1fr_160px]">
+                        <label class="grid gap-1.5">
+                            <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Endpoint URL</span>
+                            <input class="${inputClass}" data-webhook-prop="url" value="${escapeHtml(action.url || '')}" placeholder="https://api.example.com/leads">
+                        </label>
+                        <label class="grid gap-1.5">
+                            <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Method</span>
+                            <select class="${inputClass}" data-styled-select data-webhook-prop="method">
+                                ${actionMethods.map((method) => `<option value="${method}" ${action.method === method ? 'selected' : ''}>${method}</option>`).join('')}
+                            </select>
+                        </label>
+                    </div>
+                    <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                        <input class="h-4 w-4 accent-[var(--admin-page-accent)]" type="checkbox" data-webhook-prop="failOnError" ${action.failOnError === true ? 'checked' : ''}>
+                        Fail the form submission if this webhook fails
+                    </label>
+                </article>
+            `).join('')}
+        `;
+        initStyledSelects(actionsRoot.querySelectorAll('select[data-styled-select]'));
     };
 
     root.elements.title.addEventListener('input', () => {
@@ -220,6 +274,38 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
     };
     root.addEventListener('input', handleFieldInput);
     root.addEventListener('change', handleFieldInput);
+    const handleActionInput = (event) => {
+        const storeToggle = event.target.closest('[data-store-action-enabled]');
+        if (storeToggle) {
+            const store = ensureStoreAction(actions);
+            store.enabled = storeToggle.checked;
+            state.textContent = JSON.stringify(payload()) === initial ? 'No unsaved changes.' : 'Unsaved changes.';
+            return;
+        }
+
+        const target = event.target.closest('[data-webhook-prop]');
+        if (!target) {
+            return;
+        }
+
+        const row = target.closest('[data-webhook-index]');
+        const webhook = actions.filter((action) => action.type === 'webhook')[Number(row?.dataset.webhookIndex || -1)];
+        if (!webhook) {
+            return;
+        }
+
+        const prop = target.dataset.webhookProp;
+        if (prop === 'failOnError') {
+            webhook.failOnError = target.checked;
+        } else if (prop === 'method') {
+            webhook.method = actionMethods.includes(target.value) ? target.value : 'POST';
+        } else {
+            webhook[prop] = target.value;
+        }
+        state.textContent = JSON.stringify(payload()) === initial ? 'No unsaved changes.' : 'Unsaved changes.';
+    };
+    root.addEventListener('input', handleActionInput);
+    root.addEventListener('change', handleActionInput);
     root.addEventListener('focusin', (event) => {
         const input = event.target.closest('[data-translation-key-suggest]');
         if (input) {
@@ -262,6 +348,21 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
         if (remove) {
             fields.splice(Number(remove.dataset.removeField), 1);
             render();
+        }
+
+        if (event.target.closest('[data-add-webhook-action]')) {
+            actions.push(blankWebhook());
+            render();
+        }
+
+        const removeWebhook = event.target.closest('[data-remove-webhook-action]');
+        if (removeWebhook) {
+            const webhook = actions.filter((action) => action.type === 'webhook')[Number(removeWebhook.dataset.removeWebhookAction || -1)];
+            const index = actions.indexOf(webhook);
+            if (index >= 0) {
+                actions.splice(index, 1);
+                render();
+            }
         }
     });
     root.addEventListener('submit', async (event) => {
@@ -340,6 +441,37 @@ function normalizeValidators(field) {
     }
 
     return validators;
+}
+
+function normalizeActions(actions) {
+    const normalized = Array.isArray(actions)
+        ? actions
+            .filter((action) => action && typeof action === 'object')
+            .map((action) => ({
+                type: String(action.type || ''),
+                enabled: action.enabled !== false,
+                url: String(action.url || ''),
+                method: actionMethods.includes(String(action.method || '').toUpperCase()) ? String(action.method).toUpperCase() : 'POST',
+                failOnError: action.failOnError === true,
+            }))
+            .filter((action) => action.type === 'store' || action.type === 'webhook')
+        : [];
+
+    if (!normalized.some((action) => action.type === 'store')) {
+        normalized.unshift({type: 'store', enabled: true});
+    }
+
+    return normalized;
+}
+
+function ensureStoreAction(actions) {
+    let store = actions.find((action) => action.type === 'store');
+    if (!store) {
+        store = {type: 'store', enabled: true};
+        actions.unshift(store);
+    }
+
+    return store;
 }
 
 function translationKey(value) {

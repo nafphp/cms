@@ -1,15 +1,21 @@
 <?php
 
 use function NixPHP\View\s;
+use function NixPHP\I18n\t;
 
-require_once __DIR__ . '/_navigation_helpers.php';
+require_once __DIR__ . '/_helpers/navigation.php';
 
 $content = is_array($content ?? null) ? $content : [];
 $props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$items = nixcms_page_block_nav_items((string) ($props['navigationIdentifier'] ?? 'main'));
+$pageObject = isset($page) && is_object($page) ? $page : null;
+$fallbackIdentifier = (string) ($pageObject?->meta()->extra->defaultNavigationIdentifier ?? 'main');
+$language = $pageObject?->language();
+$items = nixcms_page_block_nav_items((string) ($props['navigationIdentifier'] ?? 'main'), $language, $fallbackIdentifier);
 
 ?>
-<footer class="flex min-h-16 flex-wrap items-center justify-between gap-3 border-t border-[var(--page-border)] bg-[var(--page-footer-bg)] px-6 py-4">
-    <span class="text-xs font-medium text-[var(--page-footer-text)]"><?= s((string) ($props['text'] ?? 'Powered by NixCMS')) ?></span>
-    <?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'compact')) ?>
+<footer class="border-t border-[var(--page-border)] bg-[var(--page-footer-bg)]">
+    <div class="page-template-chrome-inner flex min-h-16 flex-wrap items-center justify-between gap-3 px-6 py-4">
+        <span class="text-xs font-medium text-[var(--page-footer-text)]"><?= s(t((string) ($props['text'] ?? 'Powered by NixCMS'))) ?></span>
+        <?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'compact')) ?>
+    </div>
 </footer>

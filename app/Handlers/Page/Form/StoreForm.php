@@ -79,6 +79,33 @@ final class StoreForm
             }
         }
 
+        $settings = is_array($data['settings'] ?? null) ? $data['settings'] : [];
+        $actions = is_array($settings['actions'] ?? null) ? $settings['actions'] : [];
+        $hasEnabledAction = false;
+        foreach ($actions as $index => $action) {
+            if (!is_array($action) || ($action['enabled'] ?? true) === false) {
+                continue;
+            }
+
+            $type = strtolower(trim((string) ($action['type'] ?? '')));
+            if ($type === 'store') {
+                $hasEnabledAction = true;
+                continue;
+            }
+
+            if ($type === 'webhook') {
+                $hasEnabledAction = true;
+                $url = trim((string) ($action['url'] ?? ''));
+                if ($url === '' || filter_var($url, FILTER_VALIDATE_URL) === false || !preg_match('/^https?:\/\//i', $url)) {
+                    $errors['actions'][] = sprintf('Webhook action %d needs a valid http or https URL.', $index + 1);
+                }
+            }
+        }
+
+        if ($actions !== [] && !$hasEnabledAction) {
+            $errors['actions'][] = 'Enable at least one submission action.';
+        }
+
         return $errors;
     }
 }

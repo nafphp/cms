@@ -1,6 +1,7 @@
 <?php
 
 use function NixPHP\View\s;
+use function NixPHP\I18n\t;
 
 $content = is_array($content ?? null) ? $content : [];
 $props = is_array($content['props'] ?? null) ? $content['props'] : [];
@@ -9,5 +10,5 @@ $level = in_array($level, ['h1', 'h2', 'h3'], true) ? $level : 'h2';
 
 ?>
 <<?= s($level) ?> class="text-3xl font-extrabold leading-tight text-[var(--page-text)]">
-    <?= s((string) ($props['text'] ?? $label ?? '')) ?>
+    <?= s(t((string) ($props['text'] ?? $label ?? ''))) ?>
 </<?= s($level) ?>>

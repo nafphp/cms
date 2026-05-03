@@ -6,26 +6,77 @@ namespace NixCMS\Content;
 
 final class BlockViewRegistry
 {
-    private const VIEWS = [
-        'header' => 'page.blocks.header',
-        'footer' => 'page.blocks.footer',
-        'navigation' => 'page.blocks.navigation',
-        'articles' => 'page.blocks.articles',
-        'hero' => 'page.blocks.hero',
-        'cta' => 'page.blocks.cta',
-        'feature' => 'page.blocks.feature',
-        'media' => 'page.blocks.media',
-        'quote' => 'page.blocks.quote',
-        'stats' => 'page.blocks.stats',
-        'form' => 'page.blocks.form',
-        'contact-form' => 'page.blocks.form',
-        'heading' => 'page.blocks.heading',
-        'text' => 'page.blocks.text',
-        'aside' => 'page.blocks.text',
-    ];
+    /** @var array<string, string> */
+    private array $views = [];
 
-    public function viewFor(string $contentType): string
+    public function __construct()
     {
-        return self::VIEWS[strtolower(trim($contentType))] ?? 'page.blocks.placeholder';
+        $this->addMany([
+            'header' => 'page.blocks.header',
+            'footer' => 'page.blocks.footer',
+            'navigation' => 'page.blocks.navigation',
+            'articles' => 'page.blocks.articles',
+            'hero' => 'page.blocks.hero',
+            'cta' => 'page.blocks.cta',
+            'feature' => 'page.blocks.feature',
+            'media' => 'page.blocks.media',
+            'image' => 'page.blocks.image',
+            'embed' => 'page.blocks.embed',
+            'map' => 'page.blocks.map',
+            'quote' => 'page.blocks.quote',
+            'stats' => 'page.blocks.stats',
+            'chart' => 'page.blocks.chart',
+            'form' => 'page.blocks.form',
+            'heading' => 'page.blocks.heading',
+            'text' => 'page.blocks.text',
+        ]);
+
+        $aliases = [
+            'contact-form' => 'form',
+            'aside' => 'text',
+        ];
+
+        foreach ($aliases as $alias => $type) {
+            $this->add($alias, $this->viewFor($type));
+        }
+    }
+
+    public function add(string $type, string $view): void
+    {
+        $type = $this->normalize($type);
+        $view = trim($view);
+        if ($type === '' || $view === '') {
+            throw new \InvalidArgumentException('Block view type and view name must be non-empty strings.');
+        }
+
+        $this->views[$type] = $view;
+    }
+
+    /**
+     * @param array<string, string> $views
+     */
+    public function addMany(array $views): void
+    {
+        foreach ($views as $type => $view) {
+            $this->add((string) $type, $view);
+        }
+    }
+
+    public function viewFor(string $type): string
+    {
+        return $this->views[$this->normalize($type)] ?? 'page.blocks.placeholder';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function all(): array
+    {
+        return $this->views;
+    }
+
+    private function normalize(string $type): string
+    {
+        return strtolower(trim($type));
     }
 }

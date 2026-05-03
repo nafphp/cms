@@ -19,23 +19,26 @@ final class PageFactoryTest extends TestCase
             'language' => 'en',
             'status' => 'published',
             'layout' => 'layouts.page',
-            'blocks' => [
-                'site_header' => ['type' => 'header', 'props' => []],
-                'main' => ['type' => 'text', 'props' => ['text' => 'Hello']],
-            ],
-        ], [
-            'id' => 'public',
-            'view' => 'page.templates.public',
-            'blocks' => [
-                ['id' => 'site_header', 'label' => 'Header'],
-                ['id' => 'main', 'label' => 'Main'],
-            ],
-        ]);
+                'blocks' => [
+                    'site_header' => ['type' => 'header', 'props' => []],
+                    'main' => ['type' => 'text', 'props' => ['text' => 'Hello']],
+                    'aside' => ['type' => 'chart', 'props' => ['title' => 'Metrics']],
+                ],
+            ], [
+                'id' => 'public',
+                'view' => 'page.templates.public',
+                'blocks' => [
+                    ['id' => 'site_header', 'label' => 'Header'],
+                    ['id' => 'main', 'label' => 'Main'],
+                    ['id' => 'aside', 'label' => 'Aside'],
+                ],
+            ]);
 
         $blocks = $page->template()?->blocks() ?? [];
 
         $this->assertSame('page.blocks.header', $blocks['site_header']->view());
         $this->assertSame('page.blocks.text', $blocks['main']->view());
+        $this->assertSame('page.blocks.chart', $blocks['aside']->view());
     }
 
     public function testDraftStoredPageRequiresPageViewPermission(): void

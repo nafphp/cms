@@ -273,7 +273,44 @@ final class FormRepository
             'submitLabelKey' => $this->normalizeTranslationKey((string) ($settings['submitLabelKey'] ?? '')),
             'successMessage' => trim((string) ($settings['successMessage'] ?? '')),
             'successMessageKey' => $this->normalizeTranslationKey((string) ($settings['successMessageKey'] ?? '')),
+            'actions' => $this->normalizeActions(is_array($settings['actions'] ?? null) ? $settings['actions'] : []),
         ];
+    }
+
+    /** @param array<int, mixed> $actions */
+    private function normalizeActions(array $actions): array
+    {
+        $normalized = [];
+
+        foreach ($actions as $action) {
+            if (!is_array($action)) {
+                continue;
+            }
+
+            $type = strtolower(trim((string) ($action['type'] ?? '')));
+            if ($type === 'store') {
+                $normalized[] = ['type' => 'store', 'enabled' => ($action['enabled'] ?? true) !== false];
+                continue;
+            }
+
+            if ($type === 'webhook') {
+                $url = trim((string) ($action['url'] ?? ''));
+                if ($url === '') {
+                    continue;
+                }
+
+                $method = strtoupper(trim((string) ($action['method'] ?? 'POST')));
+                $normalized[] = [
+                    'type' => 'webhook',
+                    'enabled' => ($action['enabled'] ?? true) !== false,
+                    'url' => $url,
+                    'method' => in_array($method, ['POST', 'PUT', 'PATCH'], true) ? $method : 'POST',
+                    'failOnError' => (bool) ($action['failOnError'] ?? false),
+                ];
+            }
+        }
+
+        return $normalized !== [] ? $normalized : [['type' => 'store', 'enabled' => true]];
     }
 
     /** @param array<int, mixed> $fields */

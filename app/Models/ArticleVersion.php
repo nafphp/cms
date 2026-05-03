@@ -41,6 +41,11 @@ class ArticleVersion extends AbstractModel implements \JsonSerializable
         return $this->language !== null ? Language::tryFrom($this->language) : null;
     }
 
+    public function getLanguageCode(): ?string
+    {
+        return $this->language;
+    }
+
     public function getVersion(): ?int
     {
         return $this->version;
@@ -142,10 +147,10 @@ class ArticleVersion extends AbstractModel implements \JsonSerializable
         return $clone;
     }
 
-    public function withLanguage(Language $language): self
+    public function withLanguage(Language|string $language): self
     {
         $clone = clone $this;
-        $clone->language = $language->value;
+        $clone->language = $language instanceof Language ? $language->value : $language;
         return $clone;
     }
 

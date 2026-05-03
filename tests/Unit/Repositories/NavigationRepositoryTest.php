@@ -71,6 +71,25 @@ final class NavigationRepositoryTest extends DatabaseTestCase
         self::assertSame('Footer', $this->repository->findByIdentifier('footer', language: 'de')?->title());
     }
 
+    public function testFindByIdentifierFallsBackToExistingLanguageWhenNoDefaultExists(): void
+    {
+        $this->repository->save([
+            'identifier' => 'main',
+            'title' => 'Hauptnavigation',
+            'language' => 'de',
+            'status' => 'published',
+            'items' => [
+                ['key' => 'home', 'label' => 'Startseite', 'href' => '/'],
+            ],
+        ]);
+
+        $navigation = $this->repository->findByIdentifier('main', language: 'en');
+
+        self::assertNotNull($navigation);
+        self::assertSame('de', $navigation->language());
+        self::assertSame('Startseite', $navigation->toArray()['items'][0]['label']);
+    }
+
     public function testSaveUpdatesExistingIdentifierLanguagePairAsDraft(): void
     {
         $id = $this->repository->save([

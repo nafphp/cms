@@ -1,0 +1,33 @@
+<?php
+
+use function NixPHP\View\s;
+use function NixPHP\I18n\t;
+
+$content = is_array($content ?? null) ? $content : [];
+$props = is_array($content['props'] ?? null) ? $content['props'] : [];
+$src = trim((string) ($props['src'] ?? ''));
+$alt = t((string) ($props['alt'] ?? ''));
+$caption = trim(t((string) ($props['caption'] ?? '')));
+$aspect = (string) ($props['aspect'] ?? 'wide');
+$fit = (string) ($props['fit'] ?? 'cover');
+$aspectClass = match ($aspect) {
+    'square' => 'aspect-square',
+    'portrait' => 'aspect-[4/5]',
+    'original' => '',
+    default => 'aspect-video',
+};
+$fitClass = $fit === 'contain' ? 'object-contain bg-[var(--page-card-bg)]' : 'object-cover';
+
+?>
+<figure class="m-0 grid gap-3">
+    <?php if ($src !== ''): ?>
+        <img class="<?= s(trim('w-full overflow-hidden rounded-lg border border-[var(--page-card-border)] ' . $aspectClass . ' ' . $fitClass)) ?>" src="<?= s($src) ?>" alt="<?= s($alt) ?>" loading="lazy">
+    <?php else: ?>
+        <div class="<?= s(trim('grid place-items-center rounded-lg border border-dashed border-[var(--page-border)] bg-[var(--page-card-bg)] text-sm text-[var(--page-muted)] ' . ($aspectClass !== '' ? $aspectClass : 'min-h-56'))) ?>">
+            Image
+        </div>
+    <?php endif; ?>
+    <?php if ($caption !== ''): ?>
+        <figcaption class="text-sm leading-relaxed text-[var(--page-muted)]"><?= s($caption) ?></figcaption>
+    <?php endif; ?>
+</figure>

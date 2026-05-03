@@ -46,21 +46,30 @@ const root = document.documentElement;
 const menu = document.querySelector('.admin-menu');
 const trigger = document.querySelector('.admin-menu-trigger');
 const layout = document.querySelector('.admin-layout');
+const menuStateKey = 'nixcms:admin-menu-state';
 
 if (menu && trigger && layout) {
     const applyLayoutState = () => {
-        layout.classList.toggle('is-menu-collapsed', !menu.classList.contains('open'));
+        const isCollapsed = !menu.classList.contains('open');
+        layout.classList.toggle('is-menu-collapsed', isCollapsed);
+        root.classList.toggle('admin-menu-collapsed', isCollapsed);
     };
 
-    if (sessionStorage.getItem('menu_state') === 'closed') {
-        menu.classList.remove('open');
-    }
+    try {
+        const storedState = localStorage.getItem(menuStateKey) || sessionStorage.getItem('menu_state');
+        if (storedState === 'closed') {
+            menu.classList.remove('open');
+        }
+    } catch (error) {}
 
     applyLayoutState();
 
     trigger.addEventListener('click', () => {
         menu.classList.toggle('open');
-        sessionStorage.setItem('menu_state', menu.classList.contains('open') ? 'open' : 'closed');
+        try {
+            localStorage.setItem(menuStateKey, menu.classList.contains('open') ? 'open' : 'closed');
+            sessionStorage.removeItem('menu_state');
+        } catch (error) {}
         applyLayoutState();
     });
 }

@@ -1,6 +1,7 @@
 <?php
 
 use function NixPHP\View\s;
+use function NixPHP\View\asset;
 
 $config = is_array($config ?? null) ? $config : [];
 $attributes = is_array($attributes ?? null) ? $attributes : [];
@@ -10,6 +11,9 @@ $actionLabel = trim((string) ($actionLabel ?? ''));
 $actionHref = trim((string) ($actionHref ?? ''));
 $loadingLabel = (string) ($loadingLabel ?? 'Loading...');
 $script = trim((string) ($script ?? ''));
+if ($script !== '') {
+    asset()->add($script, 'module');
+}
 
 $htmlAttributes = static function (array $attributes): string {
     $html = '';
@@ -51,6 +55,3 @@ $frameAttributes = $frameAttributes + [
         <div class="py-8 text-center text-sm text-slate-500"><?= s($loadingLabel) ?></div>
     </section>
 </div>
-<?php if ($script !== ''): ?>
-    <script type="module" src="<?= s($script) ?>"></script>
-<?php endif; ?>

@@ -137,6 +137,29 @@ final class NavigationRepository
                 'scope' => $scope,
             ]);
             $row = $statement->fetch(PDO::FETCH_ASSOC);
+            if (is_array($row)) {
+                return $this->navigationFromRow($row);
+            }
+
+            $statement = $connection->prepare(<<<SQL
+                SELECT * FROM navigations
+                WHERE identifier = :identifier AND scope = :scope
+                ORDER BY
+                    CASE status
+                        WHEN 'primary' THEN 0
+                        WHEN 'published' THEN 1
+                        ELSE 2
+                    END,
+                    language ASC,
+                    updated_at DESC,
+                    created_at DESC
+                LIMIT 1
+            SQL);
+            $statement->execute([
+                'identifier' => $identifier,
+                'scope' => $scope,
+            ]);
+            $row = $statement->fetch(PDO::FETCH_ASSOC);
         } catch (\Throwable) {
             return null;
         }

@@ -38,6 +38,11 @@ return [
             'views',
             'app/views',
         ],
+        'assets' => [
+            'publicPath' => BASE_PATH . '/public',
+            'versioning' => true,
+            'versionParameter' => 'v',
+        ],
     ],
     'cms' => [
         'languages' => ['en', 'de'],
@@ -48,10 +53,16 @@ return [
                 'dashboard' => '#ff3b30',
                 'content' => '#3f7fbd',
                 'articles' => '#3f7fbd',
+                'media' => '#14b8a6',
                 'users' => '#0ea5e9',
                 'roles' => '#f59e0b',
                 'settings' => '#8b5cf6',
             ],
+        ],
+        'media' => [
+            'storage_path' => BASE_PATH . '/storage/media',
+            'public_url' => '/media',
+            'max_upload_size' => 25 * 1024 * 1024,
         ],
     ],
 ];

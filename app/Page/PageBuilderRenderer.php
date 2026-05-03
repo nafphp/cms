@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NixCMS\Page;
 
+use function NixPHP\I18n\t;
 use function NixPHP\View\view;
 
 final class PageBuilderRenderer
@@ -43,8 +44,8 @@ final class PageBuilderRenderer
             ...$context,
             'page' => $page,
             'template' => $template,
-            'title' => $page->title(),
-            'pageTitle' => $page->title(),
+            'title' => t($page->title()),
+            'pageTitle' => t($page->title()),
             'blocks' => $blocks,
             'blockOutput' => implode("\n", $blocks),
             'block' => $block,
