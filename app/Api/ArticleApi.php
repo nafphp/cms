@@ -8,16 +8,38 @@ use NixCMS\Models\Article;
 use NixCMS\Models\ArticleVersion;
 use NixCMS\Localization\LanguageRegistry;
 use NixCMS\Repositories\ArticleRepository;
+use NixCMS\Storage\EntityStorage;
 use NixCMS\Support\AuditEntry;
 
 /**
  * Domain API for articles. Exposes article-specific behaviour and delegates persistence/queries to ArticleRepository.
+ *
+ * Data access path: ContentApi → Storage<Article> → ArticleRepository → db()
+ * Use ->storage() for generic Criteria-based reads, ->repository() for joins, aggregates, and version-aware queries.
  */
 final class ArticleApi
 {
+    /**
+     * @var EntityStorage<Article>|null
+     */
+    private ?EntityStorage $storage = null;
+
     public function __construct(
         private ArticleRepository $articleRepository,
     ) {}
+
+    /**
+     * @return EntityStorage<Article>
+     */
+    public function storage(): EntityStorage
+    {
+        return $this->storage ??= new EntityStorage(Article::class);
+    }
+
+    public function repository(): ArticleRepository
+    {
+        return $this->articleRepository;
+    }
 
     /**
      * @param array<string, mixed> $data

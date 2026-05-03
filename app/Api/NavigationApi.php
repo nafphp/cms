@@ -4,15 +4,41 @@ declare(strict_types=1);
 
 namespace NixCMS\Api;
 
+use NixCMS\Models\SiteNavigation;
 use NixCMS\Navigation\Navigation;
 use NixCMS\Repositories\NavigationRepository;
+use NixCMS\Storage\EntityStorage;
 use NixCMS\Support\AuditEntry;
 use function NixPHP\I18n\t;
 
+/**
+ * Domain API for site navigations. Exposes navigation-specific behaviour and delegates persistence/queries to NavigationRepository.
+ *
+ * Data access path: ContentApi → Storage<SiteNavigation> → NavigationRepository → db()
+ * Use ->storage() for generic Criteria-based reads, ->repository() for tree-aware queries.
+ */
 final class NavigationApi
 {
+    /**
+     * @var EntityStorage<SiteNavigation>|null
+     */
+    private ?EntityStorage $storage = null;
+
     public function __construct(private NavigationRepository $repository)
     {
+    }
+
+    /**
+     * @return EntityStorage<SiteNavigation>
+     */
+    public function storage(): EntityStorage
+    {
+        return $this->storage ??= new EntityStorage(SiteNavigation::class);
+    }
+
+    public function repository(): NavigationRepository
+    {
+        return $this->repository;
     }
 
     public function get(string $identifier, ?string $language = null, string $scope = 'frontend'): ?Navigation

@@ -12,6 +12,13 @@ use NixCMS\Storage\EntityStorage;
 use NixCMS\Support\AuditEntry;
 use Psr\Http\Message\UploadedFileInterface;
 
+/**
+ * Domain API for media. Exposes media-specific behaviour, delegates DB queries to Storage, and file I/O to MediaStorageService.
+ *
+ * Data access path: ContentApi → Storage<Media> → db()
+ * Layer 3 (Repository) is intentionally skipped — Storage covers all queries; there is no MediaRepository.
+ * Use ->storage() for Criteria-based reads.
+ */
 final class MediaApi
 {
     public function __construct(
@@ -171,6 +178,14 @@ final class MediaApi
     }
 
     /**
+     * @return EntityStorage<Media>
+     */
+    public function storage(): EntityStorage
+    {
+        return $this->mediaStorage ??= new EntityStorage(Media::class);
+    }
+
+    /**
      * @param array<string, mixed>|null $media
      * @return array<string, mixed>|null
      */
@@ -191,11 +206,6 @@ final class MediaApi
             'alt_text' => $media['alt_text'] ?? null,
             'public_url' => (string) ($media['public_url'] ?? ''),
         ];
-    }
-
-    private function storage(): EntityStorage
-    {
-        return $this->mediaStorage ??= new EntityStorage(Media::class);
     }
 
     private function normalizePublicId(string $publicId): string

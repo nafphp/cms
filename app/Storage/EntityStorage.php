@@ -18,6 +18,16 @@ use function NixPHP\Database\database;
 use function NixPHP\ORM\em;
 
 /**
+ * Generic typed CRUD over a single entity.
+ *
+ * NOT permission-aware. NOT auditing.
+ * Use cms()->{contentType}() for domain operations that need either.
+ *
+ * Use Storage when:
+ * - you need ad-hoc queries on entities without a custom Repository,
+ * - you don't need joins or aggregates,
+ * - the caller already enforces authorization.
+ *
  * @template T of EntityInterface
  */
 final class EntityStorage
@@ -60,6 +70,7 @@ final class EntityStorage
     /**
      * @param array<string, mixed> $data
      * @return T
+     * @see ContentApi for permission-aware and audited equivalents.
      */
     public function create(array $data): EntityInterface
     {
@@ -69,6 +80,7 @@ final class EntityStorage
     /**
      * @param T $entity
      * @return T
+     * @see ContentApi for permission-aware and audited equivalents.
      */
     public function save(EntityInterface $entity): EntityInterface
     {
@@ -88,6 +100,7 @@ final class EntityStorage
     /**
      * @param array<string, mixed> $data
      * @return T|null
+     * @see ContentApi for permission-aware and audited equivalents.
      */
     public function update(int|string $id, array $data): ?EntityInterface
     {
@@ -109,6 +122,9 @@ final class EntityStorage
         return $this->first(Criteria::create()->equals($this->model->getPrimaryKey(), $id));
     }
 
+    /**
+     * @see ContentApi for permission-aware and audited equivalents.
+     */
     public function delete(int|string|EntityInterface $target): bool
     {
         $id = $target instanceof EntityInterface ? $target->getId() : $target;

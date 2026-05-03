@@ -121,7 +121,7 @@ final class Criteria
         return $this;
     }
 
-    public function page(int $page, int $perPage): self
+    public function page(int $page, int $perPage = 20): self
     {
         $perPage = max(1, $perPage);
         $page = max(1, $page);

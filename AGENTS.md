@@ -119,6 +119,15 @@ NixCMS should have secure defaults.
 - Permissions should use clear permission names.
 - MCP tools should support scopes and permissions.
 
+## Audit
+
+Audit entries record domain-relevant changes with redaction and actor metadata.
+
+- Prefer `audit()->record(AuditEntry::create(...))` when an explicit audit boundary makes the workflow clearer.
+- `AuditEntry::create(...)->record()` is equivalent and remains acceptable for compact domain actions.
+- Use `audit_log('action.name', 'subject', $id, $old, $new, $meta)` only for short direct calls where building the entry inline would add noise.
+- Keep actor resolution inside `NixCMS\Support\AuditActorResolver`; other code should not reach into global auth helpers just to build audit metadata.
+
 ## Development Style
 
 When building NixCMS:
@@ -374,6 +383,45 @@ cms()->settingsRegistry()->add(
     SettingSection::create('site', 'Site')
 );
 ```
+
+### Data Access Hierarchy
+
+Choose the highest layer that matches the job. Move downward only when the current layer cannot express the query cleanly.
+
+Layer 1: ContentApi for domain actions that validate payloads, know lifecycle rules, and own side effects.
+
+```php
+$result = cms()->articles()->create($payload, $authorId);
+cms()->articles()->publish($result['articleId'], 'de');
+```
+
+Audits leben ausschließlich in Layer 1 (ContentApi). Storage, Repository und db() auditieren nicht — andernfalls entstehen Doppel-Einträge.
+
+Layer 2: Storage for generic CRUD and Criteria-based reads over one entity.
+
+```php
+$media = cms()->media()->storage()->first(
+    Criteria::create()->equals('visibility', 'public')->sort('created_at', 'DESC')
+);
+```
+
+Layer 3: Repository for joins, aggregates, optimized reads, and named query behavior.
+
+```php
+$articles = cms()->articles()->repository()
+    ->findPublishedWithLatestVersionByCategory($categoryId, 10);
+```
+
+Layer 4: `db()` for raw SQL in migrations, diagnostics, and edge cases that do not belong in a reusable repository yet.
+
+```php
+$statement = db()->prepare('SELECT COUNT(*) FROM article_versions WHERE status = :status');
+$statement->execute(['status' => 'published']);
+```
+
+Refactor escalation rule: when a Layer N solution appears twice, or when a `Criteria` query needs more than three filters, move it to Layer N-1.
+
+ContentApis do not have to expose every escalation layer. When the domain has no use for a Repository because Storage plus a small I/O service already covers it (for example `MediaApi`, where file I/O lives in `MediaStorageService`), the path is `ContentApi → Storage → db()` and Layer 3 is simply skipped. Each ContentApi class should document its concrete data access path in its class-level docblock so the available accessors are obvious without reading the whole file.
 
 ### HTTP Registries
 

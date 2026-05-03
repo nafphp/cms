@@ -18,6 +18,9 @@
         "nixphp/mcp": "^0.1"
     },
     "autoload": {
+        "files": [
+            "app/Support/helpers.php"
+        ],
         "psr-4": {
             "NixCMS\\": "app/",
             "Tests\\": "tests/"

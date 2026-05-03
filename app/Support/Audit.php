@@ -12,6 +12,7 @@ final class Audit
     public function __construct(
         private readonly ?AuditLogRepository $repository = null,
         private readonly ?AuditRedactor $redactor = null,
+        private readonly ?AuditActorResolver $actorResolver = null,
     ) {
     }
 
@@ -37,12 +38,11 @@ final class Audit
                 $meta,
             );
 
-        $helper = function_exists('user') ? \user() : null;
-        $actor = $helper?->get();
+        $actor = $this->actorResolver()->resolve();
 
         return $this->repository()->record($this->redactEntry($entry) + [
-            'actor_user_id' => $actor?->getId(),
-            'actor_label' => $actor?->getDisplayName() ?? ($helper?->isLoggedIn() === true ? 'System admin' : 'System'),
+            'actor_user_id' => $actor?->id,
+            'actor_label' => $actor?->label ?? 'System',
             'ip_address' => $this->ipAddress(),
         ]);
     }
@@ -81,5 +81,10 @@ final class Audit
     private function redactor(): AuditRedactor
     {
         return $this->redactor ?? new AuditRedactor();
+    }
+
+    private function actorResolver(): AuditActorResolver
+    {
+        return $this->actorResolver ?? new AuditActorResolver();
     }
 }

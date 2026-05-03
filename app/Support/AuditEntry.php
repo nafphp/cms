@@ -35,7 +35,7 @@ final class AuditEntry
 
     public function record(?Audit $audit = null): bool
     {
-        return ($audit ?? new Audit())->record($this);
+        return ($audit ?? \audit())->record($this);
     }
 
     /**

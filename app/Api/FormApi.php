@@ -4,13 +4,39 @@ declare(strict_types=1);
 
 namespace NixCMS\Api;
 
+use NixCMS\Models\Form;
 use NixCMS\Repositories\FormRepository;
+use NixCMS\Storage\EntityStorage;
 use NixCMS\Support\AuditEntry;
 
+/**
+ * Domain API for forms. Exposes form-specific behaviour and delegates persistence/queries to FormRepository.
+ *
+ * Data access path: ContentApi → Storage<Form> → FormRepository → db()
+ * Use ->storage() for generic Criteria-based reads, ->repository() for submission-aware queries.
+ */
 final class FormApi
 {
+    /**
+     * @var EntityStorage<Form>|null
+     */
+    private ?EntityStorage $storage = null;
+
     public function __construct(private FormRepository $repository)
     {
+    }
+
+    /**
+     * @return EntityStorage<Form>
+     */
+    public function storage(): EntityStorage
+    {
+        return $this->storage ??= new EntityStorage(Form::class);
+    }
+
+    public function repository(): FormRepository
+    {
+        return $this->repository;
     }
 
     /** @return array<int, array<string, mixed>> */
