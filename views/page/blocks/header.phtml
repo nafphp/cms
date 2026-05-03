@@ -16,9 +16,12 @@ $pageObject = isset($page) && is_object($page) ? $page : null;
 $fallbackIdentifier = (string) ($pageObject?->meta()->extra->defaultNavigationIdentifier ?? 'main');
 $language = $pageObject?->language();
 $items = nixcms_page_block_nav_items((string) ($props['navigationIdentifier'] ?? 'main'), $language, $fallbackIdentifier);
+$hasNavigation = $items !== [];
 $drawerId = 'page-mobile-navigation-' . substr(md5(($pageObject?->id() ?? 'page') . ':' . serialize($items)), 0, 10);
 
-asset()->add('/js/page-mobile-navigation.js', 'module');
+if ($hasNavigation) {
+    asset()->add('/js/page-mobile-navigation.js', 'module');
+}
 
 ?>
 <header class="page-site-header border-b border-[var(--page-border)] bg-[var(--page-header-bg)] text-[var(--page-header-text)]" data-page-header>
@@ -29,13 +32,11 @@ asset()->add('/js/page-mobile-navigation.js', 'module');
             <?php endif; ?>
             <strong class="text-base font-bold"><?= s($logoText) ?></strong>
         </a>
-        <div class="page-desktop-navigation ml-auto"><?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'horizontal')) ?></div>
-        <div class="page-mobile-navigation ml-auto" data-page-mobile-navigation>
-            <?= $this->render('page.blocks._partials.mobile-navigation-drawer', [
-                'items' => $items,
-                'logoText' => $logoText,
-                'drawerId' => $drawerId,
-            ]) ?>
-        </div>
+        <?php if ($hasNavigation): ?>
+            <div class="page-desktop-navigation ml-auto"><?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'horizontal')) ?></div>
+            <div class="page-mobile-navigation ml-auto" data-page-mobile-navigation>
+                <?php require __DIR__ . '/_partials/mobile-navigation-drawer.phtml'; ?>
+            </div>
+        <?php endif; ?>
     </div>
 </header>

@@ -2142,7 +2142,7 @@ class PageBuilder {
             confirmButtonText: this.labels.apply,
             cancelButtonText: this.labels.cancel,
             showCancelButton: true,
-            style: {width: 'min(720px, calc(100vw - 32px))'},
+            style: {width: 'min(820px, calc(100vw - 32px))'},
             confirmCallback: (promptInstance) => {
                 this.applyTranslationPicker(promptInstance, propName);
                 return true;
@@ -2182,16 +2182,16 @@ class PageBuilder {
     translationPromptHtml(language, key, value) {
         return `
             <div>${escapeHtml(this.labels.translationKey)}</div>
-            <div class="page-builder-translation-prompt notify-form">
+            <div class="page-builder-translation-prompt translation-key-prompt notify-form">
                 <p class="notify-form-intro">${escapeHtml(this.labels.searchCreateTranslationKey)}</p>
-                <div class="notify-form-grid">
+                <div class="translation-key-grid">
                     <label class="notify-field">
                         <span class="notify-field-label">${escapeHtml(this.labels.language)}</span>
-                        <div class="flex gap-2">
+                        <div class="translation-key-language-row">
                             <select data-styled-select data-page-translation-language>
                                 ${this.translationLanguageOptions(language)}
                             </select>
-                            <button class="inline-flex min-h-10 items-center rounded-md border border-[var(--notify-border)] px-3 text-sm font-semibold text-[var(--notify-muted)] transition hover:border-[var(--notify-accent)] hover:text-[var(--notify-text)]" type="button" data-page-translation-new-language>
+                            <button class="translation-key-language-button" type="button" data-page-translation-new-language>
                                 ${escapeHtml(this.labels.newLanguage)}
                             </button>
                         </div>

@@ -572,7 +572,7 @@ $languageLabels = [
             confirmButtonText: labels.apply,
             cancelButtonText: labels.cancel,
             showCancelButton: true,
-            style: {width: 'min(720px, calc(100vw - 32px))'},
+            style: {width: 'min(820px, calc(100vw - 32px))'},
             confirmCallback: (promptInstance) => {
                 applyTranslationPrompt(promptInstance);
                 return true;
@@ -703,16 +703,16 @@ $languageLabels = [
     function translationPromptHtml(language, key, value) {
         return `
             <div>${escapeHtml(labels.translationKey)}</div>
-            <div class="navigation-translation-prompt notify-form">
+            <div class="navigation-translation-prompt translation-key-prompt notify-form">
                 <p class="notify-form-intro">${escapeHtml(labels.searchCreateTranslationKey)}</p>
-                <div class="notify-form-grid">
+                <div class="translation-key-grid">
                     <label class="notify-field">
                         <span class="notify-field-label">${escapeHtml(labels.language)}</span>
-                        <div class="flex gap-2">
+                        <div class="translation-key-language-row">
                             <select data-styled-select data-navigation-translation-language>
                                 ${translationLanguageOptions(language)}
                             </select>
-                            <button class="inline-flex min-h-10 items-center rounded-md border border-[var(--notify-border)] px-3 text-sm font-semibold text-[var(--notify-muted)] transition hover:border-[var(--notify-accent)] hover:text-[var(--notify-text)]" type="button" data-navigation-translation-new-language>
+                            <button class="translation-key-language-button" type="button" data-navigation-translation-new-language>
                                 ${escapeHtml(labels.newLanguage)}
                             </button>
                         </div>
