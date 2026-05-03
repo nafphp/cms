@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace NixCMS\Support;
 
+use ReflectionFunction;
+use ReflectionMethod;
+use ReflectionNamedType;
 use function NixPHP\app;
 
 final class HandlerInvoker
@@ -20,14 +23,59 @@ final class HandlerInvoker
     {
         if (is_array($handler) && isset($handler[0], $handler[1]) && is_string($handler[0])) {
             $instance = self::make($handler[0]);
-            return $instance->{$handler[1]}(...$params);
+            return $instance->{$handler[1]}(...self::parametersFor(new ReflectionMethod($instance, $handler[1]), $params));
+        }
+
+        if (is_array($handler) && isset($handler[0], $handler[1]) && is_object($handler[0])) {
+            return $handler[0]->{$handler[1]}(...self::parametersFor(new ReflectionMethod($handler[0], $handler[1]), $params));
         }
 
         if (is_string($handler) && class_exists($handler)) {
-            return self::make($handler)(...$params);
+            $instance = self::make($handler);
+            return $instance(...self::parametersFor(new ReflectionMethod($instance, '__invoke'), $params));
         }
 
-        return $handler(...$params);
+        if (is_object($handler) && method_exists($handler, '__invoke')) {
+            return $handler(...self::parametersFor(new ReflectionMethod($handler, '__invoke'), $params));
+        }
+
+        return $handler(...self::parametersFor(new ReflectionFunction($handler), $params));
+    }
+
+    /**
+     * @param array<int|string, mixed> $params
+     * @return array<int|string, mixed>
+     */
+    private static function parametersFor(ReflectionFunction|ReflectionMethod $reflection, array $params): array
+    {
+        if (array_is_list($params) || self::hasArrayVariadicParameter($reflection)) {
+            return $params;
+        }
+
+        $accepted = [];
+        foreach ($reflection->getParameters() as $parameter) {
+            if (array_key_exists($parameter->getName(), $params)) {
+                $accepted[$parameter->getName()] = $params[$parameter->getName()];
+            }
+        }
+
+        return $accepted;
+    }
+
+    private static function hasArrayVariadicParameter(ReflectionFunction|ReflectionMethod $reflection): bool
+    {
+        foreach ($reflection->getParameters() as $parameter) {
+            if (!$parameter->isVariadic()) {
+                continue;
+            }
+
+            $type = $parameter->getType();
+            if (!$type instanceof ReflectionNamedType || $type->getName() === 'array') {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

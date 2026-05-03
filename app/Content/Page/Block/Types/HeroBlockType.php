@@ -42,6 +42,7 @@ final class HeroBlockType extends AbstractBlockType
             'buttonLabel' => 'Get started',
             'buttonUrl' => '#',
             'image' => '',
+            ...$this->surfaceDefaults('card'),
         ];
     }
 
@@ -54,6 +55,7 @@ final class HeroBlockType extends AbstractBlockType
             ['name' => 'buttonLabel', 'label' => 'Button label', 'type' => 'text'],
             ['name' => 'buttonUrl', 'label' => 'Button URL', 'type' => 'text'],
             ['name' => 'image', 'label' => 'Image', 'type' => 'media'],
+            $this->surfaceField(),
         ];
     }
 }

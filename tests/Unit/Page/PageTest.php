@@ -38,6 +38,8 @@ final class PageTest extends TestCase
         $page->meta()->seo->description = 'About NixCMS';
         $page->meta()->navigation->label = 'About';
         $page->meta()->theme->accent = '#64748b';
+        $page->meta()->theme->headerBackground = '#020617';
+        $page->meta()->theme->headerBackgroundTransparent = false;
         $page->meta()->theme->contentWidth = 'wide';
         $page->meta()->theme->contentWidthIncludesChrome = true;
         $page->meta()->theme->contentWidthIncludesChromeBackground = true;
@@ -45,6 +47,8 @@ final class PageTest extends TestCase
         self::assertSame('About NixCMS', $page->meta()->seo->description);
         self::assertSame('About', $page->meta()->navigation->label);
         self::assertSame('#64748b', $page->meta()->theme->accent);
+        self::assertSame('#020617', $page->meta()->theme->headerBackground);
+        self::assertFalse($page->meta()->theme->headerBackgroundTransparent);
         self::assertSame('wide', $page->meta()->theme->contentWidth);
         self::assertTrue($page->meta()->theme->contentWidthIncludesChrome);
         self::assertTrue($page->meta()->theme->contentWidthIncludesChromeBackground);

@@ -5,11 +5,19 @@ use function NixPHP\I18n\t;
 
 $content = is_array($content ?? null) ? $content : [];
 $props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$items = [
-    ['value' => (string) ($props['valueA'] ?? '12'), 'label' => (string) ($props['labelA'] ?? 'Items')],
-    ['value' => (string) ($props['valueB'] ?? '98%'), 'label' => (string) ($props['labelB'] ?? 'Quality')],
-    ['value' => (string) ($props['valueC'] ?? '24/7'), 'label' => (string) ($props['labelC'] ?? 'Access')],
-];
+$items = array_values(array_filter(array_map(
+    static fn(mixed $item): ?array => is_array($item)
+        ? ['value' => trim((string) ($item['value'] ?? '')), 'label' => trim((string) ($item['label'] ?? ''))]
+        : null,
+    is_array($props['stats'] ?? null) ? $props['stats'] : []
+), static fn(?array $item): bool => $item !== null && ($item['value'] !== '' || $item['label'] !== '')));
+if ($items === []) {
+    $items = [
+        ['value' => (string) ($props['valueA'] ?? '12'), 'label' => (string) ($props['labelA'] ?? 'Items')],
+        ['value' => (string) ($props['valueB'] ?? '98%'), 'label' => (string) ($props['labelB'] ?? 'Quality')],
+        ['value' => (string) ($props['valueC'] ?? '24/7'), 'label' => (string) ($props['labelC'] ?? 'Access')],
+    ];
+}
 $surface = (string) ($props['surface'] ?? 'none');
 $surface = in_array($surface, ['none', 'soft', 'card', 'accent'], true) ? $surface : 'none';
 $itemClass = [
@@ -20,7 +28,7 @@ $itemClass = [
 ][$surface];
 
 ?>
-<section class="grid gap-3 md:grid-cols-3">
+<section class="grid gap-3 md:grid-cols-[repeat(var(--stats-columns),minmax(0,1fr))]" style="--stats-columns: <?= s((string) min(max(count($items), 1), 4)) ?>;">
     <?php foreach ($items as $item): ?>
         <div class="<?= s($itemClass) ?>">
             <strong class="block text-3xl font-black text-[var(--page-text)]"><?= s($item['value']) ?></strong>

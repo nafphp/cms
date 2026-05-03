@@ -158,6 +158,7 @@ These sections are generated from registries and enums. Edit the source code, th
 | `api.admin.roles` | `GET` | `/api/admin/roles` | `roles.manage` |
 | `api.admin.settings.update` | `POST` | `/api/admin/settings` | `admin.access` |
 | `api.admin.summary` | `GET` | `/api/admin/summary` | `admin.access` |
+| `api.admin.translations.show` | `GET` | `/api/admin/translations/{language}` | any of `admin.access`, `pages.view`, `pages.create`, `pages.edit` |
 | `api.admin.translations.update` | `POST` | `/api/admin/translations/{language}` | `admin.access` |
 | `api.admin.users` | `GET` | `/api/admin/users` | `users.view` |
 | `api.admin.users.delete` | `POST` | `/api/admin/users/delete` | `users.delete` |

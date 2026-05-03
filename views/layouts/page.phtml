@@ -35,6 +35,12 @@ $themeStyles = [];
 if (preg_match('/^#[0-9a-fA-F]{6}$/', $accent) === 1) {
     $themeStyles[] = '--page-accent: ' . $accent;
 }
+$headerBackground = trim((string) ($page->meta()->theme->headerBackground ?? ''));
+if (($page->meta()->theme->headerBackgroundTransparent ?? true) === true) {
+    $themeStyles[] = '--page-header-bg: transparent';
+} elseif (preg_match('/^#[0-9a-fA-F]{6}$/', $headerBackground) === 1) {
+    $themeStyles[] = '--page-header-bg: ' . $headerBackground;
+}
 $templateDefaultWidth = match ($template->view()) {
     'page.templates.public', 'page.templates.full_bleed' => '100%',
     'page.templates.article_detail' => '820px',

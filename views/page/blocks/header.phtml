@@ -19,17 +19,22 @@ $language = $pageObject?->language();
 $items = nixcms_page_block_nav_items((string) ($props['navigationIdentifier'] ?? 'main'), $language, $fallbackIdentifier);
 $hasNavigation = $items !== [];
 $drawerId = 'page-mobile-navigation-' . substr(md5(($pageObject?->id() ?? 'page') . ':' . serialize($items)), 0, 10);
+$showLogoMark = (bool) ($props['showLogoMark'] ?? false);
+$showDivider = (bool) ($props['showDivider'] ?? false);
+$dividerClass = $showDivider ? 'border-b border-[var(--page-border)]' : '';
 
 if ($hasNavigation) {
     asset()->add('/js/page-mobile-navigation.js', 'module');
 }
 
 ?>
-<header class="page-site-header border-b border-[var(--page-border)] bg-[var(--page-header-bg)] text-[var(--page-header-text)]" data-page-header>
-    <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 px-6 py-4">
+<header class="<?= s(trim('page-site-header bg-[var(--page-header-bg)] text-[var(--page-header-text)] ' . $dividerClass)) ?>" data-page-header>
+    <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 px-8 py-4">
         <a class="inline-flex min-h-10 items-center gap-3 text-[var(--page-header-text)] transition hover:text-[var(--page-accent)]" href="/" aria-label="<?= s($logoText) ?>">
             <?php if ($logoImage !== ''): ?>
                 <img class="h-8 w-auto" src="<?= s($logoImage) ?>" alt="">
+            <?php elseif ($showLogoMark): ?>
+                <span class="grid h-8 w-8 place-items-center rounded-md bg-[var(--page-accent)] text-xs font-black text-white"><?= s(mb_substr($logoText, 0, 1) ?: 'N') ?></span>
             <?php endif; ?>
             <strong class="text-base font-bold"><?= s($logoText) ?></strong>
         </a>

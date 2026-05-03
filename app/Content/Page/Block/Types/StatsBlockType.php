@@ -20,7 +20,7 @@ final class StatsBlockType extends AbstractBlockType
 
     public function description(): string
     {
-        return 'Three compact metrics for proof points and summaries.';
+        return 'Compact statistic cards for proof points and summaries.';
     }
 
     public function regions(): array
@@ -36,25 +36,19 @@ final class StatsBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'valueA' => '12',
-            'labelA' => 'Items',
-            'valueB' => '98%',
-            'labelB' => 'Quality',
-            'valueC' => '24/7',
-            'labelC' => 'Access',
-            ...$this->surfaceDefaults(),
+            'stats' => [
+                ['value' => '12', 'label' => 'Items'],
+                ['value' => '98%', 'label' => 'Quality'],
+                ['value' => '24/7', 'label' => 'Access'],
+            ],
+            ...$this->surfaceDefaults('card'),
         ];
     }
 
     public function fields(): array
     {
         return [
-            ['name' => 'valueA', 'label' => 'Metric A value', 'type' => 'text'],
-            ['name' => 'labelA', 'label' => 'Metric A label', 'type' => 'text'],
-            ['name' => 'valueB', 'label' => 'Metric B value', 'type' => 'text'],
-            ['name' => 'labelB', 'label' => 'Metric B label', 'type' => 'text'],
-            ['name' => 'valueC', 'label' => 'Metric C value', 'type' => 'text'],
-            ['name' => 'labelC', 'label' => 'Metric C label', 'type' => 'text'],
+            ['name' => 'stats', 'label' => 'Statistics', 'type' => 'stats'],
             $this->surfaceField(),
         ];
     }

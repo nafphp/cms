@@ -16,3 +16,30 @@ Layout model:
 - Both layers intentionally coexist. Users choose custom layout for coarse page structure and use container blocks for complex slot content.
 
 `php bin/nix integrity:check` is the source of truth for drift between BlockTypes, block views, and page template definitions. Run it after adding or renaming a BlockType, block view, or page template.
+
+Layout system locations:
+
+The layout system has three concrete locations, not three competing systems:
+
+- `views/page/templates/*.phtml` — HTML-controlled templates with arbitrary
+  markup and CSS. The developer's tool when full layout freedom is needed.
+- `app/Resources/pages/page_templates.php` — slot metadata (id, region,
+  accepts, defaultContentType) for the `.phtml` templates above. Required
+  because `.phtml` files do not self-declare their slots. Slot ids here must
+  match the `$block('id')` calls in the matching `.phtml` — `php bin/nix
+  integrity:check` enforces this.
+- `page_layouts` table — property-driven layouts (region/size/position/
+  surface/maxHeight/overflow) rendered by the generic
+  `views/page/templates/custom.phtml`. The user's tool inside the page
+  builder, persisted as reusable presets.
+
+The first two together describe one feature: developer-authored templates
+with arbitrary HTML. The third is a separate feature: user-built layouts
+without writing code. They intentionally coexist because property-driven
+layouts cannot reproduce arbitrary HTML structures (e.g. complex CSS grids,
+custom breakpoints), and `.phtml` templates cannot be edited by end users.
+
+Deletion of a `page_layouts` row is rejected by
+`PageLayoutRepository::delete()` if any page still references it via
+`meta.layoutPresetId`. Pages must be re-pointed first; there is no foreign
+key constraint, the check is enforced in PHP.

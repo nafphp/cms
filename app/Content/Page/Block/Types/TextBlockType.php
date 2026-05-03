@@ -39,6 +39,7 @@ final class TextBlockType extends AbstractBlockType
             'text' => 'A short text block for this position.',
             'tone' => 'body',
             'align' => 'left',
+            'verticalAlign' => 'top',
         ];
     }
 
@@ -48,6 +49,7 @@ final class TextBlockType extends AbstractBlockType
             ['name' => 'text', 'label' => 'Text', 'type' => 'textarea'],
             ['name' => 'tone', 'label' => 'Tone', 'type' => 'select', 'options' => ['body', 'lead', 'muted']],
             ['name' => 'align', 'label' => 'Align', 'type' => 'select', 'options' => ['left', 'center', 'right']],
+            ['name' => 'verticalAlign', 'label' => 'Vertical align', 'type' => 'select', 'options' => ['top', 'center', 'bottom']],
         ];
     }
 }

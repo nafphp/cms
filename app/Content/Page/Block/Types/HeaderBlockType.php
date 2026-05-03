@@ -43,6 +43,8 @@ final class HeaderBlockType extends AbstractBlockType
             'logoImage' => '',
             'navigationIdentifier' => (string) ($navigationOptions[0]['value'] ?? 'main'),
             'presentation' => 'horizontal',
+            'showLogoMark' => false,
+            'showDivider' => false,
         ];
     }
 
@@ -53,6 +55,8 @@ final class HeaderBlockType extends AbstractBlockType
             ['name' => 'logoImage', 'label' => 'Logo image', 'type' => 'media', 'altTarget' => 'logoText'],
             ['name' => 'navigationIdentifier', 'label' => 'Navigation', 'type' => 'select', 'options' => PageBuilderBlockOptions::navigationOptions()],
             ['name' => 'presentation', 'label' => 'Presentation', 'type' => 'select', 'options' => ['horizontal', 'compact']],
+            ['name' => 'showLogoMark', 'label' => 'Logo mark', 'type' => 'checkbox'],
+            ['name' => 'showDivider', 'label' => 'Header divider', 'type' => 'checkbox'],
         ];
     }
 }
