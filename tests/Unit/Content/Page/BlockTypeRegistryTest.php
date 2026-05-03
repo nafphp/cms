@@ -19,6 +19,7 @@ final class BlockTypeRegistryTest extends TestCase
         self::assertSame(['main', 'aside', 'footer'], $registry->require('form')->regions());
         self::assertSame('Section', $registry->require('section')->label());
         self::assertSame(['hero', 'header', 'main', 'aside', 'footer'], $registry->require('stack')->regions());
+        self::assertSame(['header', 'main', 'aside', 'footer'], $registry->require('navigation')->regions());
 
         $builderTypes = $registry->builderTypes();
         $section = $this->findBuilderType($builderTypes, 'section');

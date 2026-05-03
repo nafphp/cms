@@ -7,6 +7,7 @@ namespace NixCMS\Page;
 use NixCMS\Controllers\Page\PageController;
 use NixCMS\Enums\Permission;
 use NixCMS\Repositories\PageRepository;
+use NixCMS\Repositories\PageLayoutRepository;
 use NixCMS\Support\AuditEntry;
 use function NixPHP\I18n\lang;
 use function NixPHP\route;
@@ -330,6 +331,13 @@ final class PageRegistry
         }
 
         $templates = require $templateFile;
-        return is_array($templates) ? $templates : [];
+        if (!is_array($templates)) {
+            return [];
+        }
+
+        return [
+            ...$templates,
+            ...(new PageLayoutRepository())->templates(),
+        ];
     }
 }

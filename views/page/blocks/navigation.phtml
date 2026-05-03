@@ -12,8 +12,13 @@ $items = nixcms_page_block_nav_items(
     $language === 'current' ? $pageObject?->language() : $language,
     $fallbackIdentifier
 );
+$surface = (string) ($props['surface'] ?? 'plain');
+$surface = in_array($surface, ['plain', 'card'], true) ? $surface : 'plain';
+$class = $surface === 'card'
+    ? 'rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-5'
+    : 'w-full';
 
 ?>
-<div class="rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-5">
+<div class="<?= s($class) ?>">
     <?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'horizontal')) ?>
 </div>

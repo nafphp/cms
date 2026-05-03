@@ -8,6 +8,7 @@ use NixCMS\Page\Page;
 use NixCMS\Page\PageBuilderRenderer;
 use NixCMS\Handlers\Page\Pages\StorePage;
 use NixCMS\Page\Template;
+use NixCMS\Repositories\PageLayoutRepository;
 use function NixPHP\I18n\t;
 use function NixPHP\request;
 use function NixPHP\View\render;
@@ -32,6 +33,7 @@ $renderPreview = static function (array $definition, ?string $layout, bool $thum
 
     foreach ($definition['blocks'] ?? [] as $block) {
         $template->addBlock((string) $block['id'], 'page.blocks.placeholder', [
+            ...$block,
             'label' => (string) $block['label'],
             'size' => (string) ($block['size'] ?? 'medium'),
             'preview' => (string) ($block['preview'] ?? 'block'),
@@ -47,14 +49,21 @@ $renderPreview = static function (array $definition, ?string $layout, bool $thum
     return (new PageBuilderRenderer())->render($page);
 };
 
+$layoutRepository = static fn(): PageLayoutRepository => new PageLayoutRepository();
+
+$builderTemplateDefinitions = static fn(): array => [
+    ...$templateDefinitions,
+    ...$layoutRepository()->templates(),
+];
+
 $templatesForBuilder = static fn(): array => array_map(static fn(array $definition): array => [
     ...$definition,
     'previewHtml' => $renderPreview($definition, (string) ($definition['layout'] ?? 'layouts.page_preview')),
-], $templateDefinitions);
+], $builderTemplateDefinitions());
 
 $navigationOptions = PageBuilderBlockOptions::navigationOptions();
 
-$pages = static fn(): array => cms()->pages()->summaries($templateDefinitions);
+$pages = static fn(): array => cms()->pages()->summaries($builderTemplateDefinitions());
 
 $persistedValuesForBuilder = static function (array $page): array {
     $meta = is_array($page['meta'] ?? null) ? $page['meta'] : [];

@@ -93,6 +93,7 @@ class PageBuilder {
         this.root = root;
         this.config = JSON.parse(root.dataset.config || '{}');
         this.saveUrl = root.dataset.saveUrl || this.config.saveUrl || '/admin/pages';
+        this.layoutSaveUrl = root.dataset.layoutSaveUrl || this.config.layoutSaveUrl || '/api/admin/page-layouts';
         this.overviewUrl = root.dataset.overviewUrl || this.config.overviewUrl || '/admin/pages';
         this.labels = {
             saved: 'Page saved.',
@@ -130,6 +131,14 @@ class PageBuilder {
             customLayout: 'Custom layout',
             deleteSlot: 'Delete slot',
             duplicateSlot: 'A slot with this id already exists.',
+            addMenuBlock: 'Menü hinzufügen',
+            saveCustomLayout: 'Save as layout',
+            saveLayoutTitle: 'Save custom layout',
+            saveLayoutIntro: 'Save this slot structure as a reusable layout for future pages.',
+            layoutName: 'Layout name',
+            layoutDescription: 'Description',
+            layoutSaved: 'Layout saved.',
+            layoutNameRequired: 'Please enter a layout name.',
             addChildBlock: 'Block hinzufügen',
             chooseChildBlock: 'Choose child block',
             chooseChildBlockIntro: 'Pick the content block to place inside this layout module.',
@@ -225,7 +234,11 @@ class PageBuilder {
         } else {
             this.restoreState();
         }
-        this.syncCustomTemplateBlocks();
+        if (this.isCustomTemplate() && this.customLayout.length === 0) {
+            this.applyTemplateCustomLayout();
+        } else {
+            this.syncCustomTemplateBlocks();
+        }
         if (!this.persistedValues.defaultNavigationIdentifier) {
             this.persistedValues.defaultNavigationIdentifier = this.defaultNavigationIdentifier;
         }
@@ -523,11 +536,33 @@ class PageBuilder {
         return (template?.kind || 'static') === 'custom';
     }
 
-    syncCustomTemplateBlocks() {
-        const customTemplate = this.templates.find((template) => (template?.kind || 'static') === 'custom');
-        if (customTemplate) {
-            customTemplate.blocks = this.customLayout;
+    storedTemplateId(template = this.selectedTemplate()) {
+        if (this.isCustomTemplate(template)) {
+            return template?.baseTemplateId || 'custom';
         }
+
+        return template?.id || this.templateId;
+    }
+
+    syncCustomTemplateBlocks() {
+        const template = this.selectedTemplate();
+        if (this.isCustomTemplate(template)) {
+            template.blocks = this.customLayout;
+        }
+
+        const baseTemplate = this.templates.find((item) => item.id === 'custom');
+        if (baseTemplate && template?.id === 'custom') {
+            baseTemplate.blocks = this.customLayout;
+        }
+    }
+
+    applyTemplateCustomLayout(template = this.selectedTemplate()) {
+        if (!this.isCustomTemplate(template)) {
+            return;
+        }
+
+        this.customLayout = this.normalizeCustomLayout(template?.blocks || this.customLayout);
+        this.syncCustomTemplateBlocks();
     }
 
     normalizeCustomLayout(layout) {
@@ -690,7 +725,8 @@ class PageBuilder {
     }
 
     defaultContentForBlock(block) {
-        const type = block.defaultContentType || (block.id === 'site_header'
+        const acceptedTypes = Array.isArray(block?.accepts) ? block.accepts : [];
+        const type = block.defaultContentType || acceptedTypes[0] || (block.id === 'site_header'
             ? 'header'
             : block.id === 'site_footer'
                 ? 'footer'
@@ -787,6 +823,35 @@ class PageBuilder {
             overflow: 'visible',
             surface: 'none',
             accepts: [definition.type],
+            defaultContentType: definition.type,
+        });
+        this.syncCustomTemplateBlocks();
+        this.selectedBlockId = id;
+        this.blockContent[id] = this.contentFromDefinition(definition);
+        this.openSettings();
+        this.previewTemplateId = null;
+        this.persistState();
+        this.render();
+    }
+
+    addNavigationSlot() {
+        const definition = this.contentTypeDefinition('navigation');
+        if (!definition) {
+            return;
+        }
+
+        const id = this.uniqueCustomSlotId(this.labels.addMenuBlock || definition.label, 'navigation');
+        this.customLayout.push({
+            id,
+            label: definition.label || 'Navigation',
+            region: 'header',
+            size: 'large',
+            position: 'stretch',
+            maxHeight: 'none',
+            overflow: 'visible',
+            surface: 'none',
+            accepts: ['navigation'],
+            defaultContentType: 'navigation',
         });
         this.syncCustomTemplateBlocks();
         this.selectedBlockId = id;
@@ -1010,6 +1075,12 @@ class PageBuilder {
             return;
         }
 
+        if (event.target.closest('[data-add-navigation-slot]')) {
+            event.preventDefault();
+            this.addNavigationSlot();
+            return;
+        }
+
         const deleteCustomSlot = event.target.closest('[data-delete-custom-slot]');
         if (deleteCustomSlot) {
             event.preventDefault();
@@ -1059,6 +1130,7 @@ class PageBuilder {
         const templateCard = event.target.closest('[data-template-id]');
         if (templateCard) {
             this.templateId = templateCard.dataset.templateId || this.templateId;
+            this.applyTemplateCustomLayout();
             this.selectedBlockId = null;
             this.selectedNestedPath = '';
             this.blockContent = {};
@@ -1066,6 +1138,12 @@ class PageBuilder {
             this.ensureTemplateDefaults();
             this.persistState();
             this.render();
+            return;
+        }
+
+        if (event.target.closest('[data-save-custom-layout]')) {
+            event.preventDefault();
+            this.openSaveCustomLayoutPrompt();
             return;
         }
 
@@ -1334,6 +1412,103 @@ class PageBuilder {
                 container.closest('.notify')?.querySelector('.close')?.click();
             });
         });
+    }
+
+    async openSaveCustomLayoutPrompt() {
+        if (!this.isCustomTemplate() || this.customLayout.length === 0) {
+            return;
+        }
+
+        const template = this.selectedTemplate();
+        const defaultName = String(template?.layoutPresetId ? template.label : `${this.persistedValues.title || 'Custom'} layout`).trim();
+        const promptResult = prompt(`
+            <div>${escapeHtml(this.labels.saveLayoutTitle)}</div>
+            <div class="notify-form">
+                <p class="notify-form-intro">${escapeHtml(this.labels.saveLayoutIntro)}</p>
+                <label class="notify-field">
+                    <span class="notify-field-label">${escapeHtml(this.labels.layoutName)}</span>
+                    <input type="text" value="${escapeHtml(defaultName)}" data-page-layout-name>
+                </label>
+                <label class="notify-field">
+                    <span class="notify-field-label">${escapeHtml(this.labels.layoutDescription)}</span>
+                    <textarea rows="3" data-page-layout-description>${escapeHtml(String(template?.description || ''))}</textarea>
+                </label>
+            </div>
+        `, {
+            confirmButtonText: this.labels.saveCustomLayout,
+            cancelButtonText: this.labels.cancel,
+            showCancelButton: true,
+            confirmCallback: async (promptInstance) => {
+                const nameInput = promptInstance.container.querySelector('[data-page-layout-name]');
+                const descriptionInput = promptInstance.container.querySelector('[data-page-layout-description]');
+                const name = String(nameInput?.value || '').trim();
+                if (name === '') {
+                    toast(this.labels.layoutNameRequired);
+                    nameInput?.focus();
+                    return true;
+                }
+
+                const saved = await this.saveCustomLayoutPreset(name, String(descriptionInput?.value || '').trim());
+                if (!saved) {
+                    return true;
+                }
+
+                promptInstance.promise.resolve(true);
+                promptInstance.remove();
+                return true;
+            },
+        });
+
+        await promptResult;
+    }
+
+    async saveCustomLayoutPreset(name, description = '') {
+        if (!this.layoutSaveUrl) {
+            return false;
+        }
+
+        try {
+            const request = window.NixCMS?.json || fetch;
+            const response = await request(this.layoutSaveUrl, {
+                method: 'POST',
+                body: JSON.stringify({
+                    name,
+                    description,
+                    slots: this.normalizeCustomLayout(this.customLayout),
+                }),
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || result.success === false || !result.template) {
+                throw new Error(result.reason || this.labels.couldNotSave);
+            }
+
+            this.upsertTemplate(result.template);
+            this.templateId = result.template.id;
+            this.applyTemplateCustomLayout();
+            this.templatesRendered = false;
+            this.previewTemplateId = null;
+            toast(this.labels.layoutSaved);
+            this.persistState();
+            this.render();
+            return true;
+        } catch (error) {
+            notifyAlert(escapeHtml(error.message || this.labels.couldNotSave));
+            return false;
+        }
+    }
+
+    upsertTemplate(template) {
+        if (!template || typeof template !== 'object' || !template.id) {
+            return;
+        }
+
+        const index = this.templates.findIndex((item) => item.id === template.id);
+        if (index >= 0) {
+            this.templates[index] = template;
+            return;
+        }
+
+        this.templates.push(template);
     }
 
     openCustomSlotModal() {
@@ -2151,9 +2326,17 @@ class PageBuilder {
                         <span class="text-[11px] font-bold uppercase text-slate-500">${escapeHtml(this.labels.customLayout)}</span>
                         <strong class="text-sm font-semibold text-white">${escapeHtml(blocks.length)} custom slots</strong>
                     </div>
-                    <button class="inline-flex min-h-9 items-center justify-center rounded-md bg-[var(--admin-page-accent)] px-3 text-xs font-bold text-white transition hover:brightness-110" type="button" data-add-custom-slot>
-                        ${escapeHtml(this.labels.addCustomBlock)}
-                    </button>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button class="inline-flex min-h-9 items-center justify-center rounded-md border border-slate-700 px-3 text-xs font-bold text-slate-200 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-save-custom-layout>
+                            ${escapeHtml(this.labels.saveCustomLayout)}
+                        </button>
+                        <button class="inline-flex min-h-9 items-center justify-center rounded-md border border-slate-700 px-3 text-xs font-bold text-slate-200 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-add-navigation-slot>
+                            ${escapeHtml(this.labels.addMenuBlock)}
+                        </button>
+                        <button class="inline-flex min-h-9 items-center justify-center rounded-md bg-[var(--admin-page-accent)] px-3 text-xs font-bold text-white transition hover:brightness-110" type="button" data-add-custom-slot>
+                            ${escapeHtml(this.labels.addCustomBlock)}
+                        </button>
+                    </div>
                 </div>
             ` : '';
 
@@ -3000,6 +3183,9 @@ class PageBuilder {
         if (key === 'tone') {
             return this.renderSelect(key, value, ['body', 'lead', 'muted'], label);
         }
+        if (key === 'surface' && contentType === 'navigation') {
+            return this.renderSelect(key, value, ['plain', 'card'], label);
+        }
         if (key === 'presentation') {
             return this.renderSelect(key, value, contentType === 'navigation'
                 ? ['horizontal', 'vertical', 'compact']
@@ -3731,8 +3917,11 @@ class PageBuilder {
 
     pagePayload() {
         const template = this.selectedTemplate();
+        const templateBlocks = this.isCustomTemplate(template)
+            ? this.normalizeCustomLayout(this.customLayout)
+            : (template?.blocks || []);
         const blocks = {};
-        for (const block of template?.blocks || []) {
+        for (const block of templateBlocks) {
             blocks[block.id] = this.blockContent[block.id] || null;
         }
 
@@ -3755,7 +3944,11 @@ class PageBuilder {
             },
         };
         if (this.isCustomTemplate(template) || this.customLayout.length > 0) {
-            meta.custom_layout = this.normalizeCustomLayout(this.customLayout);
+            meta.custom_layout = templateBlocks;
+            if (Number(template?.layoutPresetId || 0) > 0) {
+                meta.custom_layout_ref = Number(template.layoutPresetId);
+                meta.custom_layout_name = template.label || '';
+            }
         }
 
         return {
@@ -3765,7 +3958,7 @@ class PageBuilder {
             path,
             language: this.persistedValues.language || this.defaultLanguage,
             status: this.persistedValues.status || 'draft',
-            templateId: template?.id || this.templateId,
+            templateId: this.storedTemplateId(template),
             blocks,
             meta,
         };
