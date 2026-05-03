@@ -47,6 +47,7 @@ final class StackBlockType extends AbstractBlockType
         return [
             ['name' => 'gap', 'label' => 'Gap', 'type' => 'select', 'options' => ['none', 'small', 'medium', 'large']],
             ['name' => 'align', 'label' => 'Align', 'type' => 'select', 'options' => ['stretch', 'start', 'center', 'end']],
+            ['name' => 'children', 'label' => 'Children', 'type' => 'children'],
         ];
     }
 }

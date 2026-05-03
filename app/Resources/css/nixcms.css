@@ -403,6 +403,87 @@ body.page-theme--bounded-chrome .page-template-chrome-inner,
     display: grid;
     width: 100%;
     min-width: 0;
+    position: relative;
+}
+
+.page-builder .page-template-custom-slot[data-custom-slot-drop] {
+    isolation: isolate;
+}
+
+.page-builder-slot-controls {
+    inset: 10px 10px auto 10px;
+    pointer-events: none;
+    position: absolute;
+    z-index: 35;
+}
+
+.page-builder-slot-controls__tab {
+    align-items: center;
+    backdrop-filter: blur(10px);
+    background: color-mix(in srgb, #020617 78%, transparent);
+    border: 1px solid color-mix(in srgb, var(--admin-line) 72%, transparent);
+    border-radius: 8px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .2);
+    color: color-mix(in srgb, var(--admin-muted) 86%, white 14%);
+    cursor: grab;
+    display: inline-flex;
+    gap: 7px;
+    min-height: 30px;
+    max-width: min(260px, 100%);
+    opacity: .72;
+    padding: 0 9px;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition: opacity .18s ease, transform .18s ease, border-color .18s ease, color .18s ease;
+}
+
+.page-builder-slot-controls__tab svg {
+    flex: 0 0 auto;
+    height: 14px;
+    opacity: .72;
+    width: 14px;
+}
+
+.page-builder-slot-controls__tab span {
+    font-size: 11px;
+    font-weight: 650;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.page-builder-slot-controls__panel {
+    background: color-mix(in srgb, #020617 88%, transparent);
+    border: 1px solid color-mix(in srgb, var(--admin-line) 76%, transparent);
+    border-radius: 10px;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, .32), inset 0 1px 0 rgba(255, 255, 255, .04);
+    margin-top: 6px;
+    max-width: min(1040px, 100%);
+    opacity: 0;
+    overflow: hidden;
+    padding: 8px;
+    pointer-events: none;
+    transform: translateY(-8px) scale(.985);
+    transform-origin: top left;
+    transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
+    visibility: hidden;
+}
+
+.page-template-custom-slot:hover .page-builder-slot-controls__tab,
+.page-template-custom-slot:focus-within .page-builder-slot-controls__tab {
+    border-color: color-mix(in srgb, var(--admin-page-accent) 42%, var(--admin-line));
+    color: var(--admin-text);
+    opacity: 1;
+    transform: translateY(-2px);
+}
+
+.page-template-custom-slot:hover .page-builder-slot-controls__panel,
+.page-template-custom-slot:focus-within .page-builder-slot-controls__panel {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+    visibility: visible;
 }
 
 .page-template-custom-slot--hero {
@@ -413,6 +494,12 @@ body.page-theme--bounded-chrome .page-template-chrome-inner,
 .page-template-custom-slot--large {
     max-width: none;
     min-height: 220px;
+}
+
+.page-template-custom-slot--full {
+    max-width: 100%;
+    min-height: 150px;
+    width: 100%;
 }
 
 .page-template-custom-slot--medium {
@@ -498,6 +585,51 @@ body.page-theme--bounded-chrome .page-template-chrome-inner,
 
 .page-layout-block {
     min-width: 0;
+}
+
+.page-layout-child {
+    min-width: 0;
+}
+
+.page-builder-layout-child-preview {
+    overflow: hidden;
+}
+
+.page-layout-child--plain {
+    padding: 0;
+}
+
+.page-layout-child--border,
+.page-layout-child--soft,
+.page-layout-child--card,
+.page-layout-child--accent {
+    border-radius: .5rem;
+    padding: 1rem;
+}
+
+.page-builder-layout-child-preview.page-layout-child--border,
+.page-builder-layout-child-preview.page-layout-child--soft,
+.page-builder-layout-child-preview.page-layout-child--card,
+.page-builder-layout-child-preview.page-layout-child--accent {
+    padding: .75rem;
+}
+
+.page-layout-child--border {
+    border: 1px solid var(--page-card-border);
+}
+
+.page-layout-child--soft {
+    background: var(--page-panel-soft);
+}
+
+.page-layout-child--card {
+    border: 1px solid var(--page-card-border);
+    background: var(--page-card-bg);
+}
+
+.page-layout-child--accent {
+    border: 1px solid color-mix(in srgb, var(--page-accent) 36%, var(--page-card-border));
+    background: color-mix(in srgb, var(--page-accent) 12%, var(--page-card-bg));
 }
 
 .page-layout-section {

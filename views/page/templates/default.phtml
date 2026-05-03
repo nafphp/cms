@@ -1,5 +1,12 @@
 <?php
 
-/** @var string $blockOutput */
+/** @var callable(string): string $block */
 
-echo $blockOutput;
+?>
+<div class="page-template-shell">
+    <?= $block('site_header') ?>
+    <main class="page-template-main page-template-main--public">
+        <?= $block('main') ?>
+    </main>
+    <?= $block('site_footer') ?>
+</div>

@@ -13,56 +13,66 @@ const clone = (value) => JSON.parse(JSON.stringify(value));
 const storageKey = 'nixcms:page-builder:draft';
 const flashToastKey = 'nixcms:flash-toast';
 const previewViewports = {
-    desktop: {label: 'Desktop', width: 1280},
-    tablet: {label: 'Tablet', width: 768},
-    mobile: {label: 'Mobile', width: 390},
+    desktop: {label: 'Desktop', labelKey: 'viewportDesktop', width: 1280},
+    tablet: {label: 'Tablet', labelKey: 'viewportTablet', width: 768},
+    mobile: {label: 'Mobile', labelKey: 'viewportMobile', width: 390},
 };
 const contentWidthPresets = {
-    template: {label: 'Template default', css: ''},
-    narrow: {label: 'Narrow', css: '760px'},
-    comfortable: {label: 'Comfortable', css: '960px'},
-    wide: {label: 'Wide', css: '1120px'},
-    full: {label: 'Full width', css: '100%'},
+    template: {label: 'Template default', labelKey: 'contentWidthTemplate', css: ''},
+    narrow: {label: 'Narrow', labelKey: 'contentWidthNarrow', css: '760px'},
+    comfortable: {label: 'Comfortable', labelKey: 'contentWidthComfortable', css: '960px'},
+    wide: {label: 'Wide', labelKey: 'contentWidthWide', css: '1120px'},
+    full: {label: 'Full width', labelKey: 'contentWidthFull', css: '100%'},
 };
 const customLayoutRegions = [
-    {value: 'header', label: 'Header'},
-    {value: 'main', label: 'Main'},
-    {value: 'aside', label: 'Aside'},
-    {value: 'footer', label: 'Footer'},
+    {value: 'header', label: 'Header', labelKey: 'regionHeader'},
+    {value: 'main', label: 'Main', labelKey: 'regionMain'},
+    {value: 'aside', label: 'Aside', labelKey: 'regionAside'},
+    {value: 'footer', label: 'Footer', labelKey: 'regionFooter'},
 ];
 const customLayoutSizes = [
-    {value: 'small', label: 'Small width'},
-    {value: 'medium', label: 'Medium width'},
-    {value: 'large', label: 'Large width'},
-    {value: 'aside', label: 'Aside width'},
-    {value: 'hero', label: 'Hero width'},
+    {value: 'small', label: 'Small width', labelKey: 'sizeSmall'},
+    {value: 'medium', label: 'Medium width', labelKey: 'sizeMedium'},
+    {value: 'large', label: 'Large width', labelKey: 'sizeLarge'},
+    {value: 'full', label: 'Full width', labelKey: 'sizeFull'},
+    {value: 'aside', label: 'Aside width', labelKey: 'sizeAside'},
+    {value: 'hero', label: 'Hero width', labelKey: 'sizeHero'},
 ];
 const customLayoutPositions = [
-    {value: 'stretch', label: 'Auto'},
-    {value: 'start', label: 'Left'},
-    {value: 'center', label: 'Center'},
-    {value: 'end', label: 'Right'},
+    {value: 'stretch', label: 'Auto', labelKey: 'positionAuto'},
+    {value: 'start', label: 'Left', labelKey: 'positionLeft'},
+    {value: 'center', label: 'Center', labelKey: 'positionCenter'},
+    {value: 'end', label: 'Right', labelKey: 'positionRight'},
 ];
 const customLayoutMaxHeights = [
-    {value: 'none', label: 'No max'},
+    {value: 'none', label: 'No max', labelKey: 'maxHeightNone'},
     {value: '320', label: '320 px'},
     {value: '480', label: '480 px'},
     {value: '640', label: '640 px'},
     {value: '800', label: '800 px'},
-    {value: 'screen', label: 'Viewport'},
+    {value: 'screen', label: 'Viewport', labelKey: 'maxHeightViewport'},
 ];
 const customLayoutOverflows = [
-    {value: 'visible', label: 'Visible'},
-    {value: 'hidden', label: 'Hidden'},
-    {value: 'auto', label: 'Scroll'},
+    {value: 'visible', label: 'Visible', labelKey: 'overflowVisible'},
+    {value: 'hidden', label: 'Hidden', labelKey: 'overflowHidden'},
+    {value: 'auto', label: 'Scroll', labelKey: 'overflowScroll'},
 ];
 const customLayoutSurfaces = [
-    {value: 'none', label: 'None'},
-    {value: 'soft', label: 'Soft'},
-    {value: 'card', label: 'Card'},
-    {value: 'accent', label: 'Accent'},
+    {value: 'none', label: 'None', labelKey: 'surfaceNone'},
+    {value: 'soft', label: 'Soft', labelKey: 'surfaceSoft'},
+    {value: 'card', label: 'Card', labelKey: 'surfaceCard'},
+    {value: 'accent', label: 'Accent', labelKey: 'surfaceAccent'},
+];
+const layoutChildContainerStyles = [
+    {value: 'plain', label: 'Plain', labelKey: 'containerPlain'},
+    {value: 'border', label: 'Border', labelKey: 'containerBorder'},
+    {value: 'soft', label: 'Soft', labelKey: 'containerSoft'},
+    {value: 'card', label: 'Card', labelKey: 'containerCard'},
+    {value: 'accent', label: 'Accent', labelKey: 'containerAccent'},
 ];
 const layoutBlockTypes = ['section', 'stack', 'columns', 'grid'];
+const chartMetricColors = ['#3b82f6', '#f59e0b', '#22c55e', '#8b5cf6', '#64748b', '#ef4444', '#06b6d4', '#f97316'];
+const chartMaxMetrics = 24;
 
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
     '&': '&amp;',
@@ -73,8 +83,9 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => 
 }[char]));
 const hasOption = (options, value) => options.some((item) => item.value === String(value ?? ''));
 const optionValue = (options, value, fallback) => hasOption(options, value) ? String(value) : fallback;
-const optionOptions = (options, selected) => options.map((item) => `
-    <option value="${escapeHtml(item.value)}" ${item.value === selected ? 'selected' : ''}>${escapeHtml(item.label)}</option>
+const optionLabel = (item, labels = {}) => item.labelKey && labels[item.labelKey] ? labels[item.labelKey] : item.label;
+const optionOptions = (options, selected, labels = {}) => options.map((item) => `
+    <option value="${escapeHtml(item.value)}" ${item.value === selected ? 'selected' : ''}>${escapeHtml(optionLabel(item, labels))}</option>
 `).join('');
 
 const languageIcon = `
@@ -129,6 +140,7 @@ class PageBuilder {
             chooseCustomBlock: 'Choose content type',
             chooseCustomBlockIntro: 'Pick the content block for the new custom slot.',
             customLayout: 'Custom layout',
+            customSlotsCount: ':count custom slots',
             deleteSlot: 'Delete slot',
             duplicateSlot: 'A slot with this id already exists.',
             addMenuBlock: 'Menü hinzufügen',
@@ -146,6 +158,62 @@ class PageBuilder {
             backToLayoutBlock: 'Back to layout block',
             editChildBlock: 'Edit child block',
             removeChildBlock: 'Remove child block',
+            layoutType: 'Layout type',
+            container: 'Container',
+            position: 'Position',
+            maxHeight: 'Max height',
+            overflow: 'Overflow',
+            surface: 'Surface',
+            regionHeader: 'Header',
+            regionMain: 'Main',
+            regionAside: 'Aside',
+            regionFooter: 'Footer',
+            sizeSmall: 'Small width',
+            sizeMedium: 'Medium width',
+            sizeLarge: 'Large width',
+            sizeFull: 'Full width',
+            sizeAside: 'Aside width',
+            sizeHero: 'Hero width',
+            positionAuto: 'Auto',
+            positionLeft: 'Left',
+            positionCenter: 'Center',
+            positionRight: 'Right',
+            maxHeightNone: 'No max',
+            maxHeightViewport: 'Viewport',
+            overflowVisible: 'Visible',
+            overflowHidden: 'Hidden',
+            overflowScroll: 'Scroll',
+            surfaceNone: 'None',
+            surfaceSoft: 'Soft',
+            surfaceCard: 'Card',
+            surfaceAccent: 'Accent',
+            containerPlain: 'Plain',
+            containerBorder: 'Border',
+            containerSoft: 'Soft',
+            containerCard: 'Card',
+            containerAccent: 'Accent',
+            content: 'Content',
+            headerFooter: 'Header/footer',
+            preview: 'preview',
+            viewport: 'viewport',
+            viewportDesktop: 'Desktop',
+            viewportTablet: 'Tablet',
+            viewportMobile: 'Mobile',
+            contentWidthTemplate: 'Template default',
+            contentWidthNarrow: 'Narrow',
+            contentWidthComfortable: 'Comfortable',
+            contentWidthWide: 'Wide',
+            contentWidthFull: 'Full width',
+            width: 'Width',
+            bounded: 'Bounded',
+            customSlots: 'Custom slots',
+            metrics: 'Metrics',
+            addMetric: 'Add metric',
+            removeMetric: 'Remove metric',
+            metricLabel: 'Label',
+            metricValue: 'Value',
+            metricColor: 'Color',
+            metricFallback: 'Metric :number',
             newLanguage: 'New language',
             createLanguage: 'Create language',
             chooseLanguageCode: 'Choose a language code.',
@@ -501,13 +569,14 @@ class PageBuilder {
 
     contentWidthDisplay() {
         const key = this.contentWidthKey();
-        const chromeSuffix = this.contentWidthIncludesChrome() ? ' · Header/footer' : '';
+        const chromeSuffix = this.contentWidthIncludesChrome() ? ` · ${this.labels.headerFooter}` : '';
         if (key === 'template') {
-            return `Template · ${this.templateDefaultWidth()}${chromeSuffix}`;
+            return `${this.labels.contentWidthTemplate} · ${this.templateDefaultWidth()}${chromeSuffix}`;
         }
 
         const preset = contentWidthPresets[key];
-        return preset.css === '100%' ? `${preset.label}${chromeSuffix}` : `${preset.label} · ${preset.css}${chromeSuffix}`;
+        const label = optionLabel(preset, this.labels);
+        return preset.css === '100%' ? `${label}${chromeSuffix}` : `${label} · ${preset.css}${chromeSuffix}`;
     }
 
     contentWidthIncludesChrome() {
@@ -667,6 +736,15 @@ class PageBuilder {
 
     isLayoutContent(content) {
         return layoutBlockTypes.includes(String(content?.type || ''));
+    }
+
+    layoutChildContainerStyle(content) {
+        return optionValue(layoutChildContainerStyles, content?.props?.containerStyle, 'plain');
+    }
+
+    layoutChildContainerClass(content, preview = false) {
+        const style = this.layoutChildContainerStyle(content);
+        return `page-layout-child page-layout-child--${style}${preview ? ' page-builder-layout-child-preview' : ''}`;
     }
 
     blockRegion(block = this.selectedBlock()) {
@@ -981,6 +1059,52 @@ class PageBuilder {
         this.persistState();
     }
 
+    replaceSelectedLayoutType(type) {
+        const current = this.selectedContent();
+        const definition = this.contentTypeDefinition(type);
+        if (!this.isLayoutContent(current) || !definition || !layoutBlockTypes.includes(definition.type) || definition.type === current.type) {
+            return;
+        }
+
+        const previousProps = current.props && typeof current.props === 'object' && !Array.isArray(current.props) ? current.props : {};
+        const children = this.childrenForContent(current);
+        const replacement = this.contentFromDefinition(definition);
+        replacement.props.children = children;
+
+        for (const key of ['gap', 'align']) {
+            if (key in replacement.props && key in previousProps) {
+                replacement.props[key] = previousProps[key];
+            }
+        }
+
+        if ('columns' in replacement.props) {
+            replacement.props.columns = Math.max(2, Math.min(4, children.length || Number(replacement.props.columns || 2)));
+        }
+
+        if (this.selectedNestedPath === '') {
+            this.blockContent[this.selectedBlockId] = replacement;
+            const slot = this.customLayout.find((item) => item.id === this.selectedBlockId);
+            if (slot) {
+                slot.accepts = [definition.type];
+                slot.defaultContentType = definition.type;
+            }
+        } else {
+            const parts = this.pathIndexes(this.selectedNestedPath);
+            const index = parts.pop();
+            const siblings = this.childrenAtPath(parts.join('.'));
+            if (index < 0 || index >= siblings.length) {
+                return;
+            }
+            siblings[index] = replacement;
+        }
+
+        this.renderBlocks();
+        this.renderPagePreview();
+        this.renderJson();
+        this.renderSettings();
+        this.persistState();
+    }
+
     reorderCustomSlot(sourceId, targetId) {
         if (!sourceId || !targetId || sourceId === targetId) {
             return;
@@ -1091,6 +1215,19 @@ class PageBuilder {
         if (event.target.closest('[data-add-layout-child]')) {
             event.preventDefault();
             this.openLayoutChildModal(this.selectedNestedPath || '');
+            return;
+        }
+
+        if (event.target.closest('[data-chart-metric-add]')) {
+            event.preventDefault();
+            this.addChartMetric();
+            return;
+        }
+
+        const removeChartMetric = event.target.closest('[data-chart-metric-remove]');
+        if (removeChartMetric) {
+            event.preventDefault();
+            this.removeChartMetric(Number(removeChartMetric.dataset.chartMetricRemove || -1));
             return;
         }
 
@@ -1303,6 +1440,37 @@ class PageBuilder {
             return;
         }
 
+        const layoutChildContainerStyle = event.target.closest('[data-layout-child-container-style]');
+        if (layoutChildContainerStyle) {
+            const child = this.contentAtPath(layoutChildContainerStyle.dataset.layoutChildContainerStyle || '');
+            if (child) {
+                child.props = child.props && typeof child.props === 'object' && !Array.isArray(child.props) ? child.props : {};
+                child.props.containerStyle = optionValue(layoutChildContainerStyles, layoutChildContainerStyle.value, 'plain');
+                this.renderBlocks();
+                this.renderPagePreview();
+                this.renderJson();
+                this.renderSettings();
+                this.persistState();
+            }
+            return;
+        }
+
+        const layoutTypeSwitch = event.target.closest('[data-layout-type-switch]');
+        if (layoutTypeSwitch) {
+            this.replaceSelectedLayoutType(layoutTypeSwitch.value || '');
+            return;
+        }
+
+        const chartMetricField = event.target.closest('[data-chart-metric-field]');
+        if (chartMetricField) {
+            this.updateChartMetric(
+                Number(chartMetricField.dataset.chartMetricIndex || -1),
+                chartMetricField.dataset.chartMetricField || '',
+                chartMetricField.type === 'number' ? Number(chartMetricField.value || 0) : chartMetricField.value,
+            );
+            return;
+        }
+
         const input = event.target.closest('[data-prop-name]');
         if (!input || !this.selectedContent()) {
             return;
@@ -1333,6 +1501,121 @@ class PageBuilder {
         }
     }
 
+    chartMetrics(content = this.selectedContent()) {
+        const props = content?.props && typeof content.props === 'object' && !Array.isArray(content.props) ? content.props : {};
+        const fromArray = Array.isArray(props.metrics)
+            ? props.metrics
+                .filter((metric) => metric && typeof metric === 'object' && !Array.isArray(metric))
+                .map((metric, index) => ({
+                    label: String(metric.label ?? '').trim() || this.labels.metricFallback.replace(':number', String(index + 1)),
+                    value: Number(metric.value ?? 0),
+                    color: this.normalizeColor(metric.color) || chartMetricColors[index % chartMetricColors.length],
+                }))
+            : [];
+
+        if (fromArray.length > 0) {
+            return fromArray.slice(0, chartMaxMetrics);
+        }
+
+        const highestLegacyMetric = Array.from({length: 6}, (_, index) => index + 1)
+            .reduce((highest, index) => (
+                props[`label${index}`] !== undefined || props[`value${index}`] !== undefined || props[`color${index}`] !== undefined
+                    ? index
+                    : highest
+            ), 0);
+        const count = Math.max(1, Math.min(chartMaxMetrics, Math.max(Number(props.metricCount || 3), highestLegacyMetric)));
+        return Array.from({length: count}, (_, index) => ({
+            label: String(props[`label${index + 1}`] ?? '').trim() || this.labels.metricFallback.replace(':number', String(index + 1)),
+            value: Number(props[`value${index + 1}`] ?? 0),
+            color: this.normalizeColor(props[`color${index + 1}`]) || chartMetricColors[index % chartMetricColors.length],
+        }));
+    }
+
+    syncChartMetricProps(content, metrics) {
+        if (!content) {
+            return;
+        }
+
+        content.props = content.props && typeof content.props === 'object' && !Array.isArray(content.props) ? content.props : {};
+        const normalized = metrics.slice(0, chartMaxMetrics).map((metric, index) => ({
+            label: String(metric?.label ?? '').trim() || this.labels.metricFallback.replace(':number', String(index + 1)),
+            value: Number(metric?.value ?? 0),
+            color: this.normalizeColor(metric?.color) || chartMetricColors[index % chartMetricColors.length],
+        }));
+
+        content.props.metrics = normalized;
+        content.props.metricCount = normalized.length;
+        for (let index = 0; index < Math.min(6, normalized.length); index++) {
+            const metric = normalized[index];
+            content.props[`label${index + 1}`] = metric.label;
+            content.props[`value${index + 1}`] = metric.value;
+            content.props[`color${index + 1}`] = metric.color;
+        }
+    }
+
+    addChartMetric() {
+        const content = this.selectedContent();
+        if (!content || content.type !== 'chart') {
+            return;
+        }
+
+        const metrics = this.chartMetrics(content);
+        if (metrics.length >= chartMaxMetrics) {
+            return;
+        }
+
+        metrics.push({
+            label: this.labels.metricFallback.replace(':number', String(metrics.length + 1)),
+            value: 0,
+            color: chartMetricColors[metrics.length % chartMetricColors.length],
+        });
+        this.syncChartMetricProps(content, metrics);
+        this.renderBlocks();
+        this.renderPagePreview();
+        this.renderJson();
+        this.renderSettings();
+        this.persistState();
+    }
+
+    removeChartMetric(index) {
+        const content = this.selectedContent();
+        if (!content || content.type !== 'chart') {
+            return;
+        }
+
+        const metrics = this.chartMetrics(content);
+        if (metrics.length <= 1 || index < 0 || index >= metrics.length) {
+            return;
+        }
+
+        metrics.splice(index, 1);
+        this.syncChartMetricProps(content, metrics);
+        this.renderBlocks();
+        this.renderPagePreview();
+        this.renderJson();
+        this.renderSettings();
+        this.persistState();
+    }
+
+    updateChartMetric(index, field, value) {
+        const content = this.selectedContent();
+        if (!content || content.type !== 'chart' || index < 0 || !['label', 'value', 'color'].includes(field)) {
+            return;
+        }
+
+        const metrics = this.chartMetrics(content);
+        if (!metrics[index]) {
+            return;
+        }
+
+        metrics[index][field] = field === 'value' ? Number(value || 0) : value;
+        this.syncChartMetricProps(content, metrics);
+        this.renderBlocks();
+        this.renderPagePreview();
+        this.renderJson();
+        this.persistState();
+    }
+
     handlePersistedInput(event) {
         const field = event.target.closest('[data-persist-key]');
         if (!field) {
@@ -1354,6 +1637,27 @@ class PageBuilder {
         }
         this.renderMeta();
         this.persistState();
+    }
+
+    renderLayoutTypeSwitcher(content) {
+        if (!this.isLayoutContent(content)) {
+            return '';
+        }
+
+        const options = layoutBlockTypes
+            .map((type) => this.contentTypeDefinition(type))
+            .filter(Boolean)
+            .map((definition) => `<option value="${escapeHtml(definition.type)}" ${definition.type === content.type ? 'selected' : ''}>${escapeHtml(definition.label || definition.type)}</option>`)
+            .join('');
+
+        return `
+            <label class="grid gap-1.5 rounded-lg border border-slate-700 bg-[#0b1017] p-3">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${escapeHtml(this.labels.layoutType)}</span>
+                <select class="${inputClass}" data-styled-select data-layout-type-switch>
+                    ${options}
+                </select>
+            </label>
+        `;
     }
 
     syncPersistedControls(key, source = null) {
@@ -1777,13 +2081,13 @@ class PageBuilder {
             this.previewStage.style.maxWidth = this.previewViewport === 'desktop' ? '1380px' : `${Math.min(viewport.width + 48, 1380)}px`;
         }
         if (this.previewTitle) {
-            this.previewTitle.textContent = `${viewport.label} preview`;
+            this.previewTitle.textContent = `${optionLabel(viewport, this.labels)} ${this.labels.preview}`;
         }
         if (this.previewViewportLabel) {
-            this.previewViewportLabel.textContent = `${viewport.label} · ${viewport.width}px viewport`;
+            this.previewViewportLabel.textContent = `${optionLabel(viewport, this.labels)} · ${viewport.width}px ${this.labels.viewport}`;
         }
         if (this.contentWidthLabel) {
-            this.contentWidthLabel.textContent = `Content: ${this.contentWidthDisplay()}`;
+            this.contentWidthLabel.textContent = `${this.labels.content}: ${this.contentWidthDisplay()}`;
         }
 
         this.root.querySelectorAll('[data-preview-mode]').forEach((button) => {
@@ -2055,62 +2359,67 @@ class PageBuilder {
         const maxHeight = optionValue(customLayoutMaxHeights, block?.maxHeight, 'none');
         const overflow = optionValue(customLayoutOverflows, block?.overflow, 'visible');
         const surface = optionValue(customLayoutSurfaces, block?.surface, 'none');
-        const regionOptions = optionOptions(customLayoutRegions, this.customSlotRegion(block));
-        const sizeOptions = optionOptions(customLayoutSizes, this.customSlotSize(block));
-        const positionOptions = optionOptions(customLayoutPositions, position);
-        const maxHeightOptions = optionOptions(customLayoutMaxHeights, maxHeight);
-        const overflowOptions = optionOptions(customLayoutOverflows, overflow);
-        const surfaceOptions = optionOptions(customLayoutSurfaces, surface);
+        const regionOptions = optionOptions(customLayoutRegions, this.customSlotRegion(block), this.labels);
+        const sizeOptions = optionOptions(customLayoutSizes, this.customSlotSize(block), this.labels);
+        const positionOptions = optionOptions(customLayoutPositions, position, this.labels);
+        const maxHeightOptions = optionOptions(customLayoutMaxHeights, maxHeight, this.labels);
+        const overflowOptions = optionOptions(customLayoutOverflows, overflow, this.labels);
+        const surfaceOptions = optionOptions(customLayoutSurfaces, surface, this.labels);
+        const controlClass = 'min-h-8 w-full rounded-md border border-slate-700 bg-[#0b1017] px-2.5 py-1.5 text-[13px] text-slate-100 outline-none focus:border-[var(--admin-page-accent)]';
+        const compactSelect = 'data-styled-select data-styled-select-density="compact"';
 
         return `
-            <div class="pointer-events-auto mb-3 grid gap-2 rounded-lg border border-slate-700 bg-slate-950/80 p-2 text-slate-100 shadow-[0_12px_28px_rgba(0,0,0,.20)]">
-                <div class="grid gap-2 md:grid-cols-[36px_minmax(150px,1fr)_minmax(108px,132px)_minmax(116px,150px)_36px]">
-                <button class="grid h-9 w-9 cursor-grab place-items-center rounded-md border border-slate-700 bg-[#0b1017] text-slate-400 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" draggable="true" data-custom-slot-drag="${escapeHtml(block.id)}" aria-label="Reorder slot">
-                    <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <div class="page-builder-slot-controls">
+                <button class="page-builder-slot-controls__tab" type="button" draggable="true" data-custom-slot-drag="${escapeHtml(block.id)}" aria-label="Reorder slot">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                         <path d="M8 6h.01"></path><path d="M16 6h.01"></path>
                         <path d="M8 12h.01"></path><path d="M16 12h.01"></path>
                         <path d="M8 18h.01"></path><path d="M16 18h.01"></path>
                     </svg>
+                    <span>${escapeHtml(block.label || 'Slot')}</span>
                 </button>
-                <label class="min-w-0">
-                    <span class="sr-only">Slot label</span>
-                    <input class="${inputClass}" type="text" value="${escapeHtml(block.label)}" data-custom-slot-label="${escapeHtml(block.id)}">
-                </label>
-                <label class="min-w-0">
-                    <span class="sr-only">Region</span>
-                    <select class="${inputClass}" data-styled-select data-custom-slot-region="${escapeHtml(block.id)}">${regionOptions}</select>
-                </label>
-                <label class="min-w-0">
-                    <span class="sr-only">Size</span>
-                    <select class="${inputClass}" data-styled-select data-custom-slot-size="${escapeHtml(block.id)}">${sizeOptions}</select>
-                </label>
-                <button class="grid h-9 w-9 place-items-center rounded-md border border-rose-900/70 bg-rose-950/20 text-rose-300 transition hover:border-rose-500 hover:bg-rose-950/50" type="button" data-delete-custom-slot="${escapeHtml(block.id)}" aria-label="${escapeHtml(this.labels.deleteSlot)}">
-                    <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 6h18"></path>
-                        <path d="M8 6V4h8v2"></path>
-                        <path d="M19 6l-1 14H6L5 6"></path>
-                        <path d="M10 11v5"></path>
-                        <path d="M14 11v5"></path>
-                    </svg>
-                </button>
-                </div>
-                <div class="grid gap-2 md:grid-cols-4">
-                    <label class="min-w-0">
-                        <span class="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500">Position</span>
-                        <select class="${inputClass}" data-styled-select data-custom-slot-position="${escapeHtml(block.id)}">${positionOptions}</select>
-                    </label>
-                    <label class="min-w-0">
-                        <span class="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500">Max height</span>
-                        <select class="${inputClass}" data-styled-select data-custom-slot-max-height="${escapeHtml(block.id)}">${maxHeightOptions}</select>
-                    </label>
-                    <label class="min-w-0">
-                        <span class="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500">Overflow</span>
-                        <select class="${inputClass}" data-styled-select data-custom-slot-overflow="${escapeHtml(block.id)}">${overflowOptions}</select>
-                    </label>
-                    <label class="min-w-0">
-                        <span class="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500">Surface</span>
-                        <select class="${inputClass}" data-styled-select data-custom-slot-surface="${escapeHtml(block.id)}">${surfaceOptions}</select>
-                    </label>
+                <div class="page-builder-slot-controls__panel">
+                    <div style="display:grid;grid-template-columns:minmax(240px,1fr) minmax(132px,156px) minmax(146px,176px) 28px;gap:8px;align-items:center;">
+                        <label class="min-w-0">
+                            <span class="sr-only">Slot label</span>
+                            <input class="${controlClass}" type="text" value="${escapeHtml(block.label)}" data-custom-slot-label="${escapeHtml(block.id)}">
+                        </label>
+                        <label class="min-w-0">
+                            <span class="sr-only">Region</span>
+                            <select class="${controlClass}" ${compactSelect} data-custom-slot-region="${escapeHtml(block.id)}">${regionOptions}</select>
+                        </label>
+                        <label class="min-w-0">
+                            <span class="sr-only">Size</span>
+                            <select class="${controlClass}" ${compactSelect} data-custom-slot-size="${escapeHtml(block.id)}">${sizeOptions}</select>
+                        </label>
+                        <button class="rounded-md border border-rose-900/70 bg-rose-950/20 text-rose-300 transition hover:border-rose-500 hover:bg-rose-950/50" style="display:grid;width:28px;height:28px;place-items:center;justify-self:end;" type="button" data-delete-custom-slot="${escapeHtml(block.id)}" aria-label="${escapeHtml(this.labels.deleteSlot)}">
+                            <svg aria-hidden="true" style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 6h18"></path>
+                                <path d="M8 6V4h8v2"></path>
+                                <path d="M19 6l-1 14H6L5 6"></path>
+                                <path d="M10 11v5"></path>
+                                <path d="M14 11v5"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:6px;">
+                        <label class="min-w-0">
+                            <span class="block uppercase tracking-wide text-slate-600" style="margin-bottom:2px;font-size:8px;font-weight:500;line-height:1.1;opacity:.72;">${escapeHtml(this.labels.position)}</span>
+                            <select class="${controlClass}" ${compactSelect} data-custom-slot-position="${escapeHtml(block.id)}">${positionOptions}</select>
+                        </label>
+                        <label class="min-w-0">
+                            <span class="block uppercase tracking-wide text-slate-600" style="margin-bottom:2px;font-size:8px;font-weight:500;line-height:1.1;opacity:.72;">${escapeHtml(this.labels.maxHeight)}</span>
+                            <select class="${controlClass}" ${compactSelect} data-custom-slot-max-height="${escapeHtml(block.id)}">${maxHeightOptions}</select>
+                        </label>
+                        <label class="min-w-0">
+                            <span class="block uppercase tracking-wide text-slate-600" style="margin-bottom:2px;font-size:8px;font-weight:500;line-height:1.1;opacity:.72;">${escapeHtml(this.labels.overflow)}</span>
+                            <select class="${controlClass}" ${compactSelect} data-custom-slot-overflow="${escapeHtml(block.id)}">${overflowOptions}</select>
+                        </label>
+                        <label class="min-w-0">
+                            <span class="block uppercase tracking-wide text-slate-600" style="margin-bottom:2px;font-size:8px;font-weight:500;line-height:1.1;opacity:.72;">${escapeHtml(this.labels.surface)}</span>
+                            <select class="${controlClass}" ${compactSelect} data-custom-slot-surface="${escapeHtml(block.id)}">${surfaceOptions}</select>
+                        </label>
+                    </div>
                 </div>
             </div>
         `;
@@ -2324,7 +2633,7 @@ class PageBuilder {
                 <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800 bg-[#121820] px-4 py-3">
                     <div class="grid gap-0.5">
                         <span class="text-[11px] font-bold uppercase text-slate-500">${escapeHtml(this.labels.customLayout)}</span>
-                        <strong class="text-sm font-semibold text-white">${escapeHtml(blocks.length)} custom slots</strong>
+                        <strong class="text-sm font-semibold text-white">${escapeHtml(this.labels.customSlotsCount.replace(':count', String(blocks.length)))}</strong>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <button class="inline-flex min-h-9 items-center justify-center rounded-md border border-slate-700 px-3 text-xs font-bold text-slate-200 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-save-custom-layout>
@@ -2581,7 +2890,7 @@ class PageBuilder {
         if (layoutBlockTypes.includes(content.type)) {
             const children = Array.isArray(content.props?.children) ? content.props.children : [];
             const childPreview = children.slice(0, 6).map((child) => `
-                <div class="min-w-0 rounded-md border border-[var(--page-card-border)] bg-slate-950/20 p-2">
+                <div class="${this.layoutChildContainerClass(child, true)}">
                     ${depth > 2 ? `<span class="text-xs text-[var(--page-muted)]">${escapeHtml(child?.label || child?.type || 'Block')}</span>` : this.contentMiniPreview(child, depth + 1)}
                 </div>
             `).join('');
@@ -2690,11 +2999,12 @@ class PageBuilder {
         }
 
         if (content.type === 'chart') {
-            const count = Math.max(1, Math.min(6, Number(content.props?.metricCount || 3)));
+            const metrics = this.chartMetrics(content);
+            const count = metrics.length;
             const type = content.props?.chartType || 'metric-bars';
-            const labels = Array.from({length: count}, (_, index) => content.props?.[`label${index + 1}`] || `Metric ${index + 1}`);
-            const values = Array.from({length: count}, (_, index) => Number(content.props?.[`value${index + 1}`] || 0));
-            const colors = Array.from({length: count}, (_, index) => this.normalizeColor(content.props?.[`color${index + 1}`]) || ['#3b82f6', '#f59e0b', '#22c55e', '#8b5cf6', '#64748b', '#ef4444'][index]);
+            const labels = metrics.map((metric) => metric.label);
+            const values = metrics.map((metric) => Number(metric.value || 0));
+            const colors = metrics.map((metric, index) => this.normalizeColor(metric.color) || chartMetricColors[index % chartMetricColors.length]);
             const max = Math.max(...values, 1);
             const linePoints = values.map((value, index) => ({
                 x: count === 1 ? 160 : 28 + ((index / (count - 1)) * 264),
@@ -3070,6 +3380,7 @@ class PageBuilder {
                 <h3 class="m-0 text-sm font-semibold">${escapeHtml(content.label)}</h3>
             </div>
             <div class="grid gap-3">
+                ${this.renderLayoutTypeSwitcher(content)}
                 ${visibleFields.map((field) => this.renderField(field.name, content.props?.[field.name] ?? '', content.type, field)).join('')}
                 ${this.isLayoutContent(content) ? this.renderLayoutChildrenEditor(this.selectedNestedPath || '') : ''}
             </div>
@@ -3083,6 +3394,7 @@ class PageBuilder {
             const path = this.pathForChild(parentPath, index);
             const label = child?.label || child?.previewTitle || child?.type || 'Block';
             const type = child?.type || '';
+            const containerStyleOptions = optionOptions(layoutChildContainerStyles, this.layoutChildContainerStyle(child), this.labels);
             return `
                 <div class="grid gap-2 rounded-md border border-slate-700 bg-[#0b1017] p-3">
                     <div class="flex min-w-0 items-center gap-2">
@@ -3116,7 +3428,13 @@ class PageBuilder {
                             </svg>
                         </button>
                     </div>
-                    <div class="overflow-hidden rounded border border-slate-800 bg-slate-950/45 p-2">
+                    <label class="grid gap-1.5">
+                        <span class="text-[10px] font-medium uppercase tracking-wide text-slate-500">${escapeHtml(this.labels.container)}</span>
+                        <select class="min-h-8 w-full rounded-md border border-slate-700 bg-[#0b1017] px-2.5 py-1.5 text-[13px] text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-styled-select data-styled-select-density="compact" data-layout-child-container-style="${escapeHtml(path)}">
+                            ${containerStyleOptions}
+                        </select>
+                    </label>
+                    <div class="${this.layoutChildContainerClass(child, true)}">
                         ${this.contentMiniPreview(child)}
                     </div>
                 </div>
@@ -3141,6 +3459,10 @@ class PageBuilder {
 
     renderField(key, value, contentType = '', field = null) {
         const label = field?.label || key;
+        if (field?.type === 'metrics') {
+            return this.renderChartMetricsField(label);
+        }
+
         if (field?.type === 'select') {
             return this.renderSelect(key, value, field.options || [], label);
         }
@@ -3229,6 +3551,55 @@ class PageBuilder {
                 <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${escapeHtml(label)}</span>
                 <input class="${inputClass}" type="${field?.type === 'number' || typeof value === 'number' ? 'number' : 'text'}" value="${escapeHtml(value)}" ${field?.min !== undefined ? `min="${escapeHtml(field.min)}"` : ''} ${field?.max !== undefined ? `max="${escapeHtml(field.max)}"` : ''} ${field?.step !== undefined ? `step="${escapeHtml(field.step)}"` : ''} data-prop-name="${escapeHtml(key)}">
             </label>
+        `;
+    }
+
+    renderChartMetricsField(label = this.labels.metrics) {
+        const metrics = this.chartMetrics();
+        const canRemove = metrics.length > 1;
+        const rows = metrics.map((metric, index) => `
+            <div class="grid gap-2 rounded-md border border-slate-700 bg-slate-950/35 p-2">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-500">${escapeHtml(this.labels.metricFallback.replace(':number', String(index + 1)))}</span>
+                    <button class="grid h-7 w-7 place-items-center rounded-md border border-rose-900/70 text-rose-300 transition hover:border-rose-500 hover:bg-rose-950/50 disabled:cursor-not-allowed disabled:opacity-40" type="button" data-chart-metric-remove="${index}" ${canRemove ? '' : 'disabled'} aria-label="${escapeHtml(this.labels.removeMetric)}">
+                        <svg aria-hidden="true" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"></path>
+                            <path d="M8 6V4h8v2"></path>
+                            <path d="M19 6l-1 14H6L5 6"></path>
+                            <path d="M10 11v5"></path>
+                            <path d="M14 11v5"></path>
+                        </svg>
+                    </button>
+                </div>
+                <label class="grid gap-1">
+                    <span class="text-[10px] font-medium uppercase tracking-wide text-slate-500">${escapeHtml(this.labels.metricLabel)}</span>
+                    <input class="${inputClass} min-h-8 px-2.5 py-1.5 text-[13px]" type="text" value="${escapeHtml(metric.label)}" data-chart-metric-index="${index}" data-chart-metric-field="label">
+                </label>
+                <div class="grid grid-cols-[minmax(0,1fr)_42px] gap-2">
+                    <label class="grid gap-1">
+                        <span class="text-[10px] font-medium uppercase tracking-wide text-slate-500">${escapeHtml(this.labels.metricValue)}</span>
+                        <input class="${inputClass} min-h-8 px-2.5 py-1.5 text-[13px]" type="number" step="0.1" value="${escapeHtml(metric.value)}" data-chart-metric-index="${index}" data-chart-metric-field="value">
+                    </label>
+                    <label class="grid gap-1">
+                        <span class="text-[10px] font-medium uppercase tracking-wide text-slate-500">${escapeHtml(this.labels.metricColor)}</span>
+                        <input class="h-8 w-full rounded-md border border-slate-700 bg-[#0b1017] p-1" type="color" value="${escapeHtml(metric.color)}" data-chart-metric-index="${index}" data-chart-metric-field="color">
+                    </label>
+                </div>
+            </div>
+        `).join('');
+
+        return `
+            <div class="grid gap-2">
+                <div class="flex items-center justify-between gap-3">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${escapeHtml(label || this.labels.metrics)}</span>
+                    <button class="inline-flex min-h-8 items-center rounded-md border border-slate-700 px-2.5 text-xs font-semibold text-slate-300 transition hover:border-[var(--admin-page-accent)] disabled:cursor-not-allowed disabled:opacity-50" type="button" data-chart-metric-add ${metrics.length >= chartMaxMetrics ? 'disabled' : ''}>
+                        ${escapeHtml(this.labels.addMetric)}
+                    </button>
+                </div>
+                <div class="grid gap-2">
+                    ${rows}
+                </div>
+            </div>
         `;
     }
 
@@ -3891,10 +4262,10 @@ class PageBuilder {
                 ['Language', String(payload.language || '').toUpperCase()],
                 ['Status', payload.status || 'draft'],
                 ['Accent', payload.meta?.theme?.accent || '#3f7fbd'],
-                ['Width', this.contentWidthDisplay()],
-                ['Header/Footer', this.contentWidthIncludesChrome() ? 'Bounded' : 'Full width'],
+                [this.labels.width, this.contentWidthDisplay()],
+                [this.labels.headerFooter, this.contentWidthIncludesChrome() ? this.labels.bounded : this.labels.contentWidthFull],
                 ['Template', payload.templateId || ''],
-                ...(this.isCustomTemplate(template) || this.customLayout.length > 0 ? [['Custom slots', String(this.customLayout.length)]] : []),
+                ...(this.isCustomTemplate(template) || this.customLayout.length > 0 ? [[this.labels.customSlots, String(this.customLayout.length)]] : []),
             ];
             this.metaSummary.innerHTML = rows.map(([label, value]) => `
                 <div class="grid grid-cols-[92px_minmax(0,1fr)] gap-3">

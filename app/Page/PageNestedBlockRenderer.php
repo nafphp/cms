@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NixCMS\Page;
 
 use NixCMS\Content\BlockViewRegistry;
+use function NixPHP\View\s;
 use function NixPHP\View\view;
 
 final class PageNestedBlockRenderer
@@ -25,7 +26,7 @@ final class PageNestedBlockRenderer
 
         foreach ($blocks as $block) {
             if (is_array($block)) {
-                $html[] = $this->render($block, $context, $depth);
+                $html[] = $this->wrapChildOutput($this->render($block, $context, $depth), $block);
             }
         }
 
@@ -69,5 +70,23 @@ final class PageNestedBlockRenderer
         }
 
         return $this->blockViews = function_exists('\cms') ? \cms()->blocks() : new BlockViewRegistry();
+    }
+
+    /**
+     * @param array<string, mixed> $block
+     */
+    private function wrapChildOutput(string $output, array $block): string
+    {
+        if ($output === '') {
+            return '';
+        }
+
+        $props = is_array($block['props'] ?? null) ? $block['props'] : [];
+        $style = (string) ($props['containerStyle'] ?? 'plain');
+        if (!in_array($style, ['border', 'soft', 'card', 'accent'], true)) {
+            return $output;
+        }
+
+        return '<div class="page-layout-child page-layout-child--' . s($style) . '">' . $output . '</div>';
     }
 }

@@ -12,6 +12,11 @@ final class Category extends AbstractModel
     protected ?string $slug = null;
     protected ?string $createdAt = null;
 
+    public function getTableName(bool $singular = false): string
+    {
+        return $singular ? 'category' : 'categories';
+    }
+
     public function getName(): ?string
     {
         return $this->name;

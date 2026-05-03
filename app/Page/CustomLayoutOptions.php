@@ -7,7 +7,7 @@ namespace NixCMS\Page;
 final class CustomLayoutOptions
 {
     public const REGIONS = ['header', 'main', 'aside', 'footer'];
-    public const SIZES = ['small', 'medium', 'large', 'aside', 'hero'];
+    public const SIZES = ['small', 'medium', 'large', 'full', 'aside', 'hero'];
     public const POSITIONS = ['stretch', 'start', 'center', 'end'];
     public const MAX_HEIGHTS = ['none', '320', '480', '640', '800', 'screen'];
     public const OVERFLOWS = ['visible', 'hidden', 'auto'];

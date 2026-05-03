@@ -49,6 +49,7 @@ final class SectionBlockType extends AbstractBlockType
             ['name' => 'width', 'label' => 'Width', 'type' => 'select', 'options' => ['default', 'narrow', 'wide', 'full']],
             ['name' => 'padding', 'label' => 'Padding', 'type' => 'select', 'options' => ['none', 'small', 'medium', 'large']],
             ['name' => 'tone', 'label' => 'Surface', 'type' => 'select', 'options' => ['plain', 'soft', 'card', 'accent']],
+            ['name' => 'children', 'label' => 'Children', 'type' => 'children'],
         ];
     }
 }

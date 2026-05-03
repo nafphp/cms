@@ -11,12 +11,19 @@ use NixCMS\Commands\DocsCheckCommand;
 use NixCMS\Commands\DocsSyncCommand;
 use NixCMS\Commands\FakeDataCommand;
 use NixCMS\Commands\InstallDatabaseCommand;
+use NixCMS\Commands\IntegrityCheckCommand;
 use NixCMS\Events\AdminGuardEvent;
 use NixCMS\Events\AuthRedirectEvent;
 use NixCMS\Events\SettingsLocaleEvent;
+use NixCMS\Mcp\Tools\ArticleDraftCreateTool;
+use NixCMS\Mcp\Tools\ArticleDraftAppendTool;
+use NixCMS\Mcp\Tools\ArticleLookupTool;
 use NixCMS\Mcp\Tools\ArticleStatusCountsTool;
+use NixCMS\Mcp\Tools\MediaSummaryTool;
+use NixCMS\Mcp\Tools\PluginOverviewTool;
 use NixCMS\Mcp\Tools\QueueStatusTool;
 use NixCMS\Mcp\Tools\SystemHealthTool;
+use NixCMS\Mcp\Tools\UserRoleSummaryTool;
 use NixPHP\Core\Event;
 use function NixPHP\app;
 use function NixPHP\CLI\command;
@@ -34,6 +41,7 @@ command()->add(CreateUserCommand::class);
 command()->add(FakeDataCommand::class);
 command()->add(DocsSyncCommand::class);
 command()->add(DocsCheckCommand::class);
+command()->add(IntegrityCheckCommand::class);
 
 cms()->blockTypes()->addMany(require __DIR__ . '/app/blockTypes.php');
 
@@ -41,6 +49,12 @@ if (app()->hasPlugin('nixphp/mcp')) {
     tool()->register(new SystemHealthTool());
     tool()->register(new QueueStatusTool());
     tool()->register(new ArticleStatusCountsTool());
+    tool()->register(new ArticleDraftCreateTool());
+    tool()->register(new ArticleDraftAppendTool());
+    tool()->register(new ArticleLookupTool());
+    tool()->register(new MediaSummaryTool());
+    tool()->register(new PluginOverviewTool());
+    tool()->register(new UserRoleSummaryTool());
 }
 
 if (!defined('PHPUNIT_RUNNING')) {

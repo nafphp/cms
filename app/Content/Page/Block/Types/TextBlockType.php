@@ -41,4 +41,13 @@ final class TextBlockType extends AbstractBlockType
             'align' => 'left',
         ];
     }
+
+    public function fields(): array
+    {
+        return [
+            ['name' => 'text', 'label' => 'Text', 'type' => 'textarea'],
+            ['name' => 'tone', 'label' => 'Tone', 'type' => 'select', 'options' => ['body', 'lead', 'muted']],
+            ['name' => 'align', 'label' => 'Align', 'type' => 'select', 'options' => ['left', 'center', 'right']],
+        ];
+    }
 }

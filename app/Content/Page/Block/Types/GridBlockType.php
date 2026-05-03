@@ -47,6 +47,7 @@ final class GridBlockType extends AbstractBlockType
         return [
             ['name' => 'columns', 'label' => 'Columns', 'type' => 'number', 'min' => 2, 'max' => 4, 'step' => 1],
             ['name' => 'gap', 'label' => 'Gap', 'type' => 'select', 'options' => ['small', 'medium', 'large']],
+            ['name' => 'children', 'label' => 'Children', 'type' => 'children'],
         ];
     }
 }

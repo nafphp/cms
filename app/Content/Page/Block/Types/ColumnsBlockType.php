@@ -49,6 +49,7 @@ final class ColumnsBlockType extends AbstractBlockType
             ['name' => 'columns', 'label' => 'Columns', 'type' => 'number', 'min' => 2, 'max' => 4, 'step' => 1],
             ['name' => 'gap', 'label' => 'Gap', 'type' => 'select', 'options' => ['small', 'medium', 'large']],
             ['name' => 'align', 'label' => 'Align', 'type' => 'select', 'options' => ['start', 'center', 'end', 'stretch']],
+            ['name' => 'children', 'label' => 'Children', 'type' => 'children'],
         ];
     }
 }

@@ -60,8 +60,7 @@ $fieldErrorAssets->add('/js/components/formFieldErrors.js');
                     'value' => (string) ($article['title'] ?? ''),
                 ]) ?>
 
-                <div id="teaserContainer">
-                    <hr>
+                <div id="teaserContainer" class="mt-4">
                     <?= view('components.admin.form.text', [
                         'name' => 'teaser',
                         'label' => t('Teaser'),

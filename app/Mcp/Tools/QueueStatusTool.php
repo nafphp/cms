@@ -11,6 +11,8 @@ use function NixPHP\app;
 
 final class QueueStatusTool implements ToolInterface, ScopedToolInterface
 {
+    public function __construct(private ?string $queuePath = null) {}
+
     public function name(): string
     {
         return 'cms_queue_status';
@@ -37,16 +39,69 @@ final class QueueStatusTool implements ToolInterface, ScopedToolInterface
 
     public function handle(array $args): array
     {
-        $channel = strtolower(trim((string) ($args['channel'] ?? 'default')));
-        $basePath = rtrim((string) app()->getBasePath(), '/') . '/storage/queue';
+        $channel = $this->normalizeChannel($args['channel'] ?? 'default');
+        $basePath = $this->queuePath();
 
         return [
             'channel' => $channel,
             'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
+            'available_channels' => $this->channels($basePath),
             'pending_jobs' => $this->countFiles($basePath, $channel, '*.job'),
             'active_workers' => $this->countFiles($basePath, $channel, '*.job.lock'),
             'deadletter_jobs' => $this->countFiles($basePath . '/deadletter', $channel, '*.job'),
         ];
+    }
+
+    private function normalizeChannel(mixed $channel): string
+    {
+        $normalized = strtolower(trim((string) $channel));
+        if ($normalized === '') {
+            return 'default';
+        }
+
+        if ($normalized === 'all') {
+            return $normalized;
+        }
+
+        if (preg_match('/^[a-z0-9_.-]+$/', $normalized) !== 1) {
+            throw new \InvalidArgumentException('Queue channel must contain only letters, numbers, dots, dashes, or underscores.');
+        }
+
+        return $normalized;
+    }
+
+    private function queuePath(): string
+    {
+        if ($this->queuePath !== null) {
+            return rtrim($this->queuePath, '/');
+        }
+
+        return rtrim((string) app()->getBasePath(), '/') . '/storage/queue';
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function channels(string $basePath): array
+    {
+        $channels = [];
+        foreach (glob($basePath . '/*', GLOB_ONLYDIR) ?: [] as $directory) {
+            $name = basename($directory);
+            if ($name === 'deadletter') {
+                continue;
+            }
+
+            $channels[$name] = $name;
+        }
+
+        foreach (glob($basePath . '/deadletter/*', GLOB_ONLYDIR) ?: [] as $directory) {
+            $name = basename($directory);
+            $channels[$name] = $name;
+        }
+
+        ksort($channels);
+
+        return array_values($channels);
     }
 
     private function countFiles(string $basePath, string $channel, string $pattern): int
@@ -54,6 +109,10 @@ final class QueueStatusTool implements ToolInterface, ScopedToolInterface
         if ($channel === 'all') {
             $count = 0;
             foreach (glob($basePath . '/*', GLOB_ONLYDIR) ?: [] as $directory) {
+                if (basename($directory) === 'deadletter') {
+                    continue;
+                }
+
                 $count += count(glob($directory . '/' . $pattern) ?: []);
             }
             return $count;

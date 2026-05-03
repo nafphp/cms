@@ -143,6 +143,7 @@ These sections are generated from registries and enums. Edit the source code, th
 | `api.admin.media.update` | `POST` | `/api/admin/media/{id}/update` | `media.edit` |
 | `api.admin.navigation.delete` | `POST` | `/api/admin/navigation/{navigationId}/delete` | `navigation.delete` |
 | `api.admin.navigation.publish` | `POST` | `/api/admin/navigation/{navigationId}/publish` | `navigation.edit` |
+| `api.admin.page-layouts.store` | `POST` | `/api/admin/page-layouts` | `pages.create` |
 | `api.admin.pages.delete` | `POST` | `/api/admin/pages/{id}/delete` | `pages.delete` |
 | `api.admin.rbac.permissions` | `GET` | `/api/admin/rbac/permissions` | `permissions.manage` |
 | `api.admin.rbac.permissions.create` | `POST` | `/api/admin/rbac/permissions/create` | `permissions.manage` |
@@ -233,9 +234,15 @@ These sections are generated from registries and enums. Edit the source code, th
 
 | Tool | Description |
 | --- | --- |
-| `cms_article_status_counts` | Returns article workflow status counts. This placeholder is ready for the first content migration. |
+| `cms_article_draft_append` | Appends plain text as paragraphs to an existing article draft, resolving the article by id, title, or slug. |
+| `cms_article_draft_create` | Creates a new article draft with Editor.js-style content blocks. |
+| `cms_article_lookup` | Finds latest article versions by title, slug, language, or status so later MCP actions can target an article id. |
+| `cms_article_status_counts` | Returns latest article-version workflow status counts, optionally filtered by language. |
+| `cms_media_summary` | Returns media library counts, byte totals, kind counts, and optional recent media items. |
+| `cms_plugin_overview` | Returns loaded NixPHP plugins and registry counts relevant to NixCMS extensions. |
 | `cms_queue_status` | Returns file-backed queue counts for pending, locked, and deadletter jobs. |
 | `cms_system_health` | Returns basic NixCMS health information for PHP, storage paths, and loaded NixPHP plugins. |
+| `cms_user_role_summary` | Returns user, role, permission, and assignment counts for the NixCMS RBAC model. |
 <!-- /nix:auto:mcp -->
 
 ### Examples

@@ -41,4 +41,13 @@ final class HeadingBlockType extends AbstractBlockType
             'align' => 'left',
         ];
     }
+
+    public function fields(): array
+    {
+        return [
+            ['name' => 'text', 'label' => 'Text', 'type' => 'text'],
+            ['name' => 'level', 'label' => 'Level', 'type' => 'select', 'options' => ['h1', 'h2', 'h3']],
+            ['name' => 'align', 'label' => 'Align', 'type' => 'select', 'options' => ['left', 'center', 'right']],
+        ];
+    }
 }

@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace NixCMS\Visualization;
 
-use function NixPHP\I18n\t;
-
 final class PageChartFactory
 {
-    private const MAX_METRICS = 6;
+    private const MAX_METRICS = 24;
 
     /**
      * @param array<string, mixed> $props
@@ -23,7 +21,7 @@ final class PageChartFactory
         }
 
         $options = [
-            'datasetLabel' => t((string) ($props['datasetLabel'] ?? 'Value')),
+            'datasetLabel' => $this->translate((string) ($props['datasetLabel'] ?? 'Value')),
             'height' => $height,
             'colors' => $this->colors($props),
             'echarts' => [
@@ -118,16 +116,21 @@ final class PageChartFactory
      */
     private function values(array $props): array
     {
-        $count = max(1, min(self::MAX_METRICS, (int) ($props['metricCount'] ?? 3)));
         $values = [];
-
-        for ($index = 1; $index <= $count; $index++) {
-            $label = trim(t((string) ($props['label' . $index] ?? 'Metric ' . $index)));
+        foreach ($this->metrics($props) as $index => $metric) {
+            $label = trim($this->translate((string) ($metric['label'] ?? 'Metric ' . ($index + 1))));
             if ($label === '') {
-                $label = 'Metric ' . $index;
+                $label = 'Metric ' . ($index + 1);
             }
 
-            $values[$label] = (float) ($props['value' . $index] ?? 0);
+            $key = $label;
+            $suffix = 2;
+            while (array_key_exists($key, $values)) {
+                $key = $label . ' ' . $suffix;
+                $suffix++;
+            }
+
+            $values[$key] = (float) ($metric['value'] ?? 0);
         }
 
         return $values;
@@ -140,14 +143,62 @@ final class PageChartFactory
     private function colors(array $props): array
     {
         $colors = [];
-        for ($index = 1; $index <= self::MAX_METRICS; $index++) {
-            $color = trim((string) ($props['color' . $index] ?? ''));
+        foreach ($this->metrics($props) as $metric) {
+            $color = trim((string) ($metric['color'] ?? ''));
             if (preg_match('/^#[0-9a-fA-F]{6}$/', $color) === 1) {
                 $colors[] = $color;
             }
         }
 
         return $colors;
+    }
+
+    /**
+     * @param array<string, mixed> $props
+     * @return array<int, array{label: string, value: int|float, color: string}>
+     */
+    private function metrics(array $props): array
+    {
+        $metrics = [];
+        if (is_array($props['metrics'] ?? null)) {
+            foreach ($props['metrics'] as $metric) {
+                if (!is_array($metric)) {
+                    continue;
+                }
+
+                $metrics[] = [
+                    'label' => (string) ($metric['label'] ?? ''),
+                    'value' => is_numeric($metric['value'] ?? null) ? (float) $metric['value'] : 0,
+                    'color' => (string) ($metric['color'] ?? ''),
+                ];
+
+                if (count($metrics) >= self::MAX_METRICS) {
+                    break;
+                }
+            }
+        }
+
+        if ($metrics !== []) {
+            return $metrics;
+        }
+
+        $highestLegacyMetric = 0;
+        for ($index = 1; $index <= 6; $index++) {
+            if (array_key_exists('label' . $index, $props) || array_key_exists('value' . $index, $props) || array_key_exists('color' . $index, $props)) {
+                $highestLegacyMetric = $index;
+            }
+        }
+
+        $count = max(1, min(self::MAX_METRICS, max((int) ($props['metricCount'] ?? 3), $highestLegacyMetric)));
+        for ($index = 1; $index <= $count; $index++) {
+            $metrics[] = [
+                'label' => (string) ($props['label' . $index] ?? 'Metric ' . $index),
+                'value' => is_numeric($props['value' . $index] ?? null) ? (float) $props['value' . $index] : 0,
+                'color' => (string) ($props['color' . $index] ?? ''),
+            ];
+        }
+
+        return $metrics;
     }
 
     private function chartType(string $type): string
@@ -179,9 +230,22 @@ final class PageChartFactory
     {
         $value = trim((string) $value);
         if ($translate && $value !== '') {
-            $value = trim(t($value));
+            $value = trim($this->translate($value));
         }
 
         return $value === '' ? null : $value;
+    }
+
+    private function translate(string $value): string
+    {
+        if (function_exists('\NixPHP\I18n\t')) {
+            return \NixPHP\I18n\t($value);
+        }
+
+        if (function_exists('\t')) {
+            return \t($value);
+        }
+
+        return $value;
     }
 }

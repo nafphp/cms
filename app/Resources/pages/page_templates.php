@@ -4,6 +4,18 @@ declare(strict_types=1);
 
 return [
     [
+        'id' => 'default',
+        'label' => 'Default page',
+        'layout' => 'layouts.page',
+        'view' => 'page.templates.default',
+        'description' => 'Balanced page shell with a header, one main content area, and footer.',
+        'blocks' => [
+            ['id' => 'site_header', 'label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'],
+            ['id' => 'main', 'label' => 'Main content', 'region' => 'main', 'size' => 'large'],
+            ['id' => 'site_footer', 'label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer'],
+        ],
+    ],
+    [
         'id' => 'public',
         'label' => 'Public shell',
         'layout' => 'layouts.page',
@@ -40,6 +52,19 @@ return [
             ['id' => 'intro', 'label' => 'Intro', 'region' => 'main', 'size' => 'medium', 'preview' => 'heading'],
             ['id' => 'content', 'label' => 'Content stream', 'region' => 'main', 'size' => 'large'],
             ['id' => 'aside', 'label' => 'Aside', 'region' => 'aside', 'size' => 'aside'],
+            ['id' => 'site_footer', 'label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer'],
+        ],
+    ],
+    [
+        'id' => 'two-column',
+        'label' => 'Two column',
+        'layout' => 'layouts.page',
+        'view' => 'page.templates.two_column',
+        'description' => 'Two balanced content columns with shared site chrome.',
+        'blocks' => [
+            ['id' => 'site_header', 'label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'],
+            ['id' => 'primary', 'label' => 'Primary content', 'region' => 'main', 'size' => 'medium'],
+            ['id' => 'secondary', 'label' => 'Secondary content', 'region' => 'main', 'size' => 'medium'],
             ['id' => 'site_footer', 'label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer'],
         ],
     ],

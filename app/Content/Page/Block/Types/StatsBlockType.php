@@ -44,4 +44,16 @@ final class StatsBlockType extends AbstractBlockType
             'labelC' => 'Access',
         ];
     }
+
+    public function fields(): array
+    {
+        return [
+            ['name' => 'valueA', 'label' => 'Metric A value', 'type' => 'text'],
+            ['name' => 'labelA', 'label' => 'Metric A label', 'type' => 'text'],
+            ['name' => 'valueB', 'label' => 'Metric B value', 'type' => 'text'],
+            ['name' => 'labelB', 'label' => 'Metric B label', 'type' => 'text'],
+            ['name' => 'valueC', 'label' => 'Metric C value', 'type' => 'text'],
+            ['name' => 'labelC', 'label' => 'Metric C label', 'type' => 'text'],
+        ];
+    }
 }
