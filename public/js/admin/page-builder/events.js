@@ -393,7 +393,13 @@ export const eventMethods = {
         if (key.startsWith('theme.')) {
             this.syncPageTheme();
         }
-        if (key === 'theme.contentWidth' || key === 'theme.contentWidthIncludesChrome' || key === 'theme.contentWidthIncludesChromeBackground') {
+        if ([
+            'theme.contentWidth',
+            'theme.headerContentWidthIncludesChrome',
+            'theme.headerBackgroundWidthIncludesChrome',
+            'theme.footerContentWidthIncludesChrome',
+            'theme.footerBackgroundWidthIncludesChrome',
+        ].includes(key)) {
             this.renderPreviewChrome();
         }
         this.renderMeta();

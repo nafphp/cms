@@ -41,6 +41,12 @@ if (($page->meta()->theme->headerBackgroundTransparent ?? true) === true) {
 } elseif (preg_match('/^#[0-9a-fA-F]{6}$/', $headerBackground) === 1) {
     $themeStyles[] = '--page-header-bg: ' . $headerBackground;
 }
+$footerBackground = trim((string) ($page->meta()->theme->footerBackground ?? ''));
+if (($page->meta()->theme->footerBackgroundTransparent ?? false) === true) {
+    $themeStyles[] = '--page-footer-bg: transparent';
+} elseif (preg_match('/^#[0-9a-fA-F]{6}$/', $footerBackground) === 1) {
+    $themeStyles[] = '--page-footer-bg: ' . $footerBackground;
+}
 $templateDefaultWidth = match ($template->view()) {
     'page.templates.public', 'page.templates.full_bleed' => '100%',
     'page.templates.article_detail' => '820px',
@@ -62,8 +68,10 @@ if ($contentWidth !== '') {
 }
 $bodyClasses = trim(implode(' ', [
     'page-theme',
-    ($page->meta()->theme->contentWidthIncludesChrome ?? true) ? 'page-theme--bounded-chrome' : '',
-    ($page->meta()->theme->contentWidthIncludesChromeBackground ?? false) ? 'page-theme--bounded-chrome-background' : '',
+    $page->meta()->theme->headerContentWidthIncludesChrome ? 'page-theme--bounded-header-content' : '',
+    $page->meta()->theme->headerBackgroundWidthIncludesChrome ? 'page-theme--bounded-header-background' : '',
+    $page->meta()->theme->footerContentWidthIncludesChrome ? 'page-theme--bounded-footer-content' : '',
+    $page->meta()->theme->footerBackgroundWidthIncludesChrome ? 'page-theme--bounded-footer-background' : '',
     ...$template->bodyClasses(),
     ...$page->bodyClasses(),
 ]));

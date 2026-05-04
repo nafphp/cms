@@ -138,14 +138,10 @@ export const renderingMethods = {
         const content = this.selectedContent();
         const block = this.selectedBlock();
         const slotSettings = this.isCustomTemplate() && block ? this.renderCustomSlotSettings(block) : '';
-        const headerThemeSettings = block && this.customSlotRegion(block) === 'header'
-            ? this.renderHeaderThemeSettings()
-            : '';
 
         if (!content || !block) {
             this.contentSettings.innerHTML = `
                 ${slotSettings}
-                ${headerThemeSettings}
                 <div class="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500 dark:border-slate-700">Choose a filled block to edit its content settings.</div>
             `;
             initStyledSelects(this.contentSettings.querySelectorAll('select[data-styled-select]'));
@@ -170,7 +166,7 @@ export const renderingMethods = {
 
         this.contentSettings.innerHTML = `
             ${slotSettings}
-            ${content.type === 'header' ? this.renderHeaderThemeSettings() : headerThemeSettings}
+            ${['header', 'footer'].includes(content.type) ? this.renderChromeThemeSettings(content.type) : ''}
             ${contentIntro}
             <div class="grid gap-3">
                 ${this.renderLayoutTypeSwitcher(content)}
@@ -243,21 +239,31 @@ export const renderingMethods = {
         `;
     },
 
-    renderHeaderThemeSettings() {
+    renderChromeThemeSettings(region = 'header') {
+        const isHeader = region === 'header';
         return `
             <section class="mb-4 grid gap-3 rounded-lg border border-slate-800 bg-[#111827] p-3">
                 <div>
                     <p class="m-0 text-[11px] font-bold uppercase tracking-wide text-slate-500">Theme</p>
-                    <h3 class="m-0 mt-0.5 text-sm font-semibold text-white">${escapeHtml(this.labels.headerBackground)}</h3>
+                    <h3 class="m-0 mt-0.5 text-sm font-semibold text-white">${escapeHtml(isHeader ? this.labels.regionHeader : this.labels.regionFooter)}</h3>
                 </div>
-                <label class="grid gap-1.5">
-                    <span class="text-[11px] font-bold uppercase tracking-wide text-slate-500">${escapeHtml(this.labels.headerBackground)}</span>
-                    <input class="h-10 w-full rounded-md border border-slate-700 bg-[#0b1017] p-1.5 outline-none focus:border-[var(--admin-page-accent)]" type="color" data-persist-key="theme.headerBackground" value="#020617" aria-label="${escapeHtml(this.labels.headerBackground)}">
-                </label>
-                <label class="flex min-h-11 items-center gap-3 rounded-md border border-slate-700 bg-[#0b1017] px-3">
-                    <input class="h-4 w-4 rounded border-slate-600 bg-slate-950 accent-[var(--admin-page-accent)]" type="checkbox" data-persist-key="theme.headerBackgroundTransparent">
-                    <span class="text-xs font-semibold text-slate-400">${escapeHtml(this.labels.transparent)}</span>
-                </label>
+                ${isHeader ? `
+                    <label class="grid gap-1.5">
+                        <span class="text-[11px] font-bold uppercase tracking-wide text-slate-500">${escapeHtml(this.labels.headerBackground)}</span>
+                        <input class="h-10 w-full rounded-md border border-slate-700 bg-[#0b1017] p-1.5 outline-none focus:border-[var(--admin-page-accent)]" type="color" data-persist-key="theme.headerBackground" value="#020617" aria-label="${escapeHtml(this.labels.headerBackground)}">
+                    </label>
+                    ${this.renderSwitchField(this.labels.transparent, 'data-persist-key="theme.headerBackgroundTransparent"', Boolean(this.persistedValues['theme.headerBackgroundTransparent']))}
+                    ${this.renderSwitchField(this.labels.headerContentWidth, 'data-persist-key="theme.headerContentWidthIncludesChrome"', this.headerContentWidthIncludesChrome())}
+                    ${this.renderSwitchField(this.labels.headerBackgroundWidth, 'data-persist-key="theme.headerBackgroundWidthIncludesChrome"', this.headerBackgroundWidthIncludesChrome())}
+                ` : `
+                    <label class="grid gap-1.5">
+                        <span class="text-[11px] font-bold uppercase tracking-wide text-slate-500">${escapeHtml(this.labels.footerBackground)}</span>
+                        <input class="h-10 w-full rounded-md border border-slate-700 bg-[#0b1017] p-1.5 outline-none focus:border-[var(--admin-page-accent)]" type="color" data-persist-key="theme.footerBackground" value="#020617" aria-label="${escapeHtml(this.labels.footerBackground)}">
+                    </label>
+                    ${this.renderSwitchField(this.labels.transparent, 'data-persist-key="theme.footerBackgroundTransparent"', Boolean(this.persistedValues['theme.footerBackgroundTransparent']))}
+                    ${this.renderSwitchField(this.labels.footerContentWidth, 'data-persist-key="theme.footerContentWidthIncludesChrome"', this.footerContentWidthIncludesChrome())}
+                    ${this.renderSwitchField(this.labels.footerBackgroundWidth, 'data-persist-key="theme.footerBackgroundWidthIncludesChrome"', this.footerBackgroundWidthIncludesChrome())}
+                `}
             </section>
         `;
     },

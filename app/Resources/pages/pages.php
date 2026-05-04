@@ -83,9 +83,13 @@ $persistedValuesForBuilder = static function (array $page): array {
         'theme.accent' => (string) ($theme['accent'] ?? ''),
         'theme.headerBackground' => (string) ($theme['headerBackground'] ?? '#020617'),
         'theme.headerBackgroundTransparent' => filter_var($theme['headerBackgroundTransparent'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'theme.footerBackground' => (string) ($theme['footerBackground'] ?? '#020617'),
+        'theme.footerBackgroundTransparent' => filter_var($theme['footerBackgroundTransparent'] ?? false, FILTER_VALIDATE_BOOLEAN),
         'theme.contentWidth' => (string) ($theme['contentWidth'] ?? 'template'),
-        'theme.contentWidthIncludesChrome' => filter_var($theme['contentWidthIncludesChrome'] ?? true, FILTER_VALIDATE_BOOLEAN),
-        'theme.contentWidthIncludesChromeBackground' => filter_var($theme['contentWidthIncludesChromeBackground'] ?? false, FILTER_VALIDATE_BOOLEAN),
+        'theme.headerContentWidthIncludesChrome' => filter_var($theme['headerContentWidthIncludesChrome'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'theme.headerBackgroundWidthIncludesChrome' => filter_var($theme['headerBackgroundWidthIncludesChrome'] ?? false, FILTER_VALIDATE_BOOLEAN),
+        'theme.footerContentWidthIncludesChrome' => filter_var($theme['footerContentWidthIncludesChrome'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'theme.footerBackgroundWidthIncludesChrome' => filter_var($theme['footerBackgroundWidthIncludesChrome'] ?? false, FILTER_VALIDATE_BOOLEAN),
         'defaultNavigationIdentifier' => (string) ($extra['defaultNavigationIdentifier'] ?? ''),
     ];
 };

@@ -74,6 +74,11 @@ export const previewMethods = {
         if (this.previewFrame) {
             this.previewFrame.style.width = `${viewport.width}px`;
             this.previewFrame.style.maxWidth = '100%';
+            this.previewFrame.style.setProperty('--page-builder-preview-width', `${viewport.width}px`);
+        }
+        if (this.previewRuler) {
+            this.previewRuler.style.width = `${viewport.width}px`;
+            this.previewRuler.style.maxWidth = '100%';
         }
         if (this.previewStage) {
             this.previewStage.style.maxWidth = this.previewViewport === 'desktop' ? '1380px' : `${Math.min(viewport.width + 48, 1380)}px`;
@@ -375,8 +380,15 @@ export const previewMethods = {
     blockLayout(template, interactive) {
         const blocks = template?.blocks || [];
         if (this.isCustomTemplate(template)) {
+            const hasFullBleedHeader = blocks.some((block) => {
+                const content = this.blockContent[block.id] || null;
+                return this.customSlotRegion(block) === 'header'
+                    && content?.type === 'header'
+                    && !this.headerBackgroundWidthIncludesChrome();
+            });
+            const toolbarMarginClass = hasFullBleedHeader ? 'mb-0' : 'mb-4';
             const toolbar = interactive ? `
-                <div class="page-builder-custom-toolbar mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800 bg-[#121820] px-4 py-3">
+                <div class="page-builder-custom-toolbar ${toolbarMarginClass} flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800 bg-[#121820] px-4 py-3">
                     <div class="grid gap-0.5">
                         <span class="text-[11px] font-bold uppercase text-slate-500">${escapeHtml(this.labels.customLayout)}</span>
                         <strong class="text-sm font-semibold text-white">${escapeHtml(this.labels.customSlotsCount.replace(':count', String(blocks.length)))}</strong>
@@ -532,13 +544,14 @@ export const previewMethods = {
     blockCard(block, interactive, templateId, className = '') {
         const content = this.blockContent[block.id] || null;
         const selected = block.id === this.selectedBlockId;
-        const minHeight = {
+        const isChromeBlock = ['header', 'footer'].includes(String(content?.type || ''));
+        const minHeight = isChromeBlock ? 'min-h-0' : ({
             hero: 'min-h-44',
             large: 'min-h-36',
             medium: 'min-h-28',
             aside: 'min-h-32',
             small: 'min-h-20',
-        }[block.size] || 'min-h-28';
+        }[block.size] || 'min-h-28');
         const actionAttr = interactive
             ? (content ? `data-edit-block="${escapeHtml(block.id)}"` : `data-choose-block="${escapeHtml(block.id)}"`)
             : '';
@@ -549,13 +562,15 @@ export const previewMethods = {
             top: 'content-start',
             center: 'content-center',
             bottom: 'content-end',
-        }[textVerticalAlign] || 'content-center';
+        }[textVerticalAlign] || (isChromeBlock ? 'content-start' : 'content-center');
         const contentChrome = content
             ? 'overflow-visible focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--page-accent)]/40'
             : 'overflow-hidden bg-transparent hover:border-[var(--page-card-border)] hover:bg-[var(--page-card-bg)] focus:border-[var(--page-accent)] focus:bg-[var(--page-card-bg)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--page-accent)]/40';
         const frameClass = [
             'group/page-block relative grid w-full min-w-0 justify-self-stretch rounded-xl border border-transparent text-left transition',
             content ? `page-builder-block--${escapeHtml(content.type || 'content')}` : '',
+            content?.type === 'header' && !this.headerBackgroundWidthIncludesChrome() ? 'page-builder-block--full-bleed-header' : '',
+            content?.type === 'footer' && !this.footerBackgroundWidthIncludesChrome() ? 'page-builder-block--full-bleed-footer' : '',
             minHeight,
             content ? 'p-0' : 'p-6',
             interactive && !content ? 'pt-14' : '',

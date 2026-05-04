@@ -23,6 +23,7 @@ export const stateMethods = {
         this.contentSettings = this.root.querySelector('[data-content-settings]');
         this.json = this.root.querySelector('[data-builder-json]');
         this.previewStage = this.root.querySelector('[data-preview-stage]');
+        this.previewRuler = this.root.querySelector('[data-preview-ruler]');
         this.previewFrame = this.root.querySelector('[data-preview-frame]');
         this.previewTitle = this.root.querySelector('[data-preview-title]');
         this.previewViewportLabel = this.root.querySelector('[data-preview-viewport-label]');
@@ -66,15 +67,25 @@ export const stateMethods = {
         if (!Object.prototype.hasOwnProperty.call(this.persistedValues, 'theme.headerBackgroundTransparent')) {
             this.persistedValues['theme.headerBackgroundTransparent'] = true;
         }
+        if (!this.persistedValues['theme.footerBackground']) {
+            this.persistedValues['theme.footerBackground'] = '#020617';
+        }
+        if (!Object.prototype.hasOwnProperty.call(this.persistedValues, 'theme.footerBackgroundTransparent')) {
+            this.persistedValues['theme.footerBackgroundTransparent'] = false;
+        }
         if (!this.persistedValues['theme.contentWidth']) {
             this.persistedValues['theme.contentWidth'] = 'template';
         }
-        if (!Object.prototype.hasOwnProperty.call(this.persistedValues, 'theme.contentWidthIncludesChrome')) {
-            this.persistedValues['theme.contentWidthIncludesChrome'] = true;
-        }
-        if (!Object.prototype.hasOwnProperty.call(this.persistedValues, 'theme.contentWidthIncludesChromeBackground')) {
-            this.persistedValues['theme.contentWidthIncludesChromeBackground'] = false;
-        }
+        [
+            ['theme.headerContentWidthIncludesChrome', true],
+            ['theme.headerBackgroundWidthIncludesChrome', false],
+            ['theme.footerContentWidthIncludesChrome', true],
+            ['theme.footerBackgroundWidthIncludesChrome', false],
+        ].forEach(([key, fallback]) => {
+            if (!Object.prototype.hasOwnProperty.call(this.persistedValues, key)) {
+                this.persistedValues[key] = fallback;
+            }
+        });
         this.ensureTemplateDefaults();
         this.syncPageTheme();
         await this.loadPageBuilderLabels(this.uiLanguage);
@@ -307,6 +318,19 @@ export const stateMethods = {
         return this.normalizeColor(this.persistedValues['theme.headerBackground']) || '#020617';
     },
 
+    footerBackgroundTransparent() {
+        const value = this.persistedValues['theme.footerBackgroundTransparent'];
+        return value === true || value === 'true' || value === 1 || value === '1';
+    },
+
+    pageFooterBackground() {
+        if (this.footerBackgroundTransparent()) {
+            return 'transparent';
+        }
+
+        return this.normalizeColor(this.persistedValues['theme.footerBackground']) || '#020617';
+    },
+
     contentWidthKey() {
         const key = String(this.persistedValues['theme.contentWidth'] || 'template').trim();
         return contentWidthPresets[key] ? key : 'template';
@@ -331,7 +355,7 @@ export const stateMethods = {
 
     contentWidthDisplay() {
         const key = this.contentWidthKey();
-        const chromeSuffix = this.contentWidthIncludesChrome() ? ` · ${this.labels.headerFooter}` : '';
+        const chromeSuffix = this.headerContentWidthIncludesChrome() || this.footerContentWidthIncludesChrome() ? ` · ${this.labels.headerFooter}` : '';
         if (key === 'template') {
             return `${this.labels.contentWidthTemplate} · ${this.templateDefaultWidth()}${chromeSuffix}`;
         }
@@ -341,13 +365,23 @@ export const stateMethods = {
         return preset.css === '100%' ? `${label}${chromeSuffix}` : `${label} · ${preset.css}${chromeSuffix}`;
     },
 
-    contentWidthIncludesChrome() {
-        const value = this.persistedValues['theme.contentWidthIncludesChrome'];
+    headerContentWidthIncludesChrome() {
+        const value = this.persistedValues['theme.headerContentWidthIncludesChrome'];
         return value === true || value === 'true' || value === 1 || value === '1';
     },
 
-    contentWidthIncludesChromeBackground() {
-        const value = this.persistedValues['theme.contentWidthIncludesChromeBackground'];
+    headerBackgroundWidthIncludesChrome() {
+        const value = this.persistedValues['theme.headerBackgroundWidthIncludesChrome'];
+        return value === true || value === 'true' || value === 1 || value === '1';
+    },
+
+    footerContentWidthIncludesChrome() {
+        const value = this.persistedValues['theme.footerContentWidthIncludesChrome'];
+        return value === true || value === 'true' || value === 1 || value === '1';
+    },
+
+    footerBackgroundWidthIncludesChrome() {
+        const value = this.persistedValues['theme.footerBackgroundWidthIncludesChrome'];
         return value === true || value === 'true' || value === 1 || value === '1';
     },
 
@@ -355,9 +389,12 @@ export const stateMethods = {
         this.root.style.setProperty('--page-accent', this.pageAccent());
         this.root.style.setProperty('--admin-page-accent', this.pageAccent());
         this.root.style.setProperty('--page-header-bg', this.pageHeaderBackground());
+        this.root.style.setProperty('--page-footer-bg', this.pageFooterBackground());
         this.root.style.setProperty('--page-template-default-width', this.templateDefaultWidth());
-        this.root.dataset.contentWidthIncludesChrome = this.contentWidthIncludesChrome() ? 'true' : 'false';
-        this.root.dataset.contentWidthIncludesChromeBackground = this.contentWidthIncludesChromeBackground() ? 'true' : 'false';
+        this.root.dataset.headerContentWidthIncludesChrome = this.headerContentWidthIncludesChrome() ? 'true' : 'false';
+        this.root.dataset.headerBackgroundWidthIncludesChrome = this.headerBackgroundWidthIncludesChrome() ? 'true' : 'false';
+        this.root.dataset.footerContentWidthIncludesChrome = this.footerContentWidthIncludesChrome() ? 'true' : 'false';
+        this.root.dataset.footerBackgroundWidthIncludesChrome = this.footerBackgroundWidthIncludesChrome() ? 'true' : 'false';
         const width = this.contentWidthCssValue();
         if (width !== '') {
             this.root.style.setProperty('--page-content-max-width', width);

@@ -305,12 +305,7 @@ export const fieldMethods = {
         }
 
         if (field?.type === 'checkbox' || typeof value === 'boolean') {
-            return `
-                <label class="flex items-center gap-2 rounded-md border border-slate-700 bg-[#0b1017] px-3 py-2">
-                    <input class="h-4 w-4 rounded border-slate-600 bg-slate-950 accent-[var(--admin-page-accent)]" type="checkbox" ${value ? 'checked' : ''} data-prop-name="${escapeHtml(key)}">
-                    <span class="text-xs font-semibold text-slate-400">${escapeHtml(label)}</span>
-                </label>
-            `;
+            return this.renderSwitchField(label, `data-prop-name="${escapeHtml(key)}"`, Boolean(value));
         }
 
         if (key === 'text') {
@@ -334,6 +329,18 @@ export const fieldMethods = {
             <label class="grid gap-1.5">
                 <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${escapeHtml(this.uiText(label))}</span>
                 <input class="${inputClass}" type="${field?.type === 'number' || typeof value === 'number' ? 'number' : 'text'}" value="${escapeHtml(value)}" ${field?.min !== undefined ? `min="${escapeHtml(field.min)}"` : ''} ${field?.max !== undefined ? `max="${escapeHtml(field.max)}"` : ''} ${field?.step !== undefined ? `step="${escapeHtml(field.step)}"` : ''} data-prop-name="${escapeHtml(key)}">
+            </label>
+        `;
+    },
+
+    renderSwitchField(label, attributes, checked = false) {
+        return `
+            <label class="admin-switch-field">
+                <input class="sr-only" type="checkbox" ${checked ? 'checked' : ''} ${attributes}>
+                <span class="admin-switch-field__track" aria-hidden="true">
+                    <span class="admin-switch-field__thumb"></span>
+                </span>
+                <span class="admin-switch-field__label">${escapeHtml(label)}</span>
             </label>
         `;
     },
