@@ -48,20 +48,22 @@ export const previewMethods = {
         const template = this.selectedTemplate();
         if (!template) {
             this.templatePreview.innerHTML = '';
-            this.templateView.textContent = '';
+            this.headerNavigationControl?.classList.add('hidden');
+            this.footerNavigationControl?.classList.add('hidden');
             this.previewTemplateId = null;
             return;
         }
 
-        const previewKey = `${template.id}:${this.selectedDefaultNavigationIdentifier()}`;
+        const previewKey = `${template.id}:${this.selectedDefaultNavigationIdentifier()}:${this.selectedFooterNavigationIdentifier()}`;
         if (this.previewTemplateId === previewKey) {
             return;
         }
 
-        this.templateView.textContent = template.layout ? `${template.layout} · ${template.view}` : template.view;
         if (this.templatePreviewTitle) {
             this.templatePreviewTitle.textContent = template.label;
         }
+        this.headerNavigationControl?.classList.toggle('hidden', !this.templateHasHeader(template));
+        this.footerNavigationControl?.classList.toggle('hidden', !this.templateHasFooter(template));
         this.templatePreview.innerHTML = this.livePreview(template);
         this.armPreviewFrames(this.templatePreview);
         this.previewTemplateId = previewKey;
@@ -277,10 +279,23 @@ export const previewMethods = {
             `;
         }
 
+        if (block.preview === 'cta') {
+            return `
+                <div class="flex min-h-24 flex-wrap items-center justify-between gap-4 rounded-xl border border-[color-mix(in_srgb,var(--page-accent)_34%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_10%,var(--page-card-bg))] p-6 ${className}">
+                    <div class="grid min-w-0 flex-1 gap-2">
+                        <span class="text-lg font-extrabold leading-tight text-[var(--page-text)]">${escapeHtml(block.label)}</span>
+                        <span class="block h-2.5 max-w-[320px] rounded-full bg-[var(--page-border)]"></span>
+                        <span class="block h-2.5 max-w-[220px] rounded-full bg-[var(--page-panel-soft)]"></span>
+                    </div>
+                    <span class="block h-9 w-28 shrink-0 rounded-md bg-[var(--page-accent)]"></span>
+                </div>
+            `;
+        }
+
         if (block.preview === 'navigation') {
             return `
                 <div class="page-site-header border-b border-[var(--page-border)] bg-[var(--page-header-bg)] text-[var(--page-header-text)] ${className}">
-                    <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 px-8 py-4">
+                    <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 py-4 pl-0 pr-8">
                         <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[var(--page-accent)] text-sm font-black text-white">N</span>
                         <strong class="text-base font-bold">NixCMS</strong>
                         <div class="ml-auto">${this.renderNavigationItems(this.selectedDefaultNavigationIdentifier(), 'horizontal')}</div>
@@ -294,7 +309,7 @@ export const previewMethods = {
                 <div class="page-site-footer border-t border-[var(--page-border)] bg-[var(--page-footer-bg)] ${className}">
                     <div class="page-template-chrome-inner flex min-h-16 flex-wrap items-center justify-between gap-3 px-8 py-4">
                         <span class="text-xs font-medium text-[var(--page-footer-text)]">Powered by NixCMS</span>
-                        <div>${this.renderNavigationItems(this.selectedDefaultNavigationIdentifier(), 'compact')}</div>
+                        <div>${this.renderNavigationItems(this.selectedFooterNavigationIdentifier(), 'compact')}</div>
                     </div>
                 </div>
             `;
@@ -328,9 +343,10 @@ export const previewMethods = {
             const position = optionValue(customLayoutPositions, block?.position, 'stretch');
             const maxHeight = optionValue(customLayoutMaxHeights, block?.maxHeight, 'none');
             const overflow = optionValue(customLayoutOverflows, block?.overflow, 'visible');
-            const surface = optionValue(customLayoutSurfaces, block?.surface, 'none');
+            const surface = optionValue(this.surfaceOptions(), block?.surface, String(block?.surface || 'none'));
+            const contentType = String(this.blockContent?.[block.id]?.type || 'empty').replace(/[^a-z0-9_-]/gi, '-').toLowerCase();
             return `
-                <section class="page-template-region page-template-custom-slot page-template-custom-slot--${escapeHtml(region)} page-template-custom-slot--${escapeHtml(size)} page-template-custom-slot--position-${escapeHtml(position)} page-template-custom-slot--max-${escapeHtml(maxHeight)} page-template-custom-slot--overflow-${escapeHtml(overflow)} page-template-custom-slot--surface-${escapeHtml(surface)}" data-region="${escapeHtml(region)}" data-size="${escapeHtml(size)}" data-position="${escapeHtml(position)}" data-max-height="${escapeHtml(maxHeight)}" ${interactive ? `data-custom-slot-drop="${escapeHtml(block.id)}"` : ''}>
+                <section class="page-template-region page-template-custom-slot page-template-custom-slot--${escapeHtml(region)} page-template-custom-slot--${escapeHtml(size)} page-template-custom-slot--content-${escapeHtml(contentType)} page-template-custom-slot--position-${escapeHtml(position)} page-template-custom-slot--max-${escapeHtml(maxHeight)} page-template-custom-slot--overflow-${escapeHtml(overflow)} page-template-custom-slot--surface-${escapeHtml(surface)}" data-region="${escapeHtml(region)}" data-size="${escapeHtml(size)}" data-position="${escapeHtml(position)}" data-max-height="${escapeHtml(maxHeight)}" ${interactive ? `data-custom-slot-drop="${escapeHtml(block.id)}"` : ''}>
                     ${interactive ? this.customSlotControls(block) : ''}
                     ${renderBlock(block)}
                 </section>
@@ -580,11 +596,18 @@ export const previewMethods = {
             interactive ? 'cursor-pointer' : '',
         ].filter(Boolean).join(' ');
         const blockType = content?.label || 'Empty block';
+        const customChromeType = this.customChromeSlotType(block);
+        const deleteAttr = customChromeType !== ''
+            ? `data-delete-custom-slot="${escapeHtml(block.id)}"`
+            : `data-clear-block="${escapeHtml(block.id)}"`;
+        const deleteLabel = customChromeType !== ''
+            ? this.labels.deleteSlot
+            : 'Clear block';
         const controls = interactive ? `
             <div class="page-builder-block-controls pointer-events-auto absolute flex translate-y-1 items-center gap-2 opacity-0 transition group-hover/page-block:translate-y-0 group-hover/page-block:opacity-100 group-focus-within/page-block:translate-y-0 group-focus-within/page-block:opacity-100">
                 ${content ? `<button class="grid h-8 w-8 place-items-center rounded-md border border-slate-700 bg-slate-950/80 text-xs text-[var(--admin-page-accent)] transition hover:border-[var(--admin-page-accent)]" type="button" data-edit-block="${escapeHtml(block.id)}" aria-label="Edit block">✎</button>` : ''}
                 ${content ? `
-                    <button class="grid h-8 w-8 place-items-center rounded-md border border-rose-900/70 bg-slate-950/80 text-rose-400 transition hover:border-rose-500 hover:bg-rose-950/50" type="button" data-clear-block="${escapeHtml(block.id)}" aria-label="Clear block">
+                    <button class="grid h-8 w-8 place-items-center rounded-md border border-rose-900/70 bg-slate-950/80 text-rose-400 transition hover:border-rose-500 hover:bg-rose-950/50" type="button" ${deleteAttr} aria-label="${escapeHtml(deleteLabel)}" title="${escapeHtml(deleteLabel)}">
                         <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M3 6h18"></path>
                             <path d="M8 6V4h8v2"></path>
@@ -626,6 +649,15 @@ export const previewMethods = {
             return `<span class="text-base font-semibold text-[var(--page-muted)]">${escapeHtml(block.label)}</span>`;
         }
 
+        if (block.preview === 'cta') {
+            return `
+                <span class="text-base font-extrabold text-[var(--page-text)]">${escapeHtml(block.label)}</span>
+                <span class="mt-3 block h-2.5 max-w-[320px] rounded-full bg-[var(--page-border)]"></span>
+                <span class="mt-2 block h-2.5 max-w-[220px] rounded-full bg-[var(--page-panel-soft)]"></span>
+                <span class="mt-4 block h-9 w-28 rounded-md bg-[var(--page-accent)]"></span>
+            `;
+        }
+
         return `
             <span class="text-base font-semibold text-[var(--page-muted)]">${escapeHtml(block.label)}</span>
             <span class="mt-3 block h-2.5 max-w-[420px] rounded-full bg-[var(--page-border)]"></span>
@@ -648,6 +680,10 @@ export const previewMethods = {
 
     renderNavigationItems(identifier, presentation = 'horizontal', language = '') {
         const items = this.navigationPreviewItems(identifier, language, this.isMobilePreview() ? 3 : 5);
+        if (items.length === 0) {
+            return '';
+        }
+
         const vertical = presentation === 'vertical';
         const compact = presentation === 'compact';
         const className = vertical
@@ -673,7 +709,7 @@ export const previewMethods = {
                     ${depth > 2 ? `<span class="text-xs text-[var(--page-muted)]">${escapeHtml(child?.label || child?.type || 'Block')}</span>` : this.contentMiniPreview(child, depth + 1)}
                 </div>
             `).join('');
-            const empty = '<div class="rounded-md border border-dashed border-[var(--page-border)] p-3 text-center text-xs text-[var(--page-muted)]">Empty layout module</div>';
+            const empty = '<div class="rounded-md border border-dashed border-[var(--page-border)] p-3 text-center text-xs text-[var(--page-muted)]" style="grid-column:1 / -1;">Empty layout module</div>';
             const columns = content.type === 'columns' ? Math.max(2, Math.min(4, Number(content.props?.columns || 2))) : Math.max(2, Math.min(4, Number(content.props?.columns || 3)));
             const layoutClass = content.type === 'stack' || content.type === 'section'
                 ? 'grid gap-2'
@@ -698,19 +734,19 @@ export const previewMethods = {
             const logoText = String(content.props?.logoText || 'NixCMS');
             const showLogoMark = Boolean(content.props?.showLogoMark);
             const dividerClass = content.props?.showDivider ? 'border-b border-[var(--page-border)]' : '';
+            const desktopNavigation = this.renderNavigationItems(content.props?.navigationIdentifier, content.props?.presentation || 'horizontal');
+            const mobileNavigation = desktopNavigation !== '' ? this.renderMobileNavigationPreview(content.props?.navigationIdentifier) : '';
             return `
                 <div class="page-site-header ${dividerClass} bg-[var(--page-header-bg)] text-[var(--page-header-text)]">
-                    <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 px-8 py-4">
+                    <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 py-4 pl-0 pr-8">
                         <span class="inline-flex min-h-10 items-center gap-3 text-[var(--page-header-text)]">
                             ${logoImage
                                 ? `<img class="h-8 w-auto max-w-36 object-contain" src="${escapeHtml(logoImage)}" alt="">`
                                 : showLogoMark ? `<span class="grid h-8 w-8 place-items-center rounded-md bg-[var(--page-accent)] text-xs font-black text-white">${escapeHtml(logoText.slice(0, 1) || 'N')}</span>` : ''}
                             <strong class="text-base font-bold">${escapeHtml(logoText)}</strong>
                         </span>
-                        <div class="page-desktop-navigation ml-auto">${this.renderNavigationItems(content.props?.navigationIdentifier, content.props?.presentation || 'horizontal')}</div>
-                        <div class="page-mobile-navigation ml-auto">
-                            ${this.renderMobileNavigationPreview(content.props?.navigationIdentifier)}
-                        </div>
+                        ${desktopNavigation !== '' ? `<div class="page-desktop-navigation ml-auto">${desktopNavigation}</div>` : ''}
+                        ${mobileNavigation !== '' ? `<div class="page-mobile-navigation ml-auto">${mobileNavigation}</div>` : ''}
                     </div>
                 </div>
             `;
@@ -878,9 +914,7 @@ export const previewMethods = {
                                 <span class="text-right">${escapeHtml(values[index])}</span>
                             </span>`).join('')}
                         </div>`;
-            const surface = ['none', 'soft', 'card', 'accent'].includes(String(content.props?.surface || ''))
-                ? String(content.props.surface)
-                : 'none';
+            const surface = String(content.props?.surface || 'none').replace(/[^a-z0-9_-]/gi, '-').toLowerCase();
             const chartHeight = type === 'metric-bars'
                 ? Math.max(180, Math.min(Number(content.props?.height || 320), 72 + Math.max(1, count) * 28))
                 : Math.max(220, Math.min(Number(content.props?.height || 320), 720));

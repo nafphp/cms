@@ -8,6 +8,8 @@ use function NixPHP\route;
 
 $templates = is_array($templates ?? null) ? $templates : [];
 $contentTypes = is_array($contentTypes ?? null) ? $contentTypes : [];
+$themes = is_array($themes ?? null) ? $themes : \cms()->themes()->options();
+$themeSurfaces = is_array($themeSurfaces ?? null) ? $themeSurfaces : \cms()->themes()->surfaceOptionsByTheme();
 $navigationChoices = is_array($navigationChoices ?? null) ? $navigationChoices : [];
 $languages = is_array($languages ?? null) ? array_values($languages) : ['en'];
 $defaultLanguage = (string) ($defaultLanguage ?? ($languages[0] ?? 'en'));
@@ -44,6 +46,8 @@ foreach ($translationLanguages as $language) {
 $config = [
     'templates' => $templates,
     'contentTypes' => $contentTypes,
+    'themes' => $themes,
+    'themeSurfaces' => $themeSurfaces,
     'navigationChoices' => $navigationChoices,
     'defaultNavigationIdentifier' => (string) ($defaultNavigationIdentifier ?? ($navigationChoices[0]['identifier'] ?? 'main')),
     'languages' => $languages,
@@ -113,27 +117,47 @@ $config = [
             <header class="flex min-h-0 items-center gap-3 border-b border-slate-800 px-8">
                 <span class="h-3 w-3 rounded-full bg-[var(--admin-page-accent)]"></span>
                 <span class="text-sm font-semibold text-slate-400">Vorschau - <span data-template-preview-title>Landing Page</span></span>
-                <?php if ($navigationChoices !== []): ?>
-                    <label class="ml-auto flex min-w-[260px] items-center gap-2 text-xs font-semibold text-slate-500">
-                        <span>Navigation</span>
-                        <select class="min-h-9 min-w-0 flex-1 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-xs text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-styled-select data-default-navigation data-persist-key="defaultNavigationIdentifier">
-                            <?php foreach ($navigationChoices as $navigation): ?>
-                                <?php
-                                $priority = (int) ($navigation['priority'] ?? 0);
-                                $status = (string) ($navigation['status'] ?? '');
-                                $label = trim(sprintf(
-                                    '%s%s%s',
-                                    (string) ($navigation['label'] ?? $navigation['identifier'] ?? ''),
-                                    $status !== '' ? ' · ' . $status : '',
-                                    $priority > 0 ? ' · Prio ' . $priority : ''
-                                ));
-                                ?>
-                                <option value="<?= s((string) ($navigation['identifier'] ?? '')) ?>"><?= s($label) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </label>
-                <?php endif; ?>
-                <code class="rounded bg-white/5 px-2 py-1 text-[11px] text-slate-500" data-template-view></code>
+                <div class="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-3">
+                    <?php if ($navigationChoices !== []): ?>
+                        <label class="flex min-w-[230px] items-center gap-2 text-xs font-semibold text-slate-500" data-header-navigation-control>
+                            <span>Header</span>
+                            <select class="min-h-9 min-w-0 flex-1 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-xs text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-styled-select data-styled-select-menu-width="content" data-default-navigation data-persist-key="defaultNavigationIdentifier">
+                                <?php foreach ($navigationChoices as $navigation): ?>
+                                    <?php
+                                    $priority = (int) ($navigation['priority'] ?? 0);
+                                    $status = (string) ($navigation['status'] ?? '');
+                                    $label = trim(sprintf(
+                                        '%s%s%s',
+                                        (string) ($navigation['label'] ?? $navigation['identifier'] ?? ''),
+                                        $status !== '' ? ' · ' . $status : '',
+                                        $priority > 0 ? ' · Prio ' . $priority : ''
+                                    ));
+                                    ?>
+                                    <option value="<?= s((string) ($navigation['identifier'] ?? '')) ?>"><?= s($label) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </label>
+                        <label class="flex min-w-[230px] items-center gap-2 text-xs font-semibold text-slate-500 hidden" data-footer-navigation-control>
+                            <span>Footer</span>
+                            <select class="min-h-9 min-w-0 flex-1 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-xs text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-styled-select data-styled-select-menu-width="content" data-default-footer-navigation data-persist-key="defaultFooterNavigationIdentifier">
+                                <?php foreach ($navigationChoices as $navigation): ?>
+                                    <?php
+                                    $priority = (int) ($navigation['priority'] ?? 0);
+                                    $status = (string) ($navigation['status'] ?? '');
+                                    $label = trim(sprintf(
+                                        '%s%s%s',
+                                        (string) ($navigation['label'] ?? $navigation['identifier'] ?? ''),
+                                        $status !== '' ? ' · ' . $status : '',
+                                        $priority > 0 ? ' · Prio ' . $priority : ''
+                                    ));
+                                    ?>
+                                    <option value="<?= s((string) ($navigation['identifier'] ?? '')) ?>"><?= s($label) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </label>
+                    <?php endif; ?>
+                    <button class="min-h-9 rounded-md border border-slate-700 px-3 text-xs font-semibold text-slate-400 transition hover:border-rose-500/70 hover:text-rose-300" type="button" data-reset-builder><?= s(t('Zurücksetzen')) ?></button>
+                </div>
             </header>
             <div class="grid min-h-0 place-items-center overflow-auto p-8">
                 <div class="w-[min(840px,100%)]" data-template-preview></div>
@@ -154,6 +178,7 @@ $config = [
                 <span class="h-px w-8 bg-slate-700"></span>
                 <span class="grid h-9 w-9 place-items-center rounded-full border-2 border-slate-700 font-bold text-slate-400">3</span>
                 <span class="text-sm text-slate-500">3 Metadaten</span>
+                <button class="min-h-10 rounded-md border border-slate-700 px-4 text-sm font-semibold text-slate-400 transition hover:border-rose-500/70 hover:text-rose-300" type="button" data-reset-builder><?= s(t('Zurücksetzen')) ?></button>
                 <button class="min-h-10 rounded-md border border-slate-700 px-4 text-sm font-semibold text-slate-300" type="button" data-back-step>← Zurück</button>
                 <button class="min-h-10 rounded-md bg-[var(--admin-page-accent)] px-4 text-sm font-bold text-white" type="button" data-next-meta>Metadaten →</button>
             </div>
@@ -233,6 +258,7 @@ $config = [
                 <span class="grid h-9 w-9 place-items-center rounded-full bg-[var(--admin-page-accent)] font-bold text-white">3</span>
                 <span class="text-sm font-semibold text-white">3 Metadaten</span>
                 <span class="h-8 w-px bg-slate-700"></span>
+                <button class="min-h-10 rounded-md border border-slate-700 px-4 text-sm font-semibold text-slate-400 transition hover:border-rose-500/70 hover:text-rose-300" type="button" data-reset-builder><?= s(t('Zurücksetzen')) ?></button>
                 <button class="min-h-10 rounded-md border border-slate-700 px-4 text-sm font-semibold text-slate-300" type="button" data-back-layout>← Inhalt</button>
                 <button class="min-h-10 rounded-md bg-[var(--admin-page-accent)] px-4 text-sm font-bold text-white disabled:cursor-wait disabled:opacity-60" type="button" data-save-page>Speichern</button>
             </div>
@@ -319,6 +345,14 @@ $config = [
                     <h2 class="m-0 text-sm font-semibold text-white">Theme</h2>
                 </div>
                 <div class="grid gap-4 md:grid-cols-2">
+                    <label class="grid gap-1.5">
+                        <span class="text-xs font-semibold text-slate-500">Theme</span>
+                        <select class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-styled-select data-persist-key="themeId">
+                            <?php foreach ($themes as $theme): ?>
+                                <option value="<?= s((string) ($theme['value'] ?? '')) ?>"><?= s((string) ($theme['label'] ?? $theme['value'] ?? '')) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
                     <label class="grid gap-1.5">
                         <span class="text-xs font-semibold text-slate-500"><?= s(t('Content width')) ?></span>
                         <select class="min-h-10 rounded-md border border-slate-700 bg-[#0b1017] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-styled-select data-content-width-control data-persist-key="theme.contentWidth">

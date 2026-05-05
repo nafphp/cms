@@ -3,13 +3,13 @@
 /** @var string $templateView */
 /** @var \NixCMS\Page\Template $template */
 
-if ($template->layout() !== null && $template->layout() !== '') {
-    $this->setLayout($template->layout());
+if ($template->parent() !== null && $template->parent() !== '') {
+    $this->setLayout($template->parent());
     $this->block('content');
 }
 
 echo \NixPHP\View\view($templateView, get_defined_vars());
 
-if ($template->layout() !== null && $template->layout() !== '') {
+if ($template->parent() !== null && $template->parent() !== '') {
     $this->endBlock('content');
 }

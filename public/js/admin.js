@@ -48,6 +48,32 @@ const trigger = document.querySelector('.admin-menu-trigger');
 const layout = document.querySelector('.admin-layout');
 const menuStateKey = 'nixcms:admin-menu-state';
 
+document.addEventListener('click', (event) => {
+    const link = event.target instanceof Element ? event.target.closest('.admin-menu a[href]') : null;
+    if (!(link instanceof HTMLAnchorElement)) {
+        return;
+    }
+
+    const href = link.getAttribute('href') || '';
+    if (
+        href === ''
+        || href.startsWith('#')
+        || link.target !== ''
+        || event.metaKey
+        || event.ctrlKey
+        || event.shiftKey
+        || event.altKey
+        || event.defaultPrevented
+    ) {
+        return;
+    }
+
+    root.classList.add('admin-menu-navigating');
+    document.querySelectorAll('.admin-menu-group.is-flyout-open').forEach((group) => {
+        group.classList.remove('is-flyout-open');
+    });
+}, true);
+
 if (menu && trigger && layout) {
     const applyLayoutState = () => {
         const isCollapsed = !menu.classList.contains('open');
@@ -143,7 +169,7 @@ const initAdminNavigationSorting = () => {
         && !element.classList.contains('admin-navigation-drag-source')
     ));
 
-    const animateListChange = (list, change) => {
+    const animateListChange = (list, change, duration = 140) => {
         const previousRects = new Map(animatedChildren(list).map((element) => [element, element.getBoundingClientRect()]));
         change();
         animatedChildren(list).forEach((element) => {
@@ -162,7 +188,7 @@ const initAdminNavigationSorting = () => {
                 {transform: `translateY(${deltaY}px)`},
                 {transform: 'translateY(0)'},
             ], {
-                duration: 150,
+                duration,
                 easing: 'cubic-bezier(.2, .8, .2, 1)',
             });
         });
@@ -329,7 +355,9 @@ const initAdminNavigationSorting = () => {
             return;
         }
 
-        list.insertBefore(target, beforeElement);
+        animateListChange(list, () => {
+            list.insertBefore(target, beforeElement);
+        }, 125);
     };
 
     const removePlaceholder = () => {
@@ -443,6 +471,37 @@ document.querySelectorAll('.admin-menu-group[data-menu-key]').forEach((group) =>
 
     const storageKey = `admin_submenu_${key}`;
     const isActive = group.classList.contains('active') || group.querySelector('.admin-submenu-link.active') !== null;
+    let ignoreFlyoutToggle = false;
+    let flyoutWasOpen = false;
+
+    const isMenuCollapsed = () => root.classList.contains('admin-menu-collapsed');
+    const openFlyout = () => {
+        if (!isMenuCollapsed()) {
+            return;
+        }
+
+        flyoutWasOpen = group.open;
+        ignoreFlyoutToggle = true;
+        group.open = true;
+        group.classList.add('is-flyout-open');
+        window.setTimeout(() => {
+            ignoreFlyoutToggle = false;
+        }, 0);
+    };
+    const closeFlyout = () => {
+        if (!group.classList.contains('is-flyout-open')) {
+            return;
+        }
+
+        group.classList.remove('is-flyout-open');
+        if (!flyoutWasOpen) {
+            ignoreFlyoutToggle = true;
+            group.open = false;
+            window.setTimeout(() => {
+                ignoreFlyoutToggle = false;
+            }, 0);
+        }
+    };
 
     if (isActive) {
         group.open = true;
@@ -458,9 +517,24 @@ document.querySelectorAll('.admin-menu-group[data-menu-key]').forEach((group) =>
     }
 
     group.addEventListener('toggle', () => {
+        if (ignoreFlyoutToggle) {
+            return;
+        }
+
         try {
             localStorage.setItem(storageKey, group.open ? 'open' : 'closed');
         } catch (error) {}
+    });
+
+    group.addEventListener('mouseenter', openFlyout);
+    group.addEventListener('mouseleave', closeFlyout);
+    group.addEventListener('focusin', openFlyout);
+    group.addEventListener('focusout', () => {
+        window.setTimeout(() => {
+            if (!group.contains(document.activeElement)) {
+                closeFlyout();
+            }
+        }, 0);
     });
 });
 

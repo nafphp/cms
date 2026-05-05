@@ -330,13 +330,13 @@ final class PageRegistry
             return [];
         }
 
-        $templates = require $templateFile;
-        if (!is_array($templates)) {
+        $layouts = require $templateFile;
+        if (!is_array($layouts)) {
             return [];
         }
 
         return [
-            ...$templates,
+            ...Layout::definitions($layouts),
             ...(new PageLayoutRepository())->templates(),
         ];
     }

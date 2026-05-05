@@ -19,8 +19,10 @@ use NixCMS\Models\Media;
 use NixCMS\Models\SiteNavigation;
 use NixCMS\Navigation\NavigationRegistry;
 use NixCMS\Page\PageRegistry;
+use NixCMS\Repositories\ThemeRepository;
 use NixCMS\Settings\SettingsRegistry;
 use NixCMS\Storage\EntityStorage;
+use NixCMS\Theme\ThemeRegistry;
 use NixCMS\Visualization\VisualizationRegistry;
 
 final class Cms
@@ -35,6 +37,7 @@ final class Cms
     private ?LanguageRegistry $languageRegistry = null;
     private ?BlockViewRegistry $blockViewRegistry = null;
     private ?BlockTypeRegistry $blockTypeRegistry = null;
+    private ?ThemeRegistry $themeRegistry = null;
 
     public function settings(): Settings
     {
@@ -115,6 +118,20 @@ final class Cms
     public function blockTypes(): BlockTypeRegistry
     {
         return $this->blockTypeRegistry ??= new BlockTypeRegistry();
+    }
+
+    public function themes(): ThemeRegistry
+    {
+        if ($this->themeRegistry === null) {
+            $this->themeRegistry = new ThemeRegistry();
+            $themeFile = BASE_PATH . '/app/themes.php';
+            if (is_file($themeFile)) {
+                $this->themeRegistry->addMany(require $themeFile);
+            }
+            $this->themeRegistry->addMany((new ThemeRepository())->themes(), true);
+        }
+
+        return $this->themeRegistry;
     }
 
     public function articles(): ArticleApi

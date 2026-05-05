@@ -35,7 +35,7 @@ $lineClass = $thumbnail ? 'h-2' : 'h-2.5';
 ?>
 <?php if ($preview === 'navigation'): ?>
     <div class="border-b border-[var(--page-border)] bg-[var(--page-header-bg)]">
-        <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 px-6 py-4">
+        <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 py-4 pl-0 pr-6">
             <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[var(--page-accent)] text-sm font-black text-white">N</span>
             <strong class="text-base font-bold text-[var(--page-header-text)]">NixCMS</strong>
             <nav class="ml-auto flex flex-wrap items-center justify-end gap-4 text-sm font-semibold text-[var(--page-muted)]" aria-label="Navigation preview">
@@ -86,6 +86,15 @@ $lineClass = $thumbnail ? 'h-2' : 'h-2.5';
         <p class="m-0 max-w-[58ch] text-sm leading-relaxed text-[var(--page-muted)]">
             <?= s($label) ?>
         </p>
+    </div>
+<?php elseif ($preview === 'cta'): ?>
+    <div class="flex min-h-24 flex-wrap items-center justify-between gap-4 rounded-xl border border-[color-mix(in_srgb,var(--page-accent)_34%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_10%,var(--page-card-bg))] <?= s($thumbnail ? 'p-4' : 'p-6') ?>">
+        <div class="grid min-w-0 flex-1 gap-2">
+            <span class="<?= $thumbnail ? 'text-sm' : 'text-lg' ?> font-extrabold leading-tight text-[var(--page-text)]"><?= s($label) ?></span>
+            <span class="block <?= s($lineClass) ?> max-w-[320px] rounded-full bg-[var(--page-border)]"></span>
+            <span class="block <?= s($lineClass) ?> max-w-[220px] rounded-full bg-[var(--page-panel-soft)]"></span>
+        </div>
+        <span class="block h-9 w-28 shrink-0 rounded-md bg-[var(--page-accent)]"></span>
     </div>
 <?php else: ?>
 <div class="<?= s($heightClass) ?> grid content-center <?= s($gapClass) ?> rounded-xl border border-[var(--page-card-border)] bg-[var(--page-card-bg)] <?= s($paddingClass) ?> shadow-[0_18px_48px_rgba(0,0,0,.24)]">

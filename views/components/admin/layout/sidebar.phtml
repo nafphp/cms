@@ -13,6 +13,7 @@ $renderIcon = static function (string $icon, bool $compact = false): string {
         'stats' => '<path d="M4 19h16M6 17V11m5 6V7m5 10v-4"/>',
         'content' => '<path d="M4.5 6.5A2.5 2.5 0 0 1 7 4h3.8l1.8 2H17a2.5 2.5 0 0 1 2.5 2.5v8A2.5 2.5 0 0 1 17 19H7a2.5 2.5 0 0 1-2.5-2.5v-10Z"/>',
         'page' => '<path d="M6.5 3.5h8l3 3v14h-11v-17Z"/><path d="M14.5 3.5V7h3M9 10.5h6M9 13.5h6M9 16.5h4"/>',
+        'paint' => '<path d="M12 3.5a8.5 8.5 0 0 0 0 17h1.2a1.8 1.8 0 0 0 1.2-3.1 1.4 1.4 0 0 1 .9-2.4H17a3.5 3.5 0 0 0 0-7h-.7A4.5 4.5 0 0 0 12 3.5Z"/><path d="M7.8 11.2h.01M9.7 7.9h.01M13.4 7.2h.01"/>',
         'article' => '<path d="M7 3.5h7l3 3V20.5H7V3.5Z"/><path d="M14 3.5V7h3M9.5 11h5M9.5 14h5M9.5 17h3"/>',
         'navigation' => '<path d="M4 6h7a3 3 0 0 1 3 3v1"/><path d="M4 18h7a3 3 0 0 0 3-3v-1"/><path d="M16 8l2 2-2 2"/><path d="M16 12l2 2-2 2"/>',
         'form' => '<path d="M6.5 3.5h11v17h-11v-17Z"/><path d="M9.5 7.5h5M9.5 11.5h5M9.5 15.5h2"/><path d="M14 15.5h1.5"/>',
@@ -21,6 +22,7 @@ $renderIcon = static function (string $icon, bool $compact = false): string {
         'user' => '<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>',
         'lock' => '<path d="M7 10V8a5 5 0 0 1 10 0v2"/><path d="M5.5 10h13v10h-13V10Z"/>',
         'settings' => '<path d="M4 7h10M18 7h2M4 12h3M11 12h9M4 17h10M18 17h2"/><path d="M14 5v4M8 10v4M15 15v4"/>',
+        'ai' => '<path d="M12 3.5l1.5 4 4 1.5-4 1.5-1.5 4-1.5-4-4-1.5 4-1.5 1.5-4Z"/><path d="M18 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/>',
     ];
     $path = $paths[$icon] ?? '<path d="M12 12h.01"/>';
 
@@ -67,7 +69,7 @@ $renderItems = static function (array $items, int $depth = 0, string $parentKey 
                     <?= $renderIcon($icon, !$isRoot) ?>
                     <span class="admin-menu-expanded-only <?= s($textClass) ?> font-normal group-[.is-menu-collapsed]:hidden"><?= s($displayLabel) ?></span>
                 </summary>
-                <div class="grid gap-0 group-[.is-menu-collapsed]:hidden" data-admin-navigation-list data-admin-navigation-parent="<?= s($key) ?>">
+                <div class="admin-menu-flyout grid gap-0 group-[.is-menu-collapsed]:hidden" data-admin-navigation-list data-admin-navigation-parent="<?= s($key) ?>">
                     <?php $renderItems($children, $depth + 1, $key); ?>
                 </div>
             </details>

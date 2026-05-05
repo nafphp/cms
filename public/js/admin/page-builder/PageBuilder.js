@@ -39,6 +39,8 @@ export class PageBuilder {
         };
         this.templates = Array.isArray(this.config.templates) ? this.config.templates : [];
         this.contentTypes = Array.isArray(this.config.contentTypes) ? this.config.contentTypes : [];
+        this.themes = Array.isArray(this.config.themes) ? this.config.themes : [];
+        this.themeSurfaces = this.config.themeSurfaces && typeof this.config.themeSurfaces === 'object' ? this.config.themeSurfaces : {};
         this.navigationChoices = Array.isArray(this.config.navigationChoices) ? this.config.navigationChoices : [];
         this.languages = Array.isArray(this.config.languages) ? this.config.languages : [];
         this.languageOptions = this.config.languageOptions && typeof this.config.languageOptions === 'object' ? this.config.languageOptions : {};
@@ -69,6 +71,7 @@ export class PageBuilder {
         this.customLayout = [];
         this.persistedValues = {};
         this.templatesRendered = false;
+        this.scrolledTemplateId = null;
         this.previewTemplateId = null;
         this.settingsOpen = false;
         this.previewViewport = 'desktop';
@@ -77,6 +80,27 @@ export class PageBuilder {
         this.saveTimer = null;
         this.saving = false;
         this.savedId = Number(this.initialState.id || 0);
+    }
+
+    currentThemeId() {
+        return String(this.persistedValues.themeId || 'default').trim() || 'default';
+    }
+
+    surfaceOptions() {
+        const options = this.themeSurfaces[this.currentThemeId()] || this.themeSurfaces.default || [];
+        return Array.isArray(options) && options.length > 0
+            ? options
+            : [
+                {value: 'none', label: this.labels.surfaceNone || 'None'},
+                {value: 'soft', label: this.labels.surfaceSoft || 'Soft'},
+                {value: 'card', label: this.labels.surfaceCard || 'Card'},
+                {value: 'accent', label: this.labels.surfaceAccent || 'Accent'},
+            ];
+    }
+
+    themeLabel(id) {
+        const theme = this.themes.find((item) => String(item.value || '') === String(id || ''));
+        return theme?.label || id || 'default';
     }
 }
 

@@ -35,6 +35,7 @@ export const renderingMethods = {
 
         this.renderTemplatesOnce();
         this.updateActiveTemplate();
+        this.scrollActiveTemplateIntoView();
         this.renderTemplatePreview();
         this.renderPreviewChrome();
         this.renderBlocks();
@@ -84,6 +85,26 @@ export const renderingMethods = {
             const active = card.dataset.templateId === this.templateId;
             card.classList.toggle('border-[var(--admin-page-accent)]', active);
             card.classList.toggle('bg-[#122033]', active);
+        });
+    },
+
+    scrollActiveTemplateIntoView() {
+        if (this.step !== 'template' || this.scrolledTemplateId === this.templateId) {
+            return;
+        }
+
+        const active = this.templateList?.querySelector(`[data-template-id="${CSS.escape(this.templateId)}"]`);
+        if (!active) {
+            return;
+        }
+
+        this.scrolledTemplateId = this.templateId;
+        window.requestAnimationFrame(() => {
+            active.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'nearest',
+            });
         });
     },
 
@@ -187,6 +208,10 @@ export const renderingMethods = {
         const labelClass = 'grid gap-1.5';
         const labelTextClass = 'text-[11px] font-bold uppercase tracking-wide text-slate-500';
         const compactSelect = 'data-styled-select data-styled-select-density="compact"';
+        const isHeaderChromeSlot = this.customChromeSlotType(block) === 'header';
+        const regionOptions = isHeaderChromeSlot
+            ? customLayoutRegions.filter((region) => region.value === 'header')
+            : customLayoutRegions.filter((region) => region.value !== 'header');
 
         return `
             <section class="mb-4 grid gap-3 rounded-lg border border-slate-800 bg-[#111827] p-3">
@@ -212,7 +237,7 @@ export const renderingMethods = {
                 <div class="grid gap-3 md:grid-cols-2">
                     <label class="${labelClass}">
                         <span class="${labelTextClass}">${escapeHtml(this.labels.region)}</span>
-                        <select class="${controlClass}" ${compactSelect} data-custom-slot-region="${escapeHtml(id)}">${optionOptions(customLayoutRegions, this.customSlotRegion(block), this.labels)}</select>
+                        <select class="${controlClass}" ${compactSelect} data-custom-slot-region="${escapeHtml(id)}">${optionOptions(regionOptions, this.customSlotRegion(block), this.labels)}</select>
                     </label>
                     <label class="${labelClass}">
                         <span class="${labelTextClass}">${escapeHtml(this.labels.size)}</span>
@@ -232,7 +257,7 @@ export const renderingMethods = {
                     </label>
                     <label class="${labelClass}">
                         <span class="${labelTextClass}">${escapeHtml(this.labels.surface)}</span>
-                        <select class="${controlClass}" ${compactSelect} data-custom-slot-surface="${escapeHtml(id)}">${optionOptions(customLayoutSurfaces, block.surface || 'none', this.labels)}</select>
+                        <select class="${controlClass}" ${compactSelect} data-custom-slot-surface="${escapeHtml(id)}">${optionOptions(this.surfaceOptions(), block.surface || 'none', this.labels)}</select>
                     </label>
                 </div>
             </section>

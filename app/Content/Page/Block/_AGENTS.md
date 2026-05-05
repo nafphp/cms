@@ -23,11 +23,12 @@ The layout system has three concrete locations, not three competing systems:
 
 - `views/page/templates/*.phtml` — HTML-controlled templates with arbitrary
   markup and CSS. The developer's tool when full layout freedom is needed.
-- `app/Resources/pages/page_templates.php` — slot metadata (id, region,
-  accepts, defaultContentType) for the `.phtml` templates above. Required
-  because `.phtml` files do not self-declare their slots. Slot ids here must
-  match the `$block('id')` calls in the matching `.phtml` — `php bin/nix
-  integrity:check` enforces this.
+- `app/Resources/pages/page_templates.php` — programmatic `Layout`/`Template`
+  definitions for the `.phtml` templates above. The `Template` points at the
+  physical view and parent; the `Layout` declares the page slots/blocks
+  (id, region, accepts, defaultContentType). Required because `.phtml` files do
+  not self-declare their slots. Slot ids here must match the `$block('id')`
+  calls in the matching `.phtml` — `php bin/nix integrity:check` enforces this.
 - `page_layouts` table — property-driven layouts (region/size/position/
   surface/maxHeight/overflow) rendered by the generic
   `views/page/templates/custom.phtml`. The user's tool inside the page

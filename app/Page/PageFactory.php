@@ -19,12 +19,12 @@ final class PageFactory
      */
     public function fromStoredRow(array $row, array $definition): Page
     {
-        $template = Template::create((string) ($definition['view'] ?? 'page.templates.default'))
-            ->setLayout((string) ($row['layout'] ?? $definition['layout'] ?? 'layouts.page'))
+        $layout = Layout::create(Template::create((string) ($definition['view'] ?? 'page.templates.default'))
+            ->setParent((string) ($row['layout'] ?? $definition['layout'] ?? 'layouts.page'))
             ->addStylesheet('/css/nixcms.css')
             ->addScript('/js/page-forms.js', ['type' => 'module'])
             ->addScript('/js/admin/diagrams.js', ['type' => 'module'])
-            ->addBodyClass('min-h-screen bg-[var(--page-bg)] text-[var(--page-text)]');
+            ->addBodyClass('min-h-screen bg-[var(--page-bg)] text-[var(--page-text)]'));
 
         $storedBlocks = is_array($row['blocks'] ?? null) ? $row['blocks'] : [];
         $meta = is_array($row['meta'] ?? null) ? $row['meta'] : [];
@@ -46,13 +46,13 @@ final class PageFactory
             $content = is_array($storedBlocks[$id] ?? null) ? $storedBlocks[$id] : [];
             $type = trim((string) ($content['type'] ?? $this->defaultContentType($id, $block)));
             if ($type === '') {
-                $template->addBlock($id, 'page.blocks.empty', $this->blockData($id, $block, [
+                $layout->addBlock($id, 'page.blocks.empty', $this->blockData($id, $block, [
                     'content' => [],
                 ]));
                 continue;
             }
 
-            $template->addBlock($id, $this->blockViews()->viewFor($type), $this->blockData($id, $block, [
+            $layout->addBlock($id, $this->blockViews()->viewFor($type), $this->blockData($id, $block, [
                 'label' => (string) ($content['label'] ?? $block['label'] ?? $id),
                 'preview' => (string) ($block['preview'] ?? $type),
                 'content' => $content,
@@ -63,8 +63,9 @@ final class PageFactory
             ->setPath((string) ($row['path'] ?? '/'))
             ->setTitle((string) ($row['title'] ?? 'Page'))
             ->setLanguage((string) ($row['language'] ?? ''))
+            ->setTheme((string) ($row['theme_id'] ?? $row['themeId'] ?? ''))
             ->setMeta(is_array($row['meta'] ?? null) ? $row['meta'] : [])
-            ->setTemplate($template);
+            ->setLayout($layout);
 
         if ((string) ($row['status'] ?? 'draft') !== 'published') {
             $page->requirePermission(Permission::PAGES_VIEW);

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace NixCMS\Page;
 
+/**
+ * Render description for a concrete .phtml template and its optional parent.
+ */
 final class Template
 {
     private ?string $view = null;
-    private ?string $layout = null;
-    /** @var array<string, PageBlock> */
-    private array $blocks = [];
+    private ?string $parent = null;
+    private ?string $themeId = null;
     /** @var array<string, string> */
     private array $bodyClasses = [];
     /** @var array<int, array{href: string, attributes: array<string, string|bool>}> */
@@ -47,47 +49,36 @@ final class Template
         return $this;
     }
 
-    public function layout(): ?string
+    public function parent(): ?string
     {
-        return $this->layout;
+        return $this->parent;
     }
 
-    public function setLayout(?string $layout): self
+    public function themeId(): ?string
     {
-        if ($layout === null || trim($layout) === '') {
-            $this->layout = null;
+        return $this->themeId;
+    }
+
+    public function setTheme(?string $themeId): self
+    {
+        $themeId = $themeId === null ? null : trim($themeId);
+        $this->themeId = $themeId === '' ? null : $themeId;
+        return $this;
+    }
+
+    public function setParent(?string $parent): self
+    {
+        if ($parent === null || trim($parent) === '') {
+            $this->parent = null;
             return $this;
         }
 
-        $layout = trim($layout);
-        $this->layout = str_contains($layout, '.') || str_contains($layout, '/')
-            ? $layout
-            : 'layouts.' . $layout;
+        $parent = trim($parent);
+        $this->parent = str_contains($parent, '.') || str_contains($parent, '/')
+            ? $parent
+            : 'layouts.' . $parent;
 
         return $this;
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     */
-    public function addBlock(string $id, string $view, array $data = []): self
-    {
-        $block = new PageBlock($id, $view, $data);
-
-        if (isset($this->blocks[$block->id()])) {
-            throw new \LogicException(sprintf('Template already has a block "%s".', $block->id()));
-        }
-
-        $this->blocks[$block->id()] = $block;
-        return $this;
-    }
-
-    /**
-     * @return array<string, PageBlock>
-     */
-    public function blocks(): array
-    {
-        return $this->blocks;
     }
 
     public function addBodyClass(string $class): self

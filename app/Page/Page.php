@@ -14,6 +14,7 @@ final class Page
     private ?string $path = null;
     private ?string $title = null;
     private ?string $layout = null;
+    private ?Layout $pageLayout = null;
     private bool $requiresAuthentication = false;
     /** @var array<int, Role> */
     private array $requiredRoles = [];
@@ -26,8 +27,8 @@ final class Page
     private mixed $handler = null;
     /** @var array<string, PageDataHandler> */
     private array $dataHandlers = [];
-    private ?Template $template = null;
     private ?string $language = null;
+    private ?string $themeId = null;
     /** @var array<string, string|bool> */
     private array $htmlAttributes = [];
     /** @var array<string, string|bool> */
@@ -98,8 +99,18 @@ final class Page
         return $this->layout;
     }
 
-    public function setLayout(?string $layout): self
+    public function setLayout(string|Template|Layout|null $layout): self
     {
+        if ($layout instanceof Template) {
+            $this->pageLayout = new Layout($layout);
+            return $this;
+        }
+
+        if ($layout instanceof Layout) {
+            $this->pageLayout = $layout;
+            return $this;
+        }
+
         if ($layout === null || trim($layout) === '') {
             $this->layout = null;
             return $this;
@@ -232,28 +243,9 @@ final class Page
         return $this->dataHandlers;
     }
 
-    public function template(): ?Template
+    public function pageLayout(): ?Layout
     {
-        return $this->template;
-    }
-
-    public function templateView(): ?string
-    {
-        return $this->template?->view();
-    }
-
-    public function setTemplate(string|Template|null $template): self
-    {
-        if ($template === null) {
-            $this->template = null;
-            return $this;
-        }
-
-        $template = is_string($template) ? new Template($template) : $template;
-
-        $this->template = $template;
-
-        return $this;
+        return $this->pageLayout;
     }
 
     public function language(): ?string
@@ -269,6 +261,18 @@ final class Page
         }
 
         $this->language = strtolower(trim($language));
+        return $this;
+    }
+
+    public function themeId(): ?string
+    {
+        return $this->themeId;
+    }
+
+    public function setTheme(?string $themeId): self
+    {
+        $themeId = $themeId === null ? null : trim($themeId);
+        $this->themeId = $themeId === '' ? null : $themeId;
         return $this;
     }
 

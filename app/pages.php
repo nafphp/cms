@@ -7,6 +7,7 @@ return [
     ...require __DIR__ . '/Resources/pages/auth.php',
     ...require __DIR__ . '/Resources/pages/admin.php',
     ...require __DIR__ . '/Resources/pages/pages.php',
+    ...require __DIR__ . '/Resources/pages/themes.php',
     ...require __DIR__ . '/Resources/pages/navigation.php',
     ...require __DIR__ . '/Resources/pages/forms.php',
     ...require __DIR__ . '/Resources/pages/media.php',

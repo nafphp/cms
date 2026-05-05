@@ -5,9 +5,10 @@ use NixCMS\Page\CustomLayoutOptions;
 use function NixPHP\View\s;
 
 /** @var \NixCMS\Page\Template $template */
+/** @var \NixCMS\Page\Layout $layout */
 /** @var array<string, string> $blocks */
 
-$slots = $template->blocks();
+$slots = $layout->blocks();
 
 $slotsForRegion = static function (string $region) use ($slots): array {
     return array_filter(
@@ -23,10 +24,12 @@ $renderSlot = static function (PageBlock $slot) use ($blocks): void {
     $position = CustomLayoutOptions::choice($data['position'] ?? null, CustomLayoutOptions::POSITIONS, 'stretch');
     $maxHeight = CustomLayoutOptions::choice($data['maxHeight'] ?? null, CustomLayoutOptions::MAX_HEIGHTS, 'none');
     $overflow = CustomLayoutOptions::choice($data['overflow'] ?? null, CustomLayoutOptions::OVERFLOWS, 'visible');
-    $surface = CustomLayoutOptions::choice($data['surface'] ?? null, CustomLayoutOptions::SURFACES, 'none');
+    $surface = \NixCMS\Theme\Theme::slug((string) ($data['surface'] ?? 'none')) ?: 'none';
+    $content = is_array($data['content'] ?? null) ? $data['content'] : [];
+    $contentType = \NixCMS\Theme\Theme::slug((string) ($content['type'] ?? 'empty')) ?: 'empty';
     ?>
     <section
-        class="page-template-region page-template-custom-slot page-template-custom-slot--<?= s($region) ?> page-template-custom-slot--<?= s($size) ?> page-template-custom-slot--position-<?= s($position) ?> page-template-custom-slot--max-<?= s($maxHeight) ?> page-template-custom-slot--overflow-<?= s($overflow) ?> page-template-custom-slot--surface-<?= s($surface) ?>"
+        class="page-template-region page-template-custom-slot page-template-custom-slot--<?= s($region) ?> page-template-custom-slot--<?= s($size) ?> page-template-custom-slot--content-<?= s($contentType) ?> page-template-custom-slot--position-<?= s($position) ?> page-template-custom-slot--max-<?= s($maxHeight) ?> page-template-custom-slot--overflow-<?= s($overflow) ?> page-template-custom-slot--surface-<?= s($surface) ?>"
         data-region="<?= s($region) ?>"
         data-size="<?= s($size) ?>"
         data-position="<?= s($position) ?>"

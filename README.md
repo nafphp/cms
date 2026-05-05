@@ -76,6 +76,7 @@ These sections are generated from registries and enums. Edit the source code, th
 | `cms()->visualizations()` | Registered chart definitions and rendering. |
 | `cms()->blocks()` | Page-builder block type to view mappings. |
 | `cms()->blockTypes()` | Page-builder block metadata for the admin builder. |
+| `cms()->themes()` | Frontend theme assets and builder-visible surfaces. |
 | `cms()->languages()` | Enabled, available, and discovered language codes. |
 | `cms()->settings()` | Resolved runtime settings. |
 | `cms()->settingsRegistry()` | Admin-editable setting sections and fields. |
@@ -111,9 +112,13 @@ These sections are generated from registries and enums. Edit the source code, th
 | `admin.pages.create` | `/admin/pages/create` | `layouts.admin` | `pages.create` | no |
 | `admin.roles` | `/admin/roles` | `layouts.admin` | `roles.manage` | no |
 | `admin.settings` | `/admin/settings` | `layouts.admin` | `admin.access` | no |
+| `admin.settings.ai` | `/admin/settings/ai` | `layouts.admin` | `admin.access` | no |
 | `admin.settings.audit` | `/admin/settings/audit` | `layouts.admin` | `admin.access` | no |
 | `admin.settings.group` | `/admin/settings/group/{group}` | `layouts.admin` | `admin.access` | no |
 | `admin.translations` | `/admin/settings/translations` | `layouts.admin` | `admin.access` | no |
+| `admin.themes` | `/admin/themes` | `layouts.admin` | `themes.view` | no |
+| `admin.themes.create` | `/admin/themes/create` | `layouts.admin` | `themes.create` | yes |
+| `admin.themes.edit` | `/admin/themes/{themeId}/edit` | `layouts.admin` | `themes.edit` | yes |
 | `admin.users` | `/admin/users` | `layouts.admin` | `users.view` | no |
 | `admin.users.create` | `/admin/users/create` | `layouts.admin` | `users.create` | no |
 | `admin.users.edit` | `/admin/users/{userId}/edit` | `layouts.admin` | `users.edit` | no |
@@ -129,6 +134,8 @@ These sections are generated from registries and enums. Edit the source code, th
 | ID | Method | Path | Permissions |
 | --- | --- | --- | --- |
 | `admin.articles.image` | `POST` | `/admin/articles/image` | any of `media.upload`, `articles.edit` |
+| `api.admin.ai.tools` | `GET` | `/api/admin/ai/tools` | `mcp.tools.call` |
+| `api.admin.ai.tools.call` | `POST` | `/api/admin/ai/tools/call` | `mcp.tools.call` |
 | `api.admin.articles` | `GET` | `/api/admin/articles` | `articles.view` |
 | `api.admin.articles.translate.enqueue` | `POST` | `/api/admin/articles/{articleId}/translate/enqueue` | `articles.create` |
 | `api.admin.articles.delete` | `POST` | `/api/admin/articles/{articleId}/{language}/delete` | `articles.delete` |
@@ -212,6 +219,10 @@ These sections are generated from registries and enums. Edit the source code, th
 | `pages.create` | Create pages. |
 | `pages.edit` | Edit pages. |
 | `pages.delete` | Delete pages. |
+| `themes.view` | View themes. |
+| `themes.create` | Create themes. |
+| `themes.edit` | Edit themes. |
+| `themes.delete` | Delete themes. |
 | `navigation.view` | View navigation. |
 | `navigation.create` | Create navigation. |
 | `navigation.edit` | Edit navigation. |

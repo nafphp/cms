@@ -51,7 +51,7 @@ export const customLayoutMethods = {
             const position = optionValue(customLayoutPositions, slot.position, 'stretch');
             const maxHeight = optionValue(customLayoutMaxHeights, slot.maxHeight, 'none');
             const overflow = optionValue(customLayoutOverflows, slot.overflow, 'visible');
-            const surface = optionValue(customLayoutSurfaces, slot.surface, 'none');
+            const surface = optionValue(this.surfaceOptions(), slot.surface, String(slot.surface || 'none'));
             if (!/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(id) || label === '' || seen.has(id)) {
                 return slots;
             }
@@ -95,6 +95,10 @@ export const customLayoutMethods = {
     addCustomSlot(type) {
         const definition = this.contentTypeDefinition(type);
         if (!definition) {
+            return;
+        }
+        if (definition.type === 'header' || definition.type === 'footer') {
+            this.addChromeSlot(definition.type);
             return;
         }
 
@@ -165,7 +169,7 @@ export const customLayoutMethods = {
             slot.label = patch.label.trim() || slot.label;
         }
         if (hasOption(customLayoutRegions, patch.region)) {
-            slot.region = patch.region;
+            slot.region = patch.region === 'header' && this.customChromeSlotType(slot) !== 'header' ? 'main' : patch.region;
         }
         if (hasOption(customLayoutSizes, patch.size)) {
             slot.size = patch.size;
@@ -179,7 +183,7 @@ export const customLayoutMethods = {
         if (hasOption(customLayoutOverflows, patch.overflow)) {
             slot.overflow = patch.overflow;
         }
-        if (hasOption(customLayoutSurfaces, patch.surface)) {
+        if (typeof patch.surface === 'string' && patch.surface.trim() !== '') {
             slot.surface = patch.surface;
         }
 
@@ -361,7 +365,9 @@ export const customLayoutMethods = {
     },
 
     renderCustomSlotContentOptionsHtml() {
-        if (this.contentTypes.length === 0) {
+        const contentTypes = this.contentTypes.filter((type) => !['header', 'footer'].includes(String(type?.type || '')));
+
+        if (contentTypes.length === 0) {
             return `
                 <div class="rounded-lg border border-dashed border-slate-700 p-6 text-center text-sm text-slate-500">
                     No content blocks are available.
@@ -369,7 +375,7 @@ export const customLayoutMethods = {
             `;
         }
 
-        return this.contentTypes.map((type) => {
+        return contentTypes.map((type) => {
             const preview = this.compactContentPreview(type);
             const region = this.defaultRegionForContentType(type);
             return `

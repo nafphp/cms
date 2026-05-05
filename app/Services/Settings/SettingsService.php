@@ -203,8 +203,23 @@ final class SettingsService
                 continue;
             }
 
-            \audit('setting.updated', 'setting', $key, $oldValue, $newValue);
+            \audit(
+                'setting.updated',
+                'setting',
+                $key,
+                $this->auditValue($key, $oldValue),
+                $this->auditValue($key, $newValue),
+            );
         }
+    }
+
+    private function auditValue(string $key, ?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return preg_match('/(?:api[_-]?key|token|secret|password)$/i', $key) === 1 ? '[redacted]' : $value;
     }
 
     private function repository(): SettingRepository

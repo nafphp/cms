@@ -25,14 +25,14 @@ final class PageController
         (new PageAuthorization())->authorize($page);
 
         $handler = $page->handler();
-        $usesTemplate = false;
+        $usesPageLayout = false;
         if ($handler !== null) {
             $result = HandlerInvoker::call($handler, $params);
         } elseif ($page->hasContent()) {
             $content = $page->content();
             $result = $content(...$params);
         } else {
-            $usesTemplate = $page->template() !== null;
+            $usesPageLayout = $page->pageLayout() !== null;
             $result = (new PageBuilderRenderer())->render($page);
         }
 
@@ -40,7 +40,7 @@ final class PageController
             return $result;
         }
 
-        if ($usesTemplate) {
+        if ($usesPageLayout) {
             return response((string) $result);
         }
 

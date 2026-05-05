@@ -22,6 +22,7 @@ const compactOptionClass = 'min-h-7 rounded px-2 py-1 text-[13px]';
 const selectedOptionClass = 'bg-surface-soft';
 const disabledOptionClass = 'cursor-not-allowed opacity-50';
 const placeholderClass = 'text-slate-400';
+const contentWidthMode = 'content';
 
 export function initStyledSelect(selectElement, options = {}) {
     if (!(selectElement instanceof HTMLSelectElement)) {
@@ -51,6 +52,8 @@ export function initStyledSelect(selectElement, options = {}) {
     menu.className = `${menuClass} hidden`;
     menu.setAttribute('role', 'listbox');
     const compact = select.dataset.styledSelectDensity === 'compact' || options.density === 'compact';
+    const menuWidthMode = select.dataset.styledSelectMenuWidth || options.menuWidth || '';
+    const fitMenuToContent = menuWidthMode === contentWidthMode;
     if (compact) {
         trigger.classList.add(...compactTriggerClass.split(' '));
         menu.classList.add(...compactMenuClass.split(' '));
@@ -83,15 +86,34 @@ export function initStyledSelect(selectElement, options = {}) {
         const availableAbove = rect.top - viewportGap;
         const openAbove = availableBelow < 180 && availableAbove > availableBelow;
         const maxHeight = Math.max(120, Math.floor((openAbove ? availableAbove : availableBelow) - 8));
+        const maxWidth = Math.max(160, window.innerWidth - (viewportGap * 2));
+        const triggerWidth = Math.min(Math.round(rect.width), Math.round(maxWidth));
+
+        if (fitMenuToContent) {
+            Object.assign(menu.style, {
+                maxWidth: `${Math.round(maxWidth)}px`,
+                minWidth: `${triggerWidth}px`,
+                width: 'max-content',
+            });
+        }
+
+        const menuWidth = fitMenuToContent
+            ? Math.min(Math.max(Math.ceil(menu.scrollWidth), triggerWidth), Math.round(maxWidth))
+            : triggerWidth;
+        const menuLeft = Math.min(
+            Math.max(Math.round(rect.left), viewportGap),
+            Math.max(viewportGap, Math.round(window.innerWidth - menuWidth - viewportGap))
+        );
 
         Object.assign(menu.style, {
-            left: `${Math.round(rect.left)}px`,
+            left: `${menuLeft}px`,
             maxHeight: `${maxHeight}px`,
+            maxWidth: `${Math.round(maxWidth)}px`,
             overflowY: 'auto',
             position: 'fixed',
             right: 'auto',
             top: `${Math.round(openAbove ? rect.top - Math.min(menu.scrollHeight, maxHeight) - 7 : rect.bottom + 7)}px`,
-            width: `${Math.round(rect.width)}px`,
+            width: `${menuWidth}px`,
             zIndex: '1200',
         });
     };
@@ -123,6 +145,9 @@ export function initStyledSelect(selectElement, options = {}) {
                     minHeight: '28px',
                     padding: '4px 8px',
                 });
+            }
+            if (fitMenuToContent) {
+                item.style.whiteSpace = 'nowrap';
             }
             item.setAttribute('role', 'option');
             item.dataset.value = String(option.value ?? '');

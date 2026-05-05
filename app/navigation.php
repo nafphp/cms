@@ -31,4 +31,11 @@ return [
         ->setIcon('settings')
         ->setOrder(90)
         ->setScope('admin'),
+    NavigationItem::create('settings.ai')
+        ->setLabel('Local AI')
+        ->setHref('/admin/settings/ai')
+        ->setParent('settings')
+        ->setIcon('ai')
+        ->setOrder(25)
+        ->setScope('admin'),
 ];

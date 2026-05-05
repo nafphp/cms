@@ -9,6 +9,7 @@ use function NixPHP\View\s;
 /** @var string|null $title */
 
 $settings = cms()->settings();
+$template = ($template ?? null) instanceof \NixCMS\Page\Template ? $template : \NixCMS\Page\Template::create();
 $currentLanguage = $page->language() ?? $settings->currentLanguage();
 $assets = new Asset();
 $stylesheetTags = [];
@@ -31,6 +32,8 @@ $attributeString = static function (array $attributes): string {
 $bodyAttributes = $page->bodyAttributes();
 $htmlAttributes = $page->htmlAttributes();
 $htmlAttributes['class'] = trim(($htmlAttributes['class'] ?? '') . ' dark');
+$templateThemeId = trim((string) $template->themeId());
+$theme = cms()->themes()->resolve($templateThemeId !== '' && $templateThemeId !== 'inherit' ? $templateThemeId : $page->themeId());
 $accent = trim((string) ($page->meta()->theme->accent ?? ''));
 $themeStyles = [];
 if (preg_match('/^#[0-9a-fA-F]{6}$/', $accent) === 1) {
@@ -49,7 +52,7 @@ if (($page->meta()->theme->footerBackgroundTransparent ?? false) === true) {
     $themeStyles[] = '--page-footer-bg: ' . $footerBackground;
 }
 $templateDefaultWidth = match ($template->view()) {
-    'page.templates.public', 'page.templates.full_bleed' => '100%',
+    'page.templates.default', 'page.templates.full_bleed' => '100%',
     'page.templates.article_detail' => '820px',
     'page.templates.editorial' => '1040px',
     'page.templates.landing', 'page.templates.feature_grid' => '1120px',
@@ -69,6 +72,7 @@ if ($contentWidth !== '') {
 }
 $bodyClasses = trim(implode(' ', [
     'page-theme',
+    $theme->className(),
     $page->meta()->theme->headerContentWidthIncludesChrome ? 'page-theme--bounded-header-content' : '',
     $page->meta()->theme->headerBackgroundWidthIncludesChrome ? 'page-theme--bounded-header-background' : '',
     $page->meta()->theme->footerContentWidthIncludesChrome ? 'page-theme--bounded-footer-content' : '',
@@ -84,7 +88,14 @@ if ($themeStyles !== []) {
     $bodyAttributes['style'] = trim($style . ($style !== '' && !str_ends_with($style, ';') ? '; ' : ' ') . implode('; ', $themeStyles));
 }
 
-foreach ([...$template->stylesheets(), ...$page->stylesheets()] as $stylesheet) {
+$seenStylesheets = [];
+foreach ([...$theme->stylesheets(), ...$template->stylesheets(), ...$page->stylesheets()] as $stylesheet) {
+    $key = $stylesheet['href'] . '|' . json_encode($stylesheet['attributes']);
+    if (isset($seenStylesheets[$key])) {
+        continue;
+    }
+    $seenStylesheets[$key] = true;
+
     if ($stylesheet['attributes'] === []) {
         $assets->add($stylesheet['href']);
         continue;

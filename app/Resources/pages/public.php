@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use NixCMS\Content\Article\ArticleContentType;
+use NixCMS\Page\Layout;
 use NixCMS\Page\Page;
 use NixCMS\Page\PageBuilderRenderer;
 use NixCMS\Page\Template;
@@ -11,18 +12,18 @@ use function NixPHP\I18n\lang;
 use function NixPHP\ORM\repo;
 use function NixPHP\response;
 
-$publicTemplate = Template::create('default')
-    ->setLayout('page')
+$publicLayout = Layout::create(Template::create('default')
+    ->setParent('page')
     ->addStylesheet('/css/nixcms.css')
-    ->addBodyClass('grid min-h-screen place-items-center bg-slate-50 p-8 text-slate-950 dark:bg-slate-950 dark:text-slate-50')
+    ->addBodyClass('grid min-h-screen place-items-center bg-slate-50 p-8 text-slate-950 dark:bg-slate-950 dark:text-slate-50'))
     ->addBlock('welcome', 'page.blocks.welcome', [
         'title' => cms()->settings()->name(),
     ]);
 
-$articleTemplate = Template::create('article_detail')
-    ->setLayout('page')
+$articleLayout = Layout::create(Template::create('article_detail')
+    ->setParent('page')
     ->addStylesheet('/css/nixcms.css')
-    ->addBodyClass('min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50')
+    ->addBodyClass('min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50'))
     ->addBlock('site_header', 'page.blocks.placeholder', [
         'label' => 'Site header',
         'size' => 'small',
@@ -41,7 +42,7 @@ $articleTemplate = Template::create('article_detail')
 $articleDetailPage = Page::create('frontend.article.detail')
     ->setPath('/articles/{slug}')
     ->setTitle('Article')
-    ->setTemplate($articleTemplate);
+    ->setLayout($articleLayout);
 
 $articleDetailPage->setContent(static function (string $slug) use ($articleDetailPage): string|\Psr\Http\Message\ResponseInterface {
     $article = repo(ArticleRepository::class)->findPublishedVisibleBySlug($slug, lang());
@@ -63,6 +64,6 @@ return [
     Page::create('home')
         ->setPath('/')
         ->setTitle(cms()->settings()->name())
-        ->setTemplate($publicTemplate),
+        ->setLayout($publicLayout),
     $articleDetailPage,
 ];

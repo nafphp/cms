@@ -92,6 +92,18 @@ MCP tools can expose controlled CMS capabilities, for example:
 
 Important: MCP tools are concrete executable capabilities. A future capability overview may be derived from them, but information should not be maintained twice.
 
+### Local AI
+
+NixCMS may provide a browser-local AI assistant backed by Ollama before broader provider abstractions exist.
+
+- Keep the first implementation simple and local: the admin browser talks directly to Ollama, usually at `http://localhost:11434`.
+- Store AI settings below the `ai` key only, for example `ai.type`, `ai.url`, `ai.model`, `ai.api_key`, and `ai.instructions`.
+- `ai.type=local` means browser-local Ollama. `ai.type=remote` is reserved for a later remote/OpenAI-compatible provider and should not imply a backend abstraction yet.
+- Prefer live/streaming responses for local Ollama assistant interactions when the UI benefits from immediate feedback.
+- Treat `ai.instructions` as installation-specific assistant guidance that is applied in addition to this `AGENTS.md`; it must not replace repository or shipped-project safety rules.
+- The assistant should use concrete CMS tools and APIs for CMS actions such as creating drafts, inspecting health, summarizing content, or generating themes. Do not give the model unbounded write access to the filesystem or database.
+- Tool and plugin metadata should remain the source of truth for what the assistant can do; do not create a separate manually maintained AI capability list.
+
 ## Capability Concept
 
 If NixCMS later gets a capability registry, the tool or plugin system should remain the source of truth wherever possible.

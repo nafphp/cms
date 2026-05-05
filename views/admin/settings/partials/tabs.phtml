@@ -12,11 +12,13 @@ foreach ($groups as $key => $group) {
     $label = match ($key) {
         'general' => t('General'),
         'languages' => t('Languages'),
+        'ai' => t('AI'),
         default => t((string) ($group['label'] ?? ucfirst($key))),
     };
     $href = match ($key) {
         'general' => route('admin.settings'),
         'languages' => route('admin.translations'),
+        'ai' => route('admin.settings.ai'),
         default => route('admin.settings.group', ['group' => $key]),
     };
 

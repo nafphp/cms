@@ -25,8 +25,8 @@ final class PageFactoryTest extends TestCase
                     'aside' => ['type' => 'chart', 'props' => ['title' => 'Metrics']],
                 ],
             ], [
-                'id' => 'public',
-                'view' => 'page.templates.public',
+                'id' => 'default',
+                'view' => 'page.templates.default',
                 'blocks' => [
                     ['id' => 'site_header', 'label' => 'Header'],
                     ['id' => 'main', 'label' => 'Main'],
@@ -34,11 +34,11 @@ final class PageFactoryTest extends TestCase
                 ],
             ]);
 
-        $blocks = $page->template()?->blocks() ?? [];
+        $blocks = $page->pageLayout()?->blocks() ?? [];
 
-        $this->assertSame('page.blocks.header', $blocks['site_header']->view());
-        $this->assertSame('page.blocks.text', $blocks['main']->view());
-        $this->assertSame('page.blocks.chart', $blocks['aside']->view());
+        $this->assertSame('page.blocks.header', $blocks['site_header']->template()->view());
+        $this->assertSame('page.blocks.text', $blocks['main']->template()->view());
+        $this->assertSame('page.blocks.chart', $blocks['aside']->template()->view());
     }
 
     public function testDraftStoredPageRequiresPageViewPermission(): void
@@ -51,8 +51,8 @@ final class PageFactoryTest extends TestCase
             'status' => 'draft',
             'blocks' => [],
         ], [
-            'id' => 'public',
-            'view' => 'page.templates.public',
+            'id' => 'default',
+            'view' => 'page.templates.default',
             'blocks' => [],
         ]);
 
@@ -82,12 +82,12 @@ final class PageFactoryTest extends TestCase
             ],
         ]);
 
-        $blocks = $page->template()?->blocks() ?? [];
+        $blocks = $page->pageLayout()?->blocks() ?? [];
 
-        $this->assertSame('page.blocks.header', $blocks['site_header']->view());
-        $this->assertSame('page.blocks.empty', $blocks['hero']->view());
-        $this->assertSame('page.blocks.empty', $blocks['main']->view());
-        $this->assertSame('page.blocks.footer', $blocks['site_footer']->view());
+        $this->assertSame('page.blocks.header', $blocks['site_header']->template()->view());
+        $this->assertSame('page.blocks.empty', $blocks['hero']->template()->view());
+        $this->assertSame('page.blocks.empty', $blocks['main']->template()->view());
+        $this->assertSame('page.blocks.footer', $blocks['site_footer']->template()->view());
     }
 
     public function testCustomTemplateUsesStoredMetaLayoutBlocks(): void
@@ -115,10 +115,10 @@ final class PageFactoryTest extends TestCase
             'blocks' => [],
         ]);
 
-        $blocks = $page->template()?->blocks() ?? [];
+        $blocks = $page->pageLayout()?->blocks() ?? [];
 
         self::assertSame(['slot_intro', 'slot_body'], array_keys($blocks));
-        self::assertSame('page.blocks.heading', $blocks['slot_intro']->view());
+        self::assertSame('page.blocks.heading', $blocks['slot_intro']->template()->view());
         self::assertSame('header', $blocks['slot_intro']->data()['region']);
         self::assertSame('center', $blocks['slot_intro']->data()['position']);
         self::assertSame('480', $blocks['slot_intro']->data()['maxHeight']);

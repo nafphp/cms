@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace NixCMS\Page;
 
-final readonly class PageBlock
+/**
+ * Block context inside a page layout. Rendering is delegated to its template.
+ */
+final class PageBlock
 {
     private string $id;
-    private string $view;
+    private Template $template;
     /** @var array<string, mixed> */
     private array $data;
 
@@ -16,22 +19,17 @@ final readonly class PageBlock
      */
     public function __construct(
         string $id,
-        string $view,
+        string|Template $template,
         array $data = [],
     ) {
         $id = trim($id);
-        $view = trim($view);
 
         if ($id === '') {
             throw new \InvalidArgumentException('Page block id cannot be empty.');
         }
 
-        if ($view === '') {
-            throw new \InvalidArgumentException(sprintf('Page block "%s" needs a view.', $id));
-        }
-
         $this->id = $id;
-        $this->view = $view;
+        $this->setTemplate($template);
         $this->data = $data;
     }
 
@@ -40,9 +38,20 @@ final readonly class PageBlock
         return $this->id;
     }
 
-    public function view(): string
+    public function template(): Template
     {
-        return $this->view;
+        return $this->template;
+    }
+
+    public function setTemplate(string|Template $template): self
+    {
+        $template = is_string($template) ? new Template($template) : $template;
+        if ($template->view() === null || $template->view() === '') {
+            throw new \InvalidArgumentException(sprintf('Page block "%s" needs a view.', $this->id));
+        }
+
+        $this->template = $template;
+        return $this;
     }
 
     /**

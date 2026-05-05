@@ -2,126 +2,71 @@
 
 declare(strict_types=1);
 
+use NixCMS\Page\Layout;
+use NixCMS\Page\Template;
+
+$page = static fn(string $view): Template => Template::create($view)->setParent('page');
+
 return [
-    [
-        'id' => 'default',
-        'label' => 'Default page',
-        'layout' => 'layouts.page',
-        'view' => 'page.templates.default',
-        'description' => 'Balanced page shell with a header, one main content area, and footer.',
-        'blocks' => [
-            ['id' => 'site_header', 'label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'],
-            ['id' => 'main', 'label' => 'Main content', 'region' => 'main', 'size' => 'large'],
-            ['id' => 'site_footer', 'label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer'],
-        ],
-    ],
-    [
-        'id' => 'public',
-        'label' => 'Public shell',
-        'layout' => 'layouts.page',
-        'view' => 'page.templates.public',
-        'description' => 'Simple full-document page with one main content area.',
-        'blocks' => [
-            ['id' => 'site_header', 'label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'],
-            ['id' => 'main', 'label' => 'Main content', 'region' => 'main', 'size' => 'large'],
-            ['id' => 'site_footer', 'label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer'],
-        ],
-    ],
-    [
-        'id' => 'landing',
-        'label' => 'Landing page',
-        'layout' => 'layouts.page',
-        'view' => 'page.templates.landing',
-        'description' => 'Hero-led page with a prominent intro and stacked content.',
-        'blocks' => [
-            ['id' => 'site_header', 'label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'],
-            ['id' => 'hero', 'label' => 'Hero', 'region' => 'hero', 'size' => 'hero', 'preview' => 'hero'],
-            ['id' => 'main', 'label' => 'Main content', 'region' => 'main', 'size' => 'large'],
-            ['id' => 'footer', 'label' => 'Footer strip', 'region' => 'footer', 'size' => 'small', 'preview' => 'text'],
-            ['id' => 'site_footer', 'label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer'],
-        ],
-    ],
-    [
-        'id' => 'editorial',
-        'label' => 'Editorial index',
-        'layout' => 'layouts.page',
-        'view' => 'page.templates.editorial',
-        'description' => 'Article-heavy overview with intro, content stream, and aside.',
-        'blocks' => [
-            ['id' => 'site_header', 'label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'],
-            ['id' => 'intro', 'label' => 'Intro', 'region' => 'main', 'size' => 'medium', 'preview' => 'heading'],
-            ['id' => 'content', 'label' => 'Content stream', 'region' => 'main', 'size' => 'large'],
-            ['id' => 'aside', 'label' => 'Aside', 'region' => 'aside', 'size' => 'aside'],
-            ['id' => 'site_footer', 'label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer'],
-        ],
-    ],
-    [
-        'id' => 'two-column',
-        'label' => 'Two column',
-        'layout' => 'layouts.page',
-        'view' => 'page.templates.two_column',
-        'description' => 'Two balanced content columns with shared site chrome.',
-        'blocks' => [
-            ['id' => 'site_header', 'label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'],
-            ['id' => 'primary', 'label' => 'Primary content', 'region' => 'main', 'size' => 'medium'],
-            ['id' => 'secondary', 'label' => 'Secondary content', 'region' => 'main', 'size' => 'medium'],
-            ['id' => 'site_footer', 'label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer'],
-        ],
-    ],
-    [
-        'id' => 'feature-grid',
-        'label' => 'Feature grid',
-        'layout' => 'layouts.page',
-        'view' => 'page.templates.feature_grid',
-        'description' => 'Intro block followed by three feature/content areas and a closing strip.',
-        'blocks' => [
-            ['id' => 'site_header', 'label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'],
-            ['id' => 'intro', 'label' => 'Intro', 'region' => 'main', 'size' => 'medium', 'preview' => 'heading'],
-            ['id' => 'feature_a', 'label' => 'Feature A', 'region' => 'main', 'size' => 'medium', 'preview' => 'card'],
-            ['id' => 'feature_b', 'label' => 'Feature B', 'region' => 'main', 'size' => 'medium', 'preview' => 'card'],
-            ['id' => 'feature_c', 'label' => 'Feature C', 'region' => 'main', 'size' => 'medium', 'preview' => 'card'],
-            ['id' => 'cta', 'label' => 'CTA strip', 'region' => 'footer', 'size' => 'small', 'preview' => 'text'],
-            ['id' => 'site_footer', 'label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer'],
-        ],
-    ],
-    [
-        'id' => 'article-detail',
-        'label' => 'Article detail',
-        'kind' => 'dynamic',
-        'contentType' => 'article',
-        'routePattern' => '/articles/{slug}',
-        'layout' => 'layouts.page',
-        'view' => 'page.templates.article_detail',
-        'description' => 'Dynamic article route that resolves the article from the URL slug.',
-        'blocks' => [
-            ['id' => 'site_header', 'label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'],
-            ['id' => 'header', 'label' => 'Article title', 'region' => 'header', 'size' => 'medium', 'accepts' => ['article-title', 'article-meta'], 'defaultContentType' => 'article-title'],
-            ['id' => 'body', 'label' => 'Article content', 'region' => 'main', 'size' => 'large', 'accepts' => ['article-content'], 'defaultContentType' => 'article-content'],
-            ['id' => 'aside', 'label' => 'Article aside', 'region' => 'aside', 'size' => 'aside', 'accepts' => ['article-meta', 'article-related', 'text', 'articles'], 'defaultContentType' => 'article-meta'],
-            ['id' => 'related', 'label' => 'Related articles', 'region' => 'main', 'size' => 'small', 'accepts' => ['article-related', 'articles'], 'defaultContentType' => 'article-related'],
-            ['id' => 'site_footer', 'label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer'],
-        ],
-    ],
-    [
-        'id' => 'full-bleed',
-        'label' => 'Full bleed',
-        'layout' => 'layouts.page',
-        'view' => 'page.templates.full_bleed',
-        'description' => 'Immersive single-canvas layout for visual or campaign-style pages.',
-        'blocks' => [
-            ['id' => 'site_header', 'label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'],
-            ['id' => 'stage', 'label' => 'Full bleed stage', 'region' => 'hero', 'size' => 'hero'],
-            ['id' => 'support', 'label' => 'Support content', 'region' => 'main', 'size' => 'medium'],
-            ['id' => 'site_footer', 'label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer'],
-        ],
-    ],
-    [
-        'id' => 'custom',
-        'label' => 'Custom layout',
-        'kind' => 'custom',
-        'layout' => 'layouts.page',
-        'view' => 'page.templates.custom',
-        'description' => 'Build your layout from scratch with stacked blocks.',
-        'blocks' => [],
-    ],
+    Layout::define('default', 'Default page', $page('default'))
+        ->setDescription('Balanced page shell with a header, one main content area, and footer.')
+        ->addBlock('site_header', 'page.blocks.empty', ['label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'])
+        ->addBlock('main', 'page.blocks.empty', ['label' => 'Main content', 'region' => 'main', 'size' => 'large'])
+        ->addBlock('site_footer', 'page.blocks.empty', ['label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer']),
+
+    Layout::define('landing', 'Landing page', $page('landing'))
+        ->setDescription('Hero-led page with a prominent intro and stacked content.')
+        ->addBlock('site_header', 'page.blocks.empty', ['label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'])
+        ->addBlock('hero', 'page.blocks.empty', ['label' => 'Hero', 'region' => 'hero', 'size' => 'hero', 'preview' => 'hero'])
+        ->addBlock('main', 'page.blocks.empty', ['label' => 'Main content', 'region' => 'main', 'size' => 'large'])
+        ->addBlock('footer', 'page.blocks.empty', ['label' => 'Footer strip', 'region' => 'footer', 'size' => 'small', 'preview' => 'text'])
+        ->addBlock('site_footer', 'page.blocks.empty', ['label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer']),
+
+    Layout::define('editorial', 'Editorial index', $page('editorial'))
+        ->setDescription('Article-heavy overview with intro, content stream, and aside.')
+        ->addBlock('site_header', 'page.blocks.empty', ['label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'])
+        ->addBlock('intro', 'page.blocks.empty', ['label' => 'Intro', 'region' => 'main', 'size' => 'medium', 'preview' => 'heading'])
+        ->addBlock('content', 'page.blocks.empty', ['label' => 'Content stream', 'region' => 'main', 'size' => 'large'])
+        ->addBlock('aside', 'page.blocks.empty', ['label' => 'Aside', 'region' => 'aside', 'size' => 'aside'])
+        ->addBlock('site_footer', 'page.blocks.empty', ['label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer']),
+
+    Layout::define('two-column', 'Two column', $page('two_column'))
+        ->setDescription('Two balanced content columns with shared site chrome.')
+        ->addBlock('site_header', 'page.blocks.empty', ['label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'])
+        ->addBlock('primary', 'page.blocks.empty', ['label' => 'Primary content', 'region' => 'main', 'size' => 'medium'])
+        ->addBlock('secondary', 'page.blocks.empty', ['label' => 'Secondary content', 'region' => 'main', 'size' => 'medium'])
+        ->addBlock('site_footer', 'page.blocks.empty', ['label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer']),
+
+    Layout::define('feature-grid', 'Feature grid', $page('feature_grid'))
+        ->setDescription('Intro block followed by three feature/content areas and a closing strip.')
+        ->addBlock('site_header', 'page.blocks.empty', ['label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'])
+        ->addBlock('intro', 'page.blocks.empty', ['label' => 'Intro', 'region' => 'main', 'size' => 'medium', 'preview' => 'heading'])
+        ->addBlock('feature_a', 'page.blocks.empty', ['label' => 'Feature A', 'region' => 'main', 'size' => 'medium', 'preview' => 'card'])
+        ->addBlock('feature_b', 'page.blocks.empty', ['label' => 'Feature B', 'region' => 'main', 'size' => 'medium', 'preview' => 'card'])
+        ->addBlock('feature_c', 'page.blocks.empty', ['label' => 'Feature C', 'region' => 'main', 'size' => 'medium', 'preview' => 'card'])
+        ->addBlock('cta', 'page.blocks.empty', ['label' => 'CTA strip', 'region' => 'footer', 'size' => 'small', 'preview' => 'cta', 'accepts' => ['cta', 'text'], 'defaultContentType' => 'cta'])
+        ->addBlock('site_footer', 'page.blocks.empty', ['label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer']),
+
+    Layout::define('article-detail', 'Article detail', $page('article_detail'))
+        ->setKind('dynamic')
+        ->setMetadata('contentType', 'article')
+        ->setMetadata('routePattern', '/articles/{slug}')
+        ->setDescription('Dynamic article route that resolves the article from the URL slug.')
+        ->addBlock('site_header', 'page.blocks.empty', ['label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'])
+        ->addBlock('header', 'page.blocks.empty', ['label' => 'Article title', 'region' => 'header', 'size' => 'medium', 'accepts' => ['article-title', 'article-meta'], 'defaultContentType' => 'article-title'])
+        ->addBlock('body', 'page.blocks.empty', ['label' => 'Article content', 'region' => 'main', 'size' => 'large', 'accepts' => ['article-content'], 'defaultContentType' => 'article-content'])
+        ->addBlock('aside', 'page.blocks.empty', ['label' => 'Article aside', 'region' => 'aside', 'size' => 'aside', 'accepts' => ['article-meta', 'article-related', 'text', 'articles'], 'defaultContentType' => 'article-meta'])
+        ->addBlock('related', 'page.blocks.empty', ['label' => 'Related articles', 'region' => 'main', 'size' => 'small', 'accepts' => ['article-related', 'articles'], 'defaultContentType' => 'article-related'])
+        ->addBlock('site_footer', 'page.blocks.empty', ['label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer']),
+
+    Layout::define('full-bleed', 'Full bleed', $page('full_bleed'))
+        ->setDescription('Immersive single-canvas layout for visual or campaign-style pages.')
+        ->addBlock('site_header', 'page.blocks.empty', ['label' => 'Site header', 'region' => 'header', 'size' => 'small', 'preview' => 'navigation'])
+        ->addBlock('stage', 'page.blocks.empty', ['label' => 'Full bleed stage', 'region' => 'hero', 'size' => 'hero'])
+        ->addBlock('support', 'page.blocks.empty', ['label' => 'Support content', 'region' => 'main', 'size' => 'medium'])
+        ->addBlock('site_footer', 'page.blocks.empty', ['label' => 'Site footer', 'region' => 'footer', 'size' => 'small', 'preview' => 'footer']),
+
+    Layout::define('custom', 'Custom layout', $page('custom'))
+        ->setKind('custom')
+        ->setDescription('Build your layout from scratch with stacked blocks.'),
 ];

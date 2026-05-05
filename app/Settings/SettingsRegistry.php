@@ -82,7 +82,7 @@ final class SettingsRegistry
         foreach ($this->sections() as $section) {
             $group = $section->group();
             $groups[$group] ??= [
-                'label' => ucfirst(str_replace(['-', '_'], ' ', $group)),
+                'label' => $group === 'ai' ? 'AI' : ucfirst(str_replace(['-', '_'], ' ', $group)),
                 'sections' => [],
             ];
             $groups[$group]['sections'][$section->id()] = $section;

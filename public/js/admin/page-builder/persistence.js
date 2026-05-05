@@ -56,6 +56,7 @@ export const persistenceMethods = {
                 ['Path', payload.path || '/'],
                 ['Language', String(payload.language || '').toUpperCase()],
                 ['Status', payload.status || 'draft'],
+                ['Theme', this.themeLabel(payload.themeId || 'default')],
                 ['Accent', payload.meta?.theme?.accent || '#3f7fbd'],
                 [this.labels.headerBackground, this.headerBackgroundTransparent() ? this.labels.transparent : (payload.meta?.theme?.headerBackground || '#020617')],
                 [this.labels.footerBackground, this.footerBackgroundTransparent() ? this.labels.transparent : (payload.meta?.theme?.footerBackground || '#020617')],
@@ -119,6 +120,7 @@ export const persistenceMethods = {
             },
             extra: {
                 defaultNavigationIdentifier: this.selectedDefaultNavigationIdentifier(),
+                defaultFooterNavigationIdentifier: this.selectedFooterNavigationIdentifier(),
             },
         };
         if (this.isCustomTemplate(template) || this.customLayout.length > 0) {
@@ -136,6 +138,7 @@ export const persistenceMethods = {
             path,
             language: this.persistedValues.language || this.defaultLanguage,
             status: this.persistedValues.status || 'draft',
+            themeId: this.persistedValues.themeId || 'default',
             templateId: this.storedTemplateId(template),
             blocks,
             meta,

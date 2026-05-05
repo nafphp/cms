@@ -31,7 +31,7 @@ final class PageRepository
 
         try {
             $rows = $connection->query(<<<SQL
-                SELECT id, identifier, path, title, language, status, template_id, created_at, updated_at
+                SELECT id, identifier, path, title, language, status, template_id, theme_id, created_at, updated_at
                 FROM pages
                 ORDER BY updated_at DESC, created_at DESC, title ASC
             SQL)->fetchAll(PDO::FETCH_ASSOC);
@@ -50,6 +50,7 @@ final class PageRepository
             'status' => (string) ($row['status'] ?? 'draft'),
             'template' => $labels[(string) ($row['template_id'] ?? '')] ?? (string) ($row['template_id'] ?? ''),
             'templateId' => (string) ($row['template_id'] ?? ''),
+            'themeId' => (string) ($row['theme_id'] ?? ''),
             'updated' => (string) (($row['updated_at'] ?? null) ?: ($row['created_at'] ?? '')),
         ], is_array($rows) ? $rows : []);
     }
@@ -217,6 +218,7 @@ final class PageRepository
         $language = strtolower(trim((string) ($payload['language'] ?? '')));
         $status = $this->normalizeStatus((string) ($payload['status'] ?? 'draft'));
         $templateId = trim((string) ($payload['template_id'] ?? $payload['templateId'] ?? ''));
+        $themeId = trim((string) ($payload['theme_id'] ?? $payload['themeId'] ?? ''));
         $layout = trim((string) ($payload['layout'] ?? 'layouts.page')) ?: 'layouts.page';
         $blocks = is_array($payload['blocks'] ?? null) ? $payload['blocks'] : [];
         $meta = is_array($payload['meta'] ?? null) ? $payload['meta'] : [];
@@ -232,6 +234,7 @@ final class PageRepository
             'language' => $language,
             'status' => $status,
             'template_id' => $templateId,
+            'theme_id' => $themeId === '' ? null : $themeId,
             'blocks_json' => json_encode($blocks, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'meta_json' => json_encode($meta, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'layout' => $layout,
@@ -246,6 +249,7 @@ final class PageRepository
                     language = :language,
                     status = :status,
                     template_id = :template_id,
+                    theme_id = :theme_id,
                     blocks_json = :blocks_json,
                     meta_json = :meta_json,
                     layout = :layout,
@@ -264,8 +268,8 @@ final class PageRepository
         }
 
         $statement = $connection->prepare(<<<SQL
-            INSERT INTO pages (identifier, path, title, language, status, template_id, blocks_json, meta_json, layout, created_at, updated_at)
-            VALUES (:identifier, :path, :title, :language, :status, :template_id, :blocks_json, :meta_json, :layout, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            INSERT INTO pages (identifier, path, title, language, status, template_id, theme_id, blocks_json, meta_json, layout, created_at, updated_at)
+            VALUES (:identifier, :path, :title, :language, :status, :template_id, :theme_id, :blocks_json, :meta_json, :layout, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         SQL);
         $statement->execute($params);
 
@@ -304,6 +308,7 @@ final class PageRepository
         return [
             ...$row,
             'id' => (int) ($row['id'] ?? 0),
+            'themeId' => (string) ($row['theme_id'] ?? ''),
             'blocks' => $this->decodeJson((string) ($row['blocks_json'] ?? '{}')),
             'meta' => $this->decodeJson((string) ($row['meta_json'] ?? '{}')),
         ];

@@ -1,0 +1,136 @@
+<?php
+
+use function NixPHP\Form\csrf;
+use function NixPHP\I18n\t;
+use function NixPHP\route;
+use function NixPHP\View\asset;
+use function NixPHP\View\s;
+
+asset()->add('/css/lib/codemirror/codemirror.min.css');
+asset()->add('/css/lib/codemirror/show-hint.min.css');
+asset()->add('/js/lib/codemirror/codemirror.min.js');
+asset()->add('/js/lib/codemirror/css.min.js');
+asset()->add('/js/lib/codemirror/javascript.min.js');
+asset()->add('/js/lib/codemirror/closebrackets.min.js');
+asset()->add('/js/lib/codemirror/matchbrackets.min.js');
+asset()->add('/js/lib/codemirror/show-hint.min.js');
+asset()->add('/js/lib/codemirror/css-hint.min.js');
+asset()->add('/js/lib/codemirror/javascript-hint.min.js');
+asset()->add('/js/admin/theme-editor.js');
+
+$theme = is_array($theme ?? null) ? $theme : null;
+$isEdit = $theme !== null;
+$identifier = (string) ($theme['identifier'] ?? '');
+$label = (string) ($theme['label'] ?? '');
+$surfaces = is_array($theme['surfaces'] ?? null) ? $theme['surfaces'] : [
+    'none' => 'None',
+    'soft' => 'Soft',
+    'card' => 'Card',
+    'accent' => 'Accent',
+];
+$css = (string) ($theme['css'] ?? ".theme-" . ($identifier !== '' ? $identifier : 'my-theme') . " {\n    --page-accent: #3f7fbd;\n}\n\n.theme-" . ($identifier !== '' ? $identifier : 'my-theme') . " .page-block--surface-card {\n    border-radius: 12px;\n}\n");
+$js = (string) ($theme['js'] ?? "export default {};\n");
+$exportIdentifier = $identifier !== '' ? $identifier : 'my-theme';
+$export = "Theme::create('" . $exportIdentifier . "')\n"
+    . "    ->setLabel('" . str_replace("'", "\\'", $label !== '' ? $label : 'My Theme') . "')\n"
+    . "    ->addStylesheet('/css/themes/" . $exportIdentifier . ".css')\n"
+    . "    ->addScript('/js/themes/" . $exportIdentifier . ".js', ['type' => 'module'])";
+foreach ($surfaces as $surfaceId => $surfaceLabel) {
+    $export .= "\n    ->addSurface('" . $surfaceId . "', '" . str_replace("'", "\\'", (string) $surfaceLabel) . "')";
+}
+$export .= ";\n";
+$error = trim((string) ($error ?? ''));
+
+?>
+<?php $this->setLayout('layouts.admin') ?>
+
+<?php $this->block('content'); ?>
+<form class="grid gap-5" method="post" action="<?= s($isEdit ? route('admin.themes.edit', ['themeId' => (int) ($theme['id'] ?? 0)]) : route('admin.themes.create')) ?>" data-theme-editor>
+    <input type="hidden" name="_csrf" value="<?= s(csrf()->generate()) ?>">
+    <input type="hidden" name="id" value="<?= s((string) (int) ($theme['id'] ?? 0)) ?>">
+
+    <?php if ($error !== ''): ?>
+        <div class="rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-100"><?= s($error) ?></div>
+    <?php endif; ?>
+
+    <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <section class="grid gap-4 rounded-lg border border-slate-800 bg-[#111820] p-5">
+            <div class="grid items-start gap-4" style="grid-template-columns:minmax(260px,.85fr) minmax(360px,1.15fr);">
+                <div class="grid content-start gap-3 rounded-md border border-slate-800 bg-[#0b1017] p-3">
+                    <label class="grid gap-1.5">
+                        <span class="text-xs font-semibold text-slate-500"><?= s(t('Title')) ?></span>
+                        <input class="min-h-10 rounded-md border border-slate-700 bg-[#070b11] px-3 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" name="label" value="<?= s($label) ?>" required data-theme-label>
+                    </label>
+                    <label class="grid gap-1.5">
+                        <span class="text-xs font-semibold text-slate-500">Identifier</span>
+                        <input class="min-h-10 rounded-md border border-slate-700 bg-[#070b11] px-3 font-mono text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" name="identifier" value="<?= s($identifier) ?>" placeholder="brand-theme" data-theme-identifier>
+                    </label>
+                </div>
+
+                <div class="grid max-h-[162px] content-start gap-2 overflow-hidden rounded-md border border-slate-800 bg-[#0b1017] p-3" data-theme-surfaces>
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="text-xs font-semibold text-slate-500"><?= s(t('Surfaces')) ?></span>
+                        <button class="inline-flex min-h-8 items-center justify-center rounded-md border border-slate-700 px-2.5 text-xs font-bold text-slate-100 hover:bg-slate-800" type="button" data-add-surface><?= s(t('Add surface')) ?></button>
+                    </div>
+                    <div class="grid max-h-[110px] gap-1.5 overflow-y-auto pr-1" data-surface-list>
+                        <?php $surfaceIndex = 0; ?>
+                        <?php foreach ($surfaces as $surfaceId => $surfaceLabel): ?>
+                            <div class="grid gap-1.5" style="grid-template-columns:minmax(0,1fr) minmax(120px,.55fr) 32px;" data-surface-row>
+                                <input class="min-h-8 rounded-md border border-slate-700 bg-[#070b11] px-2 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" name="surfaces[<?= s((string) $surfaceIndex) ?>][label]" value="<?= s((string) $surfaceLabel) ?>" placeholder="<?= s(t('Title')) ?>" data-surface-label>
+                                <input class="min-h-8 rounded-md border border-slate-700 bg-[#070b11] px-2 font-mono text-xs text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" name="surfaces[<?= s((string) $surfaceIndex) ?>][key]" value="<?= s((string) $surfaceId) ?>" placeholder="key" data-surface-key>
+                                <button class="grid h-8 w-8 place-items-center rounded-md border border-slate-700 text-base leading-none text-slate-400 hover:bg-slate-800 hover:text-white" type="button" data-remove-surface aria-label="<?= s(t('Remove')) ?>">×</button>
+                            </div>
+                            <?php $surfaceIndex++; ?>
+                        <?php endforeach; ?>
+                    </div>
+                    <template data-surface-template>
+                        <div class="grid gap-1.5" style="grid-template-columns:minmax(0,1fr) minmax(120px,.55fr) 32px;" data-surface-row>
+                            <input class="min-h-8 rounded-md border border-slate-700 bg-[#070b11] px-2 text-sm text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" placeholder="<?= s(t('Title')) ?>" data-surface-label>
+                            <input class="min-h-8 rounded-md border border-slate-700 bg-[#070b11] px-2 font-mono text-xs text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" placeholder="key" data-surface-key>
+                            <button class="grid h-8 w-8 place-items-center rounded-md border border-slate-700 text-base leading-none text-slate-400 hover:bg-slate-800 hover:text-white" type="button" data-remove-surface aria-label="<?= s(t('Remove')) ?>">×</button>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <div class="grid gap-3" data-theme-tabs>
+                <div class="flex flex-wrap gap-2 border-b border-slate-800">
+                    <button class="theme-editor-tab active border-b-2 border-[var(--admin-page-accent)] px-3 py-2 text-sm font-semibold text-white" type="button" data-theme-tab="css"><?= s(t('Stylesheet')) ?></button>
+                    <button class="theme-editor-tab border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-slate-400 hover:text-white" type="button" data-theme-tab="js"><?= s(t('JavaScript')) ?></button>
+                    <button class="theme-editor-tab border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-slate-400 hover:text-white" type="button" data-theme-tab="export"><?= s(t('Export')) ?></button>
+                </div>
+                <label class="grid gap-1.5" data-theme-panel="css">
+                    <span class="sr-only"><?= s(t('Stylesheet')) ?></span>
+                    <div class="hidden items-center justify-between gap-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs leading-5 text-amber-100" data-theme-selector-rename>
+                        <span data-theme-selector-rename-text></span>
+                        <button class="inline-flex min-h-8 shrink-0 items-center justify-center rounded-md border border-amber-300/40 px-2.5 font-bold text-amber-50 hover:bg-amber-300/10" type="button" data-theme-selector-rename-button><?= s(t('Update selectors')) ?></button>
+                    </div>
+                    <div class="fixed z-[120] hidden items-center gap-2 rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-xs font-semibold text-slate-400 shadow-xl shadow-black/30" data-theme-color-popover>
+                        <span><?= s(t('Color')) ?></span>
+                        <input class="h-8 w-12 cursor-pointer rounded-md border border-slate-700 bg-[#070b11] p-1" type="color" value="#3f7fbd" aria-label="<?= s(t('Choose color')) ?>" data-theme-color-picker>
+                    </div>
+                    <textarea class="min-h-[520px] resize-y rounded-md border border-slate-700 bg-[#070b11] px-4 py-3 font-mono text-sm leading-6 text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" name="css" spellcheck="false" data-theme-css data-generated-default="<?= s($isEdit ? '0' : '1') ?>"><?= s($css) ?></textarea>
+                    <div class="hidden rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-xs leading-5 text-slate-400" data-theme-css-status></div>
+                </label>
+                <label class="hidden grid gap-1.5" data-theme-panel="js">
+                    <span class="sr-only"><?= s(t('JavaScript')) ?></span>
+                    <textarea class="min-h-[520px] resize-y rounded-md border border-slate-700 bg-[#070b11] px-4 py-3 font-mono text-sm leading-6 text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" name="js" spellcheck="false" data-theme-js><?= s($js) ?></textarea>
+                    <div class="hidden rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-xs leading-5 text-slate-400" data-theme-js-status></div>
+                </label>
+                <pre class="hidden min-h-[520px] overflow-auto rounded-md border border-slate-700 bg-[#070b11] p-4 text-sm leading-6 text-slate-100" data-theme-panel="export"><code data-theme-export><?= s($export) ?></code></pre>
+            </div>
+        </section>
+
+        <aside class="grid content-start gap-4 rounded-lg border border-slate-800 bg-[#111820] p-5">
+            <a class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-700 px-4 text-sm font-semibold text-slate-100 hover:bg-slate-800" href="<?= s(route('admin.themes')) ?>"><?= s(t('Back')) ?></a>
+            <button class="inline-flex min-h-10 items-center justify-center rounded-md bg-[var(--admin-page-accent)] px-4 text-sm font-bold text-white hover:brightness-110" type="submit"><?= s(t('Save theme')) ?></button>
+            <button class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-700 px-4 text-sm font-semibold text-slate-100 hover:bg-slate-800" type="button" data-theme-reset-state><?= s(t('Reset editor state')) ?></button>
+            <div class="rounded-lg border border-slate-800 bg-slate-950 p-4 text-sm leading-6 text-slate-400">
+                <p class="m-0">Theme CSS is scoped through <code class="font-mono text-slate-200" data-theme-scope>.theme-<?= s($exportIdentifier) ?></code>.</p>
+                <p class="mt-3">Surface classes use <code class="font-mono text-slate-200">.page-block--surface-name</code>.</p>
+            </div>
+        </aside>
+    </div>
+</form>
+
+<?php $this->endBlock('content'); ?>

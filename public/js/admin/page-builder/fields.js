@@ -244,10 +244,10 @@ export const fieldMethods = {
         }
 
         if (key === 'tone' && contentType === 'section') {
-            return this.renderSelect(key, value, customLayoutSurfaces, label);
+            return this.renderSelect(key, value, this.surfaceOptions(), label);
         }
         if (key === 'surface') {
-            return this.renderSelect(key, value, customLayoutSurfaces, label);
+            return this.renderSelect(key, value, this.surfaceOptions(), label);
         }
 
         if (field?.type === 'select') {

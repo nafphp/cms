@@ -22,6 +22,19 @@ return [
             'sections' => (new SettingsService())->sections('general'),
             'activeGroup' => 'general',
         ])),
+    Page::create('admin.settings.ai')
+        ->setPath('/admin/settings/ai')
+        ->setTitle('Local AI')
+        ->setLayout('admin')
+        ->requirePermission(Permission::ADMIN_ACCESS)
+        ->hideFromAdminNavigation('settings.ai')
+        ->setContent(static fn() => render('admin.settings.index', [
+            'title' => t('Local AI'),
+            'pageTitle' => t('Local AI'),
+            'pageSubtitle' => t('Configure the browser-local Ollama assistant.'),
+            'sections' => (new SettingsService())->sections('ai'),
+            'activeGroup' => 'ai',
+        ])),
     Page::create('admin.settings.group')
         ->setPath('/admin/settings/group/{group}')
         ->setTitle('Settings')

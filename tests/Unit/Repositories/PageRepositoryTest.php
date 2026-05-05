@@ -24,6 +24,7 @@ final class PageRepositoryTest extends DatabaseTestCase
                 language VARCHAR(8) NOT NULL DEFAULT '',
                 status VARCHAR(24) NOT NULL DEFAULT 'draft',
                 template_id VARCHAR(120) NOT NULL,
+                theme_id VARCHAR(120) NULL,
                 blocks_json TEXT NOT NULL,
                 meta_json TEXT NOT NULL,
                 layout VARCHAR(120) NOT NULL DEFAULT 'layouts.page',
@@ -45,6 +46,7 @@ final class PageRepositoryTest extends DatabaseTestCase
             'language' => 'en',
             'status' => 'draft',
             'template_id' => 'editorial',
+            'theme_id' => 'brand',
             'layout' => 'layouts.page',
             'blocks' => ['intro' => ['type' => 'heading', 'props' => ['text' => 'Latest']]],
             'meta' => ['description' => 'Overview'],
@@ -59,6 +61,8 @@ final class PageRepositoryTest extends DatabaseTestCase
         $this->assertSame('News', $summary['title']);
         $this->assertSame('/news', $summary['path']);
         $this->assertSame('Editorial index', $summary['template']);
+        $this->assertSame('brand', $summary['themeId']);
+        $this->assertSame('brand', $this->repository->find($id)['themeId']);
     }
 
     public function testSaveUpdatesExistingPathLanguagePair(): void
@@ -90,14 +94,14 @@ final class PageRepositoryTest extends DatabaseTestCase
             'path' => '/about',
             'title' => 'About',
             'language' => 'en',
-            'template_id' => 'public',
+            'template_id' => 'default',
         ]);
         $this->repository->save([
             'identifier' => 'about',
             'path' => '/ueber-uns',
             'title' => 'Ueber uns',
             'language' => 'de',
-            'template_id' => 'public',
+            'template_id' => 'default',
         ]);
 
         $translations = $this->repository->findTranslations('about');
@@ -141,7 +145,7 @@ final class PageRepositoryTest extends DatabaseTestCase
             'path' => '/delete-me',
             'title' => 'Delete me',
             'language' => 'en',
-            'template_id' => 'public',
+            'template_id' => 'default',
         ]);
 
         $this->assertTrue($this->repository->delete($id));

@@ -36,12 +36,10 @@ final class HeaderBlockType extends AbstractBlockType
 
     public function defaults(): array
     {
-        $navigationOptions = PageBuilderBlockOptions::navigationOptions();
-
         return [
             'logoText' => '',
             'logoImage' => '',
-            'navigationIdentifier' => (string) ($navigationOptions[0]['value'] ?? 'main'),
+            'navigationIdentifier' => '',
             'presentation' => 'horizontal',
             'showLogoMark' => false,
             'showDivider' => false,
@@ -53,7 +51,10 @@ final class HeaderBlockType extends AbstractBlockType
         return [
             ['name' => 'logoText', 'label' => 'Logo text', 'type' => 'text'],
             ['name' => 'logoImage', 'label' => 'Logo image', 'type' => 'media', 'altTarget' => 'logoText'],
-            ['name' => 'navigationIdentifier', 'label' => 'Navigation', 'type' => 'select', 'options' => PageBuilderBlockOptions::navigationOptions()],
+            ['name' => 'navigationIdentifier', 'label' => 'Navigation', 'type' => 'select', 'options' => [
+                ['label' => 'No navigation', 'value' => ''],
+                ...PageBuilderBlockOptions::navigationOptions(),
+            ]],
             ['name' => 'presentation', 'label' => 'Presentation', 'type' => 'select', 'options' => ['horizontal', 'compact']],
             ['name' => 'showLogoMark', 'label' => 'Logo mark', 'type' => 'checkbox'],
             ['name' => 'showDivider', 'label' => 'Header divider', 'type' => 'checkbox'],

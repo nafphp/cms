@@ -89,11 +89,38 @@ export const contentModelMethods = {
         return block?.region || block?.id || 'main';
     },
 
+    customChromeSlotType(block = this.selectedBlock()) {
+        if (!this.isCustomTemplate() || !block) {
+            return '';
+        }
+
+        const region = typeof this.customSlotRegion === 'function' ? this.customSlotRegion(block) : this.blockRegion(block);
+        const acceptedTypes = Array.isArray(block?.accepts) ? block.accepts : [];
+        const defaultContentType = String(block?.defaultContentType || '');
+        const contentType = String(this.blockContent?.[block.id]?.type || '');
+
+        if (region === 'header' && (defaultContentType === 'header' || contentType === 'header' || acceptedTypes.includes('header'))) {
+            return 'header';
+        }
+        if (region === 'footer' && (defaultContentType === 'footer' || contentType === 'footer' || acceptedTypes.includes('footer'))) {
+            return 'footer';
+        }
+
+        return '';
+    },
+
     contentTypeSupportsBlock(type, block = this.selectedBlock(), template = this.selectedTemplate()) {
         const regions = Array.isArray(type?.regions) ? type.regions : [];
         const acceptedTypes = Array.isArray(block?.accepts) ? block.accepts : [];
         const templateKinds = Array.isArray(type?.templateKinds) ? type.templateKinds : [];
         const contentTypes = Array.isArray(type?.contentTypes) ? type.contentTypes : [];
+        const chromeTypes = {
+            header: ['header'],
+            footer: ['footer', 'navigation', 'text'],
+        };
+        const customRegion = this.isCustomTemplate(template) && typeof this.customSlotRegion === 'function'
+            ? this.customSlotRegion(block)
+            : '';
 
         if (regions.length > 0 && !regions.includes(this.blockRegion(block))) {
             return false;
@@ -111,6 +138,10 @@ export const contentModelMethods = {
             return false;
         }
 
+        if (customRegion in chromeTypes && !chromeTypes[customRegion].includes(type?.type)) {
+            return false;
+        }
+
         return true;
     },
 
@@ -124,6 +155,10 @@ export const contentModelMethods = {
 
     navigationChoice(identifier, language = '') {
         const normalizedIdentifier = String(identifier || '').trim();
+        if (normalizedIdentifier === '') {
+            return null;
+        }
+
         const normalizedLanguage = String(language || '').trim();
         return this.navigationChoices.find((navigation) => (
             navigation.identifier === normalizedIdentifier
@@ -138,6 +173,10 @@ export const contentModelMethods = {
 
     selectedDefaultNavigationIdentifier() {
         return String(this.persistedValues.defaultNavigationIdentifier || this.defaultNavigationIdentifier || this.navigationChoices[0]?.identifier || 'main');
+    },
+
+    selectedFooterNavigationIdentifier() {
+        return String(this.persistedValues.defaultFooterNavigationIdentifier || this.selectedDefaultNavigationIdentifier());
     },
 
     defaultContentForBlock(block) {
@@ -157,12 +196,17 @@ export const contentModelMethods = {
             return null;
         }
 
-        return this.contentFromDefinition(definition);
+        return this.contentFromDefinition(definition, block);
     },
 
-    contentFromDefinition(definition) {
+    contentFromDefinition(definition, block = null) {
         const props = clone(definition.defaults || {});
-        const navigationIdentifier = this.selectedDefaultNavigationIdentifier();
+        let navigationIdentifier = this.selectedDefaultNavigationIdentifier();
+        if (definition.type === 'header') {
+            navigationIdentifier = String(props.navigationIdentifier || '');
+        } else if (definition.type === 'footer' || block?.id === 'site_footer') {
+            navigationIdentifier = this.selectedFooterNavigationIdentifier();
+        }
 
         if ('navigationIdentifier' in props) {
             props.navigationIdentifier = navigationIdentifier;
@@ -181,6 +225,16 @@ export const contentModelMethods = {
 
     defaultRegionForContentType(definition) {
         const regions = Array.isArray(definition?.regions) ? definition.regions : [];
+        if (definition?.type === 'header' && regions.includes('header')) {
+            return 'header';
+        }
+        if (definition?.type === 'footer' && regions.includes('footer')) {
+            return 'footer';
+        }
+        if (regions.includes('main')) {
+            return 'main';
+        }
+
         return regions.find((region) => hasOption(customLayoutRegions, region)) || 'main';
     },
 
@@ -199,13 +253,16 @@ export const contentModelMethods = {
     },
 
     contentSurfaceClass(content, baseClass = 'grid gap-2', defaultSurface = 'none', paddedClass = 'p-4') {
-        const surface = optionValue(customLayoutSurfaces, content?.props?.surface, defaultSurface);
-        return {
+        const surface = optionValue(this.surfaceOptions(), content?.props?.surface, String(content?.props?.surface || defaultSurface));
+        const classes = {
             none: `${baseClass} px-1 py-2`,
             soft: `${baseClass} rounded-md bg-[var(--page-panel-soft)] ${paddedClass}`,
             card: `${baseClass} rounded-md border border-[var(--page-card-border)] bg-[var(--page-card-bg)] ${paddedClass}`,
             accent: `${baseClass} rounded-md border border-[color-mix(in_srgb,var(--page-accent)_36%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))] ${paddedClass}`,
-        }[surface];
+        };
+
+        const safeSurface = String(surface || 'none').replace(/[^a-z0-9_-]/gi, '-').toLowerCase();
+        return classes[surface] || `${baseClass} page-block--surface-${safeSurface} ${paddedClass}`;
     },
 
     compactContentPreview(type) {

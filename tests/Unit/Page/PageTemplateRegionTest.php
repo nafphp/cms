@@ -12,7 +12,6 @@ final class PageTemplateRegionTest extends TestCase
     {
         $templates = [
             'default' => ['site_header', 'main', 'site_footer'],
-            'public' => ['site_header', 'main', 'site_footer'],
             'landing' => ['site_header', 'hero', 'main', 'footer', 'site_footer'],
             'editorial' => ['site_header', 'intro', 'content', 'aside', 'site_footer'],
             'two_column' => ['site_header', 'primary', 'secondary', 'site_footer'],

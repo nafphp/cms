@@ -19,21 +19,20 @@ $title = trim(t((string) ($props['title'] ?? $translator->translate(
 ))));
 $intro = trim(t((string) ($props['intro'] ?? '')));
 $submitLabel = t((string) ($props['submitLabel'] ?? $translator->setting($settings, 'submitLabel', t('Send'))));
-$surface = (string) ($props['surface'] ?? 'none');
-$surface = in_array($surface, ['none', 'soft', 'card', 'accent'], true) ? $surface : 'none';
+$surface = \NixCMS\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
 $surfaceClass = [
     'none' => 'grid gap-5',
     'soft' => 'grid gap-5 rounded-lg bg-[var(--page-panel-soft)] p-6',
     'card' => 'grid gap-5 rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-6',
     'accent' => 'grid gap-5 rounded-lg border border-[color-mix(in_srgb,var(--page-accent)_36%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))] p-6',
-][$surface];
+][$surface] ?? 'grid gap-5';
 $csrfToken = session()->get('_csrf');
 if (!is_string($csrfToken) || $csrfToken === '') {
     $csrfToken = csrf()->generate();
 }
 
 ?>
-<section class="<?= s($surfaceClass) ?>">
+<section class="<?= s(trim('page-block--surface-' . $surface . ' ' . $surfaceClass)) ?>">
     <div class="grid gap-2">
         <h2 class="m-0 text-2xl font-extrabold text-[var(--page-text)]"><?= s($title) ?></h2>
         <?php if ($intro !== ''): ?>

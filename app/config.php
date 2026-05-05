@@ -33,6 +33,14 @@ return [
             'token_file' => BASE_PATH . '/storage/mcp/tokens.json',
         ],
     ],
+    'ai' => [
+        'enabled' => '0',
+        'type' => 'local',
+        'url' => 'http://localhost:11434',
+        'model' => 'llama3.1:8b',
+        'api_key' => '',
+        'instructions' => '',
+    ],
     'view' => [
         'paths' => [
             'views',

@@ -29,8 +29,8 @@ if ($hasNavigation) {
 
 ?>
 <header class="<?= s(trim('page-site-header bg-[var(--page-header-bg)] text-[var(--page-header-text)] ' . $dividerClass)) ?>" data-page-header>
-    <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 px-8 py-4">
-        <a class="inline-flex min-h-10 items-center gap-3 text-[var(--page-header-text)] transition hover:text-[var(--page-accent)]" href="/" aria-label="<?= s($logoText) ?>">
+    <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 py-4 pl-0 pr-8">
+        <a class="page-site-header__brand inline-flex min-h-10 items-center gap-3 text-[var(--page-header-text)] transition hover:text-[var(--page-accent)]" href="/" aria-label="<?= s($logoText) ?>">
             <?php if ($logoImage !== ''): ?>
                 <img class="h-8 w-auto" src="<?= s($logoImage) ?>" alt="">
             <?php elseif ($showLogoMark): ?>
@@ -39,7 +39,7 @@ if ($hasNavigation) {
             <strong class="text-base font-bold"><?= s($logoText) ?></strong>
         </a>
         <?php if ($hasNavigation): ?>
-            <div class="page-desktop-navigation ml-auto"><?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'horizontal')) ?></div>
+            <div class="page-site-header__navigation page-desktop-navigation ml-auto"><?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'horizontal')) ?></div>
             <div class="page-mobile-navigation ml-auto" data-page-mobile-navigation>
                 <?php require __DIR__ . '/_partials/mobile-navigation-drawer.phtml'; ?>
             </div>

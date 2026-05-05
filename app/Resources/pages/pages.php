@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use NixCMS\Content\Page\Block\PageBuilderBlockOptions;
 use NixCMS\Enums\Permission;
+use NixCMS\Page\Layout;
 use NixCMS\Page\Page;
 use NixCMS\Page\PageBuilderRenderer;
 use NixCMS\Handlers\Page\Pages\StorePage;
@@ -14,7 +15,7 @@ use function NixPHP\request;
 use function NixPHP\View\render;
 use Psr\Http\Message\ResponseInterface;
 
-$templateDefinitions = require __DIR__ . '/page_templates.php';
+$templateDefinitions = Layout::definitions(require __DIR__ . '/page_templates.php');
 
 $navigationChoices = PageBuilderBlockOptions::navigationChoices();
 $pageLanguages = cms()->settings()->languages();
@@ -24,15 +25,16 @@ $renderPreview = static function (array $definition, ?string $layout, bool $thum
     $navigationItems = (array) ($navigationChoices[0]['items'] ?? []);
 
     $template = Template::create($definition['view'])
-        ->setLayout('layouts.page_preview')
+        ->setParent('layouts.page_preview')
         ->addStylesheet('/css/nixcms.css')
         ->addBodyClass($thumbnail
             ? 'dark h-screen overflow-hidden bg-slate-950 text-slate-100'
             : 'dark bg-slate-950 text-slate-100 page-builder-live-preview'
         );
+    $layout = Layout::create($template);
 
     foreach ($definition['blocks'] ?? [] as $block) {
-        $template->addBlock((string) $block['id'], 'page.blocks.placeholder', [
+        $layout->addBlock((string) $block['id'], 'page.blocks.placeholder', [
             ...$block,
             'label' => (string) $block['label'],
             'size' => (string) ($block['size'] ?? 'medium'),
@@ -44,7 +46,7 @@ $renderPreview = static function (array $definition, ?string $layout, bool $thum
 
     $page = Page::create('preview.' . $definition['id'])
         ->setTitle((string) $definition['label'])
-        ->setTemplate($template);
+        ->setLayout($layout);
 
     return (new PageBuilderRenderer())->render($page);
 };
@@ -77,6 +79,7 @@ $persistedValuesForBuilder = static function (array $page): array {
         'path' => (string) ($page['path'] ?? ''),
         'language' => (string) ($page['language'] ?? ''),
         'status' => (string) ($page['status'] ?? 'draft'),
+        'themeId' => (string) ($page['themeId'] ?? ''),
         'seo.description' => (string) ($seo['description'] ?? ''),
         'seo.robots' => (string) ($seo['robots'] ?? 'index,follow'),
         'seo.canonicalUrl' => (string) ($seo['canonicalUrl'] ?? ''),
@@ -91,6 +94,7 @@ $persistedValuesForBuilder = static function (array $page): array {
         'theme.footerContentWidthIncludesChrome' => filter_var($theme['footerContentWidthIncludesChrome'] ?? true, FILTER_VALIDATE_BOOLEAN),
         'theme.footerBackgroundWidthIncludesChrome' => filter_var($theme['footerBackgroundWidthIncludesChrome'] ?? false, FILTER_VALIDATE_BOOLEAN),
         'defaultNavigationIdentifier' => (string) ($extra['defaultNavigationIdentifier'] ?? ''),
+        'defaultFooterNavigationIdentifier' => (string) ($extra['defaultFooterNavigationIdentifier'] ?? ''),
     ];
 };
 
@@ -132,6 +136,7 @@ return [
 
             $isEdit = $initialState !== [];
             $builderBlockTypes = cms()->blockTypes()->builderTypes();
+            $themeRegistry = cms()->themes();
 
             return render('admin.pages.builder', [
                 'title' => $isEdit ? t('Edit page') : t('Create page'),
@@ -143,6 +148,8 @@ return [
                 'defaultNavigationIdentifier' => (string) ($navigationOptions[0]['value'] ?? 'main'),
                 'languages' => $pageLanguages,
                 'defaultLanguage' => $defaultPageLanguage,
+                'themes' => $themeRegistry->options(),
+                'themeSurfaces' => $themeRegistry->surfaceOptionsByTheme(),
                 'saveUrl' => '/admin/pages',
                 'overviewUrl' => '/admin/pages',
                 'initialState' => $initialState,

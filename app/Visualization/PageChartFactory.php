@@ -209,8 +209,7 @@ final class PageChartFactory
 
     private function surface(mixed $surface): string
     {
-        $surface = (string) $surface;
-        return in_array($surface, ['none', 'soft', 'card', 'accent'], true) ? $surface : 'none';
+        return \NixCMS\Theme\Theme::slug((string) $surface) ?: 'none';
     }
 
     private function height(mixed $value): int

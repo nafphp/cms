@@ -26,6 +26,10 @@ enum Permission: string
     case PAGES_CREATE = 'pages.create';
     case PAGES_EDIT = 'pages.edit';
     case PAGES_DELETE = 'pages.delete';
+    case THEMES_VIEW = 'themes.view';
+    case THEMES_CREATE = 'themes.create';
+    case THEMES_EDIT = 'themes.edit';
+    case THEMES_DELETE = 'themes.delete';
     case NAVIGATION_VIEW = 'navigation.view';
     case NAVIGATION_CREATE = 'navigation.create';
     case NAVIGATION_EDIT = 'navigation.edit';

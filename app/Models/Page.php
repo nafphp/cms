@@ -14,6 +14,7 @@ class Page extends AbstractModel
     protected ?string $language = null;
     protected ?string $status = 'draft';
     protected ?string $template_id = null;
+    protected ?string $theme_id = null;
     protected ?string $blocks_json = null;
     protected ?string $meta_json = null;
     protected ?string $layout = 'layouts.page';
@@ -48,6 +49,11 @@ class Page extends AbstractModel
     public function getTemplateId(): ?string
     {
         return $this->template_id;
+    }
+
+    public function getThemeId(): ?string
+    {
+        return $this->theme_id;
     }
 
     public function getBlocksJson(): ?string

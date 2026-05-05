@@ -15,7 +15,7 @@ $items = nixcms_page_block_nav_items((string) ($props['navigationIdentifier'] ??
 ?>
 <footer class="page-site-footer border-t border-[var(--page-border)] bg-[var(--page-footer-bg)]">
     <div class="page-template-chrome-inner flex min-h-16 flex-wrap items-center justify-between gap-3 px-8 py-4">
-        <span class="text-xs font-medium text-[var(--page-footer-text)]"><?= s(t((string) ($props['text'] ?? 'Powered by NixCMS'))) ?></span>
+        <span class="page-site-footer__text text-xs font-medium text-[var(--page-footer-text)]"><?= s(t((string) ($props['text'] ?? 'Powered by NixCMS'))) ?></span>
         <?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'compact')) ?>
     </div>
 </footer>

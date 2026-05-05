@@ -6,6 +6,7 @@ namespace NixCMS\Handlers\Page\Pages;
 
 use NixCMS\Handlers\Support\ReadsJsonBody;
 use NixCMS\Page\CustomLayoutNormalizer;
+use NixCMS\Page\Layout;
 use NixCMS\Repositories\PageLayoutRepository;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
@@ -42,6 +43,7 @@ final class StorePage
                 'language' => (string) ($data['language'] ?? ''),
                 'status' => (string) ($data['status'] ?? 'draft'),
                 'template_id' => (string) ($data['templateId'] ?? ''),
+                'theme_id' => (string) ($data['themeId'] ?? ''),
                 'layout' => (string) ($template['layout'] ?? 'layouts.page'),
                 'blocks' => $this->normalizeBlocks(
                     is_array($data['blocks'] ?? null) ? $data['blocks'] : [],
@@ -66,7 +68,7 @@ final class StorePage
         $templates = [];
 
         foreach ([
-            ...(is_array($definitions) ? $definitions : []),
+            ...Layout::definitions(is_array($definitions) ? $definitions : []),
             ...(new PageLayoutRepository())->templates(),
         ] as $definition) {
             if (is_array($definition) && trim((string) ($definition['id'] ?? '')) !== '') {

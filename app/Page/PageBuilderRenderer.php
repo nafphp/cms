@@ -14,25 +14,27 @@ final class PageBuilderRenderer
      */
     public function render(Page $page, array $context = []): string
     {
-        $template = $page->template() ?? new Template('default');
-        $view = $template->view() ?? 'page.templates.default';
+        $layout = $page->pageLayout() ?? new Layout('default');
+        $template = $layout->template();
+        $view = $layout->templateView() ?? 'page.templates.default';
         $blocks = [];
 
-        foreach ($template->blocks() as $block) {
-            $blocks[$block->id()] = view($block->view(), [
+        foreach ($layout->blocks() as $block) {
+            $blocks[$block->id()] = view($block->template()->view() ?? '', [
                 ...$context,
                 ...$block->data(),
                 'page' => $page,
+                'layout' => $layout,
                 'template' => $template,
                 'block' => $block,
             ]);
         }
 
-        $block = static function (string $id, string $default = '') use ($template, $blocks): string {
-            if (!array_key_exists($id, $template->blocks())) {
+        $block = static function (string $id, string $default = '') use ($layout, $blocks): string {
+            if (!array_key_exists($id, $layout->blocks())) {
                 throw new \LogicException(sprintf(
-                    'Template view "%s" tried to render undefined block "%s".',
-                    $template->view() ?? 'page.templates.default',
+                    'Layout template "%s" tried to render undefined block "%s".',
+                    $layout->templateView() ?? 'page.templates.default',
                     $id
                 ));
             }
@@ -43,6 +45,7 @@ final class PageBuilderRenderer
         $variables = [
             ...$context,
             'page' => $page,
+            'layout' => $layout,
             'template' => $template,
             'title' => t($page->title()),
             'pageTitle' => t($page->title()),

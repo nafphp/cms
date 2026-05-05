@@ -37,7 +37,12 @@ $activeGroup = (string) ($activeGroup ?? 'general');
                 <strong><?= s(t('Save changes')) ?></strong>
                 <span data-save-state><?= s(t('No unsaved changes.')) ?></span>
             </div>
-            <?= view('components.admin.form.button', ['label' => t('Save settings')]) ?>
+            <?= view('components.admin.form.button', [
+                'label' => t('Save settings'),
+                'variant' => 'secondary',
+                'attributes' => ['data-settings-save-button' => true],
+                'class' => 'settings-save-button',
+            ]) ?>
         </div>
     </div>
 </form>
@@ -48,6 +53,7 @@ $activeGroup = (string) ($activeGroup ?? 'general');
     const form = document.getElementById('settings-form');
     const endpoint = <?= json_encode(route('api.admin.settings.update')) ?>;
     const saveState = form.querySelector('[data-save-state]');
+    const saveButton = form.querySelector('[data-settings-save-button]');
     const labels = <?= json_encode([
         'couldNotSave' => t('Could not save settings.'),
         'dirty' => t('Unsaved changes.'),
@@ -99,8 +105,13 @@ $activeGroup = (string) ($activeGroup ?? 'general');
     let initialPayload = stableJson(payloadFromForm());
 
     const updateSaveState = () => {
-        if (!saveState) return;
-        saveState.textContent = stableJson(payloadFromForm()) === initialPayload ? labels.clean : labels.dirty;
+        const dirty = stableJson(payloadFromForm()) !== initialPayload || form.dataset.localStorageDirty === '1';
+        if (saveState) {
+            saveState.textContent = dirty ? labels.dirty : labels.clean;
+        }
+        if (saveButton) {
+            saveButton.classList.toggle('is-dirty', dirty);
+        }
     };
 
     form.addEventListener('submit', async (event) => {
@@ -122,6 +133,7 @@ $activeGroup = (string) ($activeGroup ?? 'general');
         }
 
         toast(labels.saved);
+        delete form.dataset.localStorageDirty;
         initialPayload = stableJson(payloadFromForm());
         updateSaveState();
         window.location.reload();
@@ -129,5 +141,6 @@ $activeGroup = (string) ($activeGroup ?? 'general');
 
     form.addEventListener('input', updateSaveState);
     form.addEventListener('change', updateSaveState);
+    updateSaveState();
 </script>
 <?php $this->endBlock('content'); ?>

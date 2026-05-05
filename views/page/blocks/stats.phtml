@@ -18,19 +18,18 @@ if ($items === []) {
         ['value' => (string) ($props['valueC'] ?? '24/7'), 'label' => (string) ($props['labelC'] ?? 'Access')],
     ];
 }
-$surface = (string) ($props['surface'] ?? 'none');
-$surface = in_array($surface, ['none', 'soft', 'card', 'accent'], true) ? $surface : 'none';
+$surface = \NixCMS\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
 $itemClass = [
     'none' => 'py-1',
     'soft' => 'rounded-lg bg-[var(--page-panel-soft)] p-5',
     'card' => 'rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-5',
     'accent' => 'rounded-lg border border-[color-mix(in_srgb,var(--page-accent)_36%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))] p-5',
-][$surface];
+][$surface] ?? 'py-1';
 
 ?>
 <section class="grid gap-3 md:grid-cols-[repeat(var(--stats-columns),minmax(0,1fr))]" style="--stats-columns: <?= s((string) min(max(count($items), 1), 4)) ?>;">
     <?php foreach ($items as $item): ?>
-        <div class="<?= s($itemClass) ?>">
+        <div class="<?= s(trim('page-block--surface-' . $surface . ' ' . $itemClass)) ?>">
             <strong class="block text-3xl font-black text-[var(--page-text)]"><?= s($item['value']) ?></strong>
             <span class="mt-1 block text-sm text-[var(--page-muted)]"><?= s(t($item['label'])) ?></span>
         </div>

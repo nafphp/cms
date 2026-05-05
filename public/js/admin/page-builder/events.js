@@ -45,6 +45,14 @@ export const eventMethods = {
             return;
         }
 
+        if (event.target.closest('[data-reset-builder]')) {
+            event.preventDefault();
+            if (window.confirm(this.labels.resetBuilderConfirm)) {
+                this.resetBuilderState();
+            }
+            return;
+        }
+
         if (event.target.closest('[data-add-custom-slot]')) {
             event.preventDefault();
             this.openCustomSlotModal();
@@ -254,6 +262,17 @@ export const eventMethods = {
             return;
         }
 
+        const defaultFooterNavigation = event.target.closest('[data-default-footer-navigation]');
+        if (defaultFooterNavigation) {
+            this.updateDefaultFooterNavigation(defaultFooterNavigation.value || this.selectedDefaultNavigationIdentifier());
+            this.renderBlocks();
+            this.renderTemplatePreview();
+            this.renderPagePreview();
+            this.renderJson();
+            this.persistState();
+            return;
+        }
+
         const customSlotLabel = event.target.closest('[data-custom-slot-label]');
         if (customSlotLabel) {
             this.updateCustomSlot(
@@ -392,6 +411,10 @@ export const eventMethods = {
         this.syncPersistedControls(key, field);
         if (key.startsWith('theme.')) {
             this.syncPageTheme();
+        }
+        if (key === 'themeId') {
+            this.renderBlocks();
+            this.renderSettings();
         }
         if ([
             'theme.contentWidth',

@@ -84,7 +84,10 @@ export const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (ch
 export const hasOption = (options, value) => options.some((item) => item.value === String(value ?? ''));
 export const optionValue = (options, value, fallback) => hasOption(options, value) ? String(value) : fallback;
 export const optionLabel = (item, labels = {}) => item.labelKey && labels[item.labelKey] ? labels[item.labelKey] : item.label;
-export const optionOptions = (options, selected, labels = {}) => options.map((item) => `
+export const optionOptions = (options, selected, labels = {}) => [
+    ...(!hasOption(options, selected) && String(selected || '') !== '' ? [{value: String(selected), label: `${String(selected)} (missing)`}] : []),
+    ...options,
+].map((item) => `
     <option value="${escapeHtml(item.value)}" ${item.value === selected ? 'selected' : ''}>${escapeHtml(optionLabel(item, labels))}</option>
 `).join('');
 
@@ -92,6 +95,7 @@ export const pageBuilderLabelKeys = {
     saved: "Page saved.",
     couldNotSave: "Page could not be saved.",
     cancel: "Cancel",
+    resetBuilderConfirm: "Reset the current builder state and start over?",
     mediaPickerTitle: "Select media",
     mediaPickerIntro: "Upload a new image or choose an existing media item.",
     mediaUpload: "Upload image",

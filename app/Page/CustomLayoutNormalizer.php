@@ -29,7 +29,7 @@ final class CustomLayoutNormalizer
             $position = trim((string) ($slot['position'] ?? 'stretch'));
             $maxHeight = trim((string) ($slot['maxHeight'] ?? 'none'));
             $overflow = trim((string) ($slot['overflow'] ?? 'visible'));
-            $surface = trim((string) ($slot['surface'] ?? 'none'));
+            $surface = \NixCMS\Theme\Theme::slug((string) ($slot['surface'] ?? 'none')) ?: 'none';
 
             if ($id === '' || !preg_match('/^[A-Za-z][A-Za-z0-9_-]{0,63}$/', $id)) {
                 $errors[] = sprintf('Custom layout slot %d needs a valid id.', $index + 1);
@@ -53,7 +53,6 @@ final class CustomLayoutNormalizer
                 'position' => [$position, CustomLayoutOptions::POSITIONS],
                 'max height' => [$maxHeight, CustomLayoutOptions::MAX_HEIGHTS],
                 'overflow mode' => [$overflow, CustomLayoutOptions::OVERFLOWS],
-                'surface' => [$surface, CustomLayoutOptions::SURFACES],
             ]);
             if ($invalidOption !== null) {
                 $errors[] = sprintf('Custom layout slot "%s" uses an invalid %s.', $id, $invalidOption);

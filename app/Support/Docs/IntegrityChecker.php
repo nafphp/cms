@@ -6,6 +6,7 @@ namespace NixCMS\Support\Docs;
 
 use NixCMS\Content\BlockViewRegistry;
 use NixCMS\Content\Page\Block\BlockTypeInterface;
+use NixCMS\Page\Layout;
 
 final class IntegrityChecker
 {
@@ -214,7 +215,7 @@ final class IntegrityChecker
         }
 
         $templates = require $templateFile;
-        return is_array($templates) ? $templates : [];
+        return is_array($templates) ? Layout::definitions($templates) : [];
     }
 
     /**

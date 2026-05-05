@@ -15,15 +15,23 @@ use NixCMS\Commands\IntegrityCheckCommand;
 use NixCMS\Events\AdminGuardEvent;
 use NixCMS\Events\AuthRedirectEvent;
 use NixCMS\Events\SettingsLocaleEvent;
+use NixCMS\Mcp\Tools\AirQualityTool;
+use NixCMS\Mcp\Tools\AuditRecentTool;
 use NixCMS\Mcp\Tools\ArticleDraftCreateTool;
 use NixCMS\Mcp\Tools\ArticleDraftAppendTool;
 use NixCMS\Mcp\Tools\ArticleLookupTool;
 use NixCMS\Mcp\Tools\ArticleStatusCountsTool;
+use NixCMS\Mcp\Tools\ContentOverviewTool;
+use NixCMS\Mcp\Tools\ExchangeRatesTool;
 use NixCMS\Mcp\Tools\MediaSummaryTool;
+use NixCMS\Mcp\Tools\PageOverviewTool;
 use NixCMS\Mcp\Tools\PluginOverviewTool;
+use NixCMS\Mcp\Tools\PublicHolidayTool;
 use NixCMS\Mcp\Tools\QueueStatusTool;
 use NixCMS\Mcp\Tools\SystemHealthTool;
+use NixCMS\Mcp\Tools\TrendingTopicsTool;
 use NixCMS\Mcp\Tools\UserRoleSummaryTool;
+use NixCMS\Mcp\Tools\WeatherForecastTool;
 use NixPHP\Core\Event;
 use function NixPHP\app;
 use function NixPHP\CLI\command;
@@ -48,13 +56,21 @@ cms()->blockTypes()->addMany(require __DIR__ . '/app/blockTypes.php');
 if (app()->hasPlugin('nixphp/mcp')) {
     tool()->register(new SystemHealthTool());
     tool()->register(new QueueStatusTool());
+    tool()->register(new ContentOverviewTool());
     tool()->register(new ArticleStatusCountsTool());
     tool()->register(new ArticleDraftCreateTool());
     tool()->register(new ArticleDraftAppendTool());
     tool()->register(new ArticleLookupTool());
+    tool()->register(new PageOverviewTool());
     tool()->register(new MediaSummaryTool());
     tool()->register(new PluginOverviewTool());
     tool()->register(new UserRoleSummaryTool());
+    tool()->register(new AuditRecentTool());
+    tool()->register(new WeatherForecastTool());
+    tool()->register(new PublicHolidayTool());
+    tool()->register(new ExchangeRatesTool());
+    tool()->register(new AirQualityTool());
+    tool()->register(new TrendingTopicsTool());
 }
 
 if (!defined('PHPUNIT_RUNNING')) {

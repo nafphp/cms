@@ -5,17 +5,16 @@ use function NixPHP\I18n\t;
 
 $content = is_array($content ?? null) ? $content : [];
 $props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$surface = (string) ($props['surface'] ?? 'none');
-$surface = in_array($surface, ['none', 'soft', 'card', 'accent'], true) ? $surface : 'none';
+$surface = \NixCMS\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
 $surfaceClass = [
     'none' => 'flex flex-wrap items-center justify-between gap-5',
     'soft' => 'flex flex-wrap items-center justify-between gap-5 rounded-lg bg-[var(--page-panel-soft)] p-6',
     'card' => 'flex flex-wrap items-center justify-between gap-5 rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-6',
     'accent' => 'flex flex-wrap items-center justify-between gap-5 rounded-lg border border-[color-mix(in_srgb,var(--page-accent)_36%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))] p-6',
-][$surface];
+][$surface] ?? 'flex flex-wrap items-center justify-between gap-5';
 
 ?>
-<section class="<?= s($surfaceClass) ?>">
+<section class="<?= s(trim('page-block--surface-' . $surface . ' ' . $surfaceClass)) ?>">
     <div class="grid gap-2">
         <h2 class="m-0 text-2xl font-extrabold text-[var(--page-text)]"><?= s(t((string) ($props['title'] ?? 'Ready to start?'))) ?></h2>
         <p class="m-0 max-w-[70ch] text-sm leading-relaxed text-[var(--page-muted)]"><?= s(t((string) ($props['text'] ?? 'Add a clear next step for this page.'))) ?></p>
