@@ -97,12 +97,44 @@ Important: MCP tools are concrete executable capabilities. A future capability o
 NixCMS may provide a browser-local AI assistant backed by Ollama before broader provider abstractions exist.
 
 - Keep the first implementation simple and local: the admin browser talks directly to Ollama, usually at `http://localhost:11434`.
-- Store AI settings below the `ai` key only, for example `ai.type`, `ai.url`, `ai.model`, `ai.api_key`, and `ai.instructions`.
+- Store AI settings below the `ai` key only, for example `ai.type`, `ai.url`, `ai.model`, `ai.embedding_model`, `ai.api_key`, and `ai.instructions`.
 - `ai.type=local` means browser-local Ollama. `ai.type=remote` is reserved for a later remote/OpenAI-compatible provider and should not imply a backend abstraction yet.
+- `ai.model` is the chat/generation model. `ai.embedding_model` is optional and is used only for semantic tool routing; leave it empty to use the deterministic keyword router.
+- Embedding models return numeric vectors, not chat responses. Local Ollama embeddings should use `/api/embed` and cosine similarity, with keyword routing as a fallback if Ollama or the embedding model is unavailable.
 - Prefer live/streaming responses for local Ollama assistant interactions when the UI benefits from immediate feedback.
 - Treat `ai.instructions` as installation-specific assistant guidance that is applied in addition to this `AGENTS.md`; it must not replace repository or shipped-project safety rules.
 - The assistant should use concrete CMS tools and APIs for CMS actions such as creating drafts, inspecting health, summarizing content, or generating themes. Do not give the model unbounded write access to the filesystem or database.
 - Tool and plugin metadata should remain the source of truth for what the assistant can do; do not create a separate manually maintained AI capability list.
+
+### AI Tool Routing
+
+The local assistant must not send the full MCP tool registry to the model once tool counts grow. The backend owns tool selection.
+
+- `LocalAiToolBridge::definitions()` enriches MCP tool definitions through `LocalAiToolCatalog`; do not maintain a parallel static capability list.
+- `LocalAiToolBridge::selectDefinitions()` is the stable entry point for the admin assistant and `/api/admin/ai/tools/select`.
+- Tool routing lives under `NixCMS\Services\Ai\ToolRouting`.
+- Always apply deterministic hard filters before ranking: permissions/scopes from MCP identity, write intent, destructive intent, requested mode, requested capabilities, and UI area.
+- `KeywordToolRouter` is the reliable fallback router using routing text, parameters, examples, capabilities, mode, and UI context.
+- `SemanticToolRouter` is the primary orchestration point. When `ai.embedding_model` is configured it uses `CosineToolRouter` with `OllamaEmbeddingClient`; otherwise it falls back to `KeywordToolRouter`.
+- `CosineToolRouter` should batch tool embeddings via `/api/embed` rather than making one Ollama request per tool. If embedding generation fails, fall back to keyword routing instead of failing the assistant.
+- `cms_tools_search` is the tool reload path. Prefer exposing it in selected tool sets when there is room so the model can search for additional tools without seeing the whole registry.
+- Plugins should register executable tools plus metadata such as description, routing description, examples, capabilities, mode, and scopes. Plugins should not own cross-registry routing or permission decisions.
+- Categories such as `cms`, `plugins`, `external`, and `context` remain useful for organization/debugging, but semantic routing should not depend on categories alone.
+
+### AI Stage System
+
+AI-assisted writes should be staged unless a domain-specific draft tool already provides a safer workflow.
+
+- Stage classes live under `app/Stage`. `Stage` is an explicit working context around a target; it is not a proxy for the target object.
+- `cms()->stageTargets()` is the registry for stage target resolvers. Current core targets include page, theme, and generic content.
+- Stage terms are strict: `commit` persists the staged working snapshot; `publish` makes content live or enters the normal publication workflow. `commit != publish`.
+- PageBuilder and theme edits should go through `cms_stage_create_change`, `cms_stage_preview`, and `cms_stage_commit`; these tools may return registered UI Actions but must not execute arbitrary JavaScript.
+- UI Actions are frontend-registered commands only. Backend tool results may request actions such as PageBuilder block updates, but the browser must validate and execute only registered action names.
+- Admin navigation from the assistant should use `cms_admin_navigate`, which returns the registered `admin.navigate` UI Action. Keep navigation restricted to safe internal `/admin` URLs.
+- If an AI stage is active in the PageBuilder or Theme Editor, manual Save should commit or merge the current UI state into that active stage rather than directly persisting a divergent object.
+- Generic content staging uses `ContentStageTarget` plus reflection. Only properties marked with `#[StageField]` are stageable; use `#[StageField(writable: false)]` for read-only values. Methods are not automatically callable or stageable.
+- `ContentStageTarget` persists through the content API: prefer `saveStage()`, then `save()`, and return a clear unsupported-persistence result when neither exists. Do not silently persist through repositories as a fallback.
+- Article creation and appending should prefer the domain MCP tools `cms_article_draft_create` and `cms_article_draft_append`; those already use the Article API/versioning workflow. Generic reflection staging is not the primary article creation path.
 
 ## Capability Concept
 

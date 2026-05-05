@@ -21,6 +21,10 @@ use NixCMS\Navigation\NavigationRegistry;
 use NixCMS\Page\PageRegistry;
 use NixCMS\Repositories\ThemeRepository;
 use NixCMS\Settings\SettingsRegistry;
+use NixCMS\Stage\StageTargetRegistry;
+use NixCMS\Stage\Targets\ContentStageTarget;
+use NixCMS\Stage\Targets\PageStageTarget;
+use NixCMS\Stage\Targets\ThemeStageTarget;
 use NixCMS\Storage\EntityStorage;
 use NixCMS\Theme\ThemeRegistry;
 use NixCMS\Visualization\VisualizationRegistry;
@@ -38,6 +42,7 @@ final class Cms
     private ?BlockViewRegistry $blockViewRegistry = null;
     private ?BlockTypeRegistry $blockTypeRegistry = null;
     private ?ThemeRegistry $themeRegistry = null;
+    private ?StageTargetRegistry $stageTargetRegistry = null;
 
     public function settings(): Settings
     {
@@ -132,6 +137,101 @@ final class Cms
         }
 
         return $this->themeRegistry;
+    }
+
+    public function stageTargets(): StageTargetRegistry
+    {
+        if ($this->stageTargetRegistry === null) {
+            $this->stageTargetRegistry = new StageTargetRegistry();
+            $this->stageTargetRegistry->register('page', function (array $target): PageStageTarget {
+                if (is_array($target['snapshot'] ?? null)) {
+                    return new PageStageTarget($target['snapshot']);
+                }
+
+                $id = (int) ($target['id'] ?? $target['pageId'] ?? 0);
+                $page = (new \NixCMS\Repositories\PageRepository())->find($id);
+                if (!is_array($page)) {
+                    throw new \InvalidArgumentException(sprintf('Page "%d" does not exist.', $id));
+                }
+
+                return new PageStageTarget($page);
+            });
+            $this->stageTargetRegistry->register('theme', function (array $target): ThemeStageTarget {
+                if (is_array($target['snapshot'] ?? null)) {
+                    return new ThemeStageTarget($target['snapshot']);
+                }
+
+                $id = $target['id'] ?? $target['identifier'] ?? '';
+                $theme = (new ThemeRepository())->find(is_numeric($id) ? (int) $id : (string) $id);
+                if (!is_array($theme)) {
+                    throw new \InvalidArgumentException(sprintf('Theme "%s" does not exist.', (string) $id));
+                }
+
+                return new ThemeStageTarget($theme);
+            });
+            $this->stageTargetRegistry->register('content', function (array $target): ContentStageTarget {
+                $contentTypeId = trim((string) ($target['contentType'] ?? $target['content_type'] ?? ''));
+                $contentType = $this->contentTypes()->get($contentTypeId);
+                if ($contentType === null) {
+                    throw new \InvalidArgumentException(sprintf('Content type "%s" does not exist.', $contentTypeId));
+                }
+
+                $snapshot = is_array($target['snapshot'] ?? null) ? $target['snapshot'] : null;
+                $id = (int) ($target['id'] ?? $target['contentId'] ?? $snapshot['id'] ?? 0);
+                if ($snapshot !== null) {
+                    $row = [
+                        'id' => $id,
+                        ...$this->contentStageRowFromSnapshot($snapshot),
+                    ];
+
+                    return new ContentStageTarget($contentType->id(), $contentType->modelClass(), $row);
+                }
+
+                $repositoryClass = 'NixCMS\\Repositories\\' . substr($contentType->modelClass(), strrpos($contentType->modelClass(), '\\') + 1) . 'Repository';
+                if (!class_exists($repositoryClass)) {
+                    throw new \RuntimeException(sprintf('No repository found for content type "%s".', $contentTypeId));
+                }
+
+                $repository = new $repositoryClass();
+                if (!method_exists($repository, 'find')) {
+                    throw new \RuntimeException(sprintf('Content repository for "%s" cannot load staged content.', $contentTypeId));
+                }
+
+                $row = $repository->find($id);
+                if (!is_array($row)) {
+                    throw new \InvalidArgumentException(sprintf('Content item "%s:%d" does not exist.', $contentTypeId, $id));
+                }
+
+                return new ContentStageTarget($contentType->id(), $contentType->modelClass(), $row);
+            });
+        }
+
+        return $this->stageTargetRegistry;
+    }
+
+    /**
+     * @param array<string, mixed> $snapshot
+     * @return array<string, mixed>
+     */
+    private function contentStageRowFromSnapshot(array $snapshot): array
+    {
+        $fields = is_array($snapshot['fields'] ?? null) ? $snapshot['fields'] : $snapshot;
+        $row = $fields;
+
+        if (isset($fields['fields']) && is_array($fields['fields'])) {
+            $row['fields_json'] = json_encode($fields['fields'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        }
+        if (isset($fields['settings']) && is_array($fields['settings'])) {
+            $row['settings_json'] = json_encode($fields['settings'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        }
+        if (isset($fields['items']) && is_array($fields['items'])) {
+            $row['items_json'] = json_encode($fields['items'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        }
+        if (isset($fields['metadata']) && is_array($fields['metadata'])) {
+            $row['metadata_json'] = json_encode($fields['metadata'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        }
+
+        return $row;
     }
 
     public function articles(): ArticleApi

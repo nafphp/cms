@@ -1,0 +1,101 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Services\Ai\ToolRouting;
+
+use NixCMS\Services\Ai\LocalAiToolCatalog;
+use NixCMS\Services\Ai\ToolRouting\SemanticToolRouter;
+use NixCMS\Services\Ai\ToolRouting\ToolContext;
+use PHPUnit\Framework\TestCase;
+
+final class SemanticToolRouterTest extends TestCase
+{
+    public function testRoutesLargeToolCatalogToSmallRelevantSlice(): void
+    {
+        $tools = [];
+        for ($i = 0; $i < 120; $i++) {
+            $tools[] = [
+                'name' => 'plugin_misc_tool_' . $i,
+                'description' => 'Generic plugin utility for unrelated maintenance task ' . $i,
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ];
+        }
+        $tools[] = [
+            'name' => 'cms_stage_create_change',
+            'description' => 'Creates a staged CMS change for a page, layout, block, or theme.',
+            'inputSchema' => ['type' => 'object', 'properties' => ['action' => ['type' => 'string']]],
+        ];
+        $tools[] = [
+            'name' => 'cms_tools_search',
+            'description' => 'Searches the registered CMS tools for the current request and UI context.',
+            'inputSchema' => ['type' => 'object', 'properties' => ['query' => ['type' => 'string']]],
+        ];
+
+        $selected = (new SemanticToolRouter((new LocalAiToolCatalog())->enrich($tools)))->select(
+            'Füge hier einen Textblock mit Blabla ein',
+            ToolContext::fromArray([
+                'area' => 'pageBuilder',
+                'selectedRegion' => 'content',
+                'availableBlockModules' => ['text', 'image'],
+            ]),
+            8,
+        );
+
+        self::assertLessThanOrEqual(8, count($selected));
+        self::assertSame('cms_stage_create_change', $selected[0]['name']);
+        self::assertContains('cms_tools_search', array_column($selected, 'name'));
+    }
+
+    public function testHardFilterKeepsWriteToolsOutForReadOnlyRequests(): void
+    {
+        $tools = (new LocalAiToolCatalog())->enrich([
+            [
+                'name' => 'cms_article_draft_create',
+                'description' => 'Creates an article draft.',
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ],
+            [
+                'name' => 'cms_article_status_counts',
+                'description' => 'Returns article status counts.',
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ],
+        ]);
+
+        $selected = (new SemanticToolRouter($tools))->select(
+            'Wie viele Artikel sind im Review?',
+            ToolContext::fromArray(['area' => 'articleEditor']),
+            5,
+        );
+
+        self::assertSame(['cms_article_status_counts'], array_column($selected, 'name'));
+    }
+
+    public function testModeAndCapabilityFiltersAreAppliedBeforeRanking(): void
+    {
+        $tools = (new LocalAiToolCatalog())->enrich([
+            [
+                'name' => 'cms_queue_status',
+                'description' => 'Returns queue status.',
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ],
+            [
+                'name' => 'cms_stage_create_change',
+                'description' => 'Creates a staged CMS change.',
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ],
+        ]);
+
+        $selected = (new SemanticToolRouter($tools))->select(
+            'Füge hier einen Block ein',
+            ToolContext::fromArray([
+                'area' => 'pageBuilder',
+                'mode' => 'stage',
+                'capabilities' => ['block.create'],
+            ]),
+            5,
+        );
+
+        self::assertSame(['cms_stage_create_change'], array_column($selected, 'name'));
+    }
+}

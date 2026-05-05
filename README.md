@@ -80,6 +80,7 @@ These sections are generated from registries and enums. Edit the source code, th
 | `cms()->languages()` | Enabled, available, and discovered language codes. |
 | `cms()->settings()` | Resolved runtime settings. |
 | `cms()->settingsRegistry()` | Admin-editable setting sections and fields. |
+| `cms()->stageTargets()` | AI/stage target resolvers for controlled staged changes. |
 <!-- /nix:auto:cms -->
 
 ### Pages
@@ -136,6 +137,7 @@ These sections are generated from registries and enums. Edit the source code, th
 | `admin.articles.image` | `POST` | `/admin/articles/image` | any of `media.upload`, `articles.edit` |
 | `api.admin.ai.tools` | `GET` | `/api/admin/ai/tools` | `mcp.tools.call` |
 | `api.admin.ai.tools.call` | `POST` | `/api/admin/ai/tools/call` | `mcp.tools.call` |
+| `api.admin.ai.tools.select` | `POST` | `/api/admin/ai/tools/select` | `mcp.tools.call` |
 | `api.admin.articles` | `GET` | `/api/admin/articles` | `articles.view` |
 | `api.admin.articles.translate.enqueue` | `POST` | `/api/admin/articles/{articleId}/translate/enqueue` | `articles.create` |
 | `api.admin.articles.delete` | `POST` | `/api/admin/articles/{articleId}/{language}/delete` | `articles.delete` |
@@ -247,15 +249,28 @@ These sections are generated from registries and enums. Edit the source code, th
 
 | Tool | Description |
 | --- | --- |
+| `cms_admin_navigate` | Navigates the current admin UI to a safe registered NixCMS admin area such as PageBuilder, articles, forms, themes, media, or settings. |
 | `cms_article_draft_append` | Appends plain text as paragraphs to an existing article draft, resolving the article by id, title, or slug. |
 | `cms_article_draft_create` | Creates a new article draft with Editor.js-style content blocks. |
 | `cms_article_lookup` | Finds latest article versions by title, slug, language, or status so later MCP actions can target an article id. |
 | `cms_article_status_counts` | Returns latest article-version workflow status counts, optionally filtered by language. |
+| `cms_audit_recent` | Returns recent CMS audit log events, a chronological activity log of admin actions and system changes, without exposing old/new value payloads. |
+| `cms_content_overview` | Returns high-level CMS content counts across articles, taxonomy, pages, media, users, and audit entries. |
 | `cms_media_summary` | Returns media library counts, byte totals, kind counts, and optional recent media items. |
+| `cms_page_overview` | Returns page counts by status, language, template, and optional recent pages. |
 | `cms_plugin_overview` | Returns loaded NixPHP plugins and registry counts relevant to NixCMS extensions. |
 | `cms_queue_status` | Returns file-backed queue counts for pending, locked, and deadletter jobs. |
+| `cms_stage_commit` | Commits a previously staged CMS change into stored CMS state. Does not publish. |
+| `cms_stage_create_change` | Creates a staged CMS change for a target such as a page. Does not publish. |
+| `cms_stage_preview` | Returns the staged working snapshot, change list, warnings, and UI actions for a CMS stage. |
 | `cms_system_health` | Returns basic NixCMS health information for PHP, storage paths, and loaded NixPHP plugins. |
+| `cms_tools_search` | Searches the registered CMS tools for the current request and UI context. |
 | `cms_user_role_summary` | Returns user, role, permission, and assignment counts for the NixCMS RBAC model. |
+| `external_air_quality` | Returns current air quality, UV index, and pollen context for a location so local businesses can plan outdoor, health, sport, and seasonal campaigns. |
+| `external_exchange_rates` | Returns latest exchange rates and optional converted amounts for international shop pricing, ads, purchasing, and campaign planning. |
+| `external_public_holidays` | Returns public holidays for a country and year so CMS or shop owners can plan campaigns, opening hours, staffing, and publishing schedules. |
+| `external_trending_topics` | Returns current public-interest or news trend signals from public sources for content ideas, campaigns, and shop planning. |
+| `external_weather_forecast` | Returns current weather and a short forecast for a location so CMS or shop owners can plan campaigns, events, and operational actions. |
 <!-- /nix:auto:mcp -->
 
 ### Examples

@@ -5,17 +5,36 @@ declare(strict_types=1);
 namespace NixCMS\Services\Ai;
 
 use NixCMS\Enums\Permission;
+use NixCMS\Services\Ai\ToolRouting\SemanticToolRouter;
+use NixCMS\Services\Ai\ToolRouting\ToolContext;
+use NixCMS\Services\Ai\ToolRouting\ToolRouterInterface;
 use NixPHP\MCP\Auth\McpIdentity;
 use function NixPHP\MCP\tool;
 
 final class LocalAiToolBridge
 {
+    public function __construct(
+        private ?ToolRouterInterface $router = null,
+    ) {}
+
     /**
      * @return array<int, array<string, mixed>>
      */
     public function definitions(): array
     {
-        return tool()->definitions($this->identity());
+        return (new LocalAiToolCatalog())->enrich(tool()->definitions($this->identity()));
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     * @return array<int, array<string, mixed>>
+     */
+    public function selectDefinitions(string $message, array $context = [], int $limit = 12): array
+    {
+        $definitions = $this->definitions();
+        $router = $this->router ?? new SemanticToolRouter($definitions);
+
+        return $router->select($message, ToolContext::fromArray($context), $limit);
     }
 
     /**
@@ -52,12 +71,22 @@ final class LocalAiToolBridge
 
         $scopes = [];
         $map = [
+            Permission::ADMIN_ACCESS->value => ['admin:navigate'],
+            Permission::MCP_TOOLS_CALL->value => ['tools:read'],
             Permission::SYSTEM_READ->value => ['system:read'],
             Permission::QUEUE_READ->value => ['queue:read'],
             Permission::ARTICLES_VIEW->value => ['articles:read'],
             Permission::ARTICLES_CREATE->value => ['articles:write'],
             Permission::ARTICLES_EDIT->value => ['articles:write'],
             Permission::PAGES_VIEW->value => ['pages:read'],
+            Permission::PAGES_CREATE->value => ['pages:write'],
+            Permission::PAGES_EDIT->value => ['pages:write'],
+            Permission::THEMES_VIEW->value => ['themes:read'],
+            Permission::THEMES_CREATE->value => ['themes:write'],
+            Permission::THEMES_EDIT->value => ['themes:write'],
+            Permission::FORMS_VIEW->value => ['content:read', 'forms:read'],
+            Permission::FORMS_CREATE->value => ['content:write', 'forms:write'],
+            Permission::FORMS_EDIT->value => ['content:write', 'forms:write'],
             Permission::MEDIA_VIEW->value => ['media:read'],
             Permission::USERS_VIEW->value => ['users:read'],
             Permission::ROLES_MANAGE->value => ['users:read'],

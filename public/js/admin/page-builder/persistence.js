@@ -169,6 +169,11 @@ export const persistenceMethods = {
         this.saveButton?.setAttribute('disabled', 'disabled');
 
         try {
+            if (Number(this.activeStageId || 0) > 0) {
+                await this.commitActiveStage(payload, {force});
+                return;
+            }
+
             const request = window.NixCMS?.json || fetch;
             const response = await request(this.saveUrl, {
                 method: 'POST',
@@ -211,6 +216,54 @@ export const persistenceMethods = {
         } finally {
             this.saving = false;
             this.saveButton?.removeAttribute('disabled');
+        }
+    },
+
+    async commitActiveStage(payload, {force = false} = {}) {
+        const request = window.NixCMS?.json || fetch;
+        const response = await request('/api/admin/ai/tools/call', {
+            method: 'POST',
+            body: JSON.stringify({
+                _csrf: typeof window.NixCMS?.csrfToken === 'function'
+                    ? String(window.NixCMS.csrfToken() || '')
+                    : '',
+                name: 'cms_stage_commit',
+                arguments: {
+                    stageId: Number(this.activeStageId || 0),
+                    snapshot: payload,
+                },
+            }),
+        });
+        const data = await response.json().catch(() => ({}));
+        const result = data.result || {};
+        if (!response.ok || data.success === false || result.success === false) {
+            throw new Error(result.message || result.error || data.reason || this.labels.couldNotSave);
+        }
+
+        this.savedId = Number(result.pageId || this.savedId || 0);
+        this.activeStageId = 0;
+        try {
+            window.localStorage.setItem(this.storageKey, JSON.stringify({
+                step: this.step,
+                templateId: this.templateId,
+                previewViewport: this.previewViewport,
+                selectedBlockId: this.selectedBlockId,
+                selectedNestedPath: this.selectedNestedPath,
+                blockContent: this.blockContent,
+                customLayout: this.customLayout,
+                persistedValues: this.persistedValues,
+                settingsOpen: this.settingsOpen,
+                savedId: this.savedId,
+            }));
+        } catch (error) {}
+
+        if (force) {
+            try {
+                window.localStorage.removeItem(this.storageKey);
+                window.sessionStorage.setItem(flashToastKey, this.labels.saved);
+            } catch (error) {}
+
+            window.location.assign(this.overviewUrl);
         }
     },
 

@@ -84,6 +84,22 @@ final class ArticleApi
         return $result;
     }
 
+    /**
+     * Persist a staged article snapshot as a draft. This intentionally does not publish.
+     *
+     * @param array<string, mixed> $snapshot
+     * @return array{articleId:int,articleVersionId:int}
+     */
+    public function saveStage(array $snapshot, ?int $authorId = null): array
+    {
+        $payload = $this->stagePayload($snapshot);
+        $articleId = (int) ($payload['article_id'] ?? 0);
+
+        return $articleId > 0
+            ? $this->draft($articleId, $payload, $authorId)
+            : $this->create($payload, $authorId);
+    }
+
     public function publish(int $id, string $locale = 'de'): bool
     {
         $language = $this->resolveLocale($locale);
@@ -296,6 +312,37 @@ final class ArticleApi
         }
 
         throw new \InvalidArgumentException("Unknown locale: {$locale}");
+    }
+
+    /**
+     * @param array<string, mixed> $snapshot
+     * @return array<string, mixed>
+     */
+    private function stagePayload(array $snapshot): array
+    {
+        $fields = is_array($snapshot['fields'] ?? null) ? $snapshot['fields'] : $snapshot;
+        $payload = is_array($snapshot['payload'] ?? null) ? $snapshot['payload'] : [];
+        $content = $fields['content'] ?? $payload['content'] ?? [];
+
+        if (is_string($content) && trim($content) !== '') {
+            $decoded = json_decode($content, true);
+            $content = is_array($decoded) ? $decoded : [];
+        }
+
+        return [
+            'article_id' => (int) ($snapshot['id'] ?? $payload['article_id'] ?? $payload['id'] ?? 0),
+            'article_version_id' => (int) ($fields['article_version_id'] ?? $payload['article_version_id'] ?? 0),
+            'title' => (string) ($fields['title'] ?? $payload['title'] ?? ''),
+            'slug' => (string) ($fields['slug'] ?? $payload['slug'] ?? ''),
+            'teaser' => (string) ($fields['teaser'] ?? $payload['teaser'] ?? ''),
+            'content' => is_array($content) ? $content : [],
+            'language' => (string) ($fields['language'] ?? $payload['language'] ?? 'de'),
+            'category' => (string) ($fields['category'] ?? $payload['category'] ?? ''),
+            'tags' => is_array($fields['tags'] ?? null) ? $fields['tags'] : (is_array($payload['tags'] ?? null) ? $payload['tags'] : []),
+            'show_teaser' => $fields['show_teaser'] ?? $payload['show_teaser'] ?? false,
+            'hide_lead_image_in_content' => $fields['hide_lead_image_in_content'] ?? $payload['hide_lead_image_in_content'] ?? true,
+            'publish_date' => (string) ($fields['publish_date'] ?? $payload['publish_date'] ?? ''),
+        ];
     }
 
     /**

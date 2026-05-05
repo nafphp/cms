@@ -233,16 +233,78 @@ const defaultSystemPrompt = [
     'Do not claim direct database, filesystem, CMS, MCP, API, or tool access unless an explicit tool result is provided in the conversation.',
     'Do not invent CMS facts such as article counts, IDs, titles, statuses, users, roles, plugin names, queue numbers, or health states.',
     'If current CMS state is requested without a tool result, say that you do not know yet and that a CMS tool must be run first.',
-    'Answer in the user language when it is clear.',
+    'Answer in the language of the user\'s latest message.',
 ].join('\n');
+
+const detectLanguageInstruction = (value) => {
+    const text = trimValue(value).toLowerCase();
+    if (text === '') {
+        return '';
+    }
+
+    const germanSignals = [
+        ' der ', ' die ', ' das ', ' und ', ' oder ', ' ist ', ' sind ', ' wie ', ' was ', ' welche ',
+        'welches ', 'wieviele', 'wieviel', 'aktuell', 'heute', 'morgen', 'deutschland', 'bitte',
+        'kannst du', 'gibt es', 'für ', 'größe', 'ä', 'ö', 'ü', 'ß',
+    ];
+    const englishSignals = [
+        ' the ', ' and ', ' or ', ' is ', ' are ', ' what ', ' which ', ' how ', ' today ', ' tomorrow ',
+        'please', 'can you', 'current', 'germany',
+    ];
+    const padded = ` ${text} `;
+    const germanScore = germanSignals.filter((signal) => padded.includes(signal)).length;
+    const englishScore = englishSignals.filter((signal) => padded.includes(signal)).length;
+    const informalGerman = textMatchesAny(text, [' du ', ' dir ', ' dich ', ' dein ', ' deine ', ' kannst du ', ' hast du ']);
+    const formalGerman = textMatchesAny(text, [' sie ', ' ihnen ', ' ihrer ', ' ihre ', ' können sie ', ' haben sie ']);
+
+    if (germanScore > englishScore) {
+        return [
+            'Language instruction: The user wrote the latest message in German. Answer in German.',
+            informalGerman && !formalGerman ? 'Address style instruction: Use informal German Du/Dir/Dich.' : '',
+            formalGerman && !informalGerman ? 'Address style instruction: Use formal German Sie/Ihnen.' : '',
+        ].filter(Boolean).join('\n');
+    }
+
+    if (englishScore > germanScore) {
+        return 'Language instruction: The user wrote the latest message in English. Answer in English.';
+    }
+
+    return '';
+};
 
 const systemContent = (systemPrompt, instructions) => [
         systemPrompt !== '' ? systemPrompt : defaultSystemPrompt,
         instructions !== '' ? `Additional installation instructions:\n${instructions}` : '',
     ].filter(Boolean).join('\n\n');
 
-const chatMessages = (messages, systemPrompt, instructions) => [
-    {role: 'system', content: systemContent(systemPrompt, instructions)},
+const contextInstruction = (context) => {
+    if (!context || typeof context !== 'object' || Array.isArray(context)) {
+        return '';
+    }
+
+    const compact = JSON.stringify(context, (key, value) => {
+        if (key === 'contexts' || typeof value === 'function') {
+            return undefined;
+        }
+        if (Array.isArray(value)) {
+            return value.slice(0, 24);
+        }
+
+        return value;
+    });
+
+    return compact === '{}' ? '' : `Visible UI context for tool arguments:\n${compact}`;
+};
+
+const chatMessages = (messages, systemPrompt, instructions, uiContext = {}) => [
+    {role: 'system', content: systemContent(
+        systemPrompt,
+        [
+            instructions,
+            detectLanguageInstruction(messages.at(-1)?.content ?? ''),
+            contextInstruction(uiContext),
+        ].filter(Boolean).join('\n\n')
+    )},
     ...messages.slice(-16).map((message) => ({
         role: message.role,
         content: message.content,
@@ -320,6 +382,330 @@ const apiJson = async (url, options = {}) => {
     return data;
 };
 
+const assistantRuntime = () => {
+    window.NixCMS = window.NixCMS || {};
+    if (window.NixCMS.assistantActions) {
+        return window.NixCMS.assistantActions;
+    }
+
+    const actions = new Map();
+    const contextProviders = new Map();
+
+    window.NixCMS.assistantActions = {
+        register(name, definition) {
+            const key = trimValue(name);
+            if (key === '' || !definition || typeof definition.handler !== 'function') {
+                return;
+            }
+
+            actions.set(key, {
+                description: trimValue(definition.description || ''),
+                parameters: definition.parameters && typeof definition.parameters === 'object' ? definition.parameters : {},
+                handler: definition.handler,
+            });
+        },
+        registerContext(name, provider) {
+            const key = trimValue(name);
+            if (key !== '' && typeof provider === 'function') {
+                contextProviders.set(key, provider);
+            }
+        },
+        async run(name, payload = {}) {
+            const action = actions.get(trimValue(name));
+            if (!action) {
+                throw new Error(`Assistant UI action ${name} is not registered.`);
+            }
+
+            return action.handler(payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {});
+        },
+        context() {
+            const contexts = {};
+            contextProviders.forEach((provider, name) => {
+                try {
+                    const value = provider();
+                    if (value && typeof value === 'object' && !Array.isArray(value)) {
+                        contexts[name] = value;
+                    }
+                } catch (error) {}
+            });
+
+            return contexts;
+        },
+    };
+
+    return window.NixCMS.assistantActions;
+};
+
+const registerGlobalAssistantActions = () => {
+    const runtime = assistantRuntime();
+    if (window.NixCMS?.__globalAssistantActionsRegistered) {
+        return;
+    }
+
+    window.NixCMS.__globalAssistantActionsRegistered = true;
+    runtime.register('admin.navigate', {
+        description: 'Navigates within the NixCMS admin UI',
+        parameters: {
+            url: 'string',
+        },
+        handler: ({url}) => {
+            const target = trimValue(url);
+            if (!/^\/admin(?:\/|$|\?)/.test(target)) {
+                throw new Error('Assistant navigation is limited to NixCMS admin URLs.');
+            }
+
+            window.location.assign(target);
+            return {success: true, url: target};
+        },
+    });
+};
+
+const collectAssistantContext = () => {
+    const runtimeContext = assistantRuntime().context();
+    const firstContext = Object.values(runtimeContext)[0] || {};
+
+    return {
+        ...firstContext,
+        url: window.location.pathname,
+        contexts: runtimeContext,
+    };
+};
+
+const currentPageBuilderContext = () => assistantRuntime().context().pageBuilder || null;
+const currentThemeEditorContext = () => assistantRuntime().context().themeEditor || null;
+
+const withLiveStageSnapshot = (request) => {
+    if (request?.name !== 'cms_stage_create_change' || !request.arguments || typeof request.arguments !== 'object') {
+        return request;
+    }
+
+    const target = request.arguments.target && typeof request.arguments.target === 'object' && !Array.isArray(request.arguments.target)
+        ? request.arguments.target
+        : {};
+    if (String(target.type || 'page') === 'theme') {
+        const themeEditor = currentThemeEditorContext();
+        const themeSnapshot = themeEditor?.snapshot;
+        if (!themeSnapshot || typeof themeSnapshot !== 'object' || Array.isArray(themeSnapshot)) {
+            return request;
+        }
+
+        return {
+            ...request,
+            arguments: {
+                ...request.arguments,
+                target: {
+                    type: 'theme',
+                    ...target,
+                    ...(Number(themeSnapshot.id || target.id || 0) > 0 ? {id: Number(themeSnapshot.id || target.id || 0)} : {}),
+                    snapshot: themeSnapshot,
+                },
+            },
+        };
+    }
+
+    const pageBuilder = currentPageBuilderContext();
+    const pagePayload = pageBuilder?.pagePayload;
+    if (!pagePayload || typeof pagePayload !== 'object' || Array.isArray(pagePayload)) {
+        return request;
+    }
+
+    if (String(target.type || 'page') !== 'page') {
+        return request;
+    }
+
+    return {
+        ...request,
+            arguments: {
+                ...request.arguments,
+                target: {
+                    type: 'page',
+                    ...target,
+                    ...(Number(pagePayload.id || target.id || pageBuilder.pageId || 0) > 0 ? {id: Number(pagePayload.id || target.id || pageBuilder.pageId || 0)} : {}),
+                    snapshot: pagePayload,
+                },
+            },
+    };
+};
+
+const registerThemeEditorAssistantActions = () => {
+    const editor = window.NixCMS?.themeEditor;
+    const runtime = assistantRuntime();
+    if (!editor || editor.__assistantActionsRegistered) {
+        return;
+    }
+
+    editor.__assistantActionsRegistered = true;
+    runtime.registerContext('themeEditor', () => ({
+        area: 'themeEditor',
+        themeId: typeof editor.currentThemeId === 'function' ? editor.currentThemeId() : '',
+        snapshot: typeof editor.snapshot === 'function' ? editor.snapshot() : null,
+    }));
+    runtime.register('themeEditor.setCss', {
+        description: 'Replaces the current theme editor CSS',
+        parameters: {css: 'string'},
+        handler: ({css = ''} = {}) => {
+            editor.setCss?.(String(css || ''));
+            editor.persistDraft?.();
+            editor.lintAll?.();
+            return {success: true};
+        },
+    });
+    runtime.register('themeEditor.setJs', {
+        description: 'Replaces the current theme editor JavaScript',
+        parameters: {js: 'string'},
+        handler: ({js = ''} = {}) => {
+            editor.setJs?.(String(js || ''));
+            editor.persistDraft?.();
+            editor.lintAll?.();
+            return {success: true};
+        },
+    });
+    runtime.register('themeEditor.updateMeta', {
+        description: 'Updates the current theme editor metadata',
+        parameters: {label: 'string', identifier: 'string', surfaces: 'object'},
+        handler: (payload = {}) => {
+            const snapshot = typeof editor.snapshot === 'function' ? editor.snapshot() : {};
+            editor.applySnapshot?.({
+                ...snapshot,
+                ...payload,
+            });
+            editor.persistDraft?.();
+            return {success: true};
+        },
+    });
+};
+
+const executeUiActions = async (result) => {
+    const uiActions = result?.result?.uiActions ?? result?.result?.ui_actions ?? [];
+    if (!Array.isArray(uiActions) || uiActions.length === 0) {
+        return [];
+    }
+
+    const executed = [];
+    for (const item of uiActions) {
+        const name = trimValue(item?.action || item?.name || '');
+        if (name === '') {
+            continue;
+        }
+
+        executed.push(await assistantRuntime().run(name, item?.payload || {}));
+    }
+
+    const stageId = Number(result?.result?.stageId || 0);
+    const pageBuilder = window.NixCMS?.pageBuilder;
+    if (stageId > 0 && pageBuilder && result?.result?.target?.type === 'page') {
+        pageBuilder.activeStageId = stageId;
+    }
+    const themeEditor = window.NixCMS?.themeEditor;
+    if (stageId > 0 && themeEditor && result?.result?.target?.type === 'theme') {
+        themeEditor.activeStageId = stageId;
+    }
+
+    return executed;
+};
+
+const canAutoRunToolCall = (toolCall) => toolCall?.name === 'cms_stage_create_change';
+
+const registerPageBuilderAssistantActions = () => {
+    const builder = window.NixCMS?.pageBuilder;
+    const runtime = assistantRuntime();
+    if (!builder || builder.__assistantActionsRegistered) {
+        return;
+    }
+
+    builder.__assistantActionsRegistered = true;
+    runtime.registerContext('pageBuilder', () => ({
+        area: 'pageBuilder',
+        pageId: builder.savedId ? String(builder.savedId) : '',
+        layoutId: builder.templateId || '',
+        selectedBlockId: builder.selectedBlockId || '',
+        selectedRegion: builder.selectedBlock?.()?.region || '',
+        availableBlockModules: Array.isArray(builder.contentTypes)
+            ? builder.contentTypes.map((type) => type.type || type.id || '').filter(Boolean)
+            : [],
+        theme: typeof builder.currentThemeId === 'function' ? builder.currentThemeId() : '',
+        pagePayload: typeof builder.pagePayload === 'function' ? builder.pagePayload() : null,
+    }));
+    runtime.register('pagebuilder.addBlock', {
+        description: 'Adds a block to the current page builder view',
+        parameters: {
+            region: 'string',
+            blockType: 'string',
+            config: 'object',
+        },
+        handler: ({region = '', blockType = '', config = {}} = {}) => {
+            if (typeof builder.addCustomSlot !== 'function') {
+                throw new Error('The current page builder cannot add custom blocks.');
+            }
+
+            builder.addCustomSlot(blockType);
+            if (builder.selectedBlockId && config && typeof config === 'object' && !Array.isArray(config)) {
+                builder.blockContent[builder.selectedBlockId] = {
+                    ...(builder.blockContent[builder.selectedBlockId] || {}),
+                    props: {
+                        ...(builder.blockContent[builder.selectedBlockId]?.props || {}),
+                        ...config,
+                    },
+                };
+            }
+            if (builder.selectedBlockId && region && typeof builder.updateCustomSlot === 'function') {
+                builder.updateCustomSlot(builder.selectedBlockId, {region});
+            }
+            builder.persistState?.();
+            builder.render?.();
+
+            return {success: true, blockId: builder.selectedBlockId};
+        },
+    });
+    runtime.register('pagebuilder.updateBlock', {
+        description: 'Updates a block in the current page builder view',
+        parameters: {
+            blockId: 'string',
+            config: 'object',
+        },
+        handler: ({blockId = '', config = {}} = {}) => {
+            const id = String(blockId || builder.selectedBlockId || '');
+            if (id === '' || !builder.blockContent[id]) {
+                throw new Error('The requested block is not available in the current page builder.');
+            }
+            if (!config || typeof config !== 'object' || Array.isArray(config)) {
+                throw new Error('Block update config must be an object.');
+            }
+
+            builder.blockContent[id] = {
+                ...builder.blockContent[id],
+                props: {
+                    ...(builder.blockContent[id]?.props || {}),
+                    ...config,
+                },
+            };
+            builder.selectedBlockId = id;
+            builder.persistState?.();
+            builder.render?.();
+
+            return {success: true, blockId: id};
+        },
+    });
+    runtime.register('pagebuilder.setTheme', {
+        description: 'Sets the current page builder page theme',
+        parameters: {
+            themeId: 'string',
+        },
+        handler: ({themeId = ''} = {}) => {
+            const id = trimValue(themeId);
+            if (id === '') {
+                throw new Error('Theme id is required.');
+            }
+
+            builder.persistedValues.themeId = id;
+            builder.persistState?.();
+            builder.render?.();
+
+            return {success: true, themeId: id};
+        },
+    });
+};
+
 const ollamaTools = (tools) => tools
     .filter((tool) => tool && trimValue(tool.name) !== '')
     .map((tool) => ({
@@ -334,6 +720,179 @@ const ollamaTools = (tools) => tools
             },
         },
     }));
+
+const toolMeta = (tool) => (tool && typeof tool.meta === 'object' && tool.meta !== null) ? tool.meta : {};
+
+const textMatchesAny = (value, needles) => {
+    const text = ` ${trimValue(value).toLowerCase()} `;
+    return needles.some((needle) => text.includes(needle));
+};
+
+const categoryKeywords = {
+    cms_status: [
+        'system', 'status', 'health', 'gesundheit', 'queue', 'warteschlange', 'plugin', 'plugins',
+        'rolle', 'rollen', 'berechtigung', 'berechtigungen', 'user', 'nutzer', 'benutzer',
+    ],
+    cms_content: [
+        'artikel', 'article', 'seite', 'seiten', 'page', 'pages', 'content', 'inhalt', 'media',
+        'medien', 'bild', 'bilder', 'datei', 'dateien', 'kategorie', 'tag', 'version',
+    ],
+    cms_write: [
+        'erstelle', 'erstellen', 'anlegen', 'schreibe', 'speichern', 'draft', 'entwurf',
+        'append', 'ergänze', 'aendere', 'ändere', 'publish', 'veröffentliche',
+    ],
+    cms_audit: [
+        'log', 'logs', 'audit', 'protokoll', 'ereignis', 'ereignisse', 'geändert', 'geaendert',
+        'passiert', 'wer hat', 'aktivität', 'aktivitaet',
+    ],
+    external_planning: [
+        'wetter', 'temperatur', 'regen', 'schnee', 'uv', 'pollen', 'luftqualität', 'luftqualitaet',
+        'feiertag', 'feiertage', 'brückentag', 'brueckentag', 'holiday', 'weather',
+    ],
+    external_business: [
+        'währung', 'waehrung', 'wechselkurs', 'kurs', 'currency', 'exchange', 'euro', 'usd',
+        'dollar', 'chf', 'gbp', 'preis', 'preise',
+    ],
+    external_trends: [
+        'trend', 'trends', 'trendthemen', 'aktuell', 'themen', 'news', 'nachrichten',
+        'was ist los', 'content ideen', 'kampagnenideen',
+    ],
+};
+
+const wantsAllTools = (content) => textMatchesAny(content, [
+    ' welche tools ', ' welche mcp ', ' alle tools ', ' tool liste ', ' werkzeuge ',
+    ' what tools ', ' list tools ', ' available tools ', ' capabilities ',
+]);
+
+const selectToolCategories = (content) => {
+    const categories = Object.entries(categoryKeywords)
+        .filter(([, keywords]) => textMatchesAny(content, keywords))
+        .map(([category]) => category);
+
+    if (categories.includes('cms_write') && !categories.includes('cms_content')) {
+        categories.push('cms_content');
+    }
+
+    return [...new Set(categories)];
+};
+
+const compactToolCatalog = (tools) => tools.map((tool) => ({
+    name: trimValue(tool.name),
+    description: trimValue(tool.description).slice(0, 220),
+    category: String(toolMeta(tool).category || 'plugin'),
+    source: String(toolMeta(tool).source || 'cms'),
+    risk: String(toolMeta(tool).risk || 'read'),
+    tags: Array.isArray(toolMeta(tool).tags) ? toolMeta(tool).tags.slice(0, 10) : [],
+}));
+
+const parseJsonObject = (value) => {
+    const text = trimValue(value);
+    if (text === '') {
+        return null;
+    }
+
+    try {
+        const parsed = JSON.parse(text);
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+    } catch (error) {
+        const match = text.match(/\{[\s\S]*\}/);
+        if (!match) {
+            return null;
+        }
+
+        try {
+            const parsed = JSON.parse(match[0]);
+            return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+        } catch (innerError) {
+            return null;
+        }
+    }
+};
+
+const routeToolsWithModel = async (baseUrl, model, tools, content) => {
+    if (!Array.isArray(tools) || tools.length === 0 || trimValue(model) === '') {
+        return null;
+    }
+
+    const response = await requestOllama(baseUrl, '/api/chat', {
+        model,
+        keep_alive: '0',
+        think: false,
+        stream: false,
+        options: {
+            temperature: 0,
+            num_ctx: 4096,
+            num_predict: 220,
+        },
+        messages: [
+            {
+                role: 'system',
+                content: [
+                    'You are a tool router for a CMS assistant.',
+                    'Select only the tools needed for the latest user request.',
+                    'Return JSON only with this shape: {"categories":["..."],"tools":["..."],"reason":"short"}',
+                    'Use write-risk tools only when the user asks to create, modify, publish, delete, or append content.',
+                    'If the user asks what tools are available, include all relevant categories.',
+                    'Do not answer the user request.',
+                ].join('\n'),
+            },
+            {
+                role: 'user',
+                content: JSON.stringify({
+                    latest_user_message: content,
+                    available_tools: compactToolCatalog(tools),
+                }),
+            },
+        ],
+    });
+    const routed = parseJsonObject(stripModelReasoning(response?.message?.content ?? ''));
+    if (!routed) {
+        return null;
+    }
+
+    return {
+        categories: Array.isArray(routed.categories) ? routed.categories.map((value) => trimValue(value)).filter(Boolean) : [],
+        tools: Array.isArray(routed.tools) ? routed.tools.map((value) => trimValue(value)).filter(Boolean) : [],
+        reason: trimValue(routed.reason || ''),
+    };
+};
+
+const selectedToolsForMessage = (tools, content, routed = null) => {
+    if (!Array.isArray(tools) || tools.length === 0) {
+        return [];
+    }
+
+    if (wantsAllTools(content)) {
+        return tools;
+    }
+
+    const routedNames = new Set(Array.isArray(routed?.tools) ? routed.tools : []);
+    const routedCategories = Array.isArray(routed?.categories) ? routed.categories : [];
+    if (routedNames.size > 0 || routedCategories.length > 0) {
+        const selected = tools.filter((tool) => (
+            routedNames.has(trimValue(tool.name))
+            || routedCategories.includes(String(toolMeta(tool).category || ''))
+        ));
+        if (selected.length > 0) {
+            return selected.slice(0, 24);
+        }
+    }
+
+    const categories = selectToolCategories(content);
+    if (categories.length === 0) {
+        return tools.filter((tool) => toolMeta(tool).risk === 'read').slice(0, 10);
+    }
+
+    const selected = tools.filter((tool) => categories.includes(String(toolMeta(tool).category || '')));
+    if (selected.length === 0) {
+        return tools.filter((tool) => toolMeta(tool).risk === 'read').slice(0, 10);
+    }
+
+    const readTools = selected.filter((tool) => toolMeta(tool).risk !== 'write');
+    const writeTools = selected.filter((tool) => toolMeta(tool).risk === 'write');
+
+    return [...readTools, ...writeTools].slice(0, 16);
+};
 
 const normalizeToolArguments = (value) => {
     if (value && typeof value === 'object' && !Array.isArray(value)) {
@@ -490,6 +1049,22 @@ const initChat = (root) => {
             });
 
         return toolsPromise;
+    };
+
+    const selectTools = async (message, context, limit = 12) => {
+        const data = await apiJson('/api/admin/ai/tools/select', {
+            method: 'POST',
+            body: JSON.stringify({
+                _csrf: typeof window.NixCMS?.csrfToken === 'function'
+                    ? String(window.NixCMS.csrfToken() || '')
+                    : '',
+                message,
+                context,
+                limit,
+            }),
+        });
+
+        return Array.isArray(data.tools) ? data.tools : [];
     };
 
     const callTool = async (request, tools = null) => {
@@ -801,12 +1376,24 @@ const initChat = (root) => {
         setStatus(mode === 'stream' ? 'Streaming...' : 'Thinking...');
 
         let responseText = '';
+        registerGlobalAssistantActions();
+        registerPageBuilderAssistantActions();
+        registerThemeEditorAssistantActions();
         const selectedModel = currentModel();
+        const uiContext = collectAssistantContext();
         const availableTools = await loadTools().catch(() => []);
-        const tools = ollamaTools(availableTools);
+        setStatus('Selecting tools...');
+        const selectedByServer = await selectTools(content, uiContext, 12).catch(() => []);
+        const routedTools = selectedByServer.length > 0 ? null : await routeToolsWithModel(currentBaseUrl(), selectedModel, availableTools, content)
+            .catch(() => null);
+        const activeTools = selectedByServer.length > 0
+            ? selectedByServer
+            : selectedToolsForMessage(availableTools, content, routedTools);
+        const tools = ollamaTools(activeTools);
+        setStatus(mode === 'stream' ? 'Streaming...' : 'Thinking...');
         const basePayload = {
             model: selectedModel,
-            messages: chatMessages(messages, currentSystemPrompt(), currentInstructions()),
+            messages: chatMessages(messages, currentSystemPrompt(), currentInstructions(), uiContext),
             tools,
             keep_alive: '0',
             think: false,
@@ -860,8 +1447,11 @@ const initChat = (root) => {
                     break;
                 }
 
-                setStatus('Tool confirmation required');
-                const approved = await requestToolApproval(assistantMessage, toolCalls);
+                const requiresApproval = !toolCalls.every(canAutoRunToolCall);
+                setStatus(requiresApproval ? 'Tool confirmation required' : 'Staging change...');
+                const approved = requiresApproval
+                    ? await requestToolApproval(assistantMessage, toolCalls)
+                    : true;
                 if (!approved) {
                     responseText = 'Tool-Anfrage abgebrochen.';
                     if (assistantMessage) {
@@ -885,7 +1475,7 @@ const initChat = (root) => {
 
                     let result = null;
                     try {
-                        result = await callTool(toolCall, availableTools);
+                        result = await callTool(withLiveStageSnapshot(toolCall), activeTools);
                     } catch (error) {
                         result = {
                             tool: toolCall.name,
@@ -900,6 +1490,16 @@ const initChat = (root) => {
                         role: 'tool',
                         tool_name: result.tool || toolCall.name,
                         content: JSON.stringify(result.result ?? null),
+                    });
+                    await executeUiActions(result).catch((error) => {
+                        chatWithTools.push({
+                            role: 'tool',
+                            tool_name: result.tool || toolCall.name,
+                            content: JSON.stringify({
+                                success: false,
+                                error: `UI action failed: ${error.message || error}`,
+                            }),
+                        });
                     });
                     toolResults.push(result);
                 }

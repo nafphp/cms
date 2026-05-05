@@ -6,6 +6,7 @@ const storageKeys = {
     type: `${storagePrefix}type`,
     url: `${storagePrefix}url`,
     model: `${storagePrefix}model`,
+    embeddingModel: `${storagePrefix}embedding-model`,
     apiKey: `${storagePrefix}api-key`,
     instructions: `${storagePrefix}instructions`,
 };
@@ -63,6 +64,7 @@ export function initLocalAiSettings(root) {
     const apiKeyInput = root.querySelector('[name="ai.api_key"]');
     const instructionsInput = root.querySelector('[name="ai.instructions"]');
     const modelSelect = root.querySelector('[data-ai-model-select]');
+    const embeddingModelSelect = root.querySelector('[data-ai-embedding-model-select]');
     const loadModelsButton = root.querySelector('[data-ai-load-models]');
     const testButton = root.querySelector('[data-ai-test]');
     const statusNode = root.querySelector('[data-ai-status]');
@@ -72,6 +74,7 @@ export function initLocalAiSettings(root) {
 
     const currentUrl = () => normalizeOllamaBaseUrl(urlInput instanceof HTMLInputElement ? urlInput.value : '');
     const currentModel = () => trimValue(modelSelect instanceof HTMLSelectElement ? modelSelect.value : '');
+    const currentEmbeddingModel = () => trimValue(embeddingModelSelect instanceof HTMLSelectElement ? embeddingModelSelect.value : '');
 
     const restoreField = (field, key) => {
         if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement)) {
@@ -149,6 +152,66 @@ export function initLocalAiSettings(root) {
         if (modelSelect instanceof HTMLSelectElement) {
             modelSelect.disabled = !isLocal;
         }
+        if (embeddingModelSelect instanceof HTMLSelectElement) {
+            embeddingModelSelect.disabled = !isLocal;
+        }
+    };
+
+    const isEmbeddingModelByName = (model) => {
+        const name = trimValue(model?.name || '').toLowerCase();
+        const details = model?.details && typeof model.details === 'object' ? model.details : {};
+        const families = [
+            trimValue(details.family || ''),
+            ...(Array.isArray(details.families) ? details.families.map((family) => trimValue(family)) : []),
+        ].join(' ').toLowerCase();
+        const text = `${name} ${families}`;
+
+        return ['embed', 'embedding', 'nomic-embed', 'all-minilm', 'bge-', 'mxbai-embed', 'snowflake-arctic-embed', 'e5-']
+            .some((needle) => text.includes(needle));
+    };
+
+    const embeddingCapabilities = async (models) => {
+        const detected = new Set();
+        await Promise.all(models.map(async (model) => {
+            const name = trimValue(model?.name || '');
+            if (name === '') {
+                return;
+            }
+
+            try {
+                const details = await requestOllama(currentUrl(), '/api/show', {model: name});
+                const capabilities = Array.isArray(details.capabilities)
+                    ? details.capabilities.map((capability) => trimValue(capability).toLowerCase())
+                    : [];
+                if (capabilities.includes('embedding')) {
+                    detected.add(name);
+                }
+            } catch (error) {
+                if (isEmbeddingModelByName(model)) {
+                    detected.add(name);
+                }
+            }
+        }));
+
+        return detected;
+    };
+
+    const replaceOptions = (select, names, preferred, emptyLabel = '') => {
+        if (!(select instanceof HTMLSelectElement)) {
+            return;
+        }
+
+        select.innerHTML = '';
+        if (emptyLabel !== '') {
+            select.append(new Option(emptyLabel, ''));
+        }
+        if (preferred !== '' && !names.includes(preferred)) {
+            select.append(new Option(`${preferred} (configured)`, preferred));
+        }
+        names.forEach((name) => select.append(new Option(name, name)));
+        if (preferred !== '') {
+            select.value = preferred;
+        }
     };
 
     const loadModels = async () => {
@@ -174,7 +237,14 @@ export function initLocalAiSettings(root) {
                 .map((model) => trimValue(model?.name ?? ''))
                 .filter((name) => name !== '')
                 .sort((left, right) => left.localeCompare(right));
+            const embeddingCapable = await embeddingCapabilities(models);
+            const embeddingNames = models
+                .filter((model) => embeddingCapable.has(trimValue(model?.name || '')) || isEmbeddingModelByName(model))
+                .map((model) => trimValue(model?.name ?? ''))
+                .filter((name) => name !== '')
+                .sort((left, right) => left.localeCompare(right));
             const configured = trimValue(modelSelect.dataset.configuredModel || '');
+            const configuredEmbedding = trimValue(embeddingModelSelect instanceof HTMLSelectElement ? embeddingModelSelect.dataset.configuredModel || '' : '');
             const storedModel = (() => {
                 try {
                     return trimValue(localStorage.getItem(storageKeys.model) || '');
@@ -182,21 +252,18 @@ export function initLocalAiSettings(root) {
                     return '';
                 }
             })();
+            const storedEmbeddingModel = (() => {
+                try {
+                    return trimValue(localStorage.getItem(storageKeys.embeddingModel) || '');
+                } catch (error) {
+                    return '';
+                }
+            })();
             const preferred = storedModel || currentModel() || configured;
+            const preferredEmbedding = storedEmbeddingModel || currentEmbeddingModel() || configuredEmbedding;
 
-            modelSelect.innerHTML = '';
-
-            if (preferred !== '') {
-                const configuredOption = new Option(
-                    names.includes(preferred) ? preferred : `${preferred} (configured)`,
-                    preferred,
-                );
-                modelSelect.append(configuredOption);
-            }
-
-            names
-                .filter((name) => name !== preferred)
-                .forEach((name) => modelSelect.append(new Option(name, name)));
+            replaceOptions(modelSelect, names, preferred);
+            replaceOptions(embeddingModelSelect, embeddingNames, preferredEmbedding, 'Keyword routing only');
 
             if (modelSelect.options.length === 0) {
                 modelSelect.append(new Option('No models found', ''));
@@ -210,9 +277,12 @@ export function initLocalAiSettings(root) {
                 modelSelect.value = names[0];
                 modelSelect.dispatchEvent(new Event('change', {bubbles: true}));
             }
+            if (embeddingModelSelect instanceof HTMLSelectElement && preferredEmbedding !== '') {
+                embeddingModelSelect.value = preferredEmbedding;
+            }
 
             setConnectionStatus(connectionStatusNode, 'online', 'Online');
-            setStatus(statusNode, `${names.length} model${names.length === 1 ? '' : 's'} available.`);
+            setStatus(statusNode, `${names.length} model${names.length === 1 ? '' : 's'} available, ${embeddingNames.length} embedding candidate${embeddingNames.length === 1 ? '' : 's'}.`);
         } catch (error) {
             setConnectionStatus(connectionStatusNode, 'offline', 'Offline');
             setStatus(statusNode, 'Model loading failed.');
@@ -302,6 +372,14 @@ export function initLocalAiSettings(root) {
         modelSelect.addEventListener('change', () => {
             try {
                 localStorage.setItem(storageKeys.model, modelSelect.value);
+            } catch (error) {}
+        });
+    }
+
+    if (embeddingModelSelect instanceof HTMLSelectElement) {
+        embeddingModelSelect.addEventListener('change', () => {
+            try {
+                localStorage.setItem(storageKeys.embeddingModel, embeddingModelSelect.value);
             } catch (error) {}
         });
     }

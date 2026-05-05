@@ -33,7 +33,14 @@ final class ContentRegistry
 
     public function get(string $id): ?ContentTypeInterface
     {
-        return $this->types[$id] ?? null;
+        $id = strtolower(trim($id));
+        foreach ($this->types as $type) {
+            if (strtolower($type->id()) === $id) {
+                return $type;
+            }
+        }
+
+        return null;
     }
 
     public function require(string $id): ContentTypeInterface

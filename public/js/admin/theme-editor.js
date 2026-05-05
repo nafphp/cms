@@ -104,6 +104,7 @@
     class ThemeEditor {
         constructor(root) {
             this.root = root;
+            this.themeId = root.querySelector('input[name="id"]');
             this.surfaceList = root.querySelector('[data-surface-list]');
             this.surfaceTemplate = root.querySelector('[data-surface-template]');
             this.themeLabel = root.querySelector('[data-theme-label]');
@@ -128,6 +129,7 @@
             this.lastThemeId = '';
             this.pendingSelectorRename = null;
             this.cssColorTarget = null;
+            this.activeStageId = 0;
         }
 
         init() {
@@ -142,9 +144,16 @@
             this.bindColorPicker();
             this.bindTabs();
             this.bindTextareaFallbacks();
-            this.root.addEventListener('submit', () => {
+            this.root.addEventListener('submit', (event) => {
                 this.cssMirror?.save();
                 this.jsMirror?.save();
+                if (Number(this.activeStageId || 0) > 0) {
+                    event.preventDefault();
+                    this.commitActiveStage().catch((error) => {
+                        window.alert(error.message || 'Theme stage could not be committed.');
+                    });
+                    return;
+                }
                 this.clearDraft();
             });
             this.renumberSurfaces();
@@ -677,6 +686,7 @@
 
         snapshot() {
             return {
+                id: Number(this.themeId?.value || 0),
                 label: this.themeLabel?.value || '',
                 identifier: this.themeIdentifier?.value || '',
                 identifierManual: this.themeIdentifier?.dataset.manual || '0',
@@ -696,6 +706,9 @@
             this.restoring = true;
             if (this.themeLabel) {
                 this.themeLabel.value = String(snapshot.label || '');
+            }
+            if (this.themeId && Number(snapshot.id || 0) > 0) {
+                this.themeId.value = String(Number(snapshot.id || 0));
             }
             if (this.themeIdentifier) {
                 this.themeIdentifier.value = slug(String(snapshot.identifier || ''));
@@ -717,6 +730,35 @@
             this.refreshGeneratedThemeCode();
             this.lintAll();
             this.restoring = false;
+        }
+
+        async commitActiveStage() {
+            const request = window.NixCMS?.json || fetch;
+            const response = await request('/api/admin/ai/tools/call', {
+                method: 'POST',
+                body: JSON.stringify({
+                    _csrf: typeof window.NixCMS?.csrfToken === 'function'
+                        ? String(window.NixCMS.csrfToken() || '')
+                        : '',
+                    name: 'cms_stage_commit',
+                    arguments: {
+                        stageId: Number(this.activeStageId || 0),
+                        snapshot: this.snapshot(),
+                    },
+                }),
+            });
+            const data = await response.json().catch(() => ({}));
+            const result = data.result || {};
+            if (!response.ok || data.success === false || result.success === false) {
+                throw new Error(result.message || result.error || data.reason || 'Theme stage could not be committed.');
+            }
+
+            this.activeStageId = 0;
+            this.clearDraft();
+            const themeId = Number(result.themeId || this.themeId?.value || 0);
+            if (themeId > 0) {
+                window.location.assign(`/admin/themes/${themeId}/edit`);
+            }
         }
 
         replaceSurfaces(surfaces) {
@@ -1503,5 +1545,10 @@
         }
     }
 
-    document.querySelectorAll('[data-theme-editor]').forEach((root) => new ThemeEditor(root).init());
+    document.querySelectorAll('[data-theme-editor]').forEach((root) => {
+        const editor = new ThemeEditor(root);
+        window.NixCMS = window.NixCMS || {};
+        window.NixCMS.themeEditor = editor;
+        editor.init();
+    });
 })();

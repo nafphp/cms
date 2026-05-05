@@ -6,10 +6,15 @@ use function NixPHP\View\view;
 
 $fields = is_array($fields ?? null) ? $fields : [];
 $modelField = null;
+$embeddingModelField = null;
 $otherFields = [];
 foreach ($fields as $field) {
     if ((string) ($field['key'] ?? '') === 'ai.model') {
         $modelField = $field;
+        continue;
+    }
+    if ((string) ($field['key'] ?? '') === 'ai.embedding_model') {
+        $embeddingModelField = $field;
         continue;
     }
 
@@ -19,12 +24,17 @@ $modelValue = (string) ($modelField['value'] ?? 'llama3.1:8b');
 $modelSource = (string) ($modelField['source'] ?? 'default');
 $modelLabel = (string) ($modelField['label'] ?? t('Default model'));
 $modelDescription = (string) ($modelField['description'] ?? t('Default Ollama model for CMS assistant tasks.'));
+$embeddingModelValue = (string) ($embeddingModelField['value'] ?? '');
+$embeddingModelSource = (string) ($embeddingModelField['source'] ?? 'default');
+$embeddingModelLabel = (string) ($embeddingModelField['label'] ?? t('Embedding model'));
+$embeddingModelDescription = (string) ($embeddingModelField['description'] ?? t('Optional Ollama embedding model for semantic tool routing.'));
 $sourceLabels = [
     'database' => t('Database'),
     'config' => t('config.php'),
     'default' => t('Default'),
 ];
 $modelSourceLabel = (string) ($sourceLabels[$modelSource] ?? $sourceLabels['default']);
+$embeddingModelSourceLabel = (string) ($sourceLabels[$embeddingModelSource] ?? $sourceLabels['default']);
 
 ?>
 <div data-local-ai-settings class="grid gap-5">
@@ -81,6 +91,30 @@ $modelSourceLabel = (string) ($sourceLabels[$modelSource] ?? $sourceLabels['defa
             </select>
             <?php if (trim($modelDescription) !== ''): ?>
                 <small class="text-xs text-slate-500 dark:text-slate-400"><?= s($modelDescription) ?></small>
+            <?php endif; ?>
+            <small class="hidden text-xs font-semibold text-rose-600 dark:text-rose-300" data-setting-error></small>
+        </div>
+
+        <div class="settings-field" data-setting-field="ai.embedding_model">
+            <div class="settings-field-head">
+                <span class="settings-field-label"><?= s($embeddingModelLabel) ?></span>
+                <span class="settings-source-chip settings-source-<?= s($embeddingModelSource) ?>">
+                    <?= s(t('Source:')) ?> <?= s($embeddingModelSourceLabel) ?>
+                </span>
+            </div>
+            <select
+                name="ai.embedding_model"
+                class="block min-h-11 w-full rounded-lg border border-[var(--border)] bg-admin-field px-3 py-2.5 text-sm text-[var(--text)] outline-none transition focus:border-accent focus:bg-admin-field-focus"
+                data-ai-embedding-model-select
+                data-configured-model="<?= s($embeddingModelValue) ?>"
+            >
+                <option value=""><?= s(t('Keyword routing only')) ?></option>
+                <?php if ($embeddingModelValue !== ''): ?>
+                    <option value="<?= s($embeddingModelValue) ?>" selected><?= s($embeddingModelValue) ?></option>
+                <?php endif; ?>
+            </select>
+            <?php if (trim($embeddingModelDescription) !== ''): ?>
+                <small class="text-xs text-slate-500 dark:text-slate-400"><?= s($embeddingModelDescription) ?></small>
             <?php endif; ?>
             <small class="hidden text-xs font-semibold text-rose-600 dark:text-rose-300" data-setting-error></small>
         </div>

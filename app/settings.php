@@ -69,6 +69,9 @@ return [
             SettingField::text('ai.model', 'Default model')
                 ->setDescription('Default Ollama model for CMS assistant tasks.')
                 ->setDefaultValue('llama3.1:8b'),
+            SettingField::text('ai.embedding_model', 'Embedding model')
+                ->setDescription('Optional Ollama embedding model for semantic tool routing, for example nomic-embed-text. Leave empty to use keyword routing.')
+                ->setDefaultValue(''),
             SettingField::text('ai.api_key', 'API key')
                 ->setDescription('Reserved for future remote providers. Leave empty for local Ollama.')
                 ->setDefaultValue(''),

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NixCMS\Models;
 
+use NixCMS\Stage\Attributes\StageField;
 use NixPHP\ORM\Model\AbstractModel;
 
 class Media extends AbstractModel
@@ -12,6 +13,7 @@ class Media extends AbstractModel
 
     protected ?string $disk = 'public';
     protected ?string $public_id = null;
+    #[StageField]
     protected ?string $visibility = 'public';
     protected ?string $original_name = null;
     protected ?string $stored_name = null;
@@ -23,6 +25,7 @@ class Media extends AbstractModel
     protected ?int $size_bytes = null;
     protected ?int $width = null;
     protected ?int $height = null;
+    #[StageField]
     protected ?string $alt_text = null;
     protected ?int $uploaded_by = null;
     protected ?string $metadata_json = null;
