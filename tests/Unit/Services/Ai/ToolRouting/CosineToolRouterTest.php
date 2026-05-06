@@ -21,19 +21,19 @@ final class CosineToolRouterTest extends TestCase
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_stage_create_change',
-                'description' => 'Creates a staged CMS change for page blocks.',
+                'name' => 'cms_article_draft_create',
+                'description' => 'Creates an article draft from a requested title and content.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
         ]);
 
         $selected = (new CosineToolRouter($tools, new FakeEmbeddingClient()))->select(
-            'Füge hier einen Textblock ein',
-            ToolContext::fromArray(['area' => 'pageBuilder']),
+            'Erstelle einen Artikelentwurf',
+            ToolContext::fromArray(['area' => 'articleEditor']),
             2,
         );
 
-        self::assertSame('cms_stage_create_change', $selected[0]['name']);
+        self::assertSame('cms_article_draft_create', $selected[0]['name']);
         self::assertSame(['cosine'], $selected[0]['route']['reasons']);
     }
 }
@@ -57,7 +57,7 @@ final class FakeEmbeddingClient implements EmbeddingClientInterface
     {
         $text = strtolower($text);
 
-        return str_contains($text, 'block') || str_contains($text, 'stage') || str_contains($text, 'füge')
+        return str_contains($text, 'artikel') || str_contains($text, 'article') || str_contains($text, 'draft') || str_contains($text, 'entwurf') || str_contains($text, 'erstelle')
             ? [1.0, 0.0]
             : [0.0, 1.0];
     }

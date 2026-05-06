@@ -69,7 +69,6 @@ final class CmsApiDocRenderer implements DocBlockRenderer
             'languages' => 'Enabled, available, and discovered language codes.',
             'settings' => 'Resolved runtime settings.',
             'settingsRegistry' => 'Admin-editable setting sections and fields.',
-            'stageTargets' => 'AI/stage target resolvers for controlled staged changes.',
         ][$method] ?? 'Public CMS helper entry point.';
     }
 
@@ -93,7 +92,6 @@ final class CmsApiDocRenderer implements DocBlockRenderer
             'languages',
             'settings',
             'settingsRegistry',
-            'stageTargets',
         ];
 
         $rank = array_search($method, $order, true);

@@ -81,16 +81,6 @@ final class FormApi
         return $savedId;
     }
 
-    /**
-     * Persist a staged form snapshot through the same domain path as manual form editing.
-     *
-     * @param array<string, mixed> $snapshot
-     */
-    public function saveStage(array $snapshot): int
-    {
-        return $this->save($this->stagePayload($snapshot));
-    }
-
     public function delete(int $id): bool
     {
         $old = $this->repository->find($id);
@@ -139,22 +129,4 @@ final class FormApi
         ];
     }
 
-    /**
-     * @param array<string, mixed> $snapshot
-     * @return array<string, mixed>
-     */
-    private function stagePayload(array $snapshot): array
-    {
-        $fields = is_array($snapshot['fields'] ?? null) ? $snapshot['fields'] : $snapshot;
-        $payload = is_array($snapshot['payload'] ?? null) ? $snapshot['payload'] : [];
-
-        return [
-            'id' => (int) ($snapshot['id'] ?? $payload['id'] ?? 0),
-            'identifier' => (string) ($fields['identifier'] ?? $payload['identifier'] ?? ''),
-            'title' => (string) ($fields['title'] ?? $payload['title'] ?? ''),
-            'status' => (string) ($fields['status'] ?? $payload['status'] ?? 'draft'),
-            'fields' => is_array($fields['fields'] ?? null) ? $fields['fields'] : [],
-            'settings' => is_array($fields['settings'] ?? null) ? $fields['settings'] : [],
-        ];
-    }
 }

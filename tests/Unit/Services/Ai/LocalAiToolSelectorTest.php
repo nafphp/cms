@@ -44,7 +44,7 @@ final class LocalAiToolSelectorTest extends TestCase
 
         $selected = (new LocalAiToolSelector())->select(
             $tools,
-            'Fuege hier einen Textblock ein',
+            'Welche Bloecke sind auf dieser Seite?',
             [
                 'area' => 'pageBuilder',
                 'selectedRegion' => 'content',
@@ -53,7 +53,7 @@ final class LocalAiToolSelectorTest extends TestCase
             2
         );
 
-        self::assertSame('cms_stage_create_change', $selected[0]['name']);
+        self::assertSame('cms_page_overview', $selected[0]['name']);
     }
 
     /**
@@ -62,11 +62,6 @@ final class LocalAiToolSelectorTest extends TestCase
     private function tools(): array
     {
         return (new LocalAiToolCatalog())->enrich([
-            [
-                'name' => 'cms_stage_create_change',
-                'description' => 'Creates a staged CMS change for a target such as a page. Does not publish.',
-                'inputSchema' => ['type' => 'object', 'properties' => []],
-            ],
             [
                 'name' => 'cms_queue_status',
                 'description' => 'Returns queue status and pending jobs.',

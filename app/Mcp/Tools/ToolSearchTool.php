@@ -29,7 +29,7 @@ final class ToolSearchTool implements ToolInterface, ScopedToolInterface
             ->prop('query', Schema::string()->description('Tool search query.')->default(''))
             ->prop('context', Schema::object()->description('Optional UI context such as area, pageId, selectedRegion, or theme.')->additionalProperties(true))
             ->prop('capabilities', Schema::array(Schema::string())->description('Optional requested capabilities.'))
-            ->prop('mode', Schema::string()->description('Optional mode filter such as read or stage.')->default(''))
+            ->prop('mode', Schema::string()->description('Optional mode filter such as read or write.')->default(''))
             ->prop('limit', Schema::integer()->description('Maximum tools to return.')->min(1)->max(20)->default(8))
             ->required('query')
             ->toArray();

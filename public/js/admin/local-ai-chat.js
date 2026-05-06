@@ -471,62 +471,6 @@ const collectAssistantContext = () => {
     };
 };
 
-const currentPageBuilderContext = () => assistantRuntime().context().pageBuilder || null;
-const currentThemeEditorContext = () => assistantRuntime().context().themeEditor || null;
-
-const withLiveStageSnapshot = (request) => {
-    if (request?.name !== 'cms_stage_create_change' || !request.arguments || typeof request.arguments !== 'object') {
-        return request;
-    }
-
-    const target = request.arguments.target && typeof request.arguments.target === 'object' && !Array.isArray(request.arguments.target)
-        ? request.arguments.target
-        : {};
-    if (String(target.type || 'page') === 'theme') {
-        const themeEditor = currentThemeEditorContext();
-        const themeSnapshot = themeEditor?.snapshot;
-        if (!themeSnapshot || typeof themeSnapshot !== 'object' || Array.isArray(themeSnapshot)) {
-            return request;
-        }
-
-        return {
-            ...request,
-            arguments: {
-                ...request.arguments,
-                target: {
-                    type: 'theme',
-                    ...target,
-                    ...(Number(themeSnapshot.id || target.id || 0) > 0 ? {id: Number(themeSnapshot.id || target.id || 0)} : {}),
-                    snapshot: themeSnapshot,
-                },
-            },
-        };
-    }
-
-    const pageBuilder = currentPageBuilderContext();
-    const pagePayload = pageBuilder?.pagePayload;
-    if (!pagePayload || typeof pagePayload !== 'object' || Array.isArray(pagePayload)) {
-        return request;
-    }
-
-    if (String(target.type || 'page') !== 'page') {
-        return request;
-    }
-
-    return {
-        ...request,
-            arguments: {
-                ...request.arguments,
-                target: {
-                    type: 'page',
-                    ...target,
-                    ...(Number(pagePayload.id || target.id || pageBuilder.pageId || 0) > 0 ? {id: Number(pagePayload.id || target.id || pageBuilder.pageId || 0)} : {}),
-                    snapshot: pagePayload,
-                },
-            },
-    };
-};
-
 const registerThemeEditorAssistantActions = () => {
     const editor = window.NixCMS?.themeEditor;
     const runtime = assistantRuntime();
@@ -591,20 +535,10 @@ const executeUiActions = async (result) => {
         executed.push(await assistantRuntime().run(name, item?.payload || {}));
     }
 
-    const stageId = Number(result?.result?.stageId || 0);
-    const pageBuilder = window.NixCMS?.pageBuilder;
-    if (stageId > 0 && pageBuilder && result?.result?.target?.type === 'page') {
-        pageBuilder.activeStageId = stageId;
-    }
-    const themeEditor = window.NixCMS?.themeEditor;
-    if (stageId > 0 && themeEditor && result?.result?.target?.type === 'theme') {
-        themeEditor.activeStageId = stageId;
-    }
-
     return executed;
 };
 
-const canAutoRunToolCall = (toolCall) => toolCall?.name === 'cms_stage_create_change';
+const canAutoRunToolCall = () => false;
 
 const registerPageBuilderAssistantActions = () => {
     const builder = window.NixCMS?.pageBuilder;
@@ -1448,7 +1382,7 @@ const initChat = (root) => {
                 }
 
                 const requiresApproval = !toolCalls.every(canAutoRunToolCall);
-                setStatus(requiresApproval ? 'Tool confirmation required' : 'Staging change...');
+                setStatus(requiresApproval ? 'Tool confirmation required' : 'Running tools...');
                 const approved = requiresApproval
                     ? await requestToolApproval(assistantMessage, toolCalls)
                     : true;
@@ -1475,7 +1409,7 @@ const initChat = (root) => {
 
                     let result = null;
                     try {
-                        result = await callTool(withLiveStageSnapshot(toolCall), activeTools);
+                        result = await callTool(toolCall, activeTools);
                     } catch (error) {
                         result = {
                             tool: toolCall.name,

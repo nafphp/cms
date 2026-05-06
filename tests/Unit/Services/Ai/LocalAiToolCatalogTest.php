@@ -28,7 +28,7 @@ final class LocalAiToolCatalogTest extends TestCase
 
         self::assertSame('cms_write', $meta['category']);
         self::assertSame('write', $meta['risk']);
-        self::assertSame('stage', $meta['mode']);
+        self::assertSame('write', $meta['mode']);
         self::assertContains('content.write', $meta['capabilities']);
         self::assertStringContainsString('title', $meta['routingText']);
     }

@@ -80,7 +80,6 @@ export class PageBuilder {
         this.saveTimer = null;
         this.saving = false;
         this.savedId = Number(this.initialState.id || 0);
-        this.activeStageId = 0;
     }
 
     currentThemeId() {

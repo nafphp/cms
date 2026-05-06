@@ -60,8 +60,8 @@ final class ToolHardFilter
         $capabilities = $this->capabilities($meta);
 
         return match ($area) {
-            'pagebuilder' => $this->intersects($capabilities, ['stage.write', 'block.create', 'block.update', 'layout.write', 'pages.write', 'content.write']),
-            'themeeditor' => $this->intersects($capabilities, ['stage.write', 'theme.write', 'themes.write']),
+            'pagebuilder' => $this->intersects($capabilities, ['block.create', 'block.update', 'layout.write', 'pages.write', 'content.write']),
+            'themeeditor' => $this->intersects($capabilities, ['theme.write', 'themes.write']),
             'articleeditor' => $this->intersects($capabilities, ['content.write', 'articles.write']),
             'formeditor', 'formbuilder' => $this->intersects($capabilities, ['content.write', 'forms.write']),
             default => true,

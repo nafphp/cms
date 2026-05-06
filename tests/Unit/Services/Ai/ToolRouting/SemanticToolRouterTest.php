@@ -22,9 +22,9 @@ final class SemanticToolRouterTest extends TestCase
             ];
         }
         $tools[] = [
-            'name' => 'cms_stage_create_change',
-            'description' => 'Creates a staged CMS change for a page, layout, block, or theme.',
-            'inputSchema' => ['type' => 'object', 'properties' => ['action' => ['type' => 'string']]],
+            'name' => 'cms_page_overview',
+            'description' => 'Returns page and layout block overview for the PageBuilder.',
+            'inputSchema' => ['type' => 'object', 'properties' => ['pageId' => ['type' => 'string']]],
         ];
         $tools[] = [
             'name' => 'cms_tools_search',
@@ -33,7 +33,7 @@ final class SemanticToolRouterTest extends TestCase
         ];
 
         $selected = (new SemanticToolRouter((new LocalAiToolCatalog())->enrich($tools)))->select(
-            'Füge hier einen Textblock mit Blabla ein',
+            'Welche Bloecke sind in diesem Layout?',
             ToolContext::fromArray([
                 'area' => 'pageBuilder',
                 'selectedRegion' => 'content',
@@ -43,7 +43,7 @@ final class SemanticToolRouterTest extends TestCase
         );
 
         self::assertLessThanOrEqual(8, count($selected));
-        self::assertSame('cms_stage_create_change', $selected[0]['name']);
+        self::assertSame('cms_page_overview', $selected[0]['name']);
         self::assertContains('cms_tools_search', array_column($selected, 'name'));
     }
 
@@ -80,22 +80,22 @@ final class SemanticToolRouterTest extends TestCase
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_stage_create_change',
-                'description' => 'Creates a staged CMS change.',
+                'name' => 'cms_article_draft_create',
+                'description' => 'Creates an article draft.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
         ]);
 
         $selected = (new SemanticToolRouter($tools))->select(
-            'Füge hier einen Block ein',
+            'Erstelle einen Artikelentwurf',
             ToolContext::fromArray([
-                'area' => 'pageBuilder',
-                'mode' => 'stage',
-                'capabilities' => ['block.create'],
+                'area' => 'articleEditor',
+                'mode' => 'write',
+                'capabilities' => ['articles.write'],
             ]),
             5,
         );
 
-        self::assertSame(['cms_stage_create_change'], array_column($selected, 'name'));
+        self::assertSame(['cms_article_draft_create'], array_column($selected, 'name'));
     }
 }

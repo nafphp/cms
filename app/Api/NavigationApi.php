@@ -105,16 +105,6 @@ final class NavigationApi
         return $savedId;
     }
 
-    /**
-     * Persist a staged navigation snapshot through the same domain path as manual navigation editing.
-     *
-     * @param array<string, mixed> $snapshot
-     */
-    public function saveStage(array $snapshot): int
-    {
-        return $this->save($this->stagePayload($snapshot));
-    }
-
     public function publish(int $id): bool
     {
         $old = $this->repository->find($id);
@@ -197,23 +187,4 @@ final class NavigationApi
         ];
     }
 
-    /**
-     * @param array<string, mixed> $snapshot
-     * @return array<string, mixed>
-     */
-    private function stagePayload(array $snapshot): array
-    {
-        $fields = is_array($snapshot['fields'] ?? null) ? $snapshot['fields'] : $snapshot;
-        $payload = is_array($snapshot['payload'] ?? null) ? $snapshot['payload'] : [];
-
-        return [
-            'id' => (int) ($snapshot['id'] ?? $payload['id'] ?? 0),
-            'identifier' => (string) ($fields['identifier'] ?? $payload['identifier'] ?? ''),
-            'title' => (string) ($fields['title'] ?? $payload['title'] ?? ''),
-            'scope' => (string) ($fields['scope'] ?? $payload['scope'] ?? 'frontend'),
-            'language' => (string) ($fields['language'] ?? $payload['language'] ?? ''),
-            'status' => (string) ($fields['status'] ?? $payload['status'] ?? 'draft'),
-            'items' => is_array($fields['items'] ?? null) ? $fields['items'] : [],
-        ];
-    }
 }

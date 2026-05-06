@@ -129,9 +129,9 @@ final class KeywordToolRouter implements ToolRouterInterface
             $reasons[] = 'capability';
         }
 
-        if ($writeIntent && ($meta['mode'] ?? '') === 'stage') {
+        if ($writeIntent && ($meta['mode'] ?? '') === 'write') {
             $score += 6.0;
-            $reasons[] = 'stage-write';
+            $reasons[] = 'write';
         }
 
         if ($this->matchesExamples($query, is_array($meta['examples'] ?? null) ? $meta['examples'] : [])) {
@@ -199,8 +199,8 @@ final class KeywordToolRouter implements ToolRouterInterface
         $capabilities = $this->capabilities($meta);
 
         return match ($area) {
-            'pagebuilder' => $this->hasAny($capabilities, ['layout.read', 'layout.write', 'block.create', 'block.update', 'pages.write', 'stage.write']) || str_contains($toolText, 'page') ? 3.0 : 0.0,
-            'themeeditor' => $this->hasAny($capabilities, ['theme.read', 'theme.write', 'themes.write', 'stage.write']) || str_contains($toolText, 'theme') ? 3.0 : 0.0,
+            'pagebuilder' => $this->hasAny($capabilities, ['layout.read', 'layout.write', 'block.create', 'block.update', 'pages.write']) || str_contains($toolText, 'page') ? 3.0 : 0.0,
+            'themeeditor' => $this->hasAny($capabilities, ['theme.read', 'theme.write', 'themes.write']) || str_contains($toolText, 'theme') ? 3.0 : 0.0,
             'articleeditor' => $this->hasAny($capabilities, ['content.read', 'content.write', 'articles.write']) || str_contains($toolText, 'article') ? 3.0 : 0.0,
             'formeditor', 'formbuilder' => $this->hasAny($capabilities, ['content.read', 'content.write', 'forms.write']) || str_contains($toolText, 'form') ? 3.0 : 0.0,
             default => 0.0,
@@ -223,7 +223,6 @@ final class KeywordToolRouter implements ToolRouterInterface
             'content.read' => ['artikel', 'article', 'inhalt', 'content', 'draft', 'entwurf'],
             'content.write' => ['erstelle', 'create', 'append', 'ergänze', 'aendere', 'ändere', 'draft'],
             'articles.write' => ['artikel', 'article', 'draft', 'entwurf'],
-            'stage.write' => ['stage', 'staged', 'change', 'commit', 'füge', 'fuege', 'add', 'block', 'theme', 'aendere', 'ändere'],
             'media.read' => ['media', 'bild', 'image', 'datei'],
             'system.read' => ['system', 'status', 'queue', 'health', 'plugin'],
             'external.fetch' => ['wetter', 'weather', 'trend', 'holiday', 'wechselkurs', 'news'],

@@ -95,15 +95,11 @@ final class LocalAiToolCatalog
     private function mode(string $text, string $name): string
     {
         if ($this->contains($text, ['draft_create', 'draft_append', 'create draft', 'append to an existing draft'])) {
-            return 'stage';
-        }
-
-        if (str_starts_with($name, 'cms_stage_')) {
-            return 'stage';
+            return 'write';
         }
 
         if ($this->risk($text, $name) === 'write') {
-            return 'stage';
+            return 'write';
         }
 
         return 'read';
@@ -125,15 +121,6 @@ final class LocalAiToolCatalog
         }
         if ($this->contains($text, ['page', 'layout', 'block'])) {
             $capabilities[] = 'layout.read';
-        }
-        if (str_starts_with($name, 'cms_stage_create_change')) {
-            array_push($capabilities, 'stage.write', 'block.create', 'block.update', 'layout.write', 'theme.write', 'content.write', 'pages.write');
-        }
-        if (str_starts_with($name, 'cms_stage_') || $this->contains($text, ['stage', 'staged', 'commit'])) {
-            $capabilities[] = 'stage.write';
-        }
-        if (str_starts_with($name, 'cms_stage_preview')) {
-            $capabilities[] = 'stage.read';
         }
         if ($this->contains($text, ['media', 'image', 'file'])) {
             $capabilities[] = 'media.read';
@@ -197,13 +184,6 @@ final class LocalAiToolCatalog
         ));
 
         return match ($name) {
-            'cms_stage_create_change' => [
-                ...$examples,
-                'Add a text block here',
-                'Change the background color',
-                'Update this page layout',
-                'Insert an image block',
-            ],
             'cms_article_draft_create' => [
                 ...$examples,
                 'Create an article draft',

@@ -10,7 +10,6 @@ use NixCMS\Repositories\ArticleVersionRepository;
 use NixCMS\Repositories\CategoryRepository;
 use NixCMS\Repositories\TagRepository;
 use NixCMS\Repositories\UserRepository;
-use NixCMS\Stage\Attributes\StageField;
 use NixPHP\ORM\Core\EntityInterface;
 use NixPHP\ORM\Model\AbstractModel;
 use function NixPHP\ORM\repo;
@@ -18,9 +17,7 @@ use function NixPHP\ORM\repo;
 class Article extends AbstractModel implements \JsonSerializable
 {
     protected ?int $author = null;
-    #[StageField]
     protected ?int $hide_lead_image_in_content = 1;
-    #[StageField]
     protected ?int $category_id = null;
     protected ?string $createdAt = null;
 

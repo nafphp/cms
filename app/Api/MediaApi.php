@@ -175,26 +175,6 @@ final class MediaApi
         return $media;
     }
 
-    /**
-     * Persist a staged media metadata snapshot. File contents and storage paths are not stage-writable.
-     *
-     * @param array<string, mixed> $snapshot
-     * @return array<string, mixed>|null
-     */
-    public function saveStage(array $snapshot): ?array
-    {
-        $fields = is_array($snapshot['fields'] ?? null) ? $snapshot['fields'] : $snapshot;
-        $id = (int) ($snapshot['id'] ?? $fields['id'] ?? 0);
-        if ($id <= 0) {
-            throw new \InvalidArgumentException('Media stage requires an existing media id.');
-        }
-
-        return $this->update($id, [
-            'visibility' => $fields['visibility'] ?? null,
-            'alt_text' => $fields['alt_text'] ?? null,
-        ]);
-    }
-
     public function delete(int $id): bool
     {
         $old = $this->find($id);

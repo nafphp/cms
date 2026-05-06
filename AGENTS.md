@@ -121,20 +121,13 @@ The local assistant must not send the full MCP tool registry to the model once t
 - Plugins should register executable tools plus metadata such as description, routing description, examples, capabilities, mode, and scopes. Plugins should not own cross-registry routing or permission decisions.
 - Categories such as `cms`, `plugins`, `external`, and `context` remain useful for organization/debugging, but semantic routing should not depend on categories alone.
 
-### AI Stage System
+### AI Admin Actions
 
-AI-assisted writes should be staged unless a domain-specific draft tool already provides a safer workflow.
+The initial local assistant should stay focused on tool-driven CMS assistance and navigation.
 
-- Stage classes live under `app/Stage`. `Stage` is an explicit working context around a target; it is not a proxy for the target object.
-- `cms()->stageTargets()` is the registry for stage target resolvers. Current core targets include page, theme, and generic content.
-- Stage terms are strict: `commit` persists the staged working snapshot; `publish` makes content live or enters the normal publication workflow. `commit != publish`.
-- PageBuilder and theme edits should go through `cms_stage_create_change`, `cms_stage_preview`, and `cms_stage_commit`; these tools may return registered UI Actions but must not execute arbitrary JavaScript.
-- UI Actions are frontend-registered commands only. Backend tool results may request actions such as PageBuilder block updates, but the browser must validate and execute only registered action names.
 - Admin navigation from the assistant should use `cms_admin_navigate`, which returns the registered `admin.navigate` UI Action. Keep navigation restricted to safe internal `/admin` URLs.
-- If an AI stage is active in the PageBuilder or Theme Editor, manual Save should commit or merge the current UI state into that active stage rather than directly persisting a divergent object.
-- Generic content staging uses `ContentStageTarget` plus reflection. Only properties marked with `#[StageField]` are stageable; use `#[StageField(writable: false)]` for read-only values. Methods are not automatically callable or stageable.
-- `ContentStageTarget` persists through the content API: prefer `saveStage()`, then `save()`, and return a clear unsupported-persistence result when neither exists. Do not silently persist through repositories as a fallback.
-- Article creation and appending should prefer the domain MCP tools `cms_article_draft_create` and `cms_article_draft_append`; those already use the Article API/versioning workflow. Generic reflection staging is not the primary article creation path.
+- Article creation and appending should prefer the domain MCP tools `cms_article_draft_create` and `cms_article_draft_append`; those already use the Article API/versioning workflow.
+- PageBuilder and broader staged write experiments live on the `ai-enhancement` branch until the interaction model is reliable enough for core.
 
 ## Capability Concept
 

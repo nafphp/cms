@@ -129,7 +129,6 @@
             this.lastThemeId = '';
             this.pendingSelectorRename = null;
             this.cssColorTarget = null;
-            this.activeStageId = 0;
         }
 
         init() {
@@ -147,13 +146,6 @@
             this.root.addEventListener('submit', (event) => {
                 this.cssMirror?.save();
                 this.jsMirror?.save();
-                if (Number(this.activeStageId || 0) > 0) {
-                    event.preventDefault();
-                    this.commitActiveStage().catch((error) => {
-                        window.alert(error.message || 'Theme stage could not be committed.');
-                    });
-                    return;
-                }
                 this.clearDraft();
             });
             this.renumberSurfaces();
@@ -730,35 +722,6 @@
             this.refreshGeneratedThemeCode();
             this.lintAll();
             this.restoring = false;
-        }
-
-        async commitActiveStage() {
-            const request = window.NixCMS?.json || fetch;
-            const response = await request('/api/admin/ai/tools/call', {
-                method: 'POST',
-                body: JSON.stringify({
-                    _csrf: typeof window.NixCMS?.csrfToken === 'function'
-                        ? String(window.NixCMS.csrfToken() || '')
-                        : '',
-                    name: 'cms_stage_commit',
-                    arguments: {
-                        stageId: Number(this.activeStageId || 0),
-                        snapshot: this.snapshot(),
-                    },
-                }),
-            });
-            const data = await response.json().catch(() => ({}));
-            const result = data.result || {};
-            if (!response.ok || data.success === false || result.success === false) {
-                throw new Error(result.message || result.error || data.reason || 'Theme stage could not be committed.');
-            }
-
-            this.activeStageId = 0;
-            this.clearDraft();
-            const themeId = Number(result.themeId || this.themeId?.value || 0);
-            if (themeId > 0) {
-                window.location.assign(`/admin/themes/${themeId}/edit`);
-            }
         }
 
         replaceSurfaces(surfaces) {
