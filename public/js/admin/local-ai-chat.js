@@ -1347,9 +1347,17 @@ const initChat = (root) => {
                 responseText = '';
 
                 let response = null;
+                const planningToolCall = Array.isArray(payload.tools) && payload.tools.length > 0 && toolResults.length === 0;
+                const requestPayload = toolResults.length > 0
+                    ? {
+                        ...payload,
+                        tools: [],
+                    }
+                    : payload;
+                const streamResponse = mode === 'stream' && !planningToolCall;
                 try {
-                    response = mode === 'stream'
-                        ? await requestOllama(currentBaseUrl(), '/api/chat', payload, (delta) => {
+                    response = streamResponse
+                        ? await requestOllama(currentBaseUrl(), '/api/chat', requestPayload, (delta) => {
                             responseText += delta;
                             if (assistantMessage) {
                                 assistantMessage.textContent = responseText;
@@ -1359,7 +1367,7 @@ const initChat = (root) => {
                             }
                         })
                         : await requestOllama(currentBaseUrl(), '/api/chat', {
-                            ...payload,
+                            ...requestPayload,
                             stream: false,
                         });
                 } catch (error) {
