@@ -6,6 +6,7 @@ namespace Tests\Unit\Mcp;
 
 use NixCMS\Mcp\Tools\ContentOverviewTool;
 use Tests\Support\DatabaseTestCase;
+use function NixCMS\audit_log;
 
 final class ContentOverviewToolTest extends DatabaseTestCase
 {

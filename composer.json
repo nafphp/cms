@@ -19,7 +19,7 @@
     },
     "autoload": {
         "files": [
-            "app/Support/helpers.php"
+            "app/functions.php"
         ],
         "psr-4": {
             "NixCMS\\": "app/",

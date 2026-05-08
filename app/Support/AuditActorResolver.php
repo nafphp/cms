@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace NixCMS\Support;
 
+use function NixCMS\user;
+
 class AuditActorResolver
 {
     public function resolve(): ?AuditActorInfo
     {
-        if (!function_exists('user')) {
-            return AuditActorInfo::system();
-        }
-
-        $helper = \user();
+        $helper = user();
         $actor = $helper?->get();
         if ($actor === null) {
             return new AuditActorInfo(

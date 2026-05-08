@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NixCMS\Services\Form;
 
 use Closure;
+use function NixCMS\cms;
 
 final class FormSubmissionActionRunner
 {
@@ -74,7 +75,7 @@ final class FormSubmissionActionRunner
     private function store(array $form, array $values, array $meta): array
     {
         $store = $this->storeSubmission ?? static fn(int $formId, array $payload, array $submissionMeta): int
-            => \cms()->forms()->storeSubmission($formId, $payload, $submissionMeta);
+            => cms()->forms()->storeSubmission($formId, $payload, $submissionMeta);
 
         $submissionId = $store((int) ($form['id'] ?? 0), $values, $meta);
 

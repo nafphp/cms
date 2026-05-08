@@ -11,6 +11,7 @@ use NixCMS\Repositories\ArticleRepository;
 use function NixPHP\I18n\lang;
 use function NixPHP\ORM\repo;
 use function NixPHP\response;
+use function NixCMS\cms;
 
 $publicLayout = Layout::create(Template::create('default')
     ->setParent('page')

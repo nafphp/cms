@@ -6,6 +6,7 @@ namespace NixCMS\Page;
 
 use NixCMS\Content\BlockViewRegistry;
 use NixCMS\Enums\Permission;
+use function NixCMS\cms;
 
 final class PageFactory
 {
@@ -29,7 +30,7 @@ final class PageFactory
         $storedBlocks = is_array($row['blocks'] ?? null) ? $row['blocks'] : [];
         $meta = is_array($row['meta'] ?? null) ? $row['meta'] : [];
         $definitionBlocks = is_array($definition['blocks'] ?? null) ? $definition['blocks'] : [];
-        if ((string) ($definition['kind'] ?? 'static') === 'custom') {
+        if (array_key_exists('custom_layout', $meta)) {
             $definitionBlocks = is_array($meta['custom_layout'] ?? null) ? $meta['custom_layout'] : [];
         }
 
@@ -99,7 +100,7 @@ final class PageFactory
             return $this->blockViews;
         }
 
-        return $this->blockViews = function_exists('\cms') ? \cms()->blocks() : new BlockViewRegistry();
+        return $this->blockViews = cms()->blocks();
     }
 
     /**

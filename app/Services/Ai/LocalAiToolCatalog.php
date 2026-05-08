@@ -122,6 +122,9 @@ final class LocalAiToolCatalog
         if ($this->contains($text, ['page', 'layout', 'block'])) {
             $capabilities[] = 'layout.read';
         }
+        if (str_starts_with($name, 'cms_pagebuilder_') || $this->contains($text, ['pagebuilder', 'page builder', 'show mode', 'zeigemodus'])) {
+            $capabilities[] = 'pages.read';
+        }
         if ($this->contains($text, ['media', 'image', 'file'])) {
             $capabilities[] = 'media.read';
         }
@@ -207,6 +210,14 @@ final class LocalAiToolCatalog
                 'Navigate to the Theme Editor',
                 'Gehe in den PageBuilder',
                 'Öffne die AI Einstellungen',
+            ],
+            'cms_pagebuilder_inspect' => [
+                ...$examples,
+                'Start PageBuilder show mode',
+                'Inspect the block I click',
+                'Zeigemodus starten',
+                'Ich zeige Dir den Block',
+                'Beschreibe das angeklickte PageBuilder Element',
             ],
             default => $examples,
         };

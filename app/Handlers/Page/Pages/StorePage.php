@@ -11,6 +11,7 @@ use NixCMS\Repositories\PageLayoutRepository;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 use function NixPHP\json;
+use function NixCMS\cms;
 
 final class StorePage
 {
@@ -30,12 +31,12 @@ final class StorePage
         if ($this->isCustomTemplate($template) && !array_key_exists('custom_layout', $meta)) {
             $meta['custom_layout'] = [];
         }
-        $blockDefinitions = $this->isCustomTemplate($template)
+        $blockDefinitions = array_key_exists('custom_layout', $meta)
             ? (is_array($meta['custom_layout'] ?? null) ? $meta['custom_layout'] : [])
             : (is_array($template['blocks'] ?? null) ? $template['blocks'] : []);
 
         try {
-            $id = \cms()->pages()->save([
+            $id = cms()->pages()->save([
                 'id' => (int) ($data['id'] ?? 0),
                 'identifier' => $this->identifier($data),
                 'path' => (string) ($data['path'] ?? ''),
@@ -104,7 +105,7 @@ final class StorePage
         }
 
         $language = strtolower(trim((string) ($data['language'] ?? '')));
-        if ($language === '' || !in_array($language, \cms()->settings()->languages(), true)) {
+        if ($language === '' || !in_array($language, cms()->settings()->languages(), true)) {
             $errors['language'][] = 'Please choose an enabled page language.';
         }
 
@@ -113,18 +114,12 @@ final class StorePage
         } elseif (isset($templates[$templateId])) {
             $template = $templates[$templateId];
             $templateBlocks = is_array($template['blocks'] ?? null) ? $template['blocks'] : [];
-            if ($this->isCustomTemplate($template)) {
+            if ($this->isCustomTemplate($template) || is_array($data['meta']['custom_layout'] ?? null)) {
                 $layoutErrors = [];
                 $templateBlocks = $this->normalizeCustomLayout(
                     is_array($data['meta']['custom_layout'] ?? null) ? $data['meta']['custom_layout'] : [],
                     $layoutErrors
                 );
-                foreach ($layoutErrors as $message) {
-                    $errors['meta.custom_layout'][] = $message;
-                }
-            } elseif (is_array($data['meta']['custom_layout'] ?? null)) {
-                $layoutErrors = [];
-                $this->normalizeCustomLayout($data['meta']['custom_layout'], $layoutErrors);
                 foreach ($layoutErrors as $message) {
                     $errors['meta.custom_layout'][] = $message;
                 }
@@ -231,7 +226,7 @@ final class StorePage
             return false;
         }
 
-        foreach (\cms()->pages()->all() as $page) {
+        foreach (cms()->pages()->all() as $page) {
             if (str_starts_with($page->id(), 'db.page.')) {
                 continue;
             }

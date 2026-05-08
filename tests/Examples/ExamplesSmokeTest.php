@@ -12,6 +12,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 use function NixPHP\MCP\tool;
+use function NixCMS\cms;
 
 final class ExamplesSmokeTest extends TestCase
 {

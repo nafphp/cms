@@ -1,5 +1,6 @@
 <?php
 
+use function NixPHP\View\view;
 /** @var string $templateView */
 /** @var \NixCMS\Page\Template $template */
 
@@ -8,7 +9,7 @@ if ($template->parent() !== null && $template->parent() !== '') {
     $this->block('content');
 }
 
-echo \NixPHP\View\view($templateView, get_defined_vars());
+echo view($templateView, get_defined_vars());
 
 if ($template->parent() !== null && $template->parent() !== '') {
     $this->endBlock('content');

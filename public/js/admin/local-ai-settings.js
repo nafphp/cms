@@ -170,8 +170,12 @@ export function initLocalAiSettings(root) {
             .some((needle) => text.includes(needle));
     };
 
-    const embeddingCapabilities = async (models) => {
-        const detected = new Set();
+    const inspectModels = async (models) => {
+        const embeddingModels = new Set();
+        const toolModels = new Set();
+        let inspected = 0;
+        let unknown = 0;
+
         await Promise.all(models.map(async (model) => {
             const name = trimValue(model?.name || '');
             if (name === '') {
@@ -180,20 +184,30 @@ export function initLocalAiSettings(root) {
 
             try {
                 const details = await requestOllama(currentUrl(), '/api/show', {model: name});
+                inspected += 1;
                 const capabilities = Array.isArray(details.capabilities)
                     ? details.capabilities.map((capability) => trimValue(capability).toLowerCase())
                     : [];
+
+                if (capabilities.length === 0) {
+                    unknown += 1;
+                }
+
                 if (capabilities.includes('embedding')) {
-                    detected.add(name);
+                    embeddingModels.add(name);
+                }
+
+                if (capabilities.includes('tools')) {
+                    toolModels.add(name);
                 }
             } catch (error) {
                 if (isEmbeddingModelByName(model)) {
-                    detected.add(name);
+                    embeddingModels.add(name);
                 }
             }
         }));
 
-        return detected;
+        return {embeddingModels, toolModels, inspected, unknown};
     };
 
     const replaceOptions = (select, names, preferred, emptyLabel = '') => {
@@ -233,13 +247,14 @@ export function initLocalAiSettings(root) {
 
             const payload = await requestOllama(currentUrl(), '/api/tags');
             const models = Array.isArray(payload.models) ? payload.models : [];
-            const names = models
+            const inspectedModels = await inspectModels(models);
+            const toolNames = models
+                .filter((model) => inspectedModels.toolModels.has(trimValue(model?.name || '')))
                 .map((model) => trimValue(model?.name ?? ''))
                 .filter((name) => name !== '')
                 .sort((left, right) => left.localeCompare(right));
-            const embeddingCapable = await embeddingCapabilities(models);
             const embeddingNames = models
-                .filter((model) => embeddingCapable.has(trimValue(model?.name || '')) || isEmbeddingModelByName(model))
+                .filter((model) => inspectedModels.embeddingModels.has(trimValue(model?.name || '')) || isEmbeddingModelByName(model))
                 .map((model) => trimValue(model?.name ?? ''))
                 .filter((name) => name !== '')
                 .sort((left, right) => left.localeCompare(right));
@@ -262,19 +277,20 @@ export function initLocalAiSettings(root) {
             const preferred = storedModel || currentModel() || configured;
             const preferredEmbedding = storedEmbeddingModel || currentEmbeddingModel() || configuredEmbedding;
 
-            replaceOptions(modelSelect, names, preferred);
+            replaceOptions(modelSelect, toolNames, toolNames.includes(preferred) ? preferred : '');
             replaceOptions(embeddingModelSelect, embeddingNames, preferredEmbedding, 'Keyword routing only');
 
             if (modelSelect.options.length === 0) {
-                modelSelect.append(new Option('No models found', ''));
-                setStatus(statusNode, 'No models found.');
+                modelSelect.append(new Option('No tool-capable models found', ''));
+                setStatus(statusNode, 'No tool-capable models found.');
+                setOutput(outputNode, 'Install or choose an Ollama chat model whose /api/show capabilities include "tools".');
                 return;
             }
 
-            if (preferred !== '') {
+            if (preferred !== '' && toolNames.includes(preferred)) {
                 modelSelect.value = preferred;
-            } else if (names.length > 0) {
-                modelSelect.value = names[0];
+            } else if (toolNames.length > 0) {
+                modelSelect.value = toolNames[0];
                 modelSelect.dispatchEvent(new Event('change', {bubbles: true}));
             }
             if (embeddingModelSelect instanceof HTMLSelectElement && preferredEmbedding !== '') {
@@ -282,7 +298,7 @@ export function initLocalAiSettings(root) {
             }
 
             setConnectionStatus(connectionStatusNode, 'online', 'Online');
-            setStatus(statusNode, `${names.length} model${names.length === 1 ? '' : 's'} available, ${embeddingNames.length} embedding candidate${embeddingNames.length === 1 ? '' : 's'}.`);
+            setStatus(statusNode, `${toolNames.length} tool-capable model${toolNames.length === 1 ? '' : 's'} available, ${embeddingNames.length} embedding candidate${embeddingNames.length === 1 ? '' : 's'}.`);
         } catch (error) {
             setConnectionStatus(connectionStatusNode, 'offline', 'Offline');
             setStatus(statusNode, 'Model loading failed.');

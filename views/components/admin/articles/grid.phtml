@@ -4,6 +4,7 @@ use function NixPHP\Form\csrf;
 use function NixPHP\I18n\t;
 use function NixPHP\route;
 use function NixPHP\View\view;
+use function NixCMS\cms;
 
 $languages = cms()->settings()->languages();
 $endpoint = (string) ($endpoint ?? route('api.admin.articles'));

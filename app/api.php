@@ -8,6 +8,7 @@ return [
     ...require __DIR__ . '/Resources/api/roles.php',
     ...require __DIR__ . '/Resources/api/articles.php',
     ...require __DIR__ . '/Resources/api/pages.php',
+    ...require __DIR__ . '/Resources/api/themes.php',
     ...require __DIR__ . '/Resources/api/navigation.php',
     ...require __DIR__ . '/Resources/api/forms.php',
     ...require __DIR__ . '/Resources/api/media.php',

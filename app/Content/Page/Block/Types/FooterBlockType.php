@@ -34,6 +34,11 @@ final class FooterBlockType extends AbstractBlockType
         return 'Site footer';
     }
 
+    public function unique(): bool
+    {
+        return true;
+    }
+
     public function defaults(): array
     {
         $navigationOptions = PageBuilderBlockOptions::navigationOptions();
@@ -42,6 +47,8 @@ final class FooterBlockType extends AbstractBlockType
             'text' => 'Powered by NixCMS',
             'navigationIdentifier' => (string) ($navigationOptions[0]['value'] ?? 'main'),
             'presentation' => 'compact',
+            'linkStyle' => 'blank',
+            'linkTheme' => 'default',
         ];
     }
 
@@ -51,6 +58,19 @@ final class FooterBlockType extends AbstractBlockType
             ['name' => 'text', 'label' => 'Footer text', 'type' => 'text'],
             ['name' => 'navigationIdentifier', 'label' => 'Navigation', 'type' => 'select', 'options' => PageBuilderBlockOptions::navigationOptions()],
             ['name' => 'presentation', 'label' => 'Presentation', 'type' => 'select', 'options' => ['compact', 'horizontal']],
+            ['name' => 'linkStyle', 'label' => 'Link style', 'type' => 'select', 'options' => [
+                ['label' => 'Blank', 'value' => 'blank'],
+                ['label' => 'Underline', 'value' => 'underline'],
+                ['label' => 'Pill', 'value' => 'pill'],
+                ['label' => 'Rounded pill', 'value' => 'rounded-pill'],
+                ['label' => 'Filled', 'value' => 'filled'],
+                ['label' => 'Filled rounded', 'value' => 'filled-rounded'],
+            ]],
+            ['name' => 'linkTheme', 'label' => 'Link theme', 'type' => 'select', 'options' => [
+                ['label' => 'Default', 'value' => 'default'],
+                ['label' => 'Accent', 'value' => 'accent'],
+                ['label' => 'Surface', 'value' => 'surface'],
+            ]],
         ];
     }
 }

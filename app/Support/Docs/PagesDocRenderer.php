@@ -6,6 +6,7 @@ namespace NixCMS\Support\Docs;
 
 use NixCMS\Enums\Permission;
 use NixCMS\Page\Page;
+use function NixCMS\cms;
 
 final class PagesDocRenderer implements DocBlockRenderer
 {

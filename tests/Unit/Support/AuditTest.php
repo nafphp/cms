@@ -10,6 +10,8 @@ use NixCMS\Support\AuditActorInfo;
 use NixCMS\Support\AuditActorResolver;
 use NixCMS\Support\AuditEntry;
 use Tests\Support\DatabaseTestCase;
+use function NixCMS\audit;
+use function NixCMS\audit_log;
 
 final class AuditTest extends DatabaseTestCase
 {
@@ -43,7 +45,7 @@ final class AuditTest extends DatabaseTestCase
 
     public function testAuditHelperReturnsSameInstanceRepeatedly(): void
     {
-        self::assertSame(\audit(), \audit());
+        self::assertSame(audit(), audit());
     }
 
     private function createAuditSchema(): void

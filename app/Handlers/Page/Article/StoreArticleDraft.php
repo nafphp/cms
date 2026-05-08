@@ -9,6 +9,8 @@ use NixCMS\Models\Article;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 use function NixPHP\json;
+use function NixCMS\cms;
+use function NixCMS\user;
 
 final class StoreArticleDraft
 {
@@ -24,8 +26,8 @@ final class StoreArticleDraft
 
         try {
             $articleId = (int) ($data['article_id'] ?? 0);
-            $authorId = \user()?->get()?->getId();
-            $articles = \cms()->content(Article::class);
+            $authorId = user()?->get()?->getId();
+            $articles = cms()->content(Article::class);
 
             $result = $articleId > 0
                 ? $articles->draft($articleId, $data, $authorId)
@@ -58,8 +60,8 @@ final class StoreArticleDraft
         if ($teaser !== '' && mb_strlen($teaser) < 60) {
             $errors['teaser'][] = 'Please enter a teaser with at least 60 characters.';
         }
-        $language = \cms()->languages()->normalize((string) ($data['language'] ?? ''));
-        if ($language === null || !\cms()->languages()->isKnown($language)) {
+        $language = cms()->languages()->normalize((string) ($data['language'] ?? ''));
+        if ($language === null || !cms()->languages()->isKnown($language)) {
             $errors['language'][] = 'Please choose a valid language.';
         }
         if (!isset($data['content']) || !is_array($data['content'])) {

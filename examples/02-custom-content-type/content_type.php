@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NixCMS\Examples\CustomContentType;
 
 use NixCMS\Content\ContentTypeInterface;
+use function NixCMS\cms;
 
 final class ExampleProductContentType implements ContentTypeInterface
 {
@@ -29,4 +30,4 @@ final class ExampleProductContentType implements ContentTypeInterface
     }
 }
 
-\cms()->contentTypes()->add(new ExampleProductContentType(), replace: true);
+cms()->contentTypes()->add(new ExampleProductContentType(), replace: true);

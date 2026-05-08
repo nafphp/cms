@@ -10,9 +10,10 @@ use function NixPHP\I18n\t;
 use function NixPHP\redirect;
 use function NixPHP\route;
 use function NixPHP\View\render;
+use function NixCMS\cms;
 
 $translationSuggestions = static function (): array {
-    $language = \cms()->settings()->currentLanguage();
+    $language = cms()->settings()->currentLanguage();
     $entries = (new TranslationFileService())->entries($language);
 
     return array_map(
@@ -33,7 +34,7 @@ return [
             'title' => t('Formulare'),
             'pageTitle' => t('Formulare'),
             'pageSubtitle' => t('Formulare erstellen, bearbeiten, veröffentlichen und Einsendungen prüfen.'),
-            'forms' => \cms()->forms()->summaries(),
+            'forms' => cms()->forms()->summaries(),
         ])),
 
     Page::create('admin.forms.create')
@@ -62,7 +63,7 @@ return [
         ->setDataHandler(StoreForm::class, 'POST', Permission::FORMS_EDIT)
         ->hideFromAdminNavigation('forms')
         ->setContent(static function (string $formId) use ($translationSuggestions) {
-            $form = \cms()->forms()->find((int) $formId);
+            $form = cms()->forms()->find((int) $formId);
             if (!is_array($form)) {
                 return redirect(route('admin.forms'));
             }
@@ -86,7 +87,7 @@ return [
         ->requirePermission(Permission::FORMS_SUBMISSIONS_VIEW)
         ->hideFromAdminNavigation('forms')
         ->setContent(static function (string $formId) {
-            $form = \cms()->forms()->find((int) $formId);
+            $form = cms()->forms()->find((int) $formId);
             if (!is_array($form)) {
                 return redirect(route('admin.forms'));
             }
@@ -96,7 +97,7 @@ return [
                 'pageTitle' => t('Form submissions'),
                 'pageSubtitle' => (string) ($form['title'] ?? ''),
                 'form' => $form,
-                'submissions' => \cms()->forms()->submissions((int) $formId),
+                'submissions' => cms()->forms()->submissions((int) $formId),
             ]);
         }),
 ];

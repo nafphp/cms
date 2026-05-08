@@ -6,6 +6,7 @@ namespace NixCMS\Migrations;
 
 use NixPHP\Database\Core\AbstractMigration;
 use PDO;
+use function NixCMS\audit_log;
 
 final class Migration202605010003 extends AbstractMigration
 {

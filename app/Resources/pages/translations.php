@@ -9,6 +9,7 @@ use NixCMS\Services\Settings\TranslationFileService;
 use function NixPHP\I18n\t;
 use function NixPHP\request;
 use function NixPHP\View\render;
+use function NixCMS\cms;
 
 return [
     Page::create('admin.translations')
@@ -19,8 +20,8 @@ return [
         ->setAdminNavigation('Languages', parent: 'settings', icon: 'content', order: 20, key: 'settings.translations')
         ->setContent(static function () {
             $service = new TranslationFileService();
-            $language = \cms()->languages()->normalize((string) (request()->getQueryParams()['language'] ?? \cms()->settings()->currentLanguage()))
-                ?? \cms()->settings()->currentLanguage();
+            $language = cms()->languages()->normalize((string) (request()->getQueryParams()['language'] ?? cms()->settings()->currentLanguage()))
+                ?? cms()->settings()->currentLanguage();
             $settingSections = (new SettingsService())->sections('languages');
 
             return render('admin.settings.translations', [

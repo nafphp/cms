@@ -6,11 +6,11 @@ namespace NixCMS\Handlers\Api\Media;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UploadedFileInterface;
-use function cms;
 use function NixPHP\I18n\t;
 use function NixPHP\json;
 use function NixPHP\request;
-use function user;
+use function NixCMS\cms;
+use function NixCMS\user;
 
 final class UploadMedia
 {

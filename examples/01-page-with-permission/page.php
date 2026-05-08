@@ -5,6 +5,7 @@ declare(strict_types=1);
 use NixCMS\Enums\Permission;
 use NixCMS\Page\Page;
 use function NixPHP\View\view;
+use function NixCMS\cms;
 
 cms()->pages()->add(
     Page::create('example.reports')

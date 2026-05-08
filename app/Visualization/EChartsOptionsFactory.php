@@ -127,7 +127,7 @@ final class EChartsOptionsFactory
             'textStyle' => $this->textStyle(),
             'tooltip' => ['trigger' => 'item'],
             'legend' => ['show' => false, 'selectedMode' => false],
-            'grid' => ['left' => 0, 'right' => 8, 'top' => 8, 'bottom' => 4, 'containLabel' => true],
+            'grid' => ['left' => 118, 'right' => 34, 'top' => 8, 'bottom' => 4, 'containLabel' => false],
             'xAxis' => [
                 'type' => 'value',
                 'show' => false,
@@ -138,7 +138,13 @@ final class EChartsOptionsFactory
                 'data' => $chart->labels,
                 'axisTick' => ['show' => false],
                 'axisLine' => ['show' => false],
-                'axisLabel' => $this->axisLabelStyle(13),
+                'axisLabel' => [
+                    ...$this->axisLabelStyle(13),
+                    'align' => 'right',
+                    'margin' => 16,
+                    'overflow' => 'truncate',
+                    'width' => 108,
+                ],
             ],
             'series' => [[
                 'name' => $dataset->label,

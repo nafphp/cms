@@ -28,6 +28,25 @@ export const customLayoutMethods = {
         }
     },
 
+    usesCustomLayout(template = this.selectedTemplate()) {
+        return this.isCustomTemplate(template);
+    },
+
+    layoutBlocks(template = this.selectedTemplate()) {
+        return this.usesCustomLayout(template)
+            ? this.normalizeCustomLayout(this.customLayout)
+            : (template?.blocks || []);
+    },
+
+    ensureCustomLayoutFromTemplate(template = this.selectedTemplate()) {
+        if (this.customLayout.length > 0) {
+            return;
+        }
+
+        this.customLayout = this.normalizeCustomLayout(template?.blocks || []);
+        this.syncCustomTemplateBlocks();
+    },
+
     applyTemplateCustomLayout(template = this.selectedTemplate()) {
         if (!this.isCustomTemplate(template)) {
             return;
@@ -39,6 +58,7 @@ export const customLayoutMethods = {
 
     normalizeCustomLayout(layout) {
         const seen = new Set();
+        const uniqueSeen = new Set();
         return (Array.isArray(layout) ? layout : []).reduce((slots, slot) => {
             if (!slot || typeof slot !== 'object' || Array.isArray(slot)) {
                 return slots;
@@ -57,7 +77,7 @@ export const customLayoutMethods = {
             }
 
             seen.add(id);
-            const definition = {id, label, region, size, position, maxHeight, overflow, surface};
+            const definition = {id, label, region, size, position, maxHeight, overflow, surface, deletable: slot.deletable !== false};
             const accepts = Array.isArray(slot.accepts)
                 ? [...new Set(slot.accepts.map((type) => String(type || '').trim()).filter((type) => /^[a-z0-9][a-z0-9_-]{0,63}$/.test(type)))]
                 : [];
@@ -69,9 +89,37 @@ export const customLayoutMethods = {
                 definition.defaultContentType = defaultContentType;
             }
 
+            const uniqueType = this.uniqueTypeForSlot(definition);
+            if (uniqueType !== '') {
+                if (uniqueSeen.has(uniqueType)) {
+                    return slots;
+                }
+                uniqueSeen.add(uniqueType);
+            }
+
             slots.push(definition);
             return slots;
         }, []);
+    },
+
+    uniqueTypeForSlot(slot) {
+        const acceptedTypes = Array.isArray(slot?.accepts) ? slot.accepts : [];
+        const defaultContentType = String(slot?.defaultContentType || '');
+        const contentType = String(this.blockContent?.[slot?.id]?.type || '');
+        const type = defaultContentType || contentType || acceptedTypes[0] || '';
+        const definition = this.contentTypeDefinition(type);
+
+        return definition?.unique === true ? String(definition.type || type) : '';
+    },
+
+    hasUniqueBlockType(type) {
+        const definition = this.contentTypeDefinition(type);
+        if (definition?.unique !== true) {
+            return false;
+        }
+
+        const uniqueType = String(definition.type || type);
+        return this.customLayout.some((slot) => this.uniqueTypeForSlot(slot) === uniqueType);
     },
 
     uniqueCustomSlotId(label, fallbackType = 'block') {
@@ -97,11 +145,17 @@ export const customLayoutMethods = {
         if (!definition) {
             return;
         }
+        this.ensureCustomLayoutFromTemplate();
         if (definition.type === 'header' || definition.type === 'footer') {
             this.addChromeSlot(definition.type);
             return;
         }
+        if (definition.unique === true && this.hasUniqueBlockType(definition.type)) {
+            toast(this.labels.duplicateSlot);
+            return;
+        }
 
+        this.rememberContentType(definition.type);
         const id = this.uniqueCustomSlotId(definition.label, definition.type);
         if (this.customLayout.some((slot) => slot.id === id)) {
             toast(this.labels.duplicateSlot);
@@ -120,6 +174,7 @@ export const customLayoutMethods = {
             surface: 'none',
             accepts: [definition.type],
             defaultContentType: definition.type,
+            deletable: true,
         });
         this.syncCustomTemplateBlocks();
         this.selectedBlockId = id;
@@ -135,8 +190,14 @@ export const customLayoutMethods = {
         if (!definition) {
             return;
         }
+        this.ensureCustomLayoutFromTemplate();
 
         const region = type === 'footer' ? 'footer' : 'header';
+        if (this.hasUniqueBlockType(type)) {
+            toast(this.labels.duplicateSlot);
+            return;
+        }
+
         const id = this.uniqueCustomSlotId(definition.label, type);
         this.customLayout.push({
             id,
@@ -149,6 +210,7 @@ export const customLayoutMethods = {
             surface: 'none',
             accepts: [type],
             defaultContentType: type,
+            deletable: true,
         });
         this.syncCustomTemplateBlocks();
         this.selectedBlockId = id;
@@ -221,6 +283,7 @@ export const customLayoutMethods = {
             return;
         }
 
+        this.rememberContentType(definition.type);
         const children = this.childrenForContent(parent);
         children.push(this.contentFromDefinition(definition));
         this.selectedNestedPath = this.pathForChild(parentPath, children.length - 1);
@@ -375,7 +438,7 @@ export const customLayoutMethods = {
             `;
         }
 
-        return contentTypes.map((type) => {
+        return this.sortContentTypesByRecent(contentTypes).map((type) => {
             const preview = this.compactContentPreview(type);
             const region = this.defaultRegionForContentType(type);
             return `
@@ -388,7 +451,7 @@ export const customLayoutMethods = {
                         </span>
                         <span class="shrink-0 rounded-md bg-white/10 px-2 py-1 text-[11px] font-bold text-slate-300">${escapeHtml(region)}</span>
                     </span>
-                    <span class="overflow-hidden rounded-md border border-slate-800 bg-slate-950/45 p-2" style="display:grid;height:48px;align-content:center;">
+                    <span class="overflow-hidden rounded-md border border-slate-800 bg-slate-950/45" style="display:grid;height:64px;align-content:stretch;">
                         ${preview}
                     </span>
                 </span>
@@ -408,7 +471,7 @@ export const customLayoutMethods = {
             `;
         }
 
-        return this.contentTypes.map((type) => {
+        return this.sortContentTypesByRecent(this.contentTypes).map((type) => {
             const preview = this.compactContentPreview(type);
             const isLayout = layoutBlockTypes.includes(type.type);
             return `
@@ -421,7 +484,7 @@ export const customLayoutMethods = {
                         </span>
                         <span class="shrink-0 rounded-md bg-white/10 px-2 py-1 text-[11px] font-bold text-slate-300">${escapeHtml(isLayout ? 'layout' : 'content')}</span>
                     </span>
-                    <span class="overflow-hidden rounded-md border border-slate-800 bg-slate-950/45 p-2" style="display:grid;height:48px;align-content:center;">
+                    <span class="overflow-hidden rounded-md border border-slate-800 bg-slate-950/45" style="display:grid;height:64px;align-content:stretch;">
                         ${preview}
                     </span>
                 </span>

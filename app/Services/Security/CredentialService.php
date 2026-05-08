@@ -12,7 +12,7 @@ class CredentialService
 
     public function hashPassword(string $password): string
     {
-        $hash = \password_hash($password, PASSWORD_ARGON2ID, $this->passwordOptions());
+        $hash = password_hash($password, PASSWORD_ARGON2ID, $this->passwordOptions());
         if ($hash === false) {
             throw new \RuntimeException('Could not hash password.');
         }
@@ -26,8 +26,8 @@ class CredentialService
             return new PasswordVerificationResult(false, false);
         }
 
-        if (\password_verify($submitted, $stored)) {
-            $needsUpgrade = \password_needs_rehash($stored, PASSWORD_ARGON2ID, $this->passwordOptions());
+        if (password_verify($submitted, $stored)) {
+            $needsUpgrade = password_needs_rehash($stored, PASSWORD_ARGON2ID, $this->passwordOptions());
             return new PasswordVerificationResult(true, $needsUpgrade);
         }
 

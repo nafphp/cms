@@ -6,6 +6,7 @@ namespace NixCMS\Support\Docs;
 
 use NixCMS\Api\ApiEndpoint;
 use NixCMS\Enums\Permission;
+use function NixCMS\cms;
 
 final class ApiDocRenderer implements DocBlockRenderer
 {

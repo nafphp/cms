@@ -1,5 +1,21 @@
 const chartSelector = '[data-nixcms-chart]';
 let echartsLoader = null;
+let retryFrame = 0;
+
+const pendingElements = () => [...document.querySelectorAll(chartSelector)]
+    .filter((element) => element instanceof HTMLElement && element.dataset.nixcmsChartReady !== 'true');
+
+const scheduleRetry = () => {
+    if (retryFrame !== 0) {
+        return;
+    }
+
+    retryFrame = window.requestAnimationFrame(() => {
+        retryFrame = 0;
+        initDiagrams();
+        window.setTimeout(() => initDiagrams(), 80);
+    });
+};
 
 const loadECharts = () => {
     if (window.echarts) {
@@ -48,38 +64,56 @@ const applyTheme = (payload) => {
 };
 
 export const initDiagrams = () => {
-    const elements = [...document.querySelectorAll(chartSelector)]
-        .filter((element) => element instanceof HTMLElement && element.dataset.nixcmsChartReady !== 'true');
-
-    if (elements.length === 0) {
+    if (pendingElements().length === 0) {
         return;
     }
 
     loadECharts()
         .then((echarts) => {
+            const elements = pendingElements();
             elements.forEach((element) => {
+                if (!element.isConnected) {
+                    return;
+                }
+
                 const payload = readPayload(element);
                 const canvas = element.querySelector('.nixcms-chart__canvas');
                 if (!payload || !(canvas instanceof HTMLElement)) {
                     return;
                 }
 
-                element.dataset.nixcmsChartReady = 'true';
                 element.classList.toggle('is-empty', payload.empty === true);
 
                 if (payload.empty === true) {
+                    element.dataset.nixcmsChartReady = 'true';
+                    return;
+                }
+
+                const canvasBox = canvas.getBoundingClientRect();
+                if (canvasBox.width < 4 || canvasBox.height < 4) {
+                    scheduleRetry();
                     return;
                 }
 
                 const instance = echarts.init(canvas, null, {renderer: 'svg'});
                 instance.setOption(applyTheme(payload));
+                element.dataset.nixcmsChartReady = 'true';
 
-                const resizeObserver = new ResizeObserver(() => instance.resize());
+                const resize = () => {
+                    if (canvas.isConnected) {
+                        instance.resize();
+                    }
+                };
+                window.requestAnimationFrame(resize);
+                window.setTimeout(resize, 60);
+                window.setTimeout(resize, 180);
+
+                const resizeObserver = new ResizeObserver(resize);
                 resizeObserver.observe(canvas);
             });
         })
         .catch(() => {
-            elements.forEach((element) => {
+            pendingElements().forEach((element) => {
                 element.classList.add('has-render-error');
             });
         });

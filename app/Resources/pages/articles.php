@@ -13,6 +13,8 @@ use function NixPHP\I18n\t;
 use function NixPHP\request;
 use function NixPHP\route;
 use function NixPHP\View\render;
+use function NixCMS\cms;
+use function NixCMS\user;
 
 $articles = static function (): ArticleContentType {
     $type = cms()->contentTypes()->requireByModel(Article::class);
@@ -213,9 +215,9 @@ return [
                 'pageSubtitle' => t('Review the article exactly before publishing decisions.'),
                 'article' => $renderer,
                 'reviewActions' => $service->reviewActions($renderer->versionId()),
-                'canReview' => \user()?->can(Permission::ARTICLES_REVIEW) === true
-                    || \user()?->can(Permission::ARTICLES_PUBLISH) === true,
-                'canDirectPublish' => \user()?->can(Permission::ARTICLES_PUBLISH) === true,
+                'canReview' => user()?->can(Permission::ARTICLES_REVIEW) === true
+                    || user()?->can(Permission::ARTICLES_PUBLISH) === true,
+                'canDirectPublish' => user()?->can(Permission::ARTICLES_PUBLISH) === true,
                 'isReviewable' => in_array($renderer->status(), [
                     ArticleStatus::DRAFT->value,
                     ArticleStatus::DECLINED->value,

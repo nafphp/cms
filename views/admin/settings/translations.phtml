@@ -4,12 +4,13 @@ use function NixPHP\I18n\t;
 use function NixPHP\route;
 use function NixPHP\View\s;
 use function NixPHP\View\view;
+use function NixCMS\cms;
 
 $language = strtolower(trim((string) ($language ?? 'en')));
 $languages = is_array($languages ?? null) ? $languages : [];
 $settingSections = is_array($settingSections ?? null) ? $settingSections : [];
 $entries = is_array($entries ?? null) ? $entries : [];
-$languageOptions = \cms()->languages()->knownOptions();
+$languageOptions = cms()->languages()->knownOptions();
 
 ?>
 <?php $this->setLayout('layouts.admin') ?>

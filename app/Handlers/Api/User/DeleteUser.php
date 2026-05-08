@@ -10,6 +10,7 @@ use NixCMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 use function NixPHP\ORM\repo;
+use function NixCMS\user;
 
 final class DeleteUser
 {
@@ -23,7 +24,7 @@ final class DeleteUser
             return json(['success' => false, 'reason' => 'Invalid user id.'], 400);
         }
 
-        if (\user()?->get()?->getId() === $userId) {
+        if (user()?->get()?->getId() === $userId) {
             return json(['success' => false, 'reason' => 'You cannot delete your own account.'], 400);
         }
 

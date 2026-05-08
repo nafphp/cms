@@ -80,7 +80,6 @@ These sections are generated from registries and enums. Edit the source code, th
 | `cms()->languages()` | Enabled, available, and discovered language codes. |
 | `cms()->settings()` | Resolved runtime settings. |
 | `cms()->settingsRegistry()` | Admin-editable setting sections and fields. |
-| `cms()->stageTargets()` | AI/stage target resolvers for controlled staged changes. |
 <!-- /nix:auto:cms -->
 
 ### Pages
@@ -167,6 +166,7 @@ These sections are generated from registries and enums. Edit the source code, th
 | `api.admin.roles` | `GET` | `/api/admin/roles` | `roles.manage` |
 | `api.admin.settings.update` | `POST` | `/api/admin/settings` | `admin.access` |
 | `api.admin.summary` | `GET` | `/api/admin/summary` | `admin.access` |
+| `api.admin.themes.store` | `POST` | `/api/admin/themes` | any of `themes.create`, `themes.edit` |
 | `api.admin.translations.show` | `GET` | `/api/admin/translations/{language}` | any of `admin.access`, `pages.view`, `pages.create`, `pages.edit` |
 | `api.admin.translations.update` | `POST` | `/api/admin/translations/{language}` | `admin.access` |
 | `api.admin.users` | `GET` | `/api/admin/users` | `users.view` |
@@ -258,11 +258,9 @@ These sections are generated from registries and enums. Edit the source code, th
 | `cms_content_overview` | Returns high-level CMS content counts across articles, taxonomy, pages, media, users, and audit entries. |
 | `cms_media_summary` | Returns media library counts, byte totals, kind counts, and optional recent media items. |
 | `cms_page_overview` | Returns page counts by status, language, template, and optional recent pages. |
+| `cms_pagebuilder_inspect` | Starts the PageBuilder show mode so the user can click a visible block or nested element and return structured read-only information about it. |
 | `cms_plugin_overview` | Returns loaded NixPHP plugins and registry counts relevant to NixCMS extensions. |
 | `cms_queue_status` | Returns file-backed queue counts for pending, locked, and deadletter jobs. |
-| `cms_stage_commit` | Commits a previously staged CMS change into stored CMS state. Does not publish. |
-| `cms_stage_create_change` | Creates a staged CMS change for a target such as a page. Does not publish. |
-| `cms_stage_preview` | Returns the staged working snapshot, change list, warnings, and UI actions for a CMS stage. |
 | `cms_system_health` | Returns basic NixCMS health information for PHP, storage paths, and loaded NixPHP plugins. |
 | `cms_tools_search` | Searches the registered CMS tools for the current request and UI context. |
 | `cms_user_role_summary` | Returns user, role, permission, and assignment counts for the NixCMS RBAC model. |

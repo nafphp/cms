@@ -8,6 +8,7 @@ use NixCMS\Support\Cms;
 use NixCMS\Content\Page\Block\BlockTypeRegistry;
 use NixCMS\Visualization\VisualizationRegistry;
 use PHPUnit\Framework\TestCase;
+use function NixCMS\cms;
 
 final class CmsTest extends TestCase
 {

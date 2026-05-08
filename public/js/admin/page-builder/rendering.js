@@ -11,6 +11,7 @@ import {
     layoutClass,
     optionOptions,
 } from './shared.js';
+import {initDiagrams} from '../diagrams.js';
 
 export const renderingMethods = {
     render() {
@@ -51,6 +52,8 @@ export const renderingMethods = {
         this.applyPersistedFields();
         this.renderPreviewChrome();
         this.renderMeta();
+        initDiagrams();
+        window.requestAnimationFrame(() => initDiagrams());
     },
 
     renderTemplatesOnce() {
@@ -116,7 +119,7 @@ export const renderingMethods = {
             this.filledCount.textContent = `${filled}/${blocks.length} filled`;
         }
         if (this.blockCanvas) {
-            this.blockCanvas.innerHTML = this.blockLayout(template, true);
+            this.blockCanvas.innerHTML = `<div class="${escapeHtml(this.previewThemeClassList())}">${this.blockLayout(template, true)}</div>`;
             initStyledSelects(this.blockCanvas.querySelectorAll('select[data-styled-select]'));
         }
     },
@@ -145,7 +148,7 @@ export const renderingMethods = {
                         </span>
                         <span class="shrink-0 rounded-md bg-white/10 px-2 py-1 text-[11px] font-bold text-slate-300">${escapeHtml(this.uiText('Select'))}</span>
                     </span>
-                    <span class="overflow-hidden rounded-md border border-slate-800 bg-slate-950/45 p-2" style="display:grid;height:48px;align-content:center;">
+                    <span class="overflow-hidden rounded-md border border-slate-800 bg-slate-950/45" style="display:grid;height:64px;align-content:stretch;">
                         ${preview}
                     </span>
                 </span>
@@ -158,7 +161,7 @@ export const renderingMethods = {
     renderSettings() {
         const content = this.selectedContent();
         const block = this.selectedBlock();
-        const slotSettings = this.isCustomTemplate() && block ? this.renderCustomSlotSettings(block) : '';
+        const slotSettings = this.usesCustomLayout() && block ? this.renderCustomSlotSettings(block) : '';
 
         if (!content || !block) {
             this.contentSettings.innerHTML = `
@@ -175,7 +178,7 @@ export const renderingMethods = {
             : Object.keys(content.props || {}).map((key) => ({name: key, label: key}));
         const visibleFields = fields.filter((field) => field.name !== 'children');
         const isNested = this.selectedNestedPath !== '';
-        const contentIntro = this.isCustomTemplate() && !isNested
+        const contentIntro = this.usesCustomLayout() && !isNested
             ? ''
             : `
                 <div class="mb-4 rounded-lg bg-slate-100 p-3 dark:bg-slate-900">

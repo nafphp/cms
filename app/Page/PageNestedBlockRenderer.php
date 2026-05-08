@@ -7,6 +7,7 @@ namespace NixCMS\Page;
 use NixCMS\Content\BlockViewRegistry;
 use function NixPHP\View\s;
 use function NixPHP\View\view;
+use function NixCMS\cms;
 
 final class PageNestedBlockRenderer
 {
@@ -69,7 +70,7 @@ final class PageNestedBlockRenderer
             return $this->blockViews;
         }
 
-        return $this->blockViews = function_exists('\cms') ? \cms()->blocks() : new BlockViewRegistry();
+        return $this->blockViews = cms()->blocks();
     }
 
     /**

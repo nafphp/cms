@@ -11,6 +11,7 @@ use NixCMS\Models\ArticleVersion;
 use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;
+use function NixCMS\cms;
 
 final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface
 {
@@ -113,7 +114,7 @@ final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface
             return ($this->findArticle)($articleId, $language);
         }
 
-        return \cms()->articles()->find($articleId, $language);
+        return cms()->articles()->find($articleId, $language);
     }
 
     private function resolveByReference(string $reference, string $language): ?int
@@ -216,6 +217,6 @@ final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface
             return ($this->saveDraft)($articleId, $payload, $authorId);
         }
 
-        return \cms()->articles()->draft($articleId, $payload, $authorId);
+        return cms()->articles()->draft($articleId, $payload, $authorId);
     }
 }

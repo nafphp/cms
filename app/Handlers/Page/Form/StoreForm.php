@@ -8,6 +8,7 @@ use NixCMS\Handlers\Support\ReadsJsonBody;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 use function NixPHP\json;
+use function NixCMS\cms;
 
 final class StoreForm
 {
@@ -22,7 +23,7 @@ final class StoreForm
         }
 
         try {
-            $id = \cms()->forms()->save([
+            $id = cms()->forms()->save([
                 'id' => (int) ($data['id'] ?? 0),
                 'identifier' => (string) ($data['identifier'] ?? ''),
                 'title' => (string) ($data['title'] ?? ''),

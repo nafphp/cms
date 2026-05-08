@@ -49,7 +49,7 @@ final class LoginUser
             repo(UserRepository::class)->upgradePasswordHash((int) $user->getId(), $password);
         }
 
-        \session_regenerate_id(true);
+        session_regenerate_id(true);
         session()->set('userId', $user->getId());
 
         return redirect($this->resolveRedirectUri($data));

@@ -3,6 +3,7 @@
 use function NixPHP\I18n\t;
 use function NixPHP\route;
 use function NixPHP\View\s;
+use function NixCMS\cms;
 
 $navigation = is_array($navigation ?? null) ? $navigation : null;
 $translations = is_array($translations ?? null) ? $translations : [];
@@ -38,14 +39,14 @@ $payload = [
     'status' => (string) ($navigation['status'] ?? 'draft'),
     'ids' => $ids,
     'items' => $items,
-    'translationLanguage' => \cms()->settings()->currentLanguage(),
+    'translationLanguage' => cms()->settings()->currentLanguage(),
 ];
 
-$languageLabels = \cms()->languages()->knownOptions();
+$languageLabels = cms()->languages()->knownOptions();
 foreach ($languages as $language) {
-    $language = \cms()->languages()->normalize((string) $language);
+    $language = cms()->languages()->normalize((string) $language);
     if ($language !== null) {
-        $languageLabels[$language] ??= \cms()->languages()->label($language);
+        $languageLabels[$language] ??= cms()->languages()->label($language);
     }
 }
 

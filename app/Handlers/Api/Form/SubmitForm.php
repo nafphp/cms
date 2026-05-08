@@ -12,6 +12,7 @@ use Psr\Http\Message\ResponseInterface;
 use function NixPHP\I18n\t;
 use function NixPHP\json;
 use function NixPHP\request;
+use function NixCMS\cms;
 
 final class SubmitForm
 {
@@ -19,7 +20,7 @@ final class SubmitForm
 
     public function __invoke(string $identifier): ResponseInterface
     {
-        $form = \cms()->forms()->findByIdentifier($identifier, true);
+        $form = cms()->forms()->findByIdentifier($identifier, true);
         if (!is_array($form)) {
             return json(['success' => false, 'reason' => 'Form not found.'], 404);
         }

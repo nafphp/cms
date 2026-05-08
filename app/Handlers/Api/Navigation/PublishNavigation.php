@@ -7,6 +7,7 @@ namespace NixCMS\Handlers\Api\Navigation;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 use function NixPHP\json;
+use function NixCMS\cms;
 
 final class PublishNavigation
 {
@@ -18,7 +19,7 @@ final class PublishNavigation
 
         try {
             return json([
-                'success' => \cms()->navigation()->publish((int) $navigationId),
+                'success' => cms()->navigation()->publish((int) $navigationId),
             ]);
         } catch (Throwable $exception) {
             return json(['success' => false, 'reason' => $exception->getMessage()], 500);

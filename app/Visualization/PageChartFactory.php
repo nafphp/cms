@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace NixCMS\Visualization;
 
+use function NixPHP\I18n\t as i18n_t;
+
 final class PageChartFactory
 {
     private const MAX_METRICS = 24;
@@ -244,12 +246,12 @@ final class PageChartFactory
 
     private function translate(string $value): string
     {
-        if (function_exists('\NixPHP\I18n\t')) {
-            return \NixPHP\I18n\t($value);
+        if (function_exists('NixPHP\I18n\t')) {
+            return i18n_t($value);
         }
 
-        if (function_exists('\t')) {
-            return \t($value);
+        if (function_exists('t')) {
+            return t($value);
         }
 
         return $value;

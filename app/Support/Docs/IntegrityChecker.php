@@ -7,6 +7,7 @@ namespace NixCMS\Support\Docs;
 use NixCMS\Content\BlockViewRegistry;
 use NixCMS\Content\Page\Block\BlockTypeInterface;
 use NixCMS\Page\Layout;
+use function NixCMS\cms;
 
 final class IntegrityChecker
 {
@@ -16,7 +17,13 @@ final class IntegrityChecker
         'welcome.phtml' => true,
     ];
 
-    public function __construct(private readonly string $basePath)
+    /**
+     * @param array<int|string, BlockTypeInterface>|null $blockTypes
+     */
+    public function __construct(
+        private readonly string $basePath,
+        private readonly ?array $blockTypes = null,
+    )
     {
     }
 
@@ -50,11 +57,9 @@ final class IntegrityChecker
      */
     private function blockTypes(): array
     {
-        $file = $this->basePath . '/app/blockTypes.php';
-        $types = is_file($file) ? require $file : [];
         $registered = [];
 
-        foreach (is_iterable($types) ? $types : [] as $type) {
+        foreach ($this->blockTypes ?? cms()->blockTypes()->all() as $type) {
             if (!$type instanceof BlockTypeInterface) {
                 continue;
             }

@@ -10,21 +10,22 @@ use function NixPHP\I18n\t;
 use function NixPHP\redirect;
 use function NixPHP\route;
 use function NixPHP\View\render;
+use function NixCMS\cms;
 
 $navigationApi = static fn() => cms()->navigation();
 $translationSuggestions = static function (): array {
     $service = new TranslationFileService();
     $languages = array_values(array_unique([
-        ...\cms()->settings()->languages(),
+        ...cms()->settings()->languages(),
         ...array_map(
             static fn(array $language): string => (string) ($language['code'] ?? ''),
-            $service->languages(\cms()->settings()->currentLanguage()),
+            $service->languages(cms()->settings()->currentLanguage()),
         ),
     ]));
 
     $byLanguage = [];
     foreach ($languages as $language) {
-        $language = \cms()->languages()->normalize($language);
+        $language = cms()->languages()->normalize($language);
         if ($language === null) {
             continue;
         }
@@ -90,7 +91,7 @@ return [
             'mode' => 'create',
             'navigation' => null,
             'translations' => [],
-            'languages' => \cms()->settings()->languages(),
+            'languages' => cms()->settings()->languages(),
             'pageChoices' => $pageChoices(),
             'translationSuggestions' => $translationSuggestions(),
         ])),
@@ -118,7 +119,7 @@ return [
                     static fn($translation): array => $translation->toArray(),
                     $navigationApi()->translations($navigation->identifier())
                 ),
-                'languages' => \cms()->settings()->languages(),
+                'languages' => cms()->settings()->languages(),
                 'pageChoices' => $pageChoices(),
                 'translationSuggestions' => $translationSuggestions(),
             ]);

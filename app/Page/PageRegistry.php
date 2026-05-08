@@ -11,6 +11,8 @@ use NixCMS\Repositories\PageLayoutRepository;
 use NixCMS\Support\AuditEntry;
 use function NixPHP\I18n\lang;
 use function NixPHP\route;
+use function NixCMS\cms;
+use function NixCMS\user;
 
 final class PageRegistry
 {
@@ -81,7 +83,7 @@ final class PageRegistry
             $normalizedPath,
             $templates,
             $this->activeLanguage(),
-            publishedOnly: \user()?->can(Permission::PAGES_VIEW) !== true,
+            publishedOnly: user()?->can(Permission::PAGES_VIEW) !== true,
         );
     }
 
@@ -299,7 +301,7 @@ final class PageRegistry
             return $language;
         }
 
-        return \cms()->settings()->language();
+        return cms()->settings()->language();
     }
 
     private function findCodePageByPath(string $path, string $method = 'GET'): ?Page

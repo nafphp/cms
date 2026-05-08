@@ -9,6 +9,7 @@ use NixPHP\I18n\Core\Translator;
 use function NixPHP\app;
 use function NixPHP\config;
 use function NixPHP\request;
+use function NixCMS\cms;
 
 final class Settings
 {
@@ -69,7 +70,7 @@ final class Settings
             $configured = preg_split('/[,\s]+/', $configured) ?: [];
         }
 
-        return \cms()->languages()->enabled($configured);
+        return cms()->languages()->enabled($configured);
     }
 
     public function currentLanguage(): string
@@ -101,7 +102,7 @@ final class Settings
     public function fallbackLanguage(): string
     {
         $configured = strtolower(trim((string) $this->value('fallback_language', 'en')));
-        if (\cms()->languages()->normalize($configured) !== null) {
+        if (cms()->languages()->normalize($configured) !== null) {
             return $configured;
         }
 
@@ -121,7 +122,7 @@ final class Settings
     public function translationFileExists(string $language): bool
     {
         $language = strtolower(trim($language));
-        if (\cms()->languages()->normalize($language) === null) {
+        if (cms()->languages()->normalize($language) === null) {
             return false;
         }
 

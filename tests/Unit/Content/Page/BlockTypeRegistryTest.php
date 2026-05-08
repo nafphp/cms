@@ -7,13 +7,14 @@ namespace Tests\Unit\Content\Page;
 use NixCMS\Content\Page\Block\AbstractBlockType;
 use NixCMS\Content\Page\Block\BlockTypeRegistry;
 use PHPUnit\Framework\TestCase;
+use Tests\Support\CoreBlockTypes;
 
 final class BlockTypeRegistryTest extends TestCase
 {
     public function testDefaultsExposeBuilderBlockTypes(): void
     {
         $registry = new BlockTypeRegistry();
-        $registry->addMany(require BASE_PATH . '/app/blockTypes.php');
+        $registry->addMany(CoreBlockTypes::all());
 
         self::assertSame('Hero', $registry->require('hero')->label());
         self::assertSame(['main', 'aside', 'footer'], $registry->require('form')->regions());
@@ -32,6 +33,12 @@ final class BlockTypeRegistryTest extends TestCase
         self::assertSame('A clear page hero', $hero['defaults']['title']);
         self::assertSame(2, $columns['defaults']['columns']);
         self::assertSame(['hero', 'main'], $articleContent['regions']);
+
+        $header = $this->findBuilderType($builderTypes, 'header');
+        $footer = $this->findBuilderType($builderTypes, 'footer');
+        self::assertTrue($header['unique']);
+        self::assertTrue($footer['unique']);
+        self::assertFalse($hero['unique']);
     }
 
     public function testAddRegistersPluginBlockType(): void

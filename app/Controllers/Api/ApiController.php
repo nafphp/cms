@@ -10,6 +10,7 @@ use NixCMS\Support\HandlerInvoker;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\request;
 use function NixPHP\route;
+use function NixCMS\cms;
 
 final class ApiController
 {
@@ -33,14 +34,14 @@ final class ApiController
     {
         $routeName = route()->current();
         if (is_string($routeName) && $routeName !== '') {
-            $endpoint = \cms()->api()->get($routeName);
+            $endpoint = cms()->api()->get($routeName);
             if ($endpoint instanceof ApiEndpoint) {
                 return $endpoint;
             }
         }
 
         $request = request();
-        $endpoint = \cms()->api()->findByPath($request->getUri()->getPath(), $request->getMethod());
+        $endpoint = cms()->api()->findByPath($request->getUri()->getPath(), $request->getMethod());
         if ($endpoint instanceof ApiEndpoint) {
             return $endpoint;
         }

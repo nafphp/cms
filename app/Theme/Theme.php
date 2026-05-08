@@ -142,10 +142,15 @@ final class Theme
      */
     public function surfaceOptions(): array
     {
+        $surfaces = $this->surfaces;
+        if (array_key_exists('none', $surfaces)) {
+            $surfaces = ['none' => $surfaces['none']] + $surfaces;
+        }
+
         return array_map(
             static fn(string $id, string $label): array => ['value' => $id, 'label' => $label],
-            array_keys($this->surfaces),
-            array_values($this->surfaces),
+            array_keys($surfaces),
+            array_values($surfaces),
         );
     }
 

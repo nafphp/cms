@@ -16,6 +16,7 @@ use NixPHP\ORM\Core\EntityInterface;
 use PDO;
 use function NixPHP\Database\database;
 use function NixPHP\ORM\em;
+use function NixCMS\cms;
 
 /**
  * Generic typed CRUD over a single entity.

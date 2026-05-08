@@ -200,6 +200,8 @@ final class Layout
      */
     public function definition(): array
     {
+        $blocksAreDeletable = $this->kind === 'custom';
+
         return array_filter([
             'id' => $this->id,
             'label' => $this->label,
@@ -210,6 +212,7 @@ final class Layout
             'blocks' => array_map(
                 static fn(PageBlock $block): array => [
                     'id' => $block->id(),
+                    'deletable' => $blocksAreDeletable,
                     ...$block->data(),
                 ],
                 array_values($this->blocks)

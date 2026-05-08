@@ -6,9 +6,9 @@ namespace NixCMS\Handlers\Api\Media;
 
 use NixCMS\Handlers\Support\ReadsJsonBody;
 use Psr\Http\Message\ResponseInterface;
-use function cms;
 use function NixPHP\I18n\t;
 use function NixPHP\json;
+use function NixCMS\cms;
 
 final class UpdateMedia
 {

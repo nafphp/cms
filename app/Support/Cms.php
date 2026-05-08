@@ -24,6 +24,7 @@ use NixCMS\Settings\SettingsRegistry;
 use NixCMS\Storage\EntityStorage;
 use NixCMS\Theme\ThemeRegistry;
 use NixCMS\Visualization\VisualizationRegistry;
+use function NixCMS\cms;
 
 final class Cms
 {

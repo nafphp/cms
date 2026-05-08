@@ -100,6 +100,7 @@ NixCMS may provide a browser-local AI assistant backed by Ollama before broader 
 - Store AI settings below the `ai` key only, for example `ai.type`, `ai.url`, `ai.model`, `ai.embedding_model`, `ai.api_key`, and `ai.instructions`.
 - `ai.type=local` means browser-local Ollama. `ai.type=remote` is reserved for a later remote/OpenAI-compatible provider and should not imply a backend abstraction yet.
 - `ai.model` is the chat/generation model. `ai.embedding_model` is optional and is used only for semantic tool routing; leave it empty to use the deterministic keyword router.
+- The Local AI settings UI should list only Ollama chat models whose `/api/show` capabilities include `tools` for `ai.model`; models without tool support should not be selectable for the assistant because the admin chat relies on tool calls.
 - Embedding models return numeric vectors, not chat responses. Local Ollama embeddings should use `/api/embed` and cosine similarity, with keyword routing as a fallback if Ollama or the embedding model is unavailable.
 - Prefer live/streaming responses for local Ollama assistant interactions when the UI benefits from immediate feedback.
 - Treat `ai.instructions` as installation-specific assistant guidance that is applied in addition to this `AGENTS.md`; it must not replace repository or shipped-project safety rules.
@@ -123,11 +124,11 @@ The local assistant must not send the full MCP tool registry to the model once t
 
 ### AI Admin Actions
 
-The initial local assistant should stay focused on tool-driven CMS assistance and navigation.
+The initial local assistant should stay focused on tool-driven CMS assistance, navigation, and stable domain tools.
 
 - Admin navigation from the assistant should use `cms_admin_navigate`, which returns the registered `admin.navigate` UI Action. Keep navigation restricted to safe internal `/admin` URLs.
 - Article creation and appending should prefer the domain MCP tools `cms_article_draft_create` and `cms_article_draft_append`; those already use the Article API/versioning workflow.
-- PageBuilder and broader staged write experiments live on the `ai-enhancement` branch until the interaction model is reliable enough for core.
+- Browser-side direct assistant commands may be used for explicit UI modes that should not depend on model tool-call reliability. Keep command recognition centralized in `public/js/admin/local-ai-direct-commands.js`, with aliases and patterns there instead of scattered one-off intent checks.
 
 ## Capability Concept
 
@@ -297,7 +298,9 @@ Follow these rules when extending HTTP behavior:
 
 - Register page-builder block metadata through `cms()->blockTypes()`.
 - Core defaults live under `app/Content/Page/Block/Types`; each block type is a small PHP class implementing `BlockTypeInterface`.
+- Core block types are registered explicitly in `bootstrap.php` with individual `cms()->blockTypes()->add(new ...BlockType())` calls, following the same path plugins use. Do not reintroduce an `app/blockTypes.php` aggregator or directory scanning for block type registration.
 - A block type describes `id()`, `label()`, `regions()`, `defaults()`, and `fields()` for the admin builder.
+- A block type may return `unique() === true` when only one instance should exist in a PageBuilder custom layout. The builder must enforce uniqueness from this metadata instead of hard-coding individual block type names.
 - Plugins may call `cms()->blockTypes()->add(new MyPluginBlockType())` during bootstrap.
 - Keep block type metadata separate from rendering. `cms()->blockTypes()` tells the builder what can be edited; `cms()->blocks()` maps a saved type to a `.phtml` view.
 
@@ -460,6 +463,7 @@ For NixCMS, preserve that model:
 - Plugin views should be added to the view search path rather than copied into the app.
 - Plugin bootstrap code may register pages, API endpoints, commands, events, scheduler entries, queue jobs, MCP tools, admin navigation, and permissions.
 - NixCMS-specific plugin metadata may be added later, but executable plugin/tool definitions should remain the source of truth wherever possible.
+- Feature registration should be explicit. Do not activate pages, API endpoints, block types, content types, tools, commands, jobs, migrations, or permissions merely because a file exists in a directory. Filesystem scans are acceptable for resources and diagnostics, such as language packs, queue files, view integrity checks, or example smoke tests, but not as a hidden feature registration mechanism.
 
 ## WeOnlyWalk As Reference Material
 

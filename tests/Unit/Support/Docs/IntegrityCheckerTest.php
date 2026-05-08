@@ -26,13 +26,8 @@ final class IntegrityCheckerTest extends TestCase
 
     public function testCheckReportsAndSortsDriftIssues(): void
     {
-        $this->write('app/blockTypes.php', <<<'PHP'
-<?php
-
-use NixCMS\Content\Page\Block\BlockTypeInterface;
-
-return [
-    new class implements BlockTypeInterface {
+        $blockTypes = [
+            new class implements \NixCMS\Content\Page\Block\BlockTypeInterface {
         public function id(): string { return 'hero'; }
         public function label(): string { return 'Hero'; }
         public function description(): string { return ''; }
@@ -40,12 +35,12 @@ return [
         public function previewTitle(): string { return 'Hero'; }
         public function defaults(): array { return []; }
         public function fields(): array { return []; }
+        public function unique(): bool { return false; }
         public function contentTypes(): array { return []; }
         public function templateKinds(): array { return []; }
         public function toBuilderArray(): array { return []; }
     },
-];
-PHP);
+        ];
         $this->write('app/Resources/pages/page_templates.php', <<<'PHP'
 <?php
 
@@ -66,7 +61,7 @@ PHP);
         $this->write('views/page/blocks/orphan.phtml', '<div>orphan</div>');
         $this->write('views/page/templates/orphan.phtml', '<main>orphan</main>');
 
-        $issues = (new IntegrityChecker($this->basePath))->check();
+        $issues = (new IntegrityChecker($this->basePath, $blockTypes))->check();
         $messages = array_column($issues, 'message');
 
         self::assertContains('BlockType "hero" maps to missing view "page.blocks.hero" (views/page/blocks/hero.phtml).', $messages);

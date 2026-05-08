@@ -8,6 +8,7 @@ use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;
 use function NixPHP\app;
+use function NixCMS\cms;
 
 final class PluginOverviewTool implements ToolInterface, ScopedToolInterface
 {
@@ -70,11 +71,11 @@ final class PluginOverviewTool implements ToolInterface, ScopedToolInterface
             'total' => count($plugins),
             'plugins' => $plugins,
             'registries' => [
-                'pages' => count(\cms()->pages()->all()),
-                'api_endpoints' => count(\cms()->api()->all()),
-                'content_types' => count(\cms()->contentTypes()->all()),
-                'block_types' => count(\cms()->blockTypes()->all()),
-                'block_views' => count(\cms()->blocks()->all()),
+                'pages' => count(cms()->pages()->all()),
+                'api_endpoints' => count(cms()->api()->all()),
+                'content_types' => count(cms()->contentTypes()->all()),
+                'block_types' => count(cms()->blockTypes()->all()),
+                'block_views' => count(cms()->blocks()->all()),
             ],
         ];
     }

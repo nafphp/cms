@@ -9,6 +9,7 @@ use NixCMS\Navigation\Navigation;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 use function NixPHP\json;
+use function NixCMS\cms;
 
 final class StoreNavigation
 {
@@ -33,7 +34,7 @@ final class StoreNavigation
             $originalIdentifier = (string) ($data['originalIdentifier'] ?? $identifier);
             $status = $this->normalizeStatus((string) ($data['status'] ?? 'draft'));
 
-            $savedId = \cms()->navigation()->save([
+            $savedId = cms()->navigation()->save([
                 'id' => $targetId,
                 'identifier' => $identifier,
                 'title' => (string) ($data['title'] ?? ''),
@@ -43,9 +44,9 @@ final class StoreNavigation
                 'items' => $this->normalizeItems(is_array($data['items'] ?? null) ? $data['items'] : []),
             ]);
 
-            \cms()->navigation()->deleteTranslationsExcept($identifier, 'frontend', $savedId);
+            cms()->navigation()->deleteTranslationsExcept($identifier, 'frontend', $savedId);
             if ($originalIdentifier !== '' && $originalIdentifier !== $identifier) {
-                \cms()->navigation()->deleteTranslationsExcept($originalIdentifier, 'frontend', 0);
+                cms()->navigation()->deleteTranslationsExcept($originalIdentifier, 'frontend', 0);
             }
 
             return json(['success' => true, 'ids' => ['' => $savedId], 'id' => $savedId]);

@@ -1,28 +1,65 @@
 <?php
 
 use NixCMS\Enums\Permission;
+use NixCMS\Repositories\ThemeRepository;
 use NixCMS\Services\Settings\TranslationFileService;
 use function NixPHP\View\s;
 use function NixPHP\I18n\t;
 use function NixPHP\route;
+use function NixCMS\cms;
+use function NixCMS\user;
 
 $templates = is_array($templates ?? null) ? $templates : [];
 $contentTypes = is_array($contentTypes ?? null) ? $contentTypes : [];
-$themes = is_array($themes ?? null) ? $themes : \cms()->themes()->options();
-$themeSurfaces = is_array($themeSurfaces ?? null) ? $themeSurfaces : \cms()->themes()->surfaceOptionsByTheme();
+$themes = is_array($themes ?? null) ? $themes : cms()->themes()->options();
+$themeSurfaces = is_array($themeSurfaces ?? null) ? $themeSurfaces : cms()->themes()->surfaceOptionsByTheme();
+$editableThemes = [];
+$canEditThemes = user()?->can(Permission::THEMES_EDIT) === true;
+if ($canEditThemes) {
+    $themeRepository = new ThemeRepository();
+    foreach ($themeRepository->summaries() as $themeSummary) {
+        $themeRow = $themeRepository->find((int) ($themeSummary['id'] ?? 0));
+        if (!is_array($themeRow)) {
+            continue;
+        }
+
+        $identifier = (string) ($themeRow['identifier'] ?? '');
+        if ($identifier === '') {
+            continue;
+        }
+
+        $editableThemes[$identifier] = [
+            'id' => (int) ($themeRow['id'] ?? 0),
+            'identifier' => $identifier,
+            'label' => (string) ($themeRow['label'] ?? $identifier),
+            'surfaces' => is_array($themeRow['surfaces'] ?? null) ? $themeRow['surfaces'] : [],
+            'css' => (string) ($themeRow['css'] ?? ''),
+            'js' => (string) ($themeRow['js'] ?? ''),
+            'cssPath' => (string) ($themeRow['cssPath'] ?? ('/css/themes/' . $identifier . '.css')),
+            'jsPath' => (string) ($themeRow['jsPath'] ?? ('/js/themes/' . $identifier . '.js')),
+        ];
+    }
+}
+$themeAssets = [];
+foreach (cms()->themes()->all() as $theme) {
+    $themeAssets[$theme->id()] = [
+        'className' => $theme->className(),
+        'stylesheets' => $theme->stylesheets(),
+    ];
+}
 $navigationChoices = is_array($navigationChoices ?? null) ? $navigationChoices : [];
 $languages = is_array($languages ?? null) ? array_values($languages) : ['en'];
 $defaultLanguage = (string) ($defaultLanguage ?? ($languages[0] ?? 'en'));
 $initialState = is_array($initialState ?? null) ? $initialState : [];
 $mode = (string) ($mode ?? 'create');
-$mediaAcceptedExtensions = \cms()->media()->acceptedExtensions();
-$mediaMaxUploadSize = \cms()->media()->maxUploadSize();
-$canUploadMedia = \user()?->can(Permission::MEDIA_UPLOAD) === true;
+$mediaAcceptedExtensions = cms()->media()->acceptedExtensions();
+$mediaMaxUploadSize = cms()->media()->maxUploadSize();
+$canUploadMedia = user()?->can(Permission::MEDIA_UPLOAD) === true;
 $translationService = new TranslationFileService();
-$uiLanguage = \cms()->settings()->currentLanguage();
+$uiLanguage = cms()->settings()->currentLanguage();
 $translationLanguages = array_values(array_unique([
     ...$languages,
-    ...\cms()->settings()->languages(),
+    ...cms()->settings()->languages(),
     ...array_map(
         static fn(array $language): string => (string) ($language['code'] ?? ''),
         $translationService->languages($defaultLanguage),
@@ -30,7 +67,7 @@ $translationLanguages = array_values(array_unique([
 ]));
 $translationSuggestions = [];
 foreach ($translationLanguages as $language) {
-    $language = \cms()->languages()->normalize((string) $language);
+    $language = cms()->languages()->normalize((string) $language);
     if ($language === null) {
         continue;
     }
@@ -47,13 +84,17 @@ $config = [
     'templates' => $templates,
     'contentTypes' => $contentTypes,
     'themes' => $themes,
+    'themeAssets' => $themeAssets,
     'themeSurfaces' => $themeSurfaces,
+    'editableThemes' => $editableThemes,
+    'canEditThemes' => $canEditThemes,
+    'themeSaveUrl' => '/api/admin/themes',
     'navigationChoices' => $navigationChoices,
     'defaultNavigationIdentifier' => (string) ($defaultNavigationIdentifier ?? ($navigationChoices[0]['identifier'] ?? 'main')),
     'languages' => $languages,
     'defaultLanguage' => $defaultLanguage,
     'uiLanguage' => $uiLanguage,
-    'languageOptions' => \cms()->languages()->knownOptions(),
+    'languageOptions' => cms()->languages()->knownOptions(),
     'translationEntries' => $translationService->entries($uiLanguage),
     'translationSuggestions' => $translationSuggestions,
     'translationEndpoint' => '/api/admin/translations/{language}',
@@ -79,7 +120,7 @@ $config = [
 
 <?php $this->block('content'); ?>
 <div
-    class="page-builder overflow-hidden rounded-lg border border-slate-700/80 bg-[#0c1118] text-slate-100 shadow-[0_24px_80px_rgba(0,0,0,.32)]"
+    class="page-builder overflow-x-clip overflow-y-visible rounded-lg border border-slate-700/80 bg-[#0c1118] text-slate-100 shadow-[0_24px_80px_rgba(0,0,0,.32)]"
     data-page-builder
     data-save-url="<?= s((string) ($saveUrl ?? '/admin/pages')) ?>"
     data-overview-url="<?= s((string) ($overviewUrl ?? route('admin.pages'))) ?>"
@@ -179,37 +220,40 @@ $config = [
                 <span class="grid h-9 w-9 place-items-center rounded-full border-2 border-slate-700 font-bold text-slate-400">3</span>
                 <span class="text-sm text-slate-500">3 Metadaten</span>
                 <button class="min-h-10 rounded-md border border-slate-700 px-4 text-sm font-semibold text-slate-400 transition hover:border-rose-500/70 hover:text-rose-300" type="button" data-reset-builder><?= s(t('Zurücksetzen')) ?></button>
+                <?php if ($canEditThemes): ?>
+                    <button class="min-h-10 rounded-md border border-slate-700 px-4 text-sm font-semibold text-slate-300 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-open-theme-editor><?= s(t('Theme bearbeiten')) ?></button>
+                <?php endif; ?>
                 <button class="min-h-10 rounded-md border border-slate-700 px-4 text-sm font-semibold text-slate-300" type="button" data-back-step>← Zurück</button>
                 <button class="min-h-10 rounded-md bg-[var(--admin-page-accent)] px-4 text-sm font-bold text-white" type="button" data-next-meta>Metadaten →</button>
             </div>
         </header>
 
-        <div class="grid min-h-[686px] grid-cols-[minmax(0,1fr)_auto]">
-            <div class="grid min-h-0 grid-rows-[auto_minmax(0,1fr)]">
-                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 bg-[#0f1721] px-6 py-4">
-                    <div class="grid gap-0.5">
-                        <span class="text-[11px] font-bold uppercase text-slate-500">Preview canvas</span>
-                        <strong class="text-sm font-semibold text-white" data-preview-title>Desktop preview</strong>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-3">
-                        <div class="inline-flex rounded-md border border-slate-700 bg-[#070d15] p-1" role="group" aria-label="Preview viewport" data-preview-mode-controls>
-                            <button class="min-h-9 rounded px-3 text-xs font-semibold text-slate-400 transition hover:text-white" type="button" data-preview-mode="desktop"><?= s(t('Desktop')) ?></button>
-                            <button class="min-h-9 rounded px-3 text-xs font-semibold text-slate-400 transition hover:text-white" type="button" data-preview-mode="tablet"><?= s(t('Tablet')) ?></button>
-                            <button class="min-h-9 rounded px-3 text-xs font-semibold text-slate-400 transition hover:text-white" type="button" data-preview-mode="mobile"><?= s(t('Mobile')) ?></button>
-                        </div>
-                        <label class="flex min-w-[240px] items-center gap-2 text-xs font-semibold text-slate-500">
-                            <span><?= s(t('Content width')) ?></span>
-                            <select class="min-h-9 min-w-0 flex-1 rounded-md border border-slate-700 bg-[#070d15] px-3 text-xs text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-styled-select data-content-width-control data-persist-key="theme.contentWidth">
-                                <option value="template"><?= s(t('Template')) ?></option>
-                                <option value="narrow"><?= s(t('Narrow')) ?> · 760px</option>
-                                <option value="comfortable"><?= s(t('Comfortable')) ?> · 960px</option>
-                                <option value="wide"><?= s(t('Wide')) ?> · 1120px</option>
-                                <option value="full"><?= s(t('Full width')) ?></option>
-                            </select>
-                        </label>
-                    </div>
+        <div class="grid min-h-[686px] grid-rows-[auto_minmax(0,1fr)]">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 bg-[#0f1721] px-6 py-4">
+                <div class="grid gap-0.5">
+                    <span class="text-[11px] font-bold uppercase text-slate-500">Preview canvas</span>
+                    <strong class="text-sm font-semibold text-white" data-preview-title>Desktop preview</strong>
                 </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="inline-flex rounded-md border border-slate-700 bg-[#070d15] p-1" role="group" aria-label="Preview viewport" data-preview-mode-controls>
+                        <button class="min-h-9 rounded px-3 text-xs font-semibold text-slate-400 transition hover:text-white" type="button" data-preview-mode="desktop"><?= s(t('Desktop')) ?></button>
+                        <button class="min-h-9 rounded px-3 text-xs font-semibold text-slate-400 transition hover:text-white" type="button" data-preview-mode="tablet"><?= s(t('Tablet')) ?></button>
+                        <button class="min-h-9 rounded px-3 text-xs font-semibold text-slate-400 transition hover:text-white" type="button" data-preview-mode="mobile"><?= s(t('Mobile')) ?></button>
+                    </div>
+                    <label class="flex min-w-[240px] items-center gap-2 text-xs font-semibold text-slate-500">
+                        <span><?= s(t('Content width')) ?></span>
+                        <select class="min-h-9 min-w-0 flex-1 rounded-md border border-slate-700 bg-[#070d15] px-3 text-xs text-slate-100 outline-none focus:border-[var(--admin-page-accent)]" data-styled-select data-content-width-control data-persist-key="theme.contentWidth">
+                            <option value="template"><?= s(t('Template')) ?></option>
+                            <option value="narrow"><?= s(t('Narrow')) ?> · 760px</option>
+                            <option value="comfortable"><?= s(t('Comfortable')) ?> · 960px</option>
+                            <option value="wide"><?= s(t('Wide')) ?> · 1120px</option>
+                            <option value="full"><?= s(t('Full width')) ?></option>
+                        </select>
+                    </label>
+                </div>
+            </div>
 
+            <div class="grid min-h-0 grid-cols-[minmax(0,1fr)_auto]">
                 <div class="min-h-0 overflow-auto px-6 py-8">
                     <div class="mx-auto grid w-full max-w-[1380px] gap-4" data-preview-stage>
                         <div class="mx-auto flex w-full max-w-full flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800 bg-[#121820] px-4 py-3 text-xs text-slate-500" data-preview-ruler>
@@ -229,18 +273,18 @@ $config = [
                     <div class="hidden" data-page-preview></div>
                     <span class="hidden" data-filled-count></span>
                 </div>
-            </div>
 
-            <aside class="grid min-h-0 w-0 justify-items-stretch grid-rows-[auto_minmax(0,1fr)] overflow-hidden border-l border-transparent bg-slate-950 opacity-0 transition-[width,opacity,border-color] duration-200 ease-out" data-settings-drawer>
-                <div class="flex w-full min-w-0 items-center gap-3 justify-self-stretch border-b border-slate-800 px-4 py-3">
-                    <div class="min-w-0 flex-1 text-left">
-                        <h2 class="m-0 text-sm font-semibold text-white">Block settings</h2>
-                        <p class="mt-0.5 text-xs text-slate-500">Props for the selected block type.</p>
+                <aside class="grid min-h-0 w-0 justify-items-stretch grid-rows-[auto_minmax(0,1fr)] overflow-hidden border-l border-transparent bg-slate-950 opacity-0 transition-[width,opacity,border-color] duration-200 ease-out" data-settings-drawer>
+                    <div class="flex w-full min-w-0 items-center gap-3 justify-self-stretch border-b border-slate-800 px-4 py-3">
+                        <div class="min-w-0 flex-1 text-left">
+                            <h2 class="m-0 text-sm font-semibold text-white">Block settings</h2>
+                            <p class="mt-0.5 text-xs text-slate-500">Props for the selected block type.</p>
+                        </div>
+                        <button class="ml-auto shrink-0 rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300" type="button" data-close-settings>Close</button>
                     </div>
-                    <button class="ml-auto shrink-0 rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300" type="button" data-close-settings>Close</button>
-                </div>
-                <div class="min-h-0 overflow-auto p-4" data-content-settings></div>
-            </aside>
+                    <div class="min-h-0 overflow-auto p-4" data-content-settings></div>
+                </aside>
+            </div>
         </div>
     </section>
 
@@ -342,7 +386,12 @@ $config = [
                 <div class="h-px bg-slate-800"></div>
 
                 <div>
-                    <h2 class="m-0 text-sm font-semibold text-white">Theme</h2>
+                    <div class="flex items-center justify-between gap-3">
+                        <h2 class="m-0 text-sm font-semibold text-white">Theme</h2>
+                        <?php if ($canEditThemes): ?>
+                            <button class="min-h-9 rounded-md border border-slate-700 px-3 text-xs font-semibold text-slate-300 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-open-theme-editor><?= s(t('Theme bearbeiten')) ?></button>
+                        <?php endif; ?>
+                    </div>
                 </div>
                 <div class="grid gap-4 md:grid-cols-2">
                     <label class="grid gap-1.5">

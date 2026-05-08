@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NixCMS\Support\Docs;
 
 use NixCMS\Content\ContentTypeInterface;
+use function NixCMS\cms;
 
 final class ContentTypesDocRenderer implements DocBlockRenderer
 {

@@ -100,6 +100,7 @@
     const hexColorPattern = /#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})(?![0-9a-fA-F])/g;
     const escapeRegExp = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const phpString = (value) => String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const normalizeLineEndings = (value) => String(value || '').replace(/\r\n?/g, '\n');
 
     class ThemeEditor {
         constructor(root) {
@@ -1429,6 +1430,7 @@
         }
 
         setCss(value) {
+            value = normalizeLineEndings(value);
             if (this.cssMirror) {
                 if (this.cssMirror.getValue() !== value) {
                     this.cssMirror.setValue(value);
@@ -1439,6 +1441,7 @@
         }
 
         setJs(value) {
+            value = normalizeLineEndings(value);
             if (this.jsMirror) {
                 if (this.jsMirror.getValue() !== value) {
                     this.jsMirror.setValue(value);

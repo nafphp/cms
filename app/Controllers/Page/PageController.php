@@ -10,12 +10,12 @@ use NixCMS\Page\PageAuthorization;
 use NixCMS\Page\PageBuilderRenderer;
 use NixCMS\Support\HandlerInvoker;
 use Psr\Http\Message\ResponseInterface;
-use function cms;
 use function NixPHP\I18n\t;
 use function NixPHP\request;
 use function NixPHP\response;
 use function NixPHP\route;
 use function NixPHP\View\view;
+use function NixCMS\cms;
 
 final class PageController
 {

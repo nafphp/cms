@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace NixCMS\Services\Ai\ToolRouting;
+use function NixCMS\cms;
 
 /**
  * Current semantic router implementation.
@@ -26,12 +27,12 @@ final class SemanticToolRouter implements ToolRouterInterface
      */
     public function select(string $input, ToolContext $context, int $limit = 8): array
     {
-        $embeddingModel = trim((string) \cms()->settings()->value('ai.embedding_model', ''));
+        $embeddingModel = trim((string) cms()->settings()->value('ai.embedding_model', ''));
         if ($embeddingModel !== '') {
             $router = new CosineToolRouter(
                 $this->tools,
                 new OllamaEmbeddingClient(
-                    (string) \cms()->settings()->value('ai.url', 'http://localhost:11434'),
+                    (string) cms()->settings()->value('ai.url', 'http://localhost:11434'),
                     $embeddingModel,
                 ),
                 fallback: $this->fallback ?? new KeywordToolRouter($this->tools),

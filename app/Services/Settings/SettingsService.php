@@ -9,6 +9,9 @@ use NixCMS\Settings\SettingField;
 use NixCMS\Settings\SettingSection;
 use function NixPHP\config;
 use function NixPHP\I18n\t;
+use function NixCMS\cms;
+use function NixCMS\settings;
+use function NixCMS\audit;
 
 final class SettingsService
 {
@@ -23,7 +26,7 @@ final class SettingsService
         $stored = $this->repository()->all();
         $sections = [];
 
-        foreach (\settings()->sections($group) as $section) {
+        foreach (settings()->sections($group) as $section) {
             $sections[] = $this->sectionPayload($section, $stored);
         }
 
@@ -40,7 +43,7 @@ final class SettingsService
         $errors = [];
         $oldValues = $this->currentValues();
 
-        foreach (\settings()->fields() as $key => $field) {
+        foreach (settings()->fields() as $key => $field) {
             if (!array_key_exists($key, $payload)) {
                 continue;
             }
@@ -113,7 +116,7 @@ final class SettingsService
         if ($field->type() === 'multiselect') {
             $values = is_array($value) ? $value : preg_split('/[,\s]+/', (string) $value);
             $selected = array_values(array_unique(array_filter(array_map(
-                static fn(mixed $entry): ?string => \cms()->languages()->normalize((string) $entry),
+                static fn(mixed $entry): ?string => cms()->languages()->normalize((string) $entry),
                 $values ?: [],
             ))));
             $selected = array_values(array_filter(
@@ -132,7 +135,7 @@ final class SettingsService
 
         if ($field->key() === 'cms.languages') {
             $languages = array_values(array_unique(array_filter(array_map(
-                static fn(string $language): ?string => \cms()->languages()->normalize($language),
+                static fn(string $language): ?string => cms()->languages()->normalize($language),
                 preg_split('/[,\s]+/', $value) ?: [],
             ))));
 
@@ -187,7 +190,7 @@ final class SettingsService
         $stored = $this->repository()->all();
         $values = [];
 
-        foreach (\settings()->fields() as $key => $field) {
+        foreach (settings()->fields() as $key => $field) {
             $values[$key] = $stored[$key] ?? $this->defaultValue($field);
         }
 
@@ -203,7 +206,7 @@ final class SettingsService
                 continue;
             }
 
-            \audit(
+            audit(
                 'setting.updated',
                 'setting',
                 $key,

@@ -14,6 +14,7 @@ use function NixPHP\config;
 use function NixPHP\I18n\lang;
 use function NixPHP\ORM\em;
 use function NixPHP\ORM\repo;
+use function NixCMS\cms;
 
 class ArticleRepository extends AbstractRepository
 {
@@ -429,8 +430,8 @@ class ArticleRepository extends AbstractRepository
             $articleId = (int) ($data['article_id'] ?? 0);
             $hideLeadImageInContent = filter_var($data['hide_lead_image_in_content'] ?? true, FILTER_VALIDATE_BOOLEAN);
             $showTeaser = filter_var($data['show_teaser'] ?? false, FILTER_VALIDATE_BOOLEAN);
-            $language = \cms()->languages()->normalize((string) ($data['language'] ?? ''));
-            if ($language === null || !\cms()->languages()->isKnown($language)) {
+            $language = cms()->languages()->normalize((string) ($data['language'] ?? ''));
+            if ($language === null || !cms()->languages()->isKnown($language)) {
                 throw new \InvalidArgumentException('Invalid article language.');
             }
 
@@ -895,7 +896,7 @@ class ArticleRepository extends AbstractRepository
 
     private function resolveActiveLanguage(): string
     {
-        return \cms()->languages()->normalize((string) lang())
+        return cms()->languages()->normalize((string) lang())
             ?? (string) config('language', 'en');
     }
 }

@@ -7,6 +7,7 @@ namespace NixCMS\Repositories;
 use NixCMS\Support\AuditLogRecord;
 use PDO;
 use function NixPHP\Database\database;
+use function NixCMS\audit_log;
 
 final class AuditLogRepository
 {

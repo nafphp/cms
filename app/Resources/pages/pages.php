@@ -14,6 +14,7 @@ use function NixPHP\I18n\t;
 use function NixPHP\request;
 use function NixPHP\View\render;
 use Psr\Http\Message\ResponseInterface;
+use function NixCMS\cms;
 
 $templateDefinitions = Layout::definitions(require __DIR__ . '/page_templates.php');
 

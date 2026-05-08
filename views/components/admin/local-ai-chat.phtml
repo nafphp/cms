@@ -2,6 +2,8 @@
 
 use function NixPHP\I18n\t;
 use function NixPHP\View\s;
+use function NixCMS\cms;
+use function NixCMS\user;
 
 $settings = cms()->settings();
 $aiEnabledValue = strtolower(trim((string) $settings->value('ai.enabled', '0')));
@@ -15,7 +17,7 @@ $aiSystemPrompt = is_file($aiSystemPromptPath)
     ? trim((string) file_get_contents($aiSystemPromptPath))
     : '';
 $isLocal = $aiType === 'local';
-$currentUser = \user()?->get();
+$currentUser = user()?->get();
 $currentUserName = trim((string) ($currentUser?->getFirstname() ?: $currentUser?->getDisplayName() ?: ''));
 
 ?>

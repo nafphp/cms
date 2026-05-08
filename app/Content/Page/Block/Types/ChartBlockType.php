@@ -15,7 +15,7 @@ final class ChartBlockType extends AbstractBlockType
 
     public function label(): string
     {
-        return 'Diagram';
+        return 'Chart';
     }
 
     public function description(): string
@@ -30,7 +30,7 @@ final class ChartBlockType extends AbstractBlockType
 
     public function previewTitle(): string
     {
-        return 'Diagram';
+        return 'Chart';
     }
 
     public function defaults(): array

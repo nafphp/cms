@@ -16,6 +16,11 @@ abstract class AbstractBlockType implements BlockTypeInterface
         return $this->label();
     }
 
+    public function unique(): bool
+    {
+        return false;
+    }
+
     public function defaults(): array
     {
         return [];
@@ -61,6 +66,7 @@ abstract class AbstractBlockType implements BlockTypeInterface
             'regions' => $this->regions(),
             'previewTitle' => $this->previewTitle(),
             'defaults' => $this->defaults(),
+            'unique' => $this->unique(),
         ];
 
         if ($this->fields() !== []) {

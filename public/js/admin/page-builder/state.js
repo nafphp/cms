@@ -170,7 +170,7 @@ export const stateMethods = {
 
         const selectedTemplate = this.selectedTemplate();
         this.step = selectedTemplate?.layout ? 'layout' : 'template';
-        this.selectedBlockId = this.step === 'layout' ? (selectedTemplate?.blocks?.[0]?.id || null) : null;
+        this.selectedBlockId = this.step === 'layout' ? (this.layoutBlocks(selectedTemplate)?.[0]?.id || null) : null;
     },
 
     findTemplate(value) {
@@ -226,11 +226,11 @@ export const stateMethods = {
             this.syncCustomTemplateBlocks();
         }
 
-        const blockExists = (this.selectedTemplate()?.blocks || []).some((block) => block.id === state.selectedBlockId);
+        const blockExists = this.layoutBlocks(this.selectedTemplate()).some((block) => block.id === state.selectedBlockId);
         if (blockExists) {
             this.selectedBlockId = state.selectedBlockId;
         } else if (this.step === 'layout') {
-            this.selectedBlockId = this.selectedTemplate()?.blocks?.[0]?.id || null;
+            this.selectedBlockId = this.layoutBlocks(this.selectedTemplate())?.[0]?.id || null;
         }
         this.selectedNestedPath = this.contentAtPath(String(state.selectedNestedPath || '')) ? String(state.selectedNestedPath || '') : '';
 
@@ -418,6 +418,7 @@ export const stateMethods = {
     },
 
     syncPageTheme() {
+        this.syncThemeAssets();
         this.root.style.setProperty('--page-accent', this.pageAccent());
         this.root.style.setProperty('--admin-page-accent', this.pageAccent());
         this.root.style.setProperty('--page-header-bg', this.pageHeaderBackground());
@@ -427,12 +428,67 @@ export const stateMethods = {
         this.root.dataset.headerBackgroundWidthIncludesChrome = this.headerBackgroundWidthIncludesChrome() ? 'true' : 'false';
         this.root.dataset.footerContentWidthIncludesChrome = this.footerContentWidthIncludesChrome() ? 'true' : 'false';
         this.root.dataset.footerBackgroundWidthIncludesChrome = this.footerBackgroundWidthIncludesChrome() ? 'true' : 'false';
+        this.root.querySelectorAll('.page-builder-theme-preview').forEach((preview) => {
+            preview.className = this.previewThemeClassList();
+        });
         const width = this.contentWidthCssValue();
         if (width !== '') {
             this.root.style.setProperty('--page-content-max-width', width);
         } else {
             this.root.style.removeProperty('--page-content-max-width');
         }
+    },
+
+    syncThemeAssets() {
+        const themeId = this.currentThemeId();
+        const stylesheets = Array.isArray(this.themeAssets?.[themeId]?.stylesheets)
+            ? this.themeAssets[themeId].stylesheets
+            : [];
+
+        document.querySelectorAll('link[data-page-builder-theme-stylesheet]').forEach((link) => {
+            if (link.getAttribute('data-page-builder-theme-id') !== themeId) {
+                link.remove();
+            }
+        });
+
+        stylesheets.forEach((stylesheet) => {
+            const href = String(stylesheet?.href || '').trim();
+            if (href === '') {
+                return;
+            }
+
+            const exists = Array.from(document.querySelectorAll('link[data-page-builder-theme-stylesheet]'))
+                .some((link) => link.getAttribute('href') === href);
+            if (exists) {
+                return;
+            }
+
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = href;
+            link.dataset.pageBuilderThemeStylesheet = 'true';
+            link.dataset.pageBuilderThemeId = themeId;
+            Object.entries(stylesheet.attributes || {}).forEach(([name, value]) => {
+                if (value === true) {
+                    link.setAttribute(name, '');
+                } else if (value !== false && value !== null && typeof value !== 'undefined') {
+                    link.setAttribute(name, String(value));
+                }
+            });
+            document.head.appendChild(link);
+        });
+    },
+
+    previewThemeClassList() {
+        return [
+            'page-builder-theme-preview',
+            'page-theme',
+            this.currentThemeClass(),
+            this.headerContentWidthIncludesChrome() ? 'page-theme--bounded-header-content' : '',
+            this.headerBackgroundWidthIncludesChrome() ? 'page-theme--bounded-header-background' : '',
+            this.footerContentWidthIncludesChrome() ? 'page-theme--bounded-footer-content' : '',
+            this.footerBackgroundWidthIncludesChrome() ? 'page-theme--bounded-footer-background' : '',
+        ].filter(Boolean).join(' ');
     },
 
     selectedTemplate() {
@@ -460,7 +516,7 @@ export const stateMethods = {
     },
 
     ensureTemplateDefaults() {
-        for (const block of this.selectedTemplate()?.blocks || []) {
+        for (const block of this.layoutBlocks(this.selectedTemplate())) {
             if (this.blockContent[block.id]) {
                 continue;
             }

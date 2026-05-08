@@ -3,6 +3,7 @@
 use function NixPHP\route;
 use function NixPHP\I18n\t;
 use function NixPHP\View\s;
+use function NixCMS\cms;
 
 $items = is_array($items ?? null) ? $items : [];
 $settings = cms()->settings();

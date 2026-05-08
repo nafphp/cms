@@ -7,6 +7,7 @@ use NixCMS\Page\Page;
 use function NixPHP\I18n\t;
 use function NixPHP\route;
 use function NixPHP\View\render;
+use function NixCMS\cms;
 
 return [
     Page::create('admin.media')
@@ -19,10 +20,10 @@ return [
             'title' => t('Media'),
             'pageTitle' => t('Media'),
             'pageSubtitle' => t('Upload files once and reuse their public URLs across the CMS.'),
-            'media' => \cms()->media()->recent(180),
-            'summary' => \cms()->media()->summary(),
-            'acceptedExtensions' => \cms()->media()->acceptedExtensions(),
-            'maxUploadSize' => \cms()->media()->maxUploadSize(),
+            'media' => cms()->media()->recent(180),
+            'summary' => cms()->media()->summary(),
+            'acceptedExtensions' => cms()->media()->acceptedExtensions(),
+            'maxUploadSize' => cms()->media()->maxUploadSize(),
             'uploadUrl' => route('api.admin.media.upload'),
             'listUrl' => route('api.admin.media'),
             'updateUrl' => '/api/admin/media/{id}/update',

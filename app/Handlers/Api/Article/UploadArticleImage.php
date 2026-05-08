@@ -8,6 +8,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use function NixPHP\json;
 use function NixPHP\request;
+use function NixCMS\cms;
+use function NixCMS\user;
 
 final class UploadArticleImage
 {
@@ -19,7 +21,7 @@ final class UploadArticleImage
         }
 
         try {
-            $media = \cms()->media()->storeUploadedFile($file, \user()?->get()?->getId(), [
+            $media = cms()->media()->storeUploadedFile($file, user()?->get()?->getId(), [
                 'collection' => 'articles',
             ]);
         } catch (\Throwable $exception) {

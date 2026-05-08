@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace NixCMS\Api;
 
 use NixCMS\Exceptions\AuthException;
+use function NixCMS\user;
 
 final class ApiAuthorization
 {
     public function authorize(ApiEndpoint $endpoint): void
     {
-        $helper = \user();
+        $helper = user();
 
         if ($endpoint->requiresAuthentication() && ($helper === null || !$helper->isLoggedIn())) {
             throw new AuthException();

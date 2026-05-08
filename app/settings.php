@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use NixCMS\Settings\SettingField;
 use NixCMS\Settings\SettingSection;
+use function NixCMS\cms;
 
 $languageOptions = array_combine(
     cms()->languages()->available(),

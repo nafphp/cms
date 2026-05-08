@@ -6,12 +6,13 @@ namespace NixCMS\Page;
 
 use NixCMS\Enums\Permission;
 use NixCMS\Exceptions\AuthException;
+use function NixCMS\user;
 
 final class PageAuthorization
 {
     public function authorize(Page $page, ?Permission $extraPermission = null): void
     {
-        $helper = \user();
+        $helper = user();
 
         if (($page->requiresAuthentication() || $extraPermission !== null) && ($helper === null || !$helper->isLoggedIn())) {
             throw new AuthException();

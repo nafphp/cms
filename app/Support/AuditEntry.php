@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace NixCMS\Support;
+use function NixCMS\audit;
 
 final class AuditEntry
 {
@@ -35,7 +36,7 @@ final class AuditEntry
 
     public function record(?Audit $audit = null): bool
     {
-        return ($audit ?? \audit())->record($this);
+        return ($audit ?? audit())->record($this);
     }
 
     /**

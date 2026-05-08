@@ -11,12 +11,12 @@ use NixCMS\Repositories\RoleRepository;
 use NixCMS\Repositories\UserRepository;
 use NixCMS\Visualization\ChartDataset;
 use NixCMS\Visualization\ChartDefinition;
-use NixPHP\MCP\Tools\ToolInterface;
-use function cms;
 use function NixPHP\app;
 use function NixPHP\I18n\t;
+use function NixPHP\MCP\tool;
 use function NixPHP\ORM\repo;
 use function NixPHP\route;
+use function NixCMS\cms;
 
 final class AdminDashboardService
 {
@@ -207,29 +207,6 @@ final class AdminDashboardService
 
     private function mcpToolCount(): int
     {
-        $toolsPath = BASE_PATH . '/app/Mcp/Tools';
-        if (!is_dir($toolsPath)) {
-            return 0;
-        }
-
-        $count = 0;
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($toolsPath, \FilesystemIterator::SKIP_DOTS),
-        );
-
-        foreach ($iterator as $item) {
-            if (!$item instanceof \SplFileInfo || !$item->isFile() || $item->getExtension() !== 'php') {
-                continue;
-            }
-
-            $relativePath = substr($item->getPathname(), strlen(BASE_PATH . '/app/'));
-            $class = 'NixCMS\\' . str_replace(['/', '.php'], ['\\', ''], $relativePath);
-
-            if (class_exists($class) && is_subclass_of($class, ToolInterface::class)) {
-                $count++;
-            }
-        }
-
-        return $count;
+        return count(tool()->definitions());
     }
 }

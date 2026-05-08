@@ -4,14 +4,15 @@ use NixCMS\Enums\Permission;
 use function NixPHP\I18n\t;
 use function NixPHP\View\asset;
 use function NixPHP\View\s;
+use function NixCMS\user;
 
 $media = is_array($media ?? null) ? $media : [];
 $summary = is_array($summary ?? null) ? $summary : [];
 $acceptedExtensions = is_array($acceptedExtensions ?? null) ? array_values($acceptedExtensions) : [];
 $maxUploadSize = (int) ($maxUploadSize ?? 0);
-$canUpload = \user()?->can(Permission::MEDIA_UPLOAD) === true;
-$canEdit = \user()?->can(Permission::MEDIA_EDIT) === true;
-$canDelete = \user()?->can(Permission::MEDIA_DELETE) === true;
+$canUpload = user()?->can(Permission::MEDIA_UPLOAD) === true;
+$canEdit = user()?->can(Permission::MEDIA_EDIT) === true;
+$canDelete = user()?->can(Permission::MEDIA_DELETE) === true;
 $formatBytes = static function (int $bytes): string {
     if ($bytes < 1024) {
         return $bytes . ' B';

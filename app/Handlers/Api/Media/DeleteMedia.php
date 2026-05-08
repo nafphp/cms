@@ -7,6 +7,7 @@ namespace NixCMS\Handlers\Api\Media;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\I18n\t;
 use function NixPHP\json;
+use function NixCMS\cms;
 
 final class DeleteMedia
 {
@@ -17,7 +18,7 @@ final class DeleteMedia
             return json(['success' => false, 'reason' => t('Invalid media id.')], 400);
         }
 
-        if (!\cms()->media()->delete($mediaId)) {
+        if (!cms()->media()->delete($mediaId)) {
             return json(['success' => false, 'reason' => t('Media item could not be deleted.')], 400);
         }
 

@@ -2,6 +2,7 @@
 
 use NixPHP\View\Core\Asset;
 use function NixPHP\View\s;
+use function NixCMS\cms;
 
 /** @var string|null $content */
 /** @var \NixCMS\Page\Page $page */
@@ -89,7 +90,7 @@ if ($themeStyles !== []) {
 }
 
 $seenStylesheets = [];
-foreach ([...$theme->stylesheets(), ...$template->stylesheets(), ...$page->stylesheets()] as $stylesheet) {
+foreach ([...$template->stylesheets(), ...$theme->stylesheets(), ...$page->stylesheets()] as $stylesheet) {
     $key = $stylesheet['href'] . '|' . json_encode($stylesheet['attributes']);
     if (isset($seenStylesheets[$key])) {
         continue;

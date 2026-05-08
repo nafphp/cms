@@ -8,14 +8,14 @@ export const persistenceMethods = {
     renderPagePreview() {
         const template = this.selectedTemplate();
         if (this.pagePreview) {
-            this.pagePreview.innerHTML = this.blockLayout(template, false).replaceAll('Empty content block', 'Unfilled block');
+            this.pagePreview.innerHTML = `<div class="${escapeHtml(this.previewThemeClassList())}">${this.blockLayout(template, false).replaceAll('Empty content block', 'Unfilled block')}</div>`;
         }
     },
 
     renderJson() {
         const template = this.selectedTemplate();
         const blocks = {};
-        for (const block of template?.blocks || []) {
+        for (const block of this.layoutBlocks(template)) {
             blocks[block.id] = this.blockContent[block.id] || null;
         }
 
@@ -35,7 +35,7 @@ export const persistenceMethods = {
                 } : null,
                 blocks,
                 meta: {
-                    custom_layout: this.isCustomTemplate(template) || this.customLayout.length > 0
+                    custom_layout: this.usesCustomLayout(template)
                         ? this.normalizeCustomLayout(this.customLayout)
                         : [],
                 },
@@ -66,7 +66,7 @@ export const persistenceMethods = {
                 [this.labels.footerContentWidth, this.footerContentWidthIncludesChrome() ? this.labels.bounded : this.labels.contentWidthFull],
                 [this.labels.footerBackgroundWidth, this.footerBackgroundWidthIncludesChrome() ? this.labels.bounded : this.labels.contentWidthFull],
                 ['Template', payload.templateId || ''],
-                ...(this.isCustomTemplate(template) || this.customLayout.length > 0 ? [[this.labels.customSlots, String(this.customLayout.length)]] : []),
+                ...(this.usesCustomLayout(template) ? [[this.labels.customSlots, String(this.layoutBlocks(template).length)]] : []),
             ];
             this.metaSummary.innerHTML = rows.map(([label, value]) => `
                 <div class="grid grid-cols-[92px_minmax(0,1fr)] gap-3">
@@ -89,9 +89,7 @@ export const persistenceMethods = {
 
     pagePayload() {
         const template = this.selectedTemplate();
-        const templateBlocks = this.isCustomTemplate(template)
-            ? this.normalizeCustomLayout(this.customLayout)
-            : (template?.blocks || []);
+        const templateBlocks = this.layoutBlocks(template);
         const blocks = {};
         for (const block of templateBlocks) {
             blocks[block.id] = this.blockContent[block.id] || null;
@@ -123,7 +121,7 @@ export const persistenceMethods = {
                 defaultFooterNavigationIdentifier: this.selectedFooterNavigationIdentifier(),
             },
         };
-        if (this.isCustomTemplate(template) || this.customLayout.length > 0) {
+        if (this.usesCustomLayout(template)) {
             meta.custom_layout = templateBlocks;
             if (Number(template?.layoutPresetId || 0) > 0) {
                 meta.custom_layout_ref = Number(template.layoutPresetId);

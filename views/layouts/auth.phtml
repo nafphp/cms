@@ -5,6 +5,7 @@ declare(strict_types=1);
 use function NixPHP\View\s;
 use function NixPHP\View\asset;
 use function NixPHP\I18n\t;
+use function NixCMS\cms;
 
 $settings = cms()->settings();
 $currentLanguage = $settings->currentLanguage();

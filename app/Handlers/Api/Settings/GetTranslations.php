@@ -7,12 +7,13 @@ namespace NixCMS\Handlers\Api\Settings;
 use NixCMS\Services\Settings\TranslationFileService;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
+use function NixCMS\cms;
 
 final class GetTranslations
 {
     public function __invoke(string $language): ResponseInterface
     {
-        $language = \cms()->languages()->normalize($language);
+        $language = cms()->languages()->normalize($language);
         if ($language === null) {
             return json(['success' => false, 'reason' => 'Invalid language.'], 400);
         }

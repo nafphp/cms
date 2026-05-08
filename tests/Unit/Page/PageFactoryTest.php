@@ -126,4 +126,39 @@ final class PageFactoryTest extends TestCase
         self::assertSame('soft', $blocks['slot_intro']->data()['surface']);
         self::assertSame('large', $blocks['slot_body']->data()['size']);
     }
+
+    public function testStaticTemplateCanUseStoredCustomLayoutBlocks(): void
+    {
+        $page = (new PageFactory())->fromStoredRow([
+            'id' => 16,
+            'path' => '/landing',
+            'title' => 'Landing',
+            'language' => 'en',
+            'status' => 'published',
+            'blocks' => [
+                'site_header' => ['type' => 'header', 'props' => []],
+                'slot_extra' => ['type' => 'text', 'props' => ['text' => 'Extra']],
+            ],
+            'meta' => [
+                'custom_layout' => [
+                    ['id' => 'site_header', 'label' => 'Site header', 'region' => 'header', 'size' => 'full', 'defaultContentType' => 'header'],
+                    ['id' => 'slot_extra', 'label' => 'Extra', 'region' => 'main', 'size' => 'medium', 'defaultContentType' => 'text'],
+                ],
+            ],
+        ], [
+            'id' => 'landing',
+            'kind' => 'static',
+            'view' => 'page.templates.landing',
+            'blocks' => [
+                ['id' => 'site_header', 'label' => 'Site header'],
+                ['id' => 'hero', 'label' => 'Hero'],
+            ],
+        ]);
+
+        $blocks = $page->pageLayout()?->blocks() ?? [];
+
+        self::assertSame(['site_header', 'slot_extra'], array_keys($blocks));
+        self::assertSame('page.blocks.text', $blocks['slot_extra']->template()->view());
+        self::assertSame('main', $blocks['slot_extra']->data()['region']);
+    }
 }

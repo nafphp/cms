@@ -4,6 +4,7 @@ use function NixPHP\route;
 use function NixPHP\I18n\t;
 use function NixPHP\View\s;
 use function NixPHP\View\view;
+use function NixCMS\cms;
 
 $title = (string) ($title ?? '');
 $subtitle = (string) ($subtitle ?? '');
@@ -11,7 +12,7 @@ $settings = cms()->settings();
 $currentLanguage = $settings->currentLanguage();
 
 ?>
-<header class="sticky top-0 z-20 h-[74px] border-b border-slate-900/10 bg-slate-50/85 backdrop-blur dark:border-slate-400/15 dark:bg-[rgba(6,9,14,.86)]">
+<header class="sticky top-0 z-[200] h-[74px] border-b border-slate-900/10 bg-slate-50 shadow-[0_1px_0_rgba(15,23,42,.02)] dark:border-slate-400/15 dark:bg-[#06090e] dark:shadow-[0_1px_0_rgba(255,255,255,.02)]">
     <div class="flex h-full items-center justify-between gap-6 px-6 py-2.5">
         <?= view('components.admin.page-header', ['title' => $title, 'subtitle' => $subtitle]) ?>
         <div class="flex flex-wrap items-center justify-end gap-3.5">

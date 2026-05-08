@@ -11,6 +11,7 @@ export const previewFrameClass = 'pointer-events-none block aspect-video w-full 
 
 export const clone = (value) => JSON.parse(JSON.stringify(value));
 export const storageKey = 'nixcms:page-builder:draft';
+export const recentContentTypesKey = 'nixcms:page-builder:recent-content-types';
 export const flashToastKey = 'nixcms:flash-toast';
 export const previewViewports = {
     desktop: {label: 'Desktop', labelKey: 'viewportDesktop', width: 1280},

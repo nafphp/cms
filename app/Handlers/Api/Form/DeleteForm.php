@@ -6,6 +6,7 @@ namespace NixCMS\Handlers\Api\Form;
 
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
+use function NixCMS\cms;
 
 final class DeleteForm
 {
@@ -16,7 +17,7 @@ final class DeleteForm
             return json(['success' => false, 'reason' => 'Invalid form id.'], 400);
         }
 
-        if (!\cms()->forms()->delete($formId)) {
+        if (!cms()->forms()->delete($formId)) {
             return json(['success' => false, 'reason' => 'Could not delete form.'], 400);
         }
 

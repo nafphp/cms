@@ -8,8 +8,22 @@ import {
     toast,
 } from './shared.js';
 
+const slug = (value) => String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
 export const eventMethods = {
     handleClick(event) {
+        if (event.target.closest('[data-open-theme-editor]')) {
+            event.preventDefault();
+            this.openThemeEditor();
+            return;
+        }
+
         const translationField = event.target.closest('[data-translate-prop]');
         if (translationField) {
             event.preventDefault();
@@ -160,7 +174,7 @@ export const eventMethods = {
 
         if (event.target.closest('[data-next-step]')) {
             this.step = 'layout';
-            this.selectedBlockId = this.selectedTemplate()?.blocks?.[0]?.id || null;
+            this.selectedBlockId = this.layoutBlocks(this.selectedTemplate())?.[0]?.id || null;
             this.selectedNestedPath = '';
             this.ensureTemplateDefaults();
             this.persistState();
@@ -179,7 +193,7 @@ export const eventMethods = {
 
         if (event.target.closest('[data-back-layout]')) {
             this.step = 'layout';
-            this.selectedBlockId = this.selectedBlockId || this.selectedTemplate()?.blocks?.[0]?.id || null;
+            this.selectedBlockId = this.selectedBlockId || this.layoutBlocks(this.selectedTemplate())?.[0]?.id || null;
             this.selectedNestedPath = '';
             this.persistState();
             this.render();
@@ -413,7 +427,10 @@ export const eventMethods = {
             this.syncPageTheme();
         }
         if (key === 'themeId') {
+            this.syncPageTheme();
             this.renderBlocks();
+            this.renderTemplatePreview();
+            this.renderPagePreview();
             this.renderSettings();
         }
         if ([
@@ -429,6 +446,261 @@ export const eventMethods = {
         this.persistState();
     },
 
+    async openThemeEditor() {
+        if (!this.canEditThemes) {
+            return;
+        }
+
+        const themeId = this.currentThemeId();
+        const theme = this.editableThemes[themeId];
+        if (!theme) {
+            notifyAlert(escapeHtml(`Das Theme "${this.themeLabel(themeId)}" ist nicht als Datenbank-Theme editierbar.`));
+            return;
+        }
+
+        const promptPromise = prompt(this.themeEditorPromptHtml(theme), {
+            confirmButtonText: 'Save theme',
+            cancelButtonText: this.labels.cancel,
+            showCancelButton: true,
+            style: {
+                width: 'min(1040px, calc(100vw - 48px))',
+                maxWidth: 'min(1040px, calc(100vw - 48px))',
+            },
+            confirmCallback: async (promptInstance) => {
+                await this.saveThemeEditor(promptInstance, themeId);
+                return true;
+            },
+        });
+
+        window.setTimeout(() => this.bindThemeEditorPrompt(document.querySelector('.page-builder-theme-prompt')), 0);
+
+        await promptPromise;
+    },
+
+    themeEditorPromptHtml(theme) {
+        const entries = Array.isArray(theme.surfaces)
+            ? theme.surfaces.map((surface) => [surface.value || surface.key || '', surface.label || ''])
+            : Object.entries(theme.surfaces || {});
+
+        return `
+            <div>Theme bearbeiten: ${escapeHtml(theme.label || theme.identifier || '')}</div>
+            <div class="page-builder-theme-prompt notify-form">
+                <div class="page-builder-theme-prompt__grid">
+                    <div class="page-builder-theme-prompt__meta">
+                        <label class="notify-field">
+                            <span class="notify-field-label">Title</span>
+                            <input type="text" value="${escapeHtml(theme.label || theme.identifier || '')}" data-theme-editor-label autofocus>
+                        </label>
+                        <label class="notify-field">
+                            <span class="notify-field-label">Identifier</span>
+                            <input type="text" value="${escapeHtml(theme.identifier || '')}" data-theme-editor-identifier>
+                        </label>
+                        <div class="page-builder-theme-prompt__surfaces">
+                            <div class="notify-section-head">
+                                <span>Surfaces</span>
+                                <button class="page-builder-theme-prompt__add" type="button" data-theme-editor-add-surface>Add</button>
+                            </div>
+                            <div class="page-builder-theme-prompt__surface-list" data-theme-editor-surfaces>
+                                ${entries.map(([key, label]) => this.themeEditorSurfaceRow(key, label)).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="page-builder-theme-prompt__code">
+                        <label class="notify-field">
+                            <span class="notify-field-label">Stylesheet</span>
+                            <textarea spellcheck="false" data-theme-editor-css>${escapeHtml(theme.css || '')}</textarea>
+                        </label>
+                        <label class="notify-field">
+                            <span class="notify-field-label">JavaScript</span>
+                            <textarea spellcheck="false" data-theme-editor-js>${escapeHtml(theme.js || 'export default {};\n')}</textarea>
+                        </label>
+                    </div>
+                </div>
+                <p class="page-builder-theme-prompt__status" data-theme-editor-status></p>
+            </div>
+        `;
+    },
+
+    bindThemeEditorPrompt(container) {
+        if (!(container instanceof HTMLElement)) {
+            return;
+        }
+
+        container.querySelector('[data-theme-editor-add-surface]')?.addEventListener('click', () => {
+            const list = container.querySelector('[data-theme-editor-surfaces]');
+            list?.insertAdjacentHTML('beforeend', this.themeEditorSurfaceRow('', ''));
+            list?.querySelector('[data-theme-editor-surface-row]:last-child [data-theme-editor-surface-label]')?.focus();
+        });
+
+        container.addEventListener('click', (event) => {
+            const remove = event.target instanceof Element ? event.target.closest('[data-theme-editor-remove-surface]') : null;
+            if (!remove) {
+                return;
+            }
+
+            event.preventDefault();
+            remove.closest('[data-theme-editor-surface-row]')?.remove();
+        });
+    },
+
+    themeEditorSurfaceRow(key = '', label = '') {
+        return `
+            <div class="page-builder-theme-prompt__surface-row" data-theme-editor-surface-row>
+                <input value="${escapeHtml(label)}" placeholder="Label" data-theme-editor-surface-label>
+                <input value="${escapeHtml(key)}" placeholder="key" data-theme-editor-surface-key>
+                <button type="button" data-theme-editor-remove-surface aria-label="Remove">×</button>
+            </div>
+        `;
+    },
+
+    themeEditorPayload(container, themeId) {
+        const current = this.editableThemes[themeId] || {};
+        const surfaces = [...(container?.querySelectorAll('[data-theme-editor-surface-row]') || [])]
+            .map((row) => {
+                const label = String(row.querySelector('[data-theme-editor-surface-label]')?.value || '').trim();
+                const key = slug(row.querySelector('[data-theme-editor-surface-key]')?.value || label);
+                return key === '' ? null : {key, label: label || key.replace(/-/g, ' ')};
+            })
+            .filter(Boolean);
+        const label = String(container?.querySelector('[data-theme-editor-label]')?.value || '').trim();
+        const identifier = slug(container?.querySelector('[data-theme-editor-identifier]')?.value || label || themeId);
+
+        return {
+            id: Number(current.id || 0),
+            label,
+            identifier,
+            css: container?.querySelector('[data-theme-editor-css]')?.value || '',
+            js: container?.querySelector('[data-theme-editor-js]')?.value || '',
+            surfaces,
+        };
+    },
+
+    async saveThemeEditor(promptInstance, themeId) {
+        if (this.themeSaving || !this.themeSaveUrl) {
+            return;
+        }
+
+        const container = promptInstance.container?.querySelector('.page-builder-theme-prompt');
+        const payload = this.themeEditorPayload(container, themeId);
+        if (payload.label === '' || payload.identifier === '') {
+            toast('Theme title and identifier are required.');
+            return;
+        }
+
+        this.themeSaving = true;
+        const status = promptInstance.container?.querySelector('[data-theme-editor-status]');
+        const confirmButton = promptInstance.container?.querySelector('.confirm');
+        confirmButton?.classList.add('disabled');
+        if (status) {
+            status.textContent = 'Speichere Theme...';
+        }
+
+        try {
+            const request = window.NixCMS?.json || fetch;
+            const response = await request(this.themeSaveUrl, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || result.success === false || !result.theme) {
+                throw new Error(result.reason || 'Theme could not be saved.');
+            }
+
+            this.applySavedTheme(result.theme, themeId);
+            promptInstance.promise.resolve(true);
+            promptInstance.remove();
+            toast('Theme saved.');
+        } catch (error) {
+            notifyAlert(escapeHtml(error.message || 'Theme could not be saved.'));
+            if (status) {
+                status.textContent = '';
+            }
+        } finally {
+            this.themeSaving = false;
+            confirmButton?.classList.remove('disabled');
+        }
+    },
+
+    applySavedTheme(theme, previousId = '') {
+        const identifier = slug(theme.identifier || previousId);
+        if (identifier === '') {
+            return;
+        }
+
+        if (previousId && previousId !== identifier) {
+            delete this.editableThemes[previousId];
+            delete this.themeAssets[previousId];
+            delete this.themeSurfaces[previousId];
+        }
+
+        this.editableThemes[identifier] = theme;
+        this.themeAssets[identifier] = {
+            className: `theme-${identifier}`,
+            stylesheets: theme.cssPath ? [{href: theme.cssPath, attributes: {}}] : [],
+        };
+        this.themeSurfaces[identifier] = Object.entries(theme.surfaces || {}).map(([value, label]) => ({value, label}));
+
+        const existingTheme = this.themes.find((item) => String(item.value || '') === identifier);
+        if (existingTheme) {
+            existingTheme.label = theme.label || identifier;
+        } else {
+            this.themes.push({value: identifier, label: theme.label || identifier});
+            this.addThemeOptions(identifier, theme.label || identifier);
+        }
+        this.updateThemeOptionLabels(identifier, theme.label || identifier);
+
+        this.persistedValues.themeId = identifier;
+        this.injectThemeCss(identifier, theme.css || '');
+        this.syncPageTheme();
+        this.renderBlocks();
+        this.renderTemplatePreview();
+        this.renderPagePreview();
+        this.renderSettings();
+        this.renderMeta();
+        this.persistState();
+    },
+
+    addThemeOptions(identifier, label) {
+        this.root.querySelectorAll('select[data-persist-key="themeId"]').forEach((select) => {
+            if (!(select instanceof HTMLSelectElement) || [...select.options].some((option) => option.value === identifier)) {
+                return;
+            }
+
+            const option = document.createElement('option');
+            option.value = identifier;
+            option.textContent = label;
+            select.appendChild(option);
+        });
+    },
+
+    updateThemeOptionLabels(identifier, label) {
+        this.root.querySelectorAll('select[data-persist-key="themeId"]').forEach((select) => {
+            if (!(select instanceof HTMLSelectElement)) {
+                return;
+            }
+
+            [...select.options].forEach((option) => {
+                if (option.value === identifier) {
+                    option.textContent = label;
+                    option.selected = true;
+                }
+            });
+            select.dispatchEvent(new Event('change'));
+        });
+    },
+
+    injectThemeCss(identifier, css) {
+        const id = `page-builder-theme-style-${identifier}`;
+        let style = document.getElementById(id);
+        if (!style) {
+            style = document.createElement('style');
+            style.id = id;
+            style.setAttribute('data-page-builder-theme-style', identifier);
+            document.head.appendChild(style);
+        }
+        style.textContent = css || '';
+    },
+
     assignContent(type) {
         const definition = this.contentTypes.find((item) => item.type === type);
         const block = this.selectedBlock();
@@ -436,6 +708,7 @@ export const eventMethods = {
             return;
         }
 
+        this.rememberContentType(definition.type);
         this.blockContent[this.selectedBlockId] = this.contentFromDefinition(definition);
     },
 
@@ -447,14 +720,14 @@ export const eventMethods = {
                     <h2 class="m-0 text-base font-semibold text-[var(--notify-text)]">Choose block</h2>
                     <p class="mt-1 text-sm text-[var(--notify-muted)]">Pick the content block rendered at this template position.</p>
                 </div>
-                <div class="mt-4 overflow-auto pr-1" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;max-height:min(620px,calc(100vh - 260px));" data-content-options>
+                <div class="page-builder-content-prompt__grid mt-4" data-content-options>
                     ${this.renderContentOptionsHtml(block)}
                 </div>
             </div>
         `, {
             confirmButtonText: this.labels.cancel,
             showCancelButton: false,
-            style: {width: 'min(920px, calc(100vw - 32px))', maxWidth: 'min(920px, calc(100vw - 32px))'},
+            style: {width: 'min(1240px, calc(100vw - 96px))', maxWidth: 'min(1240px, calc(100vw - 96px))'},
         });
 
         window.setTimeout(() => this.bindContentPrompt(document.querySelector('.page-builder-content-prompt')), 0);
@@ -479,7 +752,8 @@ export const eventMethods = {
     },
 
     async openSaveCustomLayoutPrompt() {
-        if (!this.isCustomTemplate() || this.customLayout.length === 0) {
+        this.ensureCustomLayoutFromTemplate();
+        if (this.customLayout.length === 0) {
             return;
         }
 
@@ -582,14 +856,14 @@ export const eventMethods = {
                     <h2 class="m-0 text-base font-semibold text-[var(--notify-text)]">${escapeHtml(this.labels.chooseCustomBlock)}</h2>
                     <p class="mt-1 text-sm text-[var(--notify-muted)]">${escapeHtml(this.labels.chooseCustomBlockIntro)}</p>
                 </div>
-                <div class="mt-4 overflow-auto pr-1" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;max-height:min(620px,calc(100vh - 260px));" data-content-options>
+                <div class="page-builder-content-prompt__grid mt-4" data-content-options>
                     ${this.renderCustomSlotContentOptionsHtml()}
                 </div>
             </div>
         `, {
             confirmButtonText: this.labels.cancel,
             showCancelButton: false,
-            style: {width: 'min(920px, calc(100vw - 32px))', maxWidth: 'min(920px, calc(100vw - 32px))'},
+            style: {width: 'min(1240px, calc(100vw - 96px))', maxWidth: 'min(1240px, calc(100vw - 96px))'},
         });
 
         window.setTimeout(() => this.bindCustomSlotPrompt(document.querySelector('.page-builder-content-prompt')), 0);
@@ -617,14 +891,14 @@ export const eventMethods = {
                     <h2 class="m-0 text-base font-semibold text-[var(--notify-text)]">${escapeHtml(this.labels.chooseChildBlock)}</h2>
                     <p class="mt-1 text-sm text-[var(--notify-muted)]">${escapeHtml(this.labels.chooseChildBlockIntro)}</p>
                 </div>
-                <div class="mt-4 overflow-auto pr-1" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;max-height:min(620px,calc(100vh - 260px));" data-content-options>
+                <div class="page-builder-content-prompt__grid mt-4" data-content-options>
                     ${this.renderLayoutChildContentOptionsHtml(parentPath)}
                 </div>
             </div>
         `, {
             confirmButtonText: this.labels.cancel,
             showCancelButton: false,
-            style: {width: 'min(920px, calc(100vw - 32px))', maxWidth: 'min(920px, calc(100vw - 32px))'},
+            style: {width: 'min(1240px, calc(100vw - 96px))', maxWidth: 'min(1240px, calc(100vw - 96px))'},
         });
 
         window.setTimeout(() => this.bindLayoutChildPrompt(document.querySelector('.page-builder-content-prompt'), parentPath), 0);

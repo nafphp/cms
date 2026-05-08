@@ -8,12 +8,14 @@ use Nyholm\Psr7\Stream;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\I18n\t;
 use function NixPHP\response;
+use function NixCMS\cms;
+use function NixCMS\user;
 
 final class ServeMedia
 {
     public function __invoke(string $publicId, string $filename): ResponseInterface
     {
-        $media = \cms()->media()->findByPublicId($publicId);
+        $media = cms()->media()->findByPublicId($publicId);
         if (!is_array($media)) {
             return response(t('Media not found.'), 404);
         }
@@ -27,7 +29,7 @@ final class ServeMedia
             return response(t('Forbidden.'), 403);
         }
 
-        $path = \cms()->media()->pathFor($media);
+        $path = cms()->media()->pathFor($media);
         if ($path === null || !is_file($path) || !is_readable($path)) {
             return response(t('Media file not found.'), 404);
         }
@@ -57,7 +59,7 @@ final class ServeMedia
         }
 
         if ($visibility === 'registered' || $visibility === 'admin') {
-            return \user()?->isLoggedIn() === true;
+            return user()?->isLoggedIn() === true;
         }
 
         if ($visibility === 'private') {

@@ -13,14 +13,14 @@ $buttonLabel = trim(t((string) ($props['buttonLabel'] ?? '')));
 $buttonUrl = trim((string) ($props['buttonUrl'] ?? '#'));
 $surface = \NixCMS\Theme\Theme::slug((string) ($props['surface'] ?? 'card')) ?: 'card';
 $surfaceClass = [
-    'none' => '',
-    'soft' => 'rounded-lg bg-[var(--page-panel-soft)]',
-    'card' => 'rounded-lg bg-[var(--page-card-bg)]',
-    'accent' => 'rounded-lg border border-[color-mix(in_srgb,var(--page-accent)_36%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))]',
+    'none' => 'px-1 py-2',
+    'soft' => 'rounded-lg bg-[var(--page-panel-soft)] p-8',
+    'card' => 'rounded-lg bg-[var(--page-card-bg)] p-8',
+    'accent' => 'rounded-lg border border-[color-mix(in_srgb,var(--page-accent)_36%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))] p-8',
 ][$surface] ?? '';
 
 ?>
-<section class="<?= s(trim('page-block--surface-' . $surface . ' grid min-h-[420px] items-center gap-8 overflow-hidden p-8 md:grid-cols-[minmax(0,1fr)_minmax(280px,.72fr)] ' . $surfaceClass)) ?>">
+<section class="<?= s(trim('page-block--surface-' . $surface . ' grid min-h-[420px] items-center gap-8 overflow-hidden md:grid-cols-[minmax(0,1fr)_minmax(280px,.72fr)] ' . $surfaceClass)) ?>">
     <div class="grid gap-5">
         <?php if ($eyebrow !== ''): ?>
             <p class="m-0 text-xs font-bold uppercase tracking-wide text-[var(--page-accent)]"><?= s($eyebrow) ?></p>

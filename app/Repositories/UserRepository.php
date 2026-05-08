@@ -203,7 +203,7 @@ class UserRepository extends AbstractRepository
         $stmt->execute(['userId' => $userId]);
         $stored = $stmt->fetchColumn();
 
-        if ($stored === false || !\password_verify($currentPassword, (string) $stored)) {
+        if ($stored === false || !password_verify($currentPassword, (string) $stored)) {
             return false;
         }
 

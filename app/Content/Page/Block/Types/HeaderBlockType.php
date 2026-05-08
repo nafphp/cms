@@ -34,6 +34,11 @@ final class HeaderBlockType extends AbstractBlockType
         return 'Site header';
     }
 
+    public function unique(): bool
+    {
+        return true;
+    }
+
     public function defaults(): array
     {
         return [
@@ -41,6 +46,8 @@ final class HeaderBlockType extends AbstractBlockType
             'logoImage' => '',
             'navigationIdentifier' => '',
             'presentation' => 'horizontal',
+            'linkStyle' => 'blank',
+            'linkTheme' => 'default',
             'showLogoMark' => false,
             'showDivider' => false,
         ];
@@ -56,6 +63,19 @@ final class HeaderBlockType extends AbstractBlockType
                 ...PageBuilderBlockOptions::navigationOptions(),
             ]],
             ['name' => 'presentation', 'label' => 'Presentation', 'type' => 'select', 'options' => ['horizontal', 'compact']],
+            ['name' => 'linkStyle', 'label' => 'Link style', 'type' => 'select', 'options' => [
+                ['label' => 'Blank', 'value' => 'blank'],
+                ['label' => 'Underline', 'value' => 'underline'],
+                ['label' => 'Pill', 'value' => 'pill'],
+                ['label' => 'Rounded pill', 'value' => 'rounded-pill'],
+                ['label' => 'Filled', 'value' => 'filled'],
+                ['label' => 'Filled rounded', 'value' => 'filled-rounded'],
+            ]],
+            ['name' => 'linkTheme', 'label' => 'Link theme', 'type' => 'select', 'options' => [
+                ['label' => 'Default', 'value' => 'default'],
+                ['label' => 'Accent', 'value' => 'accent'],
+                ['label' => 'Surface', 'value' => 'surface'],
+            ]],
             ['name' => 'showLogoMark', 'label' => 'Logo mark', 'type' => 'checkbox'],
             ['name' => 'showDivider', 'label' => 'Header divider', 'type' => 'checkbox'],
         ];

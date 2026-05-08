@@ -9,6 +9,7 @@ use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;
 use Throwable;
+use function NixCMS\cms;
 
 final class MediaSummaryTool implements ToolInterface, ScopedToolInterface
 {
@@ -80,7 +81,7 @@ final class MediaSummaryTool implements ToolInterface, ScopedToolInterface
 
     private function media(): MediaApi
     {
-        return $this->media ?? \cms()->media();
+        return $this->media ?? cms()->media();
     }
 
     /**

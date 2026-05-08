@@ -5,6 +5,7 @@ use NixCMS\Services\Content\ArticleRenderer;
 use function NixPHP\I18n\t;
 use function NixPHP\ORM\repo;
 use function NixPHP\View\s;
+use function NixCMS\cms;
 
 /** @var ArticleRenderer|null $article */
 $content = is_array($content ?? null) ? $content : [];

@@ -9,6 +9,8 @@ use NixCMS\Page\Page;
 use NixCMS\Page\PageRegistry;
 use NixCMS\Support\UserHelper;
 use function NixPHP\config;
+use function NixCMS\cms;
+use function NixCMS\user;
 
 final class AdminNavigationService
 {
@@ -365,7 +367,7 @@ final class AdminNavigationService
             return $user instanceof UserHelper ? $user : null;
         }
 
-        return function_exists('\user') ? \user() : null;
+        return user();
     }
 
     /**
@@ -634,12 +636,12 @@ final class AdminNavigationService
 
     private function navigation(): NavigationRegistry
     {
-        return $this->navigation ??= \cms()->navigationRegistry();
+        return $this->navigation ??= cms()->navigationRegistry();
     }
 
     private function pages(): PageRegistry
     {
-        return $this->pages ??= \cms()->pages();
+        return $this->pages ??= cms()->pages();
     }
 
     public function accentForPath(string $path): string

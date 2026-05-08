@@ -12,6 +12,7 @@ use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 use function NixPHP\ORM\repo;
 use function NixPHP\route;
+use function NixCMS\user;
 
 final class CreateInvite
 {
@@ -36,7 +37,7 @@ final class CreateInvite
             return json(['success' => false, 'reason' => 'Expiry must be between 1 and 30 days.'], 400);
         }
 
-        $canManageRoles = \user()?->can(Permission::ROLES_MANAGE) === true;
+        $canManageRoles = user()?->can(Permission::ROLES_MANAGE) === true;
         $normalizedRoles = array_map(static fn(mixed $role): string => strtolower(trim((string) $role)), $roles);
         if (in_array('admin', $normalizedRoles, true) && !$canManageRoles) {
             return json(['success' => false, 'reason' => 'You cannot invite administrators.'], 403);
@@ -50,7 +51,7 @@ final class CreateInvite
         $invite = $repository->createInvite(
             $email,
             $roles,
-            \user()?->get()?->getId(),
+            user()?->get()?->getId(),
             $expiresInDays,
             $canManageRoles,
         );

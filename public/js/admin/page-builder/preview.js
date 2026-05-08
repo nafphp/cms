@@ -54,7 +54,7 @@ export const previewMethods = {
             return;
         }
 
-        const previewKey = `${template.id}:${this.selectedDefaultNavigationIdentifier()}:${this.selectedFooterNavigationIdentifier()}`;
+        const previewKey = `${template.id}:${this.currentThemeId()}:${this.selectedDefaultNavigationIdentifier()}:${this.selectedFooterNavigationIdentifier()}`;
         if (this.previewTemplateId === previewKey) {
             return;
         }
@@ -72,6 +72,7 @@ export const previewMethods = {
     renderPreviewChrome() {
         const viewport = previewViewports[this.previewViewport] || previewViewports.desktop;
         this.root.dataset.previewViewport = this.previewViewport;
+        this.root.dataset.previewCompact = this.isCompactPreview() ? 'true' : 'false';
 
         if (this.previewFrame) {
             this.previewFrame.style.width = `${viewport.width}px`;
@@ -108,7 +109,9 @@ export const previewMethods = {
         return `
             <div class="overflow-hidden rounded-lg border border-slate-800 bg-[#171d25]">
                 <div class="max-h-[520px] overflow-auto bg-[var(--page-bg)] text-[var(--page-text)]">
-                    ${this.templateDummyLayout(template)}
+                    <div class="${escapeHtml(this.previewThemeClassList())}">
+                        ${this.templateDummyLayout(template)}
+                    </div>
                 </div>
                 <div class="border-t border-slate-800 bg-[#151b22] py-4 text-center text-sm text-slate-500">Live-Vorschau: ${escapeHtml(template.layout || 'no layout')} · ${escapeHtml(template.view)}</div>
             </div>
@@ -295,7 +298,7 @@ export const previewMethods = {
         if (block.preview === 'navigation') {
             return `
                 <div class="page-site-header border-b border-[var(--page-border)] bg-[var(--page-header-bg)] text-[var(--page-header-text)] ${className}">
-                    <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 py-4 pl-0 pr-8">
+                    <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 px-0 py-4">
                         <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[var(--page-accent)] text-sm font-black text-white">N</span>
                         <strong class="text-base font-bold">NixCMS</strong>
                         <div class="ml-auto">${this.renderNavigationItems(this.selectedDefaultNavigationIdentifier(), 'horizontal')}</div>
@@ -390,12 +393,18 @@ export const previewMethods = {
     },
 
     isMobilePreview() {
-        return this.previewViewport === 'mobile';
+        return this.isCompactPreview();
+    },
+
+    isCompactPreview() {
+        const viewport = previewViewports[this.previewViewport] || previewViewports.desktop;
+        return viewport.width <= 820;
     },
 
     blockLayout(template, interactive) {
-        const blocks = template?.blocks || [];
-        if (this.isCustomTemplate(template)) {
+        const blocks = this.layoutBlocks(template);
+        const usesCustomLayout = this.usesCustomLayout(template);
+        if (usesCustomLayout) {
             const hasFullBleedHeader = blocks.some((block) => {
                 const content = this.blockContent[block.id] || null;
                 return this.customSlotRegion(block) === 'header'
@@ -403,30 +412,22 @@ export const previewMethods = {
                     && !this.headerBackgroundWidthIncludesChrome();
             });
             const toolbarMarginClass = hasFullBleedHeader ? 'mb-0' : 'mb-4';
-            const toolbar = interactive ? `
-                <div class="page-builder-custom-toolbar ${toolbarMarginClass} flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800 bg-[#121820] px-4 py-3">
-                    <div class="grid gap-0.5">
-                        <span class="text-[11px] font-bold uppercase text-slate-500">${escapeHtml(this.labels.customLayout)}</span>
-                        <strong class="text-sm font-semibold text-white">${escapeHtml(this.labels.customSlotsCount.replace(':count', String(blocks.length)))}</strong>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button class="inline-flex min-h-9 items-center justify-center rounded-md border border-slate-700 px-3 text-xs font-bold text-slate-200 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-save-custom-layout>
-                            ${escapeHtml(this.labels.saveCustomLayout)}
-                        </button>
-                        <button class="inline-flex min-h-9 items-center justify-center rounded-md border border-slate-700 px-3 text-xs font-bold text-slate-200 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-add-chrome-slot="header">
-                            ${escapeHtml(this.labels.addHeaderBlock)}
-                        </button>
-                        <button class="inline-flex min-h-9 items-center justify-center rounded-md border border-slate-700 px-3 text-xs font-bold text-slate-200 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-add-chrome-slot="footer">
-                            ${escapeHtml(this.labels.addFooterBlock)}
-                        </button>
-                        <button class="inline-flex min-h-9 items-center justify-center rounded-md bg-[var(--admin-page-accent)] px-3 text-xs font-bold text-white transition hover:brightness-110" type="button" data-add-custom-slot>
-                            ${escapeHtml(this.labels.addCustomBlock)}
-                        </button>
-                    </div>
-                </div>
-            ` : '';
+            const headerDefinition = this.contentTypeDefinition('header');
+            const footerDefinition = this.contentTypeDefinition('footer');
+            const hasHeaderSlot = headerDefinition?.unique === true && blocks.some((block) => this.uniqueTypeForSlot(block) === 'header');
+            const hasFooterSlot = footerDefinition?.unique === true && blocks.some((block) => this.uniqueTypeForSlot(block) === 'footer');
+            const chromeButtonClass = (disabled) => [
+                'inline-flex min-h-9 items-center justify-center rounded-md border border-slate-700 px-3 text-xs font-bold text-slate-200 transition hover:border-[var(--admin-page-accent)] hover:text-white',
+                disabled ? 'cursor-not-allowed opacity-45 hover:border-slate-700 hover:text-slate-200' : '',
+            ].filter(Boolean).join(' ');
 
-            return `${toolbar}${this.customLayoutShell(
+            return `${this.layoutToolbar(template, blocks, interactive, {
+                custom: true,
+                toolbarMarginClass,
+                hasHeaderSlot,
+                hasFooterSlot,
+                chromeButtonClass,
+            })}${this.customLayoutShell(
                 blocks,
                 (block) => this.blockCard(block, interactive, template.id),
                 {interactive}
@@ -437,6 +438,51 @@ export const previewMethods = {
             return '<div class="rounded-lg border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700">No blocks defined.</div>';
         }
 
+        return `${this.layoutToolbar(template, blocks, interactive)}${this.staticTemplateLayout(template, blocks, interactive)}`;
+    },
+
+    layoutToolbar(template, blocks, interactive, options = {}) {
+        if (!interactive) {
+            return '';
+        }
+
+        const isCustom = options.custom === true;
+        const title = isCustom
+            ? String(template?.label || this.labels.customLayout || 'Custom layout')
+            : `${String(template?.label || template?.id || 'Template').trim()} Layout`;
+        const eyebrow = isCustom ? this.labels.customLayout : this.uiText('Template');
+        const subtitle = isCustom
+            ? this.labels.customSlotsCount.replace(':count', String(blocks.length))
+            : `${blocks.length} ${this.uiText('template blocks')}`;
+
+        return `
+            <div class="page-builder-custom-toolbar ${options.toolbarMarginClass || 'mb-4'} flex flex-wrap items-center justify-between gap-3 rounded-t-lg border border-slate-800 bg-[#121820] px-4 py-3">
+                <div class="grid gap-0.5">
+                    <span class="text-[11px] font-bold uppercase text-slate-500">${escapeHtml(eyebrow)}</span>
+                    <strong class="text-sm font-semibold text-white">${escapeHtml(title)}</strong>
+                    <span class="text-xs text-slate-500">${escapeHtml(subtitle)}</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    ${isCustom ? `
+                        <button class="inline-flex min-h-9 items-center justify-center rounded-md border border-slate-700 px-3 text-xs font-bold text-slate-200 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-save-custom-layout>
+                            ${escapeHtml(this.labels.saveCustomLayout)}
+                        </button>
+                        <button class="${options.chromeButtonClass(options.hasHeaderSlot)}" type="button" data-add-chrome-slot="header" ${options.hasHeaderSlot ? 'disabled aria-disabled="true"' : ''}>
+                            ${escapeHtml(this.labels.addHeaderBlock)}
+                        </button>
+                        <button class="${options.chromeButtonClass(options.hasFooterSlot)}" type="button" data-add-chrome-slot="footer" ${options.hasFooterSlot ? 'disabled aria-disabled="true"' : ''}>
+                            ${escapeHtml(this.labels.addFooterBlock)}
+                        </button>
+                        <button class="inline-flex min-h-9 items-center justify-center rounded-md bg-[var(--admin-page-accent)] px-3 text-xs font-bold text-white transition hover:brightness-110" type="button" data-add-custom-slot>
+                            ${escapeHtml(this.labels.addCustomBlock)}
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    },
+
+    staticTemplateLayout(template, blocks, interactive) {
         const blockById = new Map(blocks.map((block) => [block.id, block]));
         const renderBlock = (id, className = '') => {
             const block = blockById.get(id);
@@ -597,16 +643,17 @@ export const previewMethods = {
         ].filter(Boolean).join(' ');
         const blockType = content?.label || 'Empty block';
         const customChromeType = this.customChromeSlotType(block);
-        const deleteAttr = customChromeType !== ''
+        const deletable = this.blockIsDeletable(block);
+        const deleteAttr = this.usesCustomLayout() || customChromeType !== ''
             ? `data-delete-custom-slot="${escapeHtml(block.id)}"`
             : `data-clear-block="${escapeHtml(block.id)}"`;
-        const deleteLabel = customChromeType !== ''
+        const deleteLabel = this.usesCustomLayout() || customChromeType !== ''
             ? this.labels.deleteSlot
             : 'Clear block';
         const controls = interactive ? `
             <div class="page-builder-block-controls pointer-events-auto absolute flex translate-y-1 items-center gap-2 opacity-0 transition group-hover/page-block:translate-y-0 group-hover/page-block:opacity-100 group-focus-within/page-block:translate-y-0 group-focus-within/page-block:opacity-100">
                 ${content ? `<button class="grid h-8 w-8 place-items-center rounded-md border border-slate-700 bg-slate-950/80 text-xs text-[var(--admin-page-accent)] transition hover:border-[var(--admin-page-accent)]" type="button" data-edit-block="${escapeHtml(block.id)}" aria-label="Edit block">✎</button>` : ''}
-                ${content ? `
+                ${content && deletable ? `
                     <button class="grid h-8 w-8 place-items-center rounded-md border border-rose-900/70 bg-slate-950/80 text-rose-400 transition hover:border-rose-500 hover:bg-rose-950/50" type="button" ${deleteAttr} aria-label="${escapeHtml(deleteLabel)}" title="${escapeHtml(deleteLabel)}">
                         <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M3 6h18"></path>
@@ -627,16 +674,17 @@ export const previewMethods = {
 
         if (content) {
             return `
-                <article class="${frameClass}" ${actionAttr} tabindex="${interactive ? '0' : '-1'}">
+                <article class="${frameClass}" ${actionAttr} data-ai-pick-block-id="${escapeHtml(block.id)}" data-ai-pick-path="" tabindex="${interactive ? '0' : '-1'}">
                     ${interactive ? `<button class="page-builder-block-hitbox" type="button" data-edit-block="${escapeHtml(block.id)}" aria-label="Edit block"></button>` : ''}
                     ${controls}
-                    ${this.contentMiniPreview(content)}
+                    ${interactive ? this.containerBlockRibbon(content) : ''}
+                    ${this.contentMiniPreview(content, 0, {blockId: block.id, path: ''})}
                 </article>
             `;
         }
 
         return `
-            <button class="${frameClass}" type="button" ${actionAttr}>
+            <button class="${frameClass}" type="button" ${actionAttr} data-ai-pick-block-id="${escapeHtml(block.id)}" data-ai-pick-path="">
                 ${meta}
                 ${this.emptyBlockPreview(block)}
                 <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg text-[var(--admin-page-accent)] opacity-0 transition group-hover/page-block:opacity-70 group-focus-visible/page-block:opacity-70">✎</span>
@@ -644,24 +692,88 @@ export const previewMethods = {
         `;
     },
 
-    emptyBlockPreview(block) {
-        if (block.preview === 'text') {
-            return `<span class="text-base font-semibold text-[var(--page-muted)]">${escapeHtml(block.label)}</span>`;
+    blockIsDeletable(block) {
+        return block?.deletable === true || block?.deletable === 'true' || block?.deletable === 1 || block?.deletable === '1';
+    },
+
+    emptyBlockPreviewDefinition(block) {
+        const acceptedTypes = Array.isArray(block?.accepts) ? block.accepts : [];
+        const previewTypeMap = {
+            block: 'text',
+            card: 'feature',
+            site_header: 'header',
+            site_footer: 'footer',
+        };
+        const candidates = [
+            block?.defaultContentType,
+            ...acceptedTypes,
+            previewTypeMap[String(block?.preview || '')] || block?.preview,
+            previewTypeMap[String(block?.id || '')] || block?.id,
+        ]
+            .map((value) => String(value || '').trim())
+            .filter((value) => value !== '');
+
+        for (const candidate of candidates) {
+            const definition = this.contentTypeDefinition(candidate);
+            if (definition) {
+                return definition;
+            }
         }
 
-        if (block.preview === 'cta') {
-            return `
-                <span class="text-base font-extrabold text-[var(--page-text)]">${escapeHtml(block.label)}</span>
-                <span class="mt-3 block h-2.5 max-w-[320px] rounded-full bg-[var(--page-border)]"></span>
-                <span class="mt-2 block h-2.5 max-w-[220px] rounded-full bg-[var(--page-panel-soft)]"></span>
-                <span class="mt-4 block h-9 w-28 rounded-md bg-[var(--page-accent)]"></span>
-            `;
+        const type = candidates[0] || 'text';
+        return {
+            type,
+            label: block?.label || type,
+            previewTitle: block?.label || type,
+            defaults: {},
+        };
+    },
+
+    containerBlockRibbon(content) {
+        const type = String(content?.type || '');
+        if (!layoutBlockTypes.includes(type) && type !== 'navigation') {
+            return '';
         }
+
+        const label = this.uiText(content?.label || content?.previewTitle || type);
+        return `
+            <div class="page-builder-container-ribbon" aria-hidden="true">
+                <span class="page-builder-container-ribbon__label">${escapeHtml(label)}</span>
+                <span class="page-builder-container-ribbon__grip">
+                    ${Array.from({length: 9}).map(() => '<span></span>').join('')}
+                </span>
+            </div>
+        `;
+    },
+
+    emptyBlockPreview(block) {
+        const definition = this.emptyBlockPreviewDefinition(block);
+        const previewType = String(definition?.type || 'text');
+        const previewTitle = definition?.previewTitle || definition?.label || block?.label || previewType;
+        const previewHeight = {
+            hero: 'h-28',
+            large: 'h-24',
+            medium: 'h-20',
+            aside: 'h-20',
+            small: 'h-16',
+        }[block?.size] || 'h-20';
+        const previewWidth = block?.size === 'hero'
+            ? 'max-w-xl'
+            : 'max-w-md';
 
         return `
-            <span class="text-base font-semibold text-[var(--page-muted)]">${escapeHtml(block.label)}</span>
-            <span class="mt-3 block h-2.5 max-w-[420px] rounded-full bg-[var(--page-border)]"></span>
-            <span class="mt-2 block h-2.5 max-w-[280px] rounded-full bg-[var(--page-panel-soft)]"></span>
+            <span class="grid w-full min-w-0 justify-items-start gap-3">
+                <span class="flex w-full min-w-0 max-w-2xl items-start justify-between gap-4">
+                    <span class="min-w-0">
+                        <span class="block text-base font-semibold text-[var(--page-text)]">${escapeHtml(block.label)}</span>
+                        <span class="mt-1 block text-sm text-[var(--page-muted)]">${escapeHtml(previewTitle)}</span>
+                    </span>
+                    <span class="shrink-0 rounded-md bg-[var(--page-panel-soft)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[var(--page-muted)]">${escapeHtml(previewType)}</span>
+                </span>
+                <span class="block ${previewHeight} w-full ${previewWidth} overflow-hidden rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] shadow-[0_18px_40px_rgba(2,6,23,.18)]">
+                    ${this.compactContentPreview(definition)}
+                </span>
+            </span>
         `;
     },
 
@@ -678,7 +790,7 @@ export const previewMethods = {
         return items;
     },
 
-    renderNavigationItems(identifier, presentation = 'horizontal', language = '') {
+    renderNavigationItems(identifier, presentation = 'horizontal', language = '', linkStyle = 'blank', linkTheme = 'default') {
         const items = this.navigationPreviewItems(identifier, language, this.isMobilePreview() ? 3 : 5);
         if (items.length === 0) {
             return '';
@@ -686,12 +798,14 @@ export const previewMethods = {
 
         const vertical = presentation === 'vertical';
         const compact = presentation === 'compact';
+        const style = ['blank', 'underline', 'pill', 'rounded-pill', 'filled', 'filled-rounded'].includes(String(linkStyle || '')) ? String(linkStyle) : 'blank';
+        const theme = ['default', 'accent', 'surface'].includes(String(linkTheme || '')) ? String(linkTheme) : 'default';
         const className = vertical
-            ? 'grid gap-2'
-            : 'flex flex-wrap items-center gap-4';
+            ? `page-navigation page-navigation--vertical page-navigation--style-${style} page-navigation--theme-${theme} grid gap-2`
+            : `page-navigation page-navigation--horizontal page-navigation--style-${style} page-navigation--theme-${theme} flex flex-wrap items-center gap-4`;
         const itemClass = compact
-            ? 'text-xs font-semibold text-[var(--page-muted)] transition hover:text-[var(--page-text)]'
-            : 'text-sm font-semibold text-[var(--page-muted)] transition hover:text-[var(--page-text)]';
+            ? 'page-navigation__link text-xs font-semibold'
+            : 'page-navigation__link text-sm font-semibold';
 
         return `
             <nav class="${className}" aria-label="Navigation preview">
@@ -700,15 +814,172 @@ export const previewMethods = {
         `;
     },
 
-    contentMiniPreview(content, depth = 0) {
+    jsonScriptPayload(payload) {
+        return JSON.stringify(payload)
+            .replace(/</g, '\\u003c')
+            .replace(/>/g, '\\u003e')
+            .replace(/&/g, '\\u0026');
+    },
+
+    chartTextStyle() {
+        return {
+            fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
+            textBorderWidth: 0,
+            textShadowBlur: 0,
+        };
+    },
+
+    chartAxisLabelStyle(fontSize = 12) {
+        return {
+            color: 'rgba(148, 163, 184, .86)',
+            fontSize,
+            textBorderWidth: 0,
+            textShadowBlur: 0,
+        };
+    },
+
+    chartLabelStyle(color = 'rgba(226, 232, 240, .92)') {
+        return {
+            color,
+            textBorderWidth: 0,
+            textShadowBlur: 0,
+        };
+    },
+
+    chartOption(type, labels, values, colors) {
+        const datasetLabel = 'Value';
+        const safeType = ['bar', 'line', 'metric-bars', 'doughnut', 'pie'].includes(String(type || '')) ? String(type) : 'bar';
+        const data = labels.map((label, index) => ({
+            name: label,
+            value: values[index] || 0,
+            itemStyle: {color: colors[index % colors.length]},
+        }));
+
+        if (safeType === 'metric-bars') {
+            return {
+                color: colors,
+                textStyle: this.chartTextStyle(),
+                tooltip: {trigger: 'item'},
+                legend: {show: false, selectedMode: false},
+                grid: {left: 118, right: 34, top: 8, bottom: 4, containLabel: false},
+                xAxis: {
+                    type: 'value',
+                    show: false,
+                    splitLine: {show: false},
+                },
+                yAxis: {
+                    type: 'category',
+                    data: labels,
+                    axisTick: {show: false},
+                    axisLine: {show: false},
+                    axisLabel: {
+                        ...this.chartAxisLabelStyle(13),
+                        align: 'right',
+                        margin: 16,
+                        overflow: 'truncate',
+                        width: 108,
+                    },
+                },
+                series: [{
+                    name: datasetLabel,
+                    type: 'bar',
+                    data,
+                    barWidth: 12,
+                    showBackground: true,
+                    backgroundStyle: {
+                        color: 'rgba(148, 163, 184, .16)',
+                        borderRadius: 999,
+                    },
+                    itemStyle: {borderRadius: 999},
+                    emphasis: {disabled: true},
+                    label: {
+                        show: true,
+                        position: 'right',
+                        ...this.chartLabelStyle('rgba(148, 163, 184, .92)'),
+                    },
+                }],
+            };
+        }
+
+        if (safeType === 'doughnut' || safeType === 'pie') {
+            return {
+                color: colors,
+                textStyle: this.chartTextStyle(),
+                tooltip: {trigger: 'item'},
+                legend: {
+                    type: 'scroll',
+                    bottom: 0,
+                    left: 'center',
+                    icon: 'circle',
+                    textStyle: this.chartAxisLabelStyle(),
+                },
+                series: [{
+                    name: datasetLabel,
+                    type: 'pie',
+                    radius: safeType === 'pie' ? ['0%', '72%'] : ['48%', '72%'],
+                    center: ['50%', '43%'],
+                    avoidLabelOverlap: true,
+                    label: {
+                        formatter: '{b}: {c}',
+                        ...this.chartLabelStyle(),
+                    },
+                    data,
+                }],
+            };
+        }
+
+        return {
+            color: colors,
+            textStyle: this.chartTextStyle(),
+            tooltip: {trigger: 'axis'},
+            grid: {left: 0, right: 8, top: 18, bottom: 0, containLabel: true},
+            xAxis: {
+                type: 'category',
+                data: labels,
+                axisTick: {show: false},
+                axisLine: {lineStyle: {color: 'rgba(148, 163, 184, .42)'}},
+                axisLabel: this.chartAxisLabelStyle(),
+            },
+            yAxis: {
+                type: 'value',
+                splitLine: {lineStyle: {color: 'rgba(148, 163, 184, .18)'}},
+                axisLabel: this.chartAxisLabelStyle(),
+            },
+            series: [{
+                name: datasetLabel,
+                type: safeType,
+                data: values,
+                itemStyle: {
+                    color: colors[0],
+                    borderRadius: safeType === 'bar' ? [4, 4, 0, 0] : 0,
+                },
+                ...(safeType === 'line' ? {
+                    smooth: true,
+                    symbolSize: 7,
+                    lineStyle: {width: 3},
+                } : {}),
+            }],
+        };
+    },
+
+    contentMiniPreview(content, depth = 0, pickTarget = null) {
         content = content && typeof content === 'object' ? content : {type: '', props: {}};
         if (layoutBlockTypes.includes(content.type)) {
             const children = Array.isArray(content.props?.children) ? content.props.children : [];
-            const childPreview = children.slice(0, 6).map((child) => `
-                <div class="${this.layoutChildContainerClass(child, true)}">
-                    ${depth > 2 ? `<span class="text-xs text-[var(--page-muted)]">${escapeHtml(child?.label || child?.type || 'Block')}</span>` : this.contentMiniPreview(child, depth + 1)}
+            const childPreview = children.slice(0, 6).map((child, index) => {
+                const childPickTarget = pickTarget?.blockId
+                    ? {blockId: pickTarget.blockId, path: this.pathForChild(pickTarget.path || '', index)}
+                    : null;
+                const pickAttributes = childPickTarget
+                    ? ` data-ai-pick-block-id="${escapeHtml(childPickTarget.blockId)}" data-ai-pick-path="${escapeHtml(childPickTarget.path)}"`
+                    : '';
+
+                return `
+                <div class="${this.layoutChildContainerClass(child, true)}"${pickAttributes}>
+                    ${depth > 2 ? `<span class="text-xs text-[var(--page-muted)]">${escapeHtml(child?.label || child?.type || 'Block')}</span>` : this.contentMiniPreview(child, depth + 1, childPickTarget)}
                 </div>
-            `).join('');
+            `;
+            }).join('');
             const empty = '<div class="rounded-md border border-dashed border-[var(--page-border)] p-3 text-center text-xs text-[var(--page-muted)]" style="grid-column:1 / -1;">Empty layout module</div>';
             const columns = content.type === 'columns' ? Math.max(2, Math.min(4, Number(content.props?.columns || 2))) : Math.max(2, Math.min(4, Number(content.props?.columns || 3)));
             const layoutClass = content.type === 'stack' || content.type === 'section'
@@ -730,15 +1001,16 @@ export const previewMethods = {
         }
 
         if (content.type === 'header') {
+            const compact = this.isMobilePreview();
             const logoImage = String(content.props?.logoImage || '');
             const logoText = String(content.props?.logoText || 'NixCMS');
             const showLogoMark = Boolean(content.props?.showLogoMark);
             const dividerClass = content.props?.showDivider ? 'border-b border-[var(--page-border)]' : '';
-            const desktopNavigation = this.renderNavigationItems(content.props?.navigationIdentifier, content.props?.presentation || 'horizontal');
+            const desktopNavigation = this.renderNavigationItems(content.props?.navigationIdentifier, content.props?.presentation || 'horizontal', '', content.props?.linkStyle || 'blank', content.props?.linkTheme || 'default');
             const mobileNavigation = desktopNavigation !== '' ? this.renderMobileNavigationPreview(content.props?.navigationIdentifier) : '';
             return `
                 <div class="page-site-header ${dividerClass} bg-[var(--page-header-bg)] text-[var(--page-header-text)]">
-                    <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 py-4 pl-0 pr-8">
+                    <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 py-4 ${compact ? 'px-5' : 'px-0'}">
                         <span class="inline-flex min-h-10 items-center gap-3 text-[var(--page-header-text)]">
                             ${logoImage
                                 ? `<img class="h-8 w-auto max-w-36 object-contain" src="${escapeHtml(logoImage)}" alt="">`
@@ -754,11 +1026,15 @@ export const previewMethods = {
 
         if (content.type === 'footer') {
             const compact = this.isMobilePreview();
+            const footerText = String(content.props?.text ?? 'Powered by NixCMS').trim();
+            const footerAlignment = footerText === ''
+                ? 'items-center justify-end'
+                : (compact ? 'items-start' : 'items-center justify-between');
             return `
                 <div class="page-site-footer border-t border-[var(--page-border)] bg-[var(--page-footer-bg)]">
-                    <div class="page-template-chrome-inner flex min-h-16 flex-wrap ${compact ? 'items-start' : 'items-center justify-between'} gap-3 px-8 py-4">
-                        <span class="text-xs text-[var(--page-footer-text)]">${escapeHtml(content.props?.text || 'Powered by NixCMS')}</span>
-                        ${this.renderNavigationItems(content.props?.navigationIdentifier, content.props?.presentation || 'compact')}
+                    <div class="page-template-chrome-inner flex min-h-16 flex-wrap ${footerAlignment} gap-3 px-8 py-4">
+                        ${footerText !== '' ? `<span class="text-xs text-[var(--page-footer-text)]">${escapeHtml(footerText)}</span>` : ''}
+                        ${this.renderNavigationItems(content.props?.navigationIdentifier, content.props?.presentation || 'compact', '', content.props?.linkStyle || 'blank', content.props?.linkTheme || 'default')}
                     </div>
                 </div>
             `;
@@ -771,7 +1047,7 @@ export const previewMethods = {
                         <h3 class="m-0 text-sm font-bold text-[var(--page-text)]">${escapeHtml(content.props?.title || 'Aside')}</h3>
                         <p class="m-0 mt-1 text-xs leading-relaxed text-[var(--page-muted)]">${escapeHtml(content.props?.text || '')}</p>
                     </div>
-                    ${this.renderNavigationItems(content.props?.navigationIdentifier, 'vertical')}
+                    ${this.renderNavigationItems(content.props?.navigationIdentifier, 'vertical', '', content.props?.linkStyle || 'blank', content.props?.linkTheme || 'default')}
                 </aside>
             `;
         }
@@ -815,7 +1091,7 @@ export const previewMethods = {
             return `
                 <div class="rounded-md border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-3">
                     <div class="flex items-center justify-between gap-3 text-xs">
-                        <span class="font-semibold">${escapeHtml(content.previewTitle)}</span>
+                        <span class="font-semibold">${escapeHtml(this.uiText(content.previewTitle || 'Latest articles'))}</span>
                         <span class="rounded bg-white px-2 py-1 font-mono dark:bg-slate-800">${escapeHtml(content.props.presentation)}</span>
                     </div>
                     <div class="mt-2 rounded bg-white/70 px-2 py-1 font-mono text-[11px] text-slate-500 dark:bg-slate-800/70">${escapeHtml(content.props.detailPath || '/articles/{slug}')}</div>
@@ -854,73 +1130,25 @@ export const previewMethods = {
             const labels = metrics.map((metric) => metric.label);
             const values = metrics.map((metric) => Number(metric.value || 0));
             const colors = metrics.map((metric, index) => this.normalizeColor(metric.color) || chartMetricColors[index % chartMetricColors.length]);
-            const max = Math.max(...values, 1);
-            const linePoints = values.map((value, index) => ({
-                x: count === 1 ? 160 : 28 + ((index / (count - 1)) * 264),
-                y: 112 - ((value / max) * 74),
-            }));
-            const linePath = linePoints.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(' ');
-            const lastLinePoint = linePoints[linePoints.length - 1] || {x: 292, y: 118};
-            const firstLinePoint = linePoints[0] || {x: 28, y: 118};
-            const areaPath = `${linePath} L ${lastLinePoint.x.toFixed(1)} 118 L ${firstLinePoint.x.toFixed(1)} 118 Z`;
-            const pieSegments = labels.map((label, index) => {
-                const offset = labels.slice(0, index).reduce((sum, _, colorIndex) => sum + Math.max(6, values[colorIndex]), 0);
-                const total = values.reduce((sum, value) => sum + Math.max(6, value), 0) || 1;
-                const dash = (Math.max(6, values[index]) / total) * 100;
-                return `<circle cx="50" cy="50" r="${type === 'pie' ? 28 : 24}" fill="none" stroke="${escapeHtml(colors[index])}" stroke-width="${type === 'pie' ? 56 : 18}" stroke-dasharray="${dash} ${100 - dash}" stroke-dashoffset="${100 - ((offset / total) * 100)}" pathLength="100" transform="rotate(-90 50 50)"><title>${escapeHtml(label)}</title></circle>`;
-            }).join('');
-
-            const chartPreview = type === 'line'
-                ? `<div class="rounded-lg border border-white/5 bg-slate-950/20 px-3 py-3">
-                    <svg class="h-32 w-full" viewBox="0 0 320 132" aria-hidden="true">
-                        <path d="M28 118H300" stroke="rgba(148,163,184,.20)" stroke-width="1"></path>
-                        <path d="M28 90H300" stroke="rgba(148,163,184,.13)" stroke-width="1"></path>
-                        <path d="M28 62H300" stroke="rgba(148,163,184,.13)" stroke-width="1"></path>
-                        <path d="M28 34H300" stroke="rgba(148,163,184,.13)" stroke-width="1"></path>
-                        <path d="${areaPath}" fill="${escapeHtml(colors[0])}" opacity=".12"></path>
-                        <path d="${linePath}" fill="none" stroke="${escapeHtml(colors[0])}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
-                        ${linePoints.map((point, index) => `<circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="4.2" fill="var(--page-card-bg)" stroke="${escapeHtml(colors[index])}" stroke-width="3"><title>${escapeHtml(labels[index])}: ${escapeHtml(values[index])}</title></circle>`).join('')}
-                    </svg>
-                    <div class="mt-1 flex justify-between gap-2 px-6 text-[10px] text-[var(--page-muted)]">
-                        ${labels.map((label) => `<span class="truncate">${escapeHtml(label)}</span>`).join('')}
-                    </div>
-                </div>`
-                : type === 'bar'
-                    ? `<div class="flex min-h-28 items-end gap-2 border-b border-white/10 px-1">
-                        ${labels.map((label, index) => `<span class="grid flex-1 content-end gap-1 text-center" title="${escapeHtml(label)}">
-                            <span class="mx-auto block w-full rounded-t" style="height:${Math.max(18, (values[index] / max) * 104)}px;background:${escapeHtml(colors[index])};"></span>
-                            <span class="truncate text-[10px] text-[var(--page-muted)]">${escapeHtml(label)}</span>
-                        </span>`).join('')}
-                    </div>`
-                    : type === 'doughnut' || type === 'pie'
-                        ? `<div class="flex min-h-28 items-center gap-4">
-                            <svg class="h-28 w-28 shrink-0" viewBox="0 0 100 100" aria-hidden="true">
-                                <circle cx="50" cy="50" r="${type === 'pie' ? 28 : 24}" fill="${type === 'pie' ? colors[0] : 'rgba(148,163,184,.12)'}"></circle>
-                                ${pieSegments}
-                                ${type === 'doughnut' ? '<circle cx="50" cy="50" r="15" fill="var(--page-card-bg)"></circle>' : ''}
-                            </svg>
-                            <div class="grid min-w-0 flex-1 gap-1.5">
-                                ${labels.map((label, index) => `<span class="grid grid-cols-[10px_minmax(0,1fr)_34px] items-center gap-2 text-[11px] text-[var(--page-muted)]">
-                                    <span class="h-2.5 w-2.5 rounded-full" style="background:${escapeHtml(colors[index])};"></span>
-                                    <span class="truncate">${escapeHtml(label)}</span>
-                                    <span class="text-right font-mono">${escapeHtml(values[index])}</span>
-                                </span>`).join('')}
-                            </div>
-                        </div>`
-                        : `<div class="grid gap-3">
-                            ${labels.map((label, index) => `<span class="grid grid-cols-[minmax(84px,auto)_minmax(0,1fr)_42px] items-center gap-3 text-[13px] text-[var(--page-muted)]">
-                                <span class="truncate">${escapeHtml(label)}</span>
-                                <span class="h-3 overflow-hidden rounded-full bg-[rgba(148,163,184,.16)]"><span class="block h-full rounded-full" style="width:${Math.max(4, (values[index] / max) * 100)}%;background:${escapeHtml(colors[index])};"></span></span>
-                                <span class="text-right">${escapeHtml(values[index])}</span>
-                            </span>`).join('')}
-                        </div>`;
             const surface = String(content.props?.surface || 'none').replace(/[^a-z0-9_-]/gi, '-').toLowerCase();
             const chartHeight = type === 'metric-bars'
                 ? Math.max(180, Math.min(Number(content.props?.height || 320), 72 + Math.max(1, count) * 28))
                 : Math.max(220, Math.min(Number(content.props?.height || 320), 720));
+            const chartId = `builder-chart-${String(content.id || content.type || 'chart').replace(/[^a-z0-9_-]/gi, '-')}-${count}-${type}`;
+            const option = this.chartOption(type, labels, values, colors);
+            const payload = {
+                id: chartId,
+                type,
+                title: content.props?.title || '',
+                subtitle: content.props?.subtitle || '',
+                height: chartHeight,
+                empty: labels.length === 0,
+                emptyText: 'No chart data available.',
+                option,
+            };
 
             return `
-                <figure class="nixcms-chart nixcms-chart--surface-${escapeHtml(surface)}">
+                <figure class="nixcms-chart nixcms-chart--surface-${escapeHtml(surface)}" data-nixcms-chart="${escapeHtml(chartId)}">
                     <div class="nixcms-chart__header">
                         <div>
                             ${content.props?.title ? `<h3 class="nixcms-chart__title">${escapeHtml(this.uiText(content.props.title))}</h3>` : ''}
@@ -928,10 +1156,10 @@ export const previewMethods = {
                         </div>
                     </div>
                     <div class="nixcms-chart__surface" style="min-height:${chartHeight}px;">
-                        <div class="nixcms-chart__canvas" style="height:${chartHeight}px;display:grid;align-content:center;">
-                            ${chartPreview}
-                        </div>
+                        <div class="nixcms-chart__canvas" style="height:${chartHeight}px;" role="img" aria-label="${escapeHtml(content.props?.title || 'Chart')}"></div>
+                        <p class="nixcms-chart__empty">No chart data available.</p>
                     </div>
+                    <script type="application/json" data-nixcms-chart-options>${this.jsonScriptPayload(payload)}</script>
                 </figure>
             `;
         }
@@ -992,7 +1220,7 @@ export const previewMethods = {
         if (['cta', 'feature', 'quote', 'media'].includes(content.type)) {
             return `
                 <div class="${this.contentSurfaceClass(content)}">
-                    <strong class="text-base font-bold text-[var(--page-text)]">${escapeHtml(content.props?.title || content.props?.quote || content.previewTitle || content.label)}</strong>
+                    <strong class="text-base font-bold text-[var(--page-text)]">${escapeHtml(content.props?.title || content.props?.quote || this.uiText(content.previewTitle || content.label || 'Block'))}</strong>
                     <span class="text-sm leading-relaxed text-[var(--page-muted)]">${escapeHtml(content.props?.text || content.props?.caption || content.props?.source || '')}</span>
                 </div>
             `;
@@ -1015,8 +1243,8 @@ export const previewMethods = {
         if (content.type === 'article-title') {
             return `
                 <div class="grid gap-2 rounded-md bg-slate-950/60 p-4">
-                    <strong class="text-lg font-extrabold leading-tight text-slate-50">Resolved article title</strong>
-                    ${content.props?.showTeaser ? '<span class="text-xs leading-relaxed text-slate-400">Article teaser from the resolved version.</span>' : ''}
+                    <strong class="text-lg font-extrabold leading-tight text-slate-50">${escapeHtml(this.uiText('Resolved article title'))}</strong>
+                    ${content.props?.showTeaser ? `<span class="text-xs leading-relaxed text-slate-400">${escapeHtml(this.uiText('Article teaser from the resolved version.'))}</span>` : ''}
                 </div>
             `;
         }
@@ -1024,7 +1252,7 @@ export const previewMethods = {
         if (content.type === 'article-content') {
             return `
                 <div class="grid gap-2 rounded-md bg-slate-950/45 p-4">
-                    <span class="text-xs font-semibold text-slate-400">Editor.js body from current article</span>
+                    <span class="text-xs font-semibold text-slate-400">${escapeHtml(this.uiText('Editor.js body from current article'))}</span>
                     <span class="h-2.5 rounded bg-slate-700"></span>
                     <span class="h-2.5 w-10/12 rounded bg-slate-700"></span>
                     <span class="h-2.5 w-8/12 rounded bg-slate-800"></span>
@@ -1035,8 +1263,8 @@ export const previewMethods = {
         if (content.type === 'article-meta') {
             return `
                 <div class="${this.contentSurfaceClass(content, 'grid gap-2 text-xs')}">
-                    <div class="flex items-center justify-between gap-3"><span class="text-slate-500">Language</span><strong class="text-slate-100">Current</strong></div>
-                    <div class="flex items-center justify-between gap-3"><span class="text-slate-500">Published</span><strong class="text-slate-100">Date</strong></div>
+                    <div class="flex items-center justify-between gap-3"><span class="text-slate-500">${escapeHtml(this.uiText('Language'))}</span><strong class="text-slate-100">${escapeHtml(this.uiText('Current'))}</strong></div>
+                    <div class="flex items-center justify-between gap-3"><span class="text-slate-500">${escapeHtml(this.uiText('Published'))}</span><strong class="text-slate-100">${escapeHtml(this.uiText('Date'))}</strong></div>
                     ${content.props?.showTags ? '<div class="flex flex-wrap gap-1.5 pt-1"><span class="rounded-full bg-white/10 px-2 py-1 text-slate-300">tag</span><span class="rounded-full bg-white/10 px-2 py-1 text-slate-300">topic</span></div>' : ''}
                 </div>
             `;
@@ -1046,7 +1274,7 @@ export const previewMethods = {
             return `
                 <div class="rounded-md border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-3">
                     <div class="flex items-center justify-between gap-3 text-xs">
-                        <span class="font-semibold">${escapeHtml(content.props?.title || content.previewTitle || 'Related articles')}</span>
+                        <span class="font-semibold">${escapeHtml(content.props?.title || this.uiText(content.previewTitle || 'Related articles'))}</span>
                         <span class="rounded bg-white px-2 py-1 font-mono dark:bg-slate-800">${escapeHtml(content.props?.presentation || 'cards')}</span>
                     </div>
                     <div class="mt-2 grid gap-1.5">
@@ -1062,10 +1290,10 @@ export const previewMethods = {
             return `
                 <div class="${this.contentSurfaceClass(content, 'grid gap-3')}">
                     <div class="flex w-max max-w-full items-center gap-2 text-xs">
-                        <span class="font-semibold text-slate-100">${escapeHtml(this.navigationChoice(content.props?.identifier)?.label || content.previewTitle || 'Navigation')}</span>
+                        <span class="font-semibold text-slate-100">${escapeHtml(this.navigationChoice(content.props?.identifier)?.label || this.uiText(content.previewTitle || 'Navigation'))}</span>
                         <span class="rounded bg-white/10 px-2 py-1 font-mono text-slate-300">${escapeHtml(content.props?.presentation || 'horizontal')}</span>
                     </div>
-                    <div>${this.renderNavigationItems(content.props?.identifier, content.props?.presentation || 'horizontal', content.props?.language === 'current' ? '' : content.props?.language)}</div>
+                    <div>${this.renderNavigationItems(content.props?.identifier, content.props?.presentation || 'horizontal', content.props?.language === 'current' ? '' : content.props?.language, content.props?.linkStyle || 'blank', content.props?.linkTheme || 'default')}</div>
                 </div>
             `;
         }

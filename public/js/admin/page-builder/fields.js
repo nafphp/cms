@@ -506,6 +506,15 @@ export const fieldMethods = {
             category: 'Category',
             related: 'Related',
             current: 'Current',
+            blank: 'Blank',
+            underline: 'Underline',
+            pill: 'Pill',
+            'rounded-pill': 'Rounded pill',
+            filled: 'Filled',
+            'filled-rounded': 'Filled rounded',
+            default: 'Default',
+            accent: 'Accent',
+            surface: 'Surface',
         };
 
         return this.uiText(labels[String(option)] || String(option));

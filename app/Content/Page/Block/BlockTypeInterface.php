@@ -19,6 +19,8 @@ interface BlockTypeInterface
 
     public function previewTitle(): string;
 
+    public function unique(): bool;
+
     /**
      * @return array<string, mixed>
      */

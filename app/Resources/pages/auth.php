@@ -10,6 +10,7 @@ use function NixPHP\ORM\repo;
 use function NixPHP\redirect;
 use function NixPHP\Session\session;
 use function NixPHP\View\render;
+use function NixCMS\user;
 
 $inviteStateError = static function (array $invite): ?string {
     if ($invite['used_at'] !== null) {
@@ -30,7 +31,7 @@ return [
         ->setTitle('Login')
         ->setDataHandler(LoginUser::class)
         ->setContent(static function () {
-            if (\user()?->isLoggedIn() === true) {
+            if (user()?->isLoggedIn() === true) {
                 return redirect('/admin');
             }
 

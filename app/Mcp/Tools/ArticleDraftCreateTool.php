@@ -10,6 +10,7 @@ use NixCMS\Support\Slug;
 use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;
+use function NixCMS\cms;
 
 final class ArticleDraftCreateTool implements ToolInterface, ScopedToolInterface
 {
@@ -186,6 +187,6 @@ final class ArticleDraftCreateTool implements ToolInterface, ScopedToolInterface
             return ($this->createDraft)($payload, $authorId);
         }
 
-        return \cms()->articles()->create($payload, $authorId);
+        return cms()->articles()->create($payload, $authorId);
     }
 }

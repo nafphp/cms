@@ -10,6 +10,7 @@ use NixCMS\Repositories\NavigationRepository;
 use NixCMS\Storage\EntityStorage;
 use NixCMS\Support\AuditEntry;
 use function NixPHP\I18n\t;
+use function NixCMS\cms;
 
 /**
  * Domain API for site navigations. Exposes navigation-specific behaviour and delegates persistence/queries to NavigationRepository.
@@ -48,7 +49,7 @@ final class NavigationApi
             return $stored;
         }
 
-        return \cms()->navigationRegistry()->getNavigation($identifier, $scope, $language);
+        return cms()->navigationRegistry()->getNavigation($identifier, $scope, $language);
     }
 
     /**

@@ -4,6 +4,7 @@ use function NixPHP\I18n\t;
 use function NixPHP\route;
 use function NixPHP\View\view;
 use NixCMS\Enums\Permission;
+use function NixCMS\user;
 
 $pages = is_array($pages ?? null) ? $pages : [];
 $config = [

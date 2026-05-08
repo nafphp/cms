@@ -8,6 +8,7 @@ use NixCMS\Support\Cms;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
+use function NixCMS\cms;
 
 final class CmsApiSurfaceDocumentedTest extends TestCase
 {

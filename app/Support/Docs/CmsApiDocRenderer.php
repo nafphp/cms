@@ -7,6 +7,7 @@ namespace NixCMS\Support\Docs;
 use NixCMS\Support\Cms;
 use ReflectionClass;
 use ReflectionMethod;
+use function NixCMS\cms;
 
 final class CmsApiDocRenderer implements DocBlockRenderer
 {

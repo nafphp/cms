@@ -8,6 +8,11 @@ use NixCMS\Theme\Theme;
 
 final class ThemeAssetWriter
 {
+    public function __construct(private ?ThemeCodeNormalizer $normalizer = null)
+    {
+        $this->normalizer ??= new ThemeCodeNormalizer();
+    }
+
     public function write(string $identifier, string $css, string $js): void
     {
         $identifier = Theme::slug($identifier);
@@ -15,8 +20,8 @@ final class ThemeAssetWriter
             throw new \InvalidArgumentException('Theme identifier cannot be empty.');
         }
 
-        $this->writeFile(BASE_PATH . '/public/css/themes/' . $identifier . '.css', $css);
-        $this->writeFile(BASE_PATH . '/public/js/themes/' . $identifier . '.js', $js);
+        $this->writeFile(BASE_PATH . '/public/css/themes/' . $identifier . '.css', $this->normalizer->normalize($css));
+        $this->writeFile(BASE_PATH . '/public/js/themes/' . $identifier . '.js', $this->normalizer->normalize($js));
     }
 
     private function writeFile(string $path, string $content): void

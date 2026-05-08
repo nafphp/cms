@@ -11,11 +11,17 @@ $pageObject = isset($page) && is_object($page) ? $page : null;
 $fallbackIdentifier = (string) ($pageObject?->meta()->extra->defaultNavigationIdentifier ?? 'main');
 $language = $pageObject?->language();
 $items = nixcms_page_block_nav_items((string) ($props['navigationIdentifier'] ?? 'main'), $language, $fallbackIdentifier);
+$footerText = trim(t((string) ($props['text'] ?? 'Powered by NixCMS')));
+$innerClass = $footerText === ''
+    ? 'page-template-chrome-inner flex min-h-16 flex-wrap items-center justify-end gap-3 px-8 py-4'
+    : 'page-template-chrome-inner flex min-h-16 flex-wrap items-center justify-between gap-3 px-8 py-4';
 
 ?>
 <footer class="page-site-footer border-t border-[var(--page-border)] bg-[var(--page-footer-bg)]">
-    <div class="page-template-chrome-inner flex min-h-16 flex-wrap items-center justify-between gap-3 px-8 py-4">
-        <span class="page-site-footer__text text-xs font-medium text-[var(--page-footer-text)]"><?= s(t((string) ($props['text'] ?? 'Powered by NixCMS'))) ?></span>
-        <?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'compact')) ?>
+    <div class="<?= s($innerClass) ?>">
+        <?php if ($footerText !== ''): ?>
+            <span class="page-site-footer__text text-xs font-medium text-[var(--page-footer-text)]"><?= s($footerText) ?></span>
+        <?php endif; ?>
+        <?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'compact'), (string) ($props['linkStyle'] ?? 'blank'), (string) ($props['linkTheme'] ?? 'default')) ?>
     </div>
 </footer>

@@ -10,6 +10,7 @@ use NixCMS\Services\Ai\ToolRouting\ToolContext;
 use NixCMS\Services\Ai\ToolRouting\ToolRouterInterface;
 use NixPHP\MCP\Auth\McpIdentity;
 use function NixPHP\MCP\tool;
+use function NixCMS\user;
 
 final class LocalAiToolBridge
 {
@@ -47,7 +48,7 @@ final class LocalAiToolBridge
 
     private function identity(): McpIdentity
     {
-        $helper = \user();
+        $helper = user();
         $user = $helper?->get();
         $id = $user?->getId();
         $name = $user?->getDisplayName() ?: $user?->getUsername() ?: 'Local AI admin';
@@ -64,7 +65,7 @@ final class LocalAiToolBridge
      */
     private function scopes(): array
     {
-        $helper = \user();
+        $helper = user();
         if ($helper === null) {
             return [];
         }

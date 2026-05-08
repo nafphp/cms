@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace NixCMS\Content\Page\Block;
+use function NixCMS\cms;
 
 final class PageBuilderBlockOptions
 {
@@ -14,7 +15,7 @@ final class PageBuilderBlockOptions
         $choices = [];
 
         try {
-            $summaries = \cms()->navigation()->summaries('frontend');
+            $summaries = cms()->navigation()->summaries('frontend');
         } catch (\Throwable) {
             $summaries = [];
         }
@@ -27,7 +28,7 @@ final class PageBuilderBlockOptions
 
             $language = trim((string) ($summary['language'] ?? ''));
             try {
-                $items = \cms()->navigation()->tree($identifier, $language !== '' ? $language : null);
+                $items = cms()->navigation()->tree($identifier, $language !== '' ? $language : null);
             } catch (\Throwable) {
                 $items = [];
             }
@@ -105,7 +106,7 @@ final class PageBuilderBlockOptions
     public static function formOptions(): array
     {
         try {
-            $options = \cms()->forms()->choices(false);
+            $options = cms()->forms()->choices(false);
         } catch (\Throwable) {
             $options = [];
         }

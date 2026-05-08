@@ -12,7 +12,10 @@ use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Tests\Support\CoreBlockTypes;
+use function NixPHP\guard;
 use function NixPHP\app;
+use function NixCMS\cms;
 
 final class PageBuilderBlockTypesTest extends TestCase
 {
@@ -24,7 +27,7 @@ final class PageBuilderBlockTypesTest extends TestCase
         $app = app();
         $this->registerCliViewGuards();
 
-        self::assertNull(\cms()->blockTypes()->get('hero'));
+        self::assertNull(cms()->blockTypes()->get('hero'));
 
         $config = $app->container()->get(Config::class)->all();
         $config['view']['paths'] = [$viewRoot, 'views', 'app/views'];
@@ -34,8 +37,8 @@ final class PageBuilderBlockTypesTest extends TestCase
         $app->container()->set(RequestInterface::class, $request);
         $app->container()->set(ServerRequestInterface::class, $request);
 
-        \cms()->blockTypes()->addMany(require BASE_PATH . '/app/blockTypes.php');
-        \cms()->blockTypes()->add(new class extends AbstractBlockType {
+        cms()->blockTypes()->addMany(CoreBlockTypes::all());
+        cms()->blockTypes()->add(new class extends AbstractBlockType {
             public function id(): string
             {
                 return 'late_plugin';
@@ -52,7 +55,7 @@ final class PageBuilderBlockTypesTest extends TestCase
             }
         });
 
-        $page = \cms()->pages()->require('admin.pages.create');
+        $page = cms()->pages()->require('admin.pages.create');
         $content = $page->content();
         $response = $content();
 
@@ -86,7 +89,7 @@ PHP
 
     private function registerCliViewGuards(): void
     {
-        $guard = \NixPHP\guard();
+        $guard = guard();
 
         if (!$guard->has('safePath')) {
             $guard->register('safePath', static fn(string $path): string => $path);

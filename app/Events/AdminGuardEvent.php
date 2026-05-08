@@ -7,6 +7,7 @@ namespace NixCMS\Events;
 use NixCMS\Enums\Permission;
 use NixCMS\Exceptions\AuthException;
 use Psr\Http\Message\ServerRequestInterface;
+use function NixCMS\user;
 
 class AdminGuardEvent
 {
@@ -27,7 +28,7 @@ class AdminGuardEvent
             return;
         }
 
-        $helper = \user();
+        $helper = user();
         if ($helper === null || !$helper->isLoggedIn()) {
             throw new AuthException();
         }

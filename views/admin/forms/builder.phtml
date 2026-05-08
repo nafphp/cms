@@ -3,6 +3,7 @@
 use function NixPHP\I18n\t;
 use function NixPHP\View\asset;
 use function NixPHP\View\s;
+use function NixCMS\cms;
 
 $form = is_array($form ?? null) ? $form : null;
 $fields = is_array($form['fields'] ?? null) ? $form['fields'] : [];
@@ -41,7 +42,7 @@ asset()->add('/js/admin/form-builder.js', 'module');
     data-overview-url="<?= s((string) ($overviewUrl ?? '/admin/forms')) ?>"
     data-form="<?= s(json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)) ?>"
     data-translation-suggestions="<?= s(json_encode($translationSuggestions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)) ?>"
-    data-translation-language="<?= s(\cms()->settings()->currentLanguage()) ?>"
+    data-translation-language="<?= s(cms()->settings()->currentLanguage()) ?>"
     data-translation-endpoint="<?= s('/api/admin/translations/{language}') ?>"
 >
     <section class="grid gap-4 rounded-lg border border-slate-300/70 bg-white/85 p-5 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-slate-400/25 dark:bg-slate-950/50 dark:shadow-none">

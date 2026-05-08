@@ -7,6 +7,7 @@ namespace NixCMS\Handlers\Api\Admin;
 use NixCMS\Models\Article;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
+use function NixCMS\cms;
 
 final class ListArticles
 {

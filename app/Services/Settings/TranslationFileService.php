@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace NixCMS\Services\Settings;
 
 use function NixPHP\config;
+use function NixCMS\cms;
+use function NixCMS\audit;
 
 final class TranslationFileService
 {
@@ -12,14 +14,14 @@ final class TranslationFileService
     public function languages(string $activeLanguage = ''): array
     {
         $languages = array_values(array_unique([
-            ...\cms()->languages()->available(),
-            ...\cms()->settings()->languages(),
+            ...cms()->languages()->available(),
+            ...cms()->settings()->languages(),
         ]));
         sort($languages);
 
         return array_map(static fn(string $language): array => [
             'code' => $language,
-            'label' => \cms()->languages()->label($language),
+            'label' => cms()->languages()->label($language),
             'active' => $language === $activeLanguage,
         ], $languages);
     }
@@ -123,7 +125,7 @@ final class TranslationFileService
                 continue;
             }
 
-            \audit('translation.updated', 'translation', $language . '.' . $key, $oldValue, $newValue, [
+            audit('translation.updated', 'translation', $language . '.' . $key, $oldValue, $newValue, [
                 'language' => $language,
                 'key' => $key,
                 'file' => $file,
@@ -146,6 +148,6 @@ final class TranslationFileService
 
     private function normalizeLanguage(string $language): string
     {
-        return \cms()->languages()->normalize($language) ?? '';
+        return cms()->languages()->normalize($language) ?? '';
     }
 }

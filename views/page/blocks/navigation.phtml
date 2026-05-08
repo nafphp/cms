@@ -22,5 +22,5 @@ $class = [
 
 ?>
 <div class="<?= s(trim('page-block--surface-' . $surface . ' ' . $class)) ?>">
-    <?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'horizontal')) ?>
+    <?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'horizontal'), (string) ($props['linkStyle'] ?? 'blank'), (string) ($props['linkTheme'] ?? 'default')) ?>
 </div>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NixCMS\Repositories;
 
+use NixCMS\Services\Theme\ThemeCodeNormalizer;
 use NixCMS\Theme\Theme;
 use PDO;
 use function NixPHP\Database\database;
@@ -97,8 +98,9 @@ final class ThemeRepository
         $label = trim((string) ($payload['label'] ?? ''));
         $identifier = Theme::slug((string) ($payload['identifier'] ?? $label));
         $surfaces = $this->normalizeSurfaces(is_array($payload['surfaces'] ?? null) ? $payload['surfaces'] : []);
-        $css = (string) ($payload['css'] ?? '');
-        $js = (string) ($payload['js'] ?? '');
+        $normalizer = new ThemeCodeNormalizer();
+        $css = $normalizer->normalize((string) ($payload['css'] ?? ''));
+        $js = $normalizer->normalize((string) ($payload['js'] ?? ''));
 
         if ($label === '' || $identifier === '') {
             throw new \InvalidArgumentException('Theme label and identifier are required.');

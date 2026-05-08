@@ -41,6 +41,8 @@ final class NavigationBlockType extends AbstractBlockType
         return [
             'identifier' => (string) ($navigationOptions[0]['value'] ?? 'main'),
             'presentation' => 'horizontal',
+            'linkStyle' => 'blank',
+            'linkTheme' => 'default',
             'language' => 'current',
             ...$this->surfaceDefaults(),
         ];
@@ -51,6 +53,19 @@ final class NavigationBlockType extends AbstractBlockType
         return [
             ['name' => 'identifier', 'label' => 'Navigation', 'type' => 'select', 'options' => PageBuilderBlockOptions::navigationOptions()],
             ['name' => 'presentation', 'label' => 'Presentation', 'type' => 'select', 'options' => ['horizontal', 'vertical', 'compact']],
+            ['name' => 'linkStyle', 'label' => 'Link style', 'type' => 'select', 'options' => [
+                ['label' => 'Blank', 'value' => 'blank'],
+                ['label' => 'Underline', 'value' => 'underline'],
+                ['label' => 'Pill', 'value' => 'pill'],
+                ['label' => 'Rounded pill', 'value' => 'rounded-pill'],
+                ['label' => 'Filled', 'value' => 'filled'],
+                ['label' => 'Filled rounded', 'value' => 'filled-rounded'],
+            ]],
+            ['name' => 'linkTheme', 'label' => 'Link theme', 'type' => 'select', 'options' => [
+                ['label' => 'Default', 'value' => 'default'],
+                ['label' => 'Accent', 'value' => 'accent'],
+                ['label' => 'Surface', 'value' => 'surface'],
+            ]],
             ['name' => 'language', 'label' => 'Language', 'type' => 'select', 'options' => ['current', 'de', 'en', 'fr', 'es', 'it']],
             $this->surfaceField(),
         ];

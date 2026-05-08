@@ -15,6 +15,7 @@ use Throwable;
 use function NixPHP\Database\database;
 use function NixPHP\json;
 use function NixPHP\Session\session;
+use function NixCMS\user;
 
 final class ReviewArticle
 {
@@ -22,7 +23,7 @@ final class ReviewArticle
 
     public function __invoke(string $articleId, string $language): ResponseInterface
     {
-        $helper = \user();
+        $helper = user();
         if (
             $helper === null
             || (!$helper->can(Permission::ARTICLES_REVIEW) && !$helper->can(Permission::ARTICLES_PUBLISH))
