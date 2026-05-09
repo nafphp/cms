@@ -9,11 +9,18 @@ use NixCMS\Services\Ai\ToolRouting\SemanticToolRouter;
 use NixCMS\Services\Ai\ToolRouting\ToolContext;
 use NixCMS\Services\Ai\ToolRouting\ToolRouterInterface;
 use NixPHP\MCP\Auth\McpIdentity;
+use Throwable;
+use function NixPHP\Database\database;
+use function NixPHP\log;
 use function NixPHP\MCP\tool;
 use function NixCMS\user;
 
 final class LocalAiToolBridge
 {
+    /** @var array<int, array<string, mixed>>|null */
+    private static ?array $cachedDefinitions = null;
+    private static ?object $cachedRegistry = null;
+
     public function __construct(
         private ?ToolRouterInterface $router = null,
     ) {}
@@ -23,7 +30,15 @@ final class LocalAiToolBridge
      */
     public function definitions(): array
     {
-        return (new LocalAiToolCatalog())->enrich(tool()->definitions($this->identity()));
+        $registry = tool();
+        if (self::$cachedDefinitions !== null && self::$cachedRegistry === $registry) {
+            return self::$cachedDefinitions;
+        }
+
+        self::$cachedRegistry = $registry;
+        self::$cachedDefinitions = (new LocalAiToolCatalog())->enrich($registry->definitions($this->identity()));
+
+        return self::$cachedDefinitions;
     }
 
     /**
@@ -43,7 +58,51 @@ final class LocalAiToolBridge
      */
     public function call(string $name, array $arguments = []): mixed
     {
-        return tool()->call(trim($name), $arguments, $this->identity());
+        $name = trim($name);
+        $call = fn(): mixed => tool()->call($name, $arguments, $this->identity());
+        if (!$this->requiresTransaction($name)) {
+            return $call();
+        }
+
+        $connection = database();
+        if (!$connection instanceof \PDO || $connection->inTransaction()) {
+            return $call();
+        }
+
+        $connection->beginTransaction();
+        try {
+            $result = $call();
+            $connection->commit();
+
+            return $result;
+        } catch (Throwable $exception) {
+            if ($connection->inTransaction()) {
+                $connection->rollBack();
+            }
+
+            log()->error('LocalAiToolBridge.writeTool failed', [
+                'exception' => $exception,
+                'tool' => $name,
+            ]);
+
+            throw $exception;
+        }
+    }
+
+    private function requiresTransaction(string $name): bool
+    {
+        foreach ($this->definitions() as $definition) {
+            if ((string) ($definition['name'] ?? '') !== $name) {
+                continue;
+            }
+
+            $meta = is_array($definition['meta'] ?? null) ? $definition['meta'] : [];
+
+            return (string) ($meta['mode'] ?? 'read') === 'write'
+                || (bool) ($meta['destructive'] ?? false) === true;
+        }
+
+        return false;
     }
 
     private function identity(): McpIdentity

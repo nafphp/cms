@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace NixCMS\Services\Ai\ToolRouting;
 
+use function NixCMS\audit_log;
+use function NixCMS\cms;
+use function NixPHP\log;
+
 final class CosineToolRouter implements ToolRouterInterface
 {
-    private const float MINIMUM_RELEVANCE_SCORE = 0.24;
+    // 0.24 separated useful nomic-embed-text matches from noisy neighbors in CMS tool-routing fixtures.
+    private const float DEFAULT_MINIMUM_RELEVANCE_SCORE = 0.24;
 
     /**
      * @param array<int, array<string, mixed>> $tools
@@ -27,7 +32,12 @@ final class CosineToolRouter implements ToolRouterInterface
         $candidates = $this->hardFilter->filter($this->tools, $input, $context);
         $queryText = $this->queryText($input, $context);
         $queryEmbedding = $this->embeddings->embed($queryText);
-        if ($queryEmbedding === null || $candidates === []) {
+        if ($queryEmbedding === null) {
+            $this->recordFallback('query_embedding_failed', $input, $context);
+            return $this->fallback()->select($input, $context, $limit);
+        }
+        if ($candidates === []) {
+            $this->recordFallback('no_candidates_after_hard_filter', $input, $context);
             return $this->fallback()->select($input, $context, $limit);
         }
 
@@ -38,11 +48,12 @@ final class CosineToolRouter implements ToolRouterInterface
         foreach ($candidates as $index => $tool) {
             $toolEmbedding = $toolEmbeddings[$index] ?? null;
             if ($toolEmbedding === null) {
+                $this->recordFallback('tool_embedding_failed', $input, $context);
                 return $this->fallback()->select($input, $context, $limit);
             }
 
             $score = $this->cosineSimilarity($queryEmbedding, $toolEmbedding);
-            if ($score < self::MINIMUM_RELEVANCE_SCORE) {
+            if ($score < $this->minimumRelevanceScore()) {
                 continue;
             }
 
@@ -60,8 +71,8 @@ final class CosineToolRouter implements ToolRouterInterface
         ], array_slice($routes, 0, $limit));
 
         return $selected !== []
-            ? $this->withSearchTool($selected, $candidates, $limit)
-            : $this->fallback()->select($input, $context, $limit);
+            ? $this->withSearchTool($selected, $candidates, $limit, $input, $context)
+            : $this->fallbackAfterRecording('below_minimum_relevance_score', $input, $context, $limit);
     }
 
     /**
@@ -133,7 +144,7 @@ final class CosineToolRouter implements ToolRouterInterface
      * @param array<int, array<string, mixed>> $candidates
      * @return array<int, array<string, mixed>>
      */
-    private function withSearchTool(array $selected, array $candidates, int $limit): array
+    private function withSearchTool(array $selected, array $candidates, int $limit, string $input, ToolContext $context): array
     {
         if ($limit < 4 || count($selected) >= $limit || in_array('cms_tools_search', array_column($selected, 'name'), true)) {
             return $selected;
@@ -151,9 +162,33 @@ final class CosineToolRouter implements ToolRouterInterface
                     'reasons' => ['fallback-search'],
                 ],
             ];
+            $this->recordFallback('search_tool_added', $input, $context);
             break;
         }
 
         return $selected;
+    }
+
+    private function fallbackAfterRecording(string $reason, string $input, ToolContext $context, int $limit): array
+    {
+        $this->recordFallback($reason, $input, $context);
+
+        return $this->fallback()->select($input, $context, $limit);
+    }
+
+    private function minimumRelevanceScore(): float
+    {
+        return (float) cms()->settings()->value('ai.routing.min_score', self::DEFAULT_MINIMUM_RELEVANCE_SCORE);
+    }
+
+    private function recordFallback(string $reason, string $input, ToolContext $context): void
+    {
+        $meta = [
+            'reason' => $reason,
+            'query' => $context->summary() !== '' ? $context->summary() : $input,
+        ];
+
+        audit_log('ai.routing.fallback', 'router', null, null, null, $meta);
+        log()->info('ai.routing.fallback', $meta);
     }
 }

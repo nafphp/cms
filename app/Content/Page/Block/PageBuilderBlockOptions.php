@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NixCMS\Content\Page\Block;
 use function NixCMS\cms;
+use function NixPHP\log;
 
 final class PageBuilderBlockOptions
 {
@@ -16,7 +17,10 @@ final class PageBuilderBlockOptions
 
         try {
             $summaries = cms()->navigation()->summaries('frontend');
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->warning('PageBuilderBlockOptions.navigationChoices failed', [
+                'exception' => $e,
+            ]);
             $summaries = [];
         }
 
@@ -29,7 +33,12 @@ final class PageBuilderBlockOptions
             $language = trim((string) ($summary['language'] ?? ''));
             try {
                 $items = cms()->navigation()->tree($identifier, $language !== '' ? $language : null);
-            } catch (\Throwable) {
+            } catch (\Throwable $e) {
+                log()->warning('PageBuilderBlockOptions.navigationTree failed', [
+                    'exception' => $e,
+                    'identifier' => $identifier,
+                    'language' => $language,
+                ]);
                 $items = [];
             }
 
@@ -107,7 +116,10 @@ final class PageBuilderBlockOptions
     {
         try {
             $options = cms()->forms()->choices(false);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->warning('PageBuilderBlockOptions.formOptions failed', [
+                'exception' => $e,
+            ]);
             $options = [];
         }
 

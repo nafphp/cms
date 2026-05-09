@@ -8,6 +8,7 @@ use NixCMS\Page\Page;
 use NixCMS\Page\PageFactory;
 use PDO;
 use function NixPHP\Database\database;
+use function NixPHP\log;
 
 final class PageRepository
 {
@@ -35,7 +36,11 @@ final class PageRepository
                 FROM pages
                 ORDER BY updated_at DESC, created_at DESC, title ASC
             SQL)->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error('PageRepository.summaries failed', [
+                'exception' => $e,
+                'template_count' => count($templates),
+            ]);
             return [];
         }
 
@@ -66,7 +71,11 @@ final class PageRepository
             $statement = $connection->prepare('SELECT * FROM pages WHERE id = :id LIMIT 1');
             $statement->execute(['id' => $id]);
             $row = $statement->fetch(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error('PageRepository.find failed', [
+                'exception' => $e,
+                'id' => $id,
+            ]);
             return null;
         }
 
@@ -107,7 +116,13 @@ final class PageRepository
                 $statement->execute(['path' => $path, 'language' => '']);
                 $row = $statement->fetch(PDO::FETCH_ASSOC);
             }
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error('PageRepository.findByPath failed', [
+                'exception' => $e,
+                'path' => $path,
+                'language' => $language,
+                'published_only' => $publishedOnly,
+            ]);
             return null;
         }
 
@@ -128,7 +143,12 @@ final class PageRepository
                 : 'SELECT * FROM pages ORDER BY path ASC, language ASC';
             $statement = $connection->query($sql);
             $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error('PageRepository.pagesForRouting failed', [
+                'exception' => $e,
+                'template_count' => count($templates),
+                'published_only' => $publishedOnly,
+            ]);
             return [];
         }
 
@@ -191,7 +211,11 @@ final class PageRepository
             $statement = $connection->prepare('SELECT * FROM pages WHERE identifier = :identifier ORDER BY language ASC');
             $statement->execute(['identifier' => $this->normalizeIdentifier($identifier)]);
             $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error('PageRepository.findTranslations failed', [
+                'exception' => $e,
+                'identifier' => $identifier,
+            ]);
             return [];
         }
 
@@ -356,7 +380,10 @@ final class PageRepository
     {
         try {
             $decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->warning('PageRepository.decodeJson failed', [
+                'exception' => $e,
+            ]);
             return [];
         }
 
@@ -371,7 +398,10 @@ final class PageRepository
 
         try {
             $connection = database();
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error('PageRepository.connection failed', [
+                'exception' => $e,
+            ]);
             return null;
         }
 

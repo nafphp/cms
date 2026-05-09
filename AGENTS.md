@@ -538,7 +538,7 @@ Use WeOnlyWalk as a schema reference, but make names and columns product-neutral
 - `media`: file path, public URL, mime type, size, dimensions, alt text, owner, timestamps.
 - `jobs` or file-backed queue storage, depending on the selected NixPHP queue driver.
 
-Prefer migrations over schema dumps. Keep first migrations readable and reversible.
+Prefer migrations over schema dumps. Keep first migrations readable and reversible. Every new migration must implement a real `down()` rollback; legacy migrations may throw `RuntimeException('manual rollback required')` only when reversal would be unsafe.
 
 ## Suggested Permission Names
 

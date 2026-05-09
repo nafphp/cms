@@ -38,6 +38,17 @@ final readonly class ToolContext
         return strtolower(str_replace(['-', '_'], '', $this->area));
     }
 
+    public function summary(): string
+    {
+        return trim(implode(' ', array_filter([
+            $this->area,
+            $this->pageId,
+            $this->layoutId,
+            $this->themeId,
+            $this->contentType,
+        ], static fn (?string $value): bool => $value !== null && $value !== '')));
+    }
+
     /**
      * @return array<int, string>
      */

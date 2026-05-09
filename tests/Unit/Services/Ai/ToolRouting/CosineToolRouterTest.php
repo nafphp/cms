@@ -66,6 +66,30 @@ final class CosineToolRouterTest extends TestCase
         self::assertSame(['cms_tools_search'], array_column($selected, 'name'));
         self::assertSame(['no-match-search'], $selected[0]['route']['reasons']);
     }
+
+    public function testMinimumRelevanceScoreSeparatesMatchingAndWeakEmbeddings(): void
+    {
+        $tools = (new LocalAiToolCatalog())->enrich([
+            [
+                'name' => 'cms_strong_match',
+                'description' => 'Returns a strong semantic match.',
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ],
+            [
+                'name' => 'cms_weak_match',
+                'description' => 'Returns a weak semantic match.',
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ],
+        ]);
+
+        $selected = (new CosineToolRouter($tools, new ThresholdEmbeddingClient()))->select(
+            'threshold probe',
+            ToolContext::fromArray(['area' => 'dashboard']),
+            5,
+        );
+
+        self::assertSame(['cms_strong_match'], array_column($selected, 'name'));
+    }
 }
 
 final class FakeEmbeddingClient implements EmbeddingClientInterface
@@ -103,5 +127,22 @@ final class LowConfidenceEmbeddingClient implements EmbeddingClientInterface
     public function embedMany(array $texts): array
     {
         return array_map(static fn(): array => [0.1, 0.995], $texts);
+    }
+}
+
+final class ThresholdEmbeddingClient implements EmbeddingClientInterface
+{
+    public function embed(string $text): ?array
+    {
+        return [1.0, 0.0];
+    }
+
+    public function embedMany(array $texts): array
+    {
+        return array_map(static function (string $text): array {
+            return str_contains($text, 'strong')
+                ? [0.25, sqrt(1 - (0.25 ** 2))]
+                : [0.23, sqrt(1 - (0.23 ** 2))];
+        }, $texts);
     }
 }

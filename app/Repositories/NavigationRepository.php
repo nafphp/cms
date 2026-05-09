@@ -7,6 +7,7 @@ namespace NixCMS\Repositories;
 use NixCMS\Navigation\Navigation;
 use PDO;
 use function NixPHP\Database\database;
+use function NixPHP\log;
 
 final class NavigationRepository
 {
@@ -33,7 +34,11 @@ final class NavigationRepository
             SQL);
             $statement->execute(['scope' => trim($scope) ?: 'frontend']);
             $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error('NavigationRepository.summaries failed', [
+                'exception' => $e,
+                'scope' => $scope,
+            ]);
             return [];
         }
 
@@ -51,7 +56,11 @@ final class NavigationRepository
             $statement = $connection->prepare('SELECT * FROM navigations WHERE id = :id LIMIT 1');
             $statement->execute(['id' => $id]);
             $row = $statement->fetch(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error('NavigationRepository.find failed', [
+                'exception' => $e,
+                'id' => $id,
+            ]);
             return null;
         }
 
@@ -80,7 +89,12 @@ final class NavigationRepository
                 'scope' => trim($scope) ?: 'frontend',
             ]);
             $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error('NavigationRepository.findTranslations failed', [
+                'exception' => $e,
+                'identifier' => $identifier,
+                'scope' => $scope,
+            ]);
             return [];
         }
 
@@ -160,7 +174,13 @@ final class NavigationRepository
                 'scope' => $scope,
             ]);
             $row = $statement->fetch(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error('NavigationRepository.findByIdentifier failed', [
+                'exception' => $e,
+                'identifier' => $identifier,
+                'scope' => $scope,
+                'language' => $language,
+            ]);
             return null;
         }
 
@@ -341,7 +361,10 @@ final class NavigationRepository
     {
         try {
             $decoded = json_decode($itemsJson, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->warning('NavigationRepository.decodeItems failed', [
+                'exception' => $e,
+            ]);
             return [];
         }
 
@@ -370,7 +393,10 @@ final class NavigationRepository
 
         try {
             $connection = database();
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error('NavigationRepository.connection failed', [
+                'exception' => $e,
+            ]);
             return null;
         }
 

@@ -7,6 +7,7 @@ use NixCMS\Handlers\Page\Navigation\StoreNavigation;
 use NixCMS\Page\Page;
 use NixCMS\Services\Settings\TranslationFileService;
 use function NixPHP\I18n\t;
+use function NixPHP\log;
 use function NixPHP\redirect;
 use function NixPHP\route;
 use function NixPHP\View\render;
@@ -45,7 +46,12 @@ $pageChoices = static function (): array {
     foreach (cms()->pages()->all() as $page) {
         try {
             $path = $page->path();
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            log()->warning('navigation.pageChoices.path failed', [
+                'exception' => $e,
+                'page_id' => $page->id(),
+                'page_title' => $page->title(),
+            ]);
             continue;
         }
 

@@ -7,6 +7,7 @@ namespace NixCMS\Page;
 use NixPHP\I18n\Core\Translator;
 use function NixPHP\app;
 use function NixPHP\I18n\t;
+use function NixPHP\log;
 use function NixPHP\View\view;
 
 final class PageBuilderRenderer
@@ -86,7 +87,10 @@ final class PageBuilderRenderer
         try {
             $translator = app()->container()->get(Translator::class);
             return $translator instanceof Translator ? $translator : null;
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->warning('PageBuilderRenderer.translator unavailable', [
+                'exception' => $e,
+            ]);
             return null;
         }
     }

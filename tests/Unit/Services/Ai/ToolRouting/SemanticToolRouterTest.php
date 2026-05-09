@@ -7,6 +7,7 @@ namespace Tests\Unit\Services\Ai\ToolRouting;
 use NixCMS\Services\Ai\LocalAiToolCatalog;
 use NixCMS\Services\Ai\ToolRouting\SemanticToolRouter;
 use NixCMS\Services\Ai\ToolRouting\ToolContext;
+use NixCMS\Services\Ai\ToolRouting\ToolHardFilter;
 use PHPUnit\Framework\TestCase;
 
 final class SemanticToolRouterTest extends TestCase
@@ -127,5 +128,29 @@ final class SemanticToolRouterTest extends TestCase
         );
 
         self::assertSame(['cms_article_draft_create'], array_column($selected, 'name'));
+    }
+
+    public function testEmptyContextRejectsWriteToolsByDefaultButKeepsReadTools(): void
+    {
+        $tools = (new LocalAiToolCatalog())->enrich([
+            [
+                'name' => 'cms_article_draft_create',
+                'description' => 'Creates an article draft.',
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ],
+            [
+                'name' => 'cms_article_status_counts',
+                'description' => 'Returns article status counts.',
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ],
+        ]);
+
+        $filtered = (new ToolHardFilter())->filter(
+            $tools,
+            'create an article draft and show status counts',
+            ToolContext::fromArray([]),
+        );
+
+        self::assertSame(['cms_article_status_counts'], array_column($filtered, 'name'));
     }
 }

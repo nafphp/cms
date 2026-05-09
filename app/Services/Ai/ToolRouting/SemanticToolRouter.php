@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 namespace NixCMS\Services\Ai\ToolRouting;
+use function NixCMS\audit_log;
 use function NixCMS\cms;
+use function NixPHP\log;
 
 final class SemanticToolRouter implements ToolRouterInterface
 {
@@ -28,6 +30,7 @@ final class SemanticToolRouter implements ToolRouterInterface
                 new OllamaEmbeddingClient(
                     (string) cms()->settings()->value('ai.url', 'http://localhost:11434'),
                     $embeddingModel,
+                    (float) cms()->settings()->value('ai.embedding_timeout', 1.5),
                 ),
                 fallback: $fallback,
             );
@@ -35,6 +38,18 @@ final class SemanticToolRouter implements ToolRouterInterface
             return $router->select($input, $context, $limit);
         }
 
+        $this->recordFallback('embedding_model_missing', $input, $context);
         return $fallback->select($input, $context, $limit);
+    }
+
+    private function recordFallback(string $reason, string $input, ToolContext $context): void
+    {
+        $meta = [
+            'reason' => $reason,
+            'query' => $context->summary() !== '' ? $context->summary() : $input,
+        ];
+
+        audit_log('ai.routing.fallback', 'router', null, null, null, $meta);
+        log()->info('ai.routing.fallback', $meta);
     }
 }

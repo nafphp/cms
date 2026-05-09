@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace NixCMS\Services\Ai\ToolRouting;
 
+use function NixPHP\log;
+
 final class OllamaEmbeddingClient implements EmbeddingClientInterface
 {
     /** @var array<string, array<int, float>> */
@@ -18,6 +20,7 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
     ) {
         $this->baseUrl = rtrim(trim($baseUrl), '/');
         $this->model = trim($model);
+        $this->timeout = $timeout > 0.0 ? $timeout : 1.5;
         $this->cacheDirectory = $cacheDirectory ?? $this->defaultCacheDirectory();
     }
 
@@ -152,24 +155,52 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
     private function request(string $path, array $payload): array
     {
         $body = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        return $this->requestWithTimeout($path, $body, $this->timeout, 1);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function requestWithTimeout(string $path, string $body, float $timeout, int $attempt): array
+    {
         $context = stream_context_create([
             'http' => [
                 'method' => 'POST',
                 'header' => "Content-Type: application/json\r\nAccept: application/json\r\n",
                 'content' => $body,
                 'ignore_errors' => true,
-                'timeout' => $this->timeout,
+                'timeout' => $timeout,
             ],
         ]);
 
         $raw = @file_get_contents($this->baseUrl . $path, false, $context);
         if (!is_string($raw) || trim($raw) === '') {
+            if ($attempt === 1) {
+                log()->warning('ollama.embed.retry', [
+                    'attempt' => $attempt,
+                    'path' => $path,
+                    'timeout' => $timeout,
+                ]);
+
+                return $this->requestWithTimeout($path, $body, $timeout * 2, 2);
+            }
+
+            log()->error('ollama.embed.failed', [
+                'attempt' => $attempt,
+                'path' => $path,
+                'timeout' => $timeout,
+            ]);
+
             return [];
         }
 
         try {
             $decoded = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error('ollama.embed.decode_failed', [
+                'exception' => $e,
+                'path' => $path,
+            ]);
             return [];
         }
 
@@ -233,7 +264,12 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
 
         try {
             $payload = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->warning('OllamaEmbeddingClient.readCached corrupt cache ignored', [
+                'exception' => $e,
+                'cache_key' => $cacheKey,
+                'path' => $path,
+            ]);
             return null;
         }
 
@@ -264,7 +300,11 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
                 'model' => $this->model,
                 'embedding' => $embedding,
             ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->warning('OllamaEmbeddingClient.writeCached encode failed', [
+                'exception' => $e,
+                'cache_key' => $cacheKey,
+            ]);
             return;
         }
 

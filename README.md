@@ -162,6 +162,12 @@ These sections are generated from registries and enums. Edit the source code, th
 | ID | Method | Path | Permissions |
 | --- | --- | --- | --- |
 | `admin.articles.image` | `POST` | `/admin/articles/image` | any of `media.upload`, `articles.edit` |
+| `api.admin.ai.memory.append` | `POST` | `/api/admin/ai/memory` | `admin.access` |
+| `api.admin.ai.mistakes` | `POST` | `/api/admin/ai/mistakes` | `admin.access` |
+| `api.admin.ai.mistakes.delete` | `POST` | `/api/admin/ai/mistakes/delete` | `admin.access` |
+| `api.admin.ai.mistakes.review` | `GET` | `/api/admin/ai/mistakes/review` | `admin.access` |
+| `api.admin.ai.prompts` | `GET` | `/api/admin/ai/prompts` | `admin.access` |
+| `api.admin.ai.prompts.save` | `POST` | `/api/admin/ai/prompts` | `admin.access` |
 | `api.admin.ai.tools` | `GET` | `/api/admin/ai/tools` | `mcp.tools.call` |
 | `api.admin.ai.tools.call` | `POST` | `/api/admin/ai/tools/call` | `mcp.tools.call` |
 | `api.admin.ai.tools.select` | `POST` | `/api/admin/ai/tools/select` | `mcp.tools.call` |
@@ -289,8 +295,8 @@ These sections are generated from registries and enums. Edit the source code, th
 | `cms_pagebuilder_inspect` | Starts the PageBuilder show mode so the user can click a visible block or nested element and return structured read-only information about it. |
 | `cms_plugin_overview` | Returns loaded NixPHP plugins and registry counts relevant to NixCMS extensions. |
 | `cms_queue_status` | Returns file-backed queue counts for pending, locked, and deadletter jobs. |
-| `cms_system_health` | Returns basic NixCMS health information for PHP, storage paths, and loaded NixPHP plugins. |
-| `cms_tools_search` | Searches the registered CMS tools for the current request and UI context. |
+| `cms_system_health` | Returns current NixCMS system health data. The result includes php.version, php.memory_limit, database.available, database.driver, database.server_version, session storage settings, MCP auth token-file status, storage directory readability/writability, and loaded NixPHP plugins. When summarizing this tool result for a user, use the exact returned values and present all returned sections as compact Markdown tables. Use tables for PHP, database, session, MCP auth, storage, and plugins when those sections are present; do not render scalar diagnostics only as label-colon text when they can be represented as table rows. Do not say that PHP version, database version, modules, storage, or plugin data are missing when the returned JSON contains those fields. Do not invent modules or health checks that are not present in the result. |
+| `cms_tools_search` | Searches the registered CMS tools for the current request and UI context. Use this when the currently visible tools do not clearly cover the user request. The result returns candidate tool definitions that can be used in the next tool-call step. |
 | `cms_user_role_summary` | Returns user, role, permission, and assignment counts for the NixCMS RBAC model. |
 | `external_air_quality` | Returns current air quality, UV index, and pollen context for a location so local businesses can plan outdoor, health, sport, and seasonal campaigns. |
 | `external_exchange_rates` | Returns latest exchange rates and optional converted amounts for international shop pricing, ads, purchasing, and campaign planning. |

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use NixCMS\Enums\Permission;
 use NixCMS\Page\Page;
+use NixCMS\Repositories\AuditLogRepository;
 use NixCMS\Services\Settings\SettingsService;
 use function NixPHP\I18n\t;
 use function NixPHP\View\render;
@@ -35,6 +36,10 @@ return [
             'pageSubtitle' => t('Configure the browser-local Ollama assistant.'),
             'sections' => (new SettingsService())->sections('ai'),
             'activeGroup' => 'ai',
+            'routingFallbacks' => array_slice(array_values(array_filter(
+                (new AuditLogRepository())->latest(50, 'router'),
+                static fn(array $entry): bool => (string) ($entry['action'] ?? '') === 'ai.routing.fallback',
+            )), 0, 10),
         ])),
     Page::create('admin.settings.group')
         ->setPath('/admin/settings/group/{group}')

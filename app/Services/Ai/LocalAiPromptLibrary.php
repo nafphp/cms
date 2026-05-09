@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace NixCMS\Services\Ai;
 
+use function NixPHP\log;
+
 final class LocalAiPromptLibrary
 {
     private const ORDER = [
@@ -202,7 +204,15 @@ final class LocalAiPromptLibrary
             '',
         ];
 
-        file_put_contents($path, implode("\n", $entry), FILE_APPEND | LOCK_EX);
+        try {
+            file_put_contents($path, implode("\n", $entry), FILE_APPEND | LOCK_EX);
+        } catch (\Throwable $e) {
+            log()->error('LocalAiPromptLibrary.appendMistake failed', [
+                'exception' => $e,
+                'path' => $path,
+                'event' => $event,
+            ]);
+        }
     }
 
     private function read(string $file): string

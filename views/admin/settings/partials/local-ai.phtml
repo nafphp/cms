@@ -5,6 +5,7 @@ use function NixPHP\View\s;
 use function NixPHP\View\view;
 
 $fields = is_array($fields ?? null) ? $fields : [];
+$routingFallbacks = is_array($routingFallbacks ?? null) ? $routingFallbacks : [];
 $modelField = null;
 $embeddingModelField = null;
 $otherFields = [];
@@ -139,6 +140,29 @@ $embeddingModelSourceLabel = (string) ($sourceLabels[$embeddingModelSource] ?? $
                 <span class="text-xs font-semibold text-slate-500 dark:text-slate-400" data-ai-status><?= s(t('Not tested yet.')) ?></span>
             </div>
             <pre class="min-h-16 max-h-56 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-slate-600 dark:text-slate-300" data-ai-output>-</pre>
+        </div>
+
+        <div class="grid gap-3 border border-slate-200 bg-white p-3 text-sm dark:border-slate-700 dark:bg-slate-900">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <strong class="text-slate-700 dark:text-slate-100"><?= s(t('Latest routing fallbacks')) ?></strong>
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400"><?= s((string) count($routingFallbacks)) ?></span>
+            </div>
+            <?php if ($routingFallbacks === []): ?>
+                <p class="m-0 text-xs text-slate-500 dark:text-slate-400"><?= s(t('No routing fallbacks recorded yet.')) ?></p>
+            <?php else: ?>
+                <div class="grid gap-2">
+                    <?php foreach ($routingFallbacks as $fallback): ?>
+                        <?php $meta = is_array($fallback['meta'] ?? null) ? $fallback['meta'] : []; ?>
+                        <div class="grid gap-1 border-t border-slate-200 pt-2 first:border-t-0 first:pt-0 dark:border-slate-700">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <span class="font-semibold text-slate-700 dark:text-slate-100"><?= s((string) ($meta['reason'] ?? 'unknown')) ?></span>
+                                <time class="text-xs text-slate-500 dark:text-slate-400"><?= s((string) ($fallback['created_at'] ?? '')) ?></time>
+                            </div>
+                            <code class="break-words text-xs text-slate-500 dark:text-slate-400"><?= s((string) ($meta['query'] ?? '')) ?></code>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </section>
 </div>

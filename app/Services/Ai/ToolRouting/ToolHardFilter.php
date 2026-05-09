@@ -54,7 +54,7 @@ final class ToolHardFilter
 
         $area = $context->normalizedArea();
         if ($area === '') {
-            return true;
+            return ($meta['mode'] ?? 'read') !== 'write' && ($meta['destructive'] ?? false) !== true;
         }
 
         $capabilities = $this->capabilities($meta);
@@ -64,7 +64,7 @@ final class ToolHardFilter
             'themeeditor' => $this->intersects($capabilities, ['theme.write', 'themes.write']),
             'articleeditor' => $this->intersects($capabilities, ['content.write', 'articles.write']),
             'formeditor', 'formbuilder' => $this->intersects($capabilities, ['content.write', 'forms.write']),
-            default => true,
+            default => ($meta['mode'] ?? 'read') !== 'write' && ($meta['destructive'] ?? false) !== true,
         };
     }
 
