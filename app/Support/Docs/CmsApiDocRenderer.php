@@ -45,6 +45,7 @@ final class CmsApiDocRenderer implements DocBlockRenderer
     {
         return match ($method) {
             'content' => 'cms()->content(Model::class)',
+            'scope' => 'cms()->scope(Scope::ADMIN)',
             'storage' => 'cms()->storage(Model::class)',
             default => sprintf('cms()->%s()', $method),
         };
@@ -54,22 +55,21 @@ final class CmsApiDocRenderer implements DocBlockRenderer
     {
         return [
             'pages' => 'Renderable HTTP pages and page data handlers.',
+            'scope' => 'Scope-bound CMS APIs; defaults to Scope::FRONTEND.',
             'api' => 'JSON/API/action endpoints.',
             'contentTypes' => 'Registered CMS content types.',
             'content' => 'Resolve a content API by model class.',
             'articles' => 'Convenience API for the Article content type.',
             'forms' => 'Convenience API for the Form content type.',
             'media' => 'Convenience API for the Media content type.',
-            'navigation' => 'Convenience API for published site navigation content.',
+            'navigation' => 'Site navigation content and navigation metadata registration.',
             'storage' => 'Criteria-based CRUD for one ORM entity.',
-            'navigationRegistry' => 'Named frontend and admin navigation metadata.',
             'visualizations' => 'Registered chart definitions and rendering.',
             'blocks' => 'Page-builder block type to view mappings.',
             'blockTypes' => 'Page-builder block metadata for the admin builder.',
             'themes' => 'Frontend theme assets and builder-visible surfaces.',
             'languages' => 'Enabled, available, and discovered language codes.',
-            'settings' => 'Resolved runtime settings.',
-            'settingsRegistry' => 'Admin-editable setting sections and fields.',
+            'settings' => 'Resolved runtime settings and admin-editable setting metadata.',
         ][$method] ?? 'Public CMS helper entry point.';
     }
 
@@ -77,6 +77,7 @@ final class CmsApiDocRenderer implements DocBlockRenderer
     {
         $order = [
             'pages',
+            'scope',
             'api',
             'contentTypes',
             'content',
@@ -85,14 +86,12 @@ final class CmsApiDocRenderer implements DocBlockRenderer
             'media',
             'navigation',
             'storage',
-            'navigationRegistry',
             'visualizations',
             'blocks',
             'blockTypes',
             'themes',
             'languages',
             'settings',
-            'settingsRegistry',
         ];
 
         $rank = array_search($method, $order, true);

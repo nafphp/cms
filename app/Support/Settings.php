@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace NixCMS\Support;
 
 use NixCMS\Repositories\SettingRepository;
+use NixCMS\Settings\SettingField;
+use NixCMS\Settings\SettingSection;
+use NixCMS\Settings\SettingsRegistry;
 use NixPHP\I18n\Core\Translator;
 use function NixPHP\app;
 use function NixPHP\config;
@@ -14,6 +17,7 @@ use function NixCMS\cms;
 final class Settings
 {
     private ?SettingRepository $settings = null;
+    private ?SettingsRegistry $registry = null;
     /** @var array<string, string|null> */
     private array $cache = [];
 
@@ -21,6 +25,75 @@ final class Settings
     {
         $configured = trim((string) $this->value('app.name', 'NixCMS'));
         return $configured !== '' ? $configured : 'NixCMS';
+    }
+
+    private function registry(): SettingsRegistry
+    {
+        if ($this->registry === null) {
+            $this->registry = new SettingsRegistry();
+            $settingsFile = BASE_PATH . '/app/settings.php';
+            if (is_file($settingsFile)) {
+                $this->registry->addMany(require $settingsFile);
+            }
+        }
+
+        return $this->registry;
+    }
+
+    public function add(SettingSection $section, bool $replace = false): self
+    {
+        $this->registry()->add($section, $replace);
+        return $this;
+    }
+
+    /**
+     * @param iterable<SettingSection> $sections
+     */
+    public function addMany(iterable $sections, bool $replace = false): self
+    {
+        $this->registry()->addMany($sections, $replace);
+        return $this;
+    }
+
+    public function addSection(SettingSection $section, bool $replace = false): self
+    {
+        $this->registry()->addSection($section, $replace);
+        return $this;
+    }
+
+    public function addField(string $sectionId, SettingField $field, bool $replace = false): self
+    {
+        $this->registry()->addField($sectionId, $field, $replace);
+        return $this;
+    }
+
+    public function field(string $key): ?SettingField
+    {
+        return $this->registry()->field($key);
+    }
+
+    /**
+     * @return array<string, SettingSection>
+     */
+    public function sections(?string $group = null): array
+    {
+        return $this->registry()->sections($group);
+    }
+
+    /**
+     * @return array<string, array{label: string, sections: array<string, SettingSection>}>
+     */
+    public function groups(): array
+    {
+        return $this->registry()->groups();
+    }
+
+    /**
+     * @return array<string, SettingField>
+     */
+    public function fields(): array
+    {
+        return $this->registry()->fields();
     }
 
     public function shortName(): string

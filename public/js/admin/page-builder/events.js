@@ -423,6 +423,12 @@ export const eventMethods = {
 
         this.persistedValues[key] = this.readPersistedField(field);
         this.syncPersistedControls(key, field);
+        if (key === 'language') {
+            this.loadTranslations(this.translationLanguage()).then(() => {
+                this.renderBlocks();
+                this.renderPagePreview();
+            });
+        }
         if (key.startsWith('theme.')) {
             this.syncPageTheme();
         }

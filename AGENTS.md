@@ -78,6 +78,8 @@ The goal: anyone who can write NixPHP plugins should be able to extend CMS funct
 
 NixCMS should be designed with AI support from the beginning.
 
+**Important AI output rule: do not add separate code paths that semantically validate, correct, rewrite, or replace model output. Make the model input, tool metadata, routing context, and tool-result prompts robust enough that the model has no reasonable path except producing the correct grounded answer. UI code may format or display output, but it must not act as a second model-output judge.**
+
 MCP tools can expose controlled CMS capabilities, for example:
 
 - Read article status counts
@@ -119,6 +121,8 @@ The local assistant must not send the full MCP tool registry to the model once t
 - `SemanticToolRouter` is the primary orchestration point. When `ai.embedding_model` is configured it uses `CosineToolRouter` with `OllamaEmbeddingClient`; otherwise it falls back to `KeywordToolRouter`.
 - `CosineToolRouter` should batch tool embeddings via `/api/embed` rather than making one Ollama request per tool. If embedding generation fails, fall back to keyword routing instead of failing the assistant.
 - `cms_tools_search` is the tool reload path. Prefer exposing it in selected tool sets when there is room so the model can search for additional tools without seeing the whole registry.
+- If routing cannot identify a relevant tool, expose `cms_tools_search` instead of returning generic "best available" read tools. Let the model search iteratively rather than forcing a weak match.
+- Do not add hard-coded tool-name routing hooks such as "if this phrase then this exact tool" in prompts, JavaScript, or PHP. Tool choice should emerge from tool descriptions, schemas, metadata, semantic routing, and `cms_tools_search`.
 - Plugins should register executable tools plus metadata such as description, routing description, examples, capabilities, mode, and scopes. Plugins should not own cross-registry routing or permission decisions.
 - Categories such as `cms`, `plugins`, `external`, and `context` remain useful for organization/debugging, but semantic routing should not depend on categories alone.
 
@@ -126,9 +130,9 @@ The local assistant must not send the full MCP tool registry to the model once t
 
 The initial local assistant should stay focused on tool-driven CMS assistance, navigation, and stable domain tools.
 
-- Admin navigation from the assistant should use `cms_admin_navigate`, which returns the registered `admin.navigate` UI Action. Keep navigation restricted to safe internal `/admin` URLs.
-- Article creation and appending should prefer the domain MCP tools `cms_article_draft_create` and `cms_article_draft_append`; those already use the Article API/versioning workflow.
-- Browser-side direct assistant commands may be used for explicit UI modes that should not depend on model tool-call reliability. Keep command recognition centralized in `public/js/admin/local-ai-direct-commands.js`, with aliases and patterns there instead of scattered one-off intent checks.
+- Admin actions should be exposed through executable MCP tools and their returned UI Actions. Keep navigation restricted to safe internal `/admin` URLs.
+- Article and content write flows should prefer domain MCP tools that already use the relevant Content API/versioning workflow.
+- Do not add browser-side direct command aliases that bypass model tool selection. If a UI mode should be available, expose it through a tool/action and improve that tool's description or metadata.
 
 ## Capability Concept
 

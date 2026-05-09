@@ -6,7 +6,6 @@ namespace NixCMS;
 
 use NixCMS\Models\User;
 use NixCMS\Repositories\UserRepository;
-use NixCMS\Settings\SettingsRegistry;
 use NixCMS\Support\Audit;
 use NixCMS\Support\AuditEntry;
 use NixCMS\Support\Cms;
@@ -23,11 +22,6 @@ function cms(): Cms
     }
 
     return $cache;
-}
-
-function settings(): SettingsRegistry
-{
-    return cms()->settingsRegistry();
 }
 
 function user(): ?UserHelper

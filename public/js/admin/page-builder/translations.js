@@ -46,6 +46,32 @@ export const translationMethods = {
         }
     },
 
+    async loadTranslations(language = this.translationLanguage()) {
+        language = this.normalizeLanguageCode(language) || this.defaultLanguage || 'en';
+        if (this.translationEntriesByLanguage[language]) {
+            return true;
+        }
+
+        try {
+            const response = await (window.NixCMS?.json || fetch)(this.translationReadEndpointFor(language), {
+                method: 'GET',
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || !result.success || !result.entries || typeof result.entries !== 'object') {
+                return false;
+            }
+
+            this.translationEntriesByLanguage[language] = result.entries;
+            this.translationSuggestionsByLanguage[language] = this.normalizeTranslationSuggestions(
+                Object.entries(result.entries).map(([key, value]) => ({key, value}))
+            );
+
+            return true;
+        } catch (error) {
+            return false;
+        }
+    },
+
     applyPageBuilderLabels(entries) {
         const labels = {};
         Object.entries(this.labelKeys || {}).forEach(([labelKey, translationKey]) => {
@@ -123,6 +149,22 @@ export const translationMethods = {
         }
 
         return this.currentTranslationSuggestions(language).find((suggestion) => suggestion.key === normalizedKey) || null;
+    },
+
+    translateContentText(value, language = this.translationLanguage()) {
+        const text = String(value || '');
+        if (text === '') {
+            return '';
+        }
+
+        const normalized = this.normalizeLanguageCode(language) || language || this.translationLanguage();
+        const entries = this.translationEntriesByLanguage?.[normalized] || {};
+        if (typeof entries[text] === 'string' && entries[text] !== '') {
+            return entries[text];
+        }
+
+        const suggestion = this.findTranslationSuggestion(normalized, text);
+        return suggestion?.value || text;
     },
 
     setTranslationSuggestion(language, key, value) {
@@ -220,6 +262,7 @@ export const translationMethods = {
 
         this.translationSuggestBox = document.createElement('div');
         this.translationSuggestBox.className = 'fixed z-50 hidden max-h-64 overflow-auto rounded-md border border-slate-300 bg-white p-1 text-sm shadow-xl dark:border-slate-700 dark:bg-slate-950';
+        this.translationSuggestBox.style.zIndex = '3600';
         this.translationSuggestBox.dataset.pageTranslationSuggestBox = 'true';
         document.body.appendChild(this.translationSuggestBox);
 
@@ -360,19 +403,27 @@ export const translationMethods = {
         initStyledSelects(modal.querySelectorAll('select[data-styled-select]'));
         keyInput?.focus({preventScroll: true});
 
-        languageSelect?.addEventListener('change', () => {
-            const existing = this.findTranslationSuggestion(languageSelect.value, keyInput?.value);
-            if (existing && valueInput instanceof HTMLInputElement && valueInput.value.trim() === '') {
-                valueInput.value = existing.value;
+        const syncValueForSelectedLanguage = async ({overwrite = false} = {}) => {
+            if (!(valueInput instanceof HTMLInputElement)) {
+                return;
             }
+
+            const language = languageSelect?.value || this.translationLanguage();
+            await this.loadTranslations(language);
+            const existing = this.findTranslationSuggestion(language, keyInput?.value);
+            if (existing && (overwrite || valueInput.value.trim() === '')) {
+                valueInput.value = existing.value;
+                valueInput.dispatchEvent(new Event('input', {bubbles: true}));
+            }
+        };
+
+        languageSelect?.addEventListener('change', () => {
+            syncValueForSelectedLanguage({overwrite: true});
             this.showTranslationSuggestions(this.activeTranslationSuggestInput || keyInput);
         });
         keyInput?.addEventListener('focus', () => this.showTranslationSuggestions(keyInput));
         keyInput?.addEventListener('input', () => {
-            const existing = this.findTranslationSuggestion(languageSelect?.value || this.translationLanguage(), keyInput.value);
-            if (existing && valueInput instanceof HTMLInputElement && valueInput.value.trim() === '') {
-                valueInput.value = existing.value;
-            }
+            syncValueForSelectedLanguage({overwrite: false});
             this.showTranslationSuggestions(keyInput);
         });
         valueInput?.addEventListener('focus', () => this.showTranslationSuggestions(valueInput));

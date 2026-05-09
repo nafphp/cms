@@ -71,6 +71,36 @@ final class SemanticToolRouterTest extends TestCase
         self::assertSame(['cms_article_status_counts'], array_column($selected, 'name'));
     }
 
+    public function testUnknownIntentReturnsSearchToolInsteadOfGenericReadTools(): void
+    {
+        $tools = (new LocalAiToolCatalog())->enrich([
+            [
+                'name' => 'cms_queue_status',
+                'description' => 'Returns queue status.',
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ],
+            [
+                'name' => 'cms_page_overview',
+                'description' => 'Returns page overview.',
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ],
+            [
+                'name' => 'cms_tools_search',
+                'description' => 'Searches the registered CMS tools for the current request and UI context.',
+                'inputSchema' => ['type' => 'object', 'properties' => ['query' => ['type' => 'string']]],
+            ],
+        ]);
+
+        $selected = (new SemanticToolRouter($tools))->select(
+            'Sternenstaub Quantennebel Galaxiewunsch',
+            ToolContext::fromArray([]),
+            8,
+        );
+
+        self::assertSame(['cms_tools_search'], array_column($selected, 'name'));
+        self::assertSame(['no-match-search'], $selected[0]['route']['reasons']);
+    }
+
     public function testModeAndCapabilityFiltersAreAppliedBeforeRanking(): void
     {
         $tools = (new LocalAiToolCatalog())->enrich([

@@ -12,19 +12,17 @@ use NixCMS\Api\NavigationApi;
 use NixCMS\Content\BlockViewRegistry;
 use NixCMS\Content\ContentRegistry;
 use NixCMS\Content\Page\Block\BlockTypeRegistry;
+use NixCMS\Enums\Scope;
 use NixCMS\Localization\LanguageRegistry;
 use NixCMS\Models\Article;
 use NixCMS\Models\Form;
 use NixCMS\Models\Media;
 use NixCMS\Models\SiteNavigation;
-use NixCMS\Navigation\NavigationRegistry;
 use NixCMS\Page\PageRegistry;
 use NixCMS\Repositories\ThemeRepository;
-use NixCMS\Settings\SettingsRegistry;
 use NixCMS\Storage\EntityStorage;
 use NixCMS\Theme\ThemeRegistry;
 use NixCMS\Visualization\VisualizationRegistry;
-use function NixCMS\cms;
 
 final class Cms
 {
@@ -32,13 +30,16 @@ final class Cms
     private ?Settings $settings = null;
     private ?ContentRegistry $contentRegistry = null;
     private ?PageRegistry $pageRegistry = null;
-    private ?NavigationRegistry $navigationRegistry = null;
-    private ?SettingsRegistry $settingsRegistry = null;
     private ?VisualizationRegistry $visualizationRegistry = null;
     private ?LanguageRegistry $languageRegistry = null;
     private ?BlockViewRegistry $blockViewRegistry = null;
     private ?BlockTypeRegistry $blockTypeRegistry = null;
     private ?ThemeRegistry $themeRegistry = null;
+
+    public function scope(Scope|string|null $scope = null): ScopedCms
+    {
+        return new ScopedCms($this, $scope === null ? Scope::FRONTEND : Scope::normalize($scope));
+    }
 
     public function settings(): Settings
     {
@@ -50,35 +51,9 @@ final class Cms
         return $this->languageRegistry ??= new LanguageRegistry();
     }
 
-    public function settingsRegistry(): SettingsRegistry
-    {
-        if ($this->settingsRegistry === null) {
-            $this->settingsRegistry = new SettingsRegistry();
-            $settingsFile = BASE_PATH . '/app/settings.php';
-            if (is_file($settingsFile)) {
-                $this->settingsRegistry->addMany(require $settingsFile);
-            }
-        }
-
-        return $this->settingsRegistry;
-    }
-
     public function pages(): PageRegistry
     {
         return $this->pageRegistry ??= new PageRegistry();
-    }
-
-    public function navigationRegistry(): NavigationRegistry
-    {
-        if ($this->navigationRegistry === null) {
-            $this->navigationRegistry = new NavigationRegistry();
-            $navigationFile = BASE_PATH . '/app/navigation.php';
-            if (is_file($navigationFile)) {
-                $this->navigationRegistry->addMany(require $navigationFile);
-            }
-        }
-
-        return $this->navigationRegistry;
     }
 
     public function navigation(): NavigationApi

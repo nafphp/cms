@@ -23,6 +23,8 @@ const selectedOptionClass = 'bg-surface-soft';
 const disabledOptionClass = 'cursor-not-allowed opacity-50';
 const placeholderClass = 'text-slate-400';
 const contentWidthMode = 'content';
+const defaultMenuZIndex = '1200';
+const dialogMenuZIndex = '3600';
 
 export function initStyledSelect(selectElement, options = {}) {
     if (!(selectElement instanceof HTMLSelectElement)) {
@@ -114,7 +116,7 @@ export function initStyledSelect(selectElement, options = {}) {
             right: 'auto',
             top: `${Math.round(openAbove ? rect.top - Math.min(menu.scrollHeight, maxHeight) - 7 : rect.bottom + 7)}px`,
             width: `${menuWidth}px`,
-            zIndex: '1200',
+            zIndex: select.closest('.notify') ? dialogMenuZIndex : defaultMenuZIndex,
         });
     };
 

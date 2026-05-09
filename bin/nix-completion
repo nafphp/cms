@@ -1,0 +1,276 @@
+#!/usr/bin/env sh
+
+nixcms_completion_script_path() {
+    if [ -n "${ZSH_VERSION:-}" ]; then
+        if [ -n "${funcfiletrace[1]:-}" ]; then
+            printf "%s" "${funcfiletrace[1]%:*}"
+            return
+        fi
+
+        eval 'printf "%s" "${(%):-%x}"'
+        return
+    fi
+
+    if [ -n "${BASH_VERSION:-}" ]; then
+        eval 'printf "%s" "${BASH_SOURCE[0]}"'
+        return
+    fi
+
+    printf "%s" "$0"
+}
+
+nixcms_completion_shell() {
+    if [ -n "${ZSH_VERSION:-}" ]; then
+        printf "zsh"
+        return
+    fi
+
+    printf "%s" "$(basename "${SHELL:-zsh}")"
+}
+
+nixcms_completion_is_sourced() {
+    (return 0 2>/dev/null)
+}
+
+nixcms_completion_fail() {
+    printf "%s\n" "$1" >&2
+    return 1
+}
+
+nixcms_completion_absolute_path() {
+    path="$1"
+
+    case "$path" in
+        /*)
+            printf "%s" "$path"
+            ;;
+        "~")
+            printf "%s" "${HOME:-}"
+            ;;
+        "~/"*)
+            printf "%s/%s" "${HOME:-}" "${path#~/}"
+            ;;
+        *)
+            printf "%s/%s" "$(pwd -P)" "$path"
+            ;;
+    esac
+}
+
+nixcms_completion_directory() {
+    directory="$(dirname "$1")"
+    cd "$directory" >/dev/null 2>&1 && pwd -P
+}
+
+nixcms_completion_resolve_directory() {
+    cd "$1" >/dev/null 2>&1 && pwd -P
+}
+
+nixcms_completion_omz_custom_dir() {
+    if [ -z "${HOME:-}" ]; then
+        nixcms_completion_fail "Cannot install NixCMS completion because HOME is not set."
+        return 1
+    fi
+
+    if [ -n "${ZSH_CUSTOM:-}" ]; then
+        printf "%s" "$ZSH_CUSTOM"
+        return
+    fi
+
+    if [ -n "${ZSH:-}" ]; then
+        printf "%s/custom" "$ZSH"
+        return
+    fi
+
+    if [ -d "$HOME/.oh-my-zsh/custom" ]; then
+        printf "%s/.oh-my-zsh/custom" "$HOME"
+        return
+    fi
+
+    nixcms_completion_fail "Oh My Zsh was not detected. Install Oh My Zsh first, then run this again."
+    return 1
+}
+
+nixcms_completion_install() {
+    if [ "$shell_name" != "zsh" ]; then
+        nixcms_completion_fail "NixCMS completion install currently supports Oh My Zsh only."
+        return 1
+    fi
+
+    completion_dir="$(nixcms_completion_omz_custom_dir)" || return 1
+    completion_file="$completion_dir/nixcms-completion.zsh"
+
+    mkdir -p "$completion_dir" || return 1
+    nixcms_completion_generate > "$completion_file" || return 1
+
+    printf "Installed NixCMS Oh My Zsh completion.\n"
+    printf "  Script: %s\n" "$completion_file"
+    printf "  Loader: Oh My Zsh custom scripts\n"
+
+    if nixcms_completion_is_sourced; then
+        # shellcheck disable=SC1090
+        . "$completion_file"
+        printf "Completion is active in this shell and persisted for future shells.\n"
+    else
+        printf "\n"
+        printf "%s\n" "Completion is persisted for future shells."
+        printf "%s\n" "To enable completion in this shell now, run:"
+        printf "  source %s\n" "$root_dir/bin/nix-completion"
+    fi
+}
+
+nixcms_completion_source() {
+    if [ "$shell_name" != "zsh" ]; then
+        nixcms_completion_fail "NixCMS completion currently supports Oh My Zsh only."
+        return 1
+    fi
+
+    if nixcms_completion_is_sourced; then
+        eval "$(nixcms_completion_generate)"
+    else
+        nixcms_completion_generate
+    fi
+}
+
+nixcms_completion_generate() {
+    NIXCMS_ROOT="$root_dir" php <<'PHP'
+<?php
+
+declare(strict_types=1);
+
+use NixPHP\CLI\Commands\ListCommand;
+use NixPHP\CLI\Core\AbstractCommand;
+use NixPHP\CLI\Support\CommandRegistry;
+use function NixPHP\app;
+
+$root = (string) getenv('NIXCMS_ROOT');
+if ($root === '' || !is_file($root . '/bootstrap.php')) {
+    fwrite(STDERR, "Could not locate NixCMS bootstrap.\n");
+    exit(1);
+}
+
+chdir($root);
+
+if (!defined('PHPUNIT_RUNNING')) {
+    define('PHPUNIT_RUNNING', true);
+}
+
+require $root . '/bootstrap.php';
+
+$registry = app()->container()->get(CommandRegistry::class);
+$commands = [];
+
+foreach ($registry->all() as $commandClass) {
+    if ($commandClass === ListCommand::class) {
+        continue;
+    }
+
+    if (!is_subclass_of($commandClass, AbstractCommand::class) || !is_string($commandClass::NAME)) {
+        continue;
+    }
+
+    /** @var AbstractCommand $command */
+    $command = app()->container()->make($commandClass);
+    $definition = $command->getDefinition();
+    $options = [];
+
+    foreach (($definition['options'] ?? []) as $name => $mode) {
+        $prefix = strlen((string) $name) === 1 ? '-' : '--';
+        $options[$prefix . $name] = (string) $mode;
+    }
+
+    $commands[$commandClass::NAME] = [
+        'description' => $command->getDescription(),
+        'options' => $options,
+    ];
+}
+
+ksort($commands);
+
+$singleQuote = static fn(string $value): string => "'" . str_replace("'", "'\\''", $value) . "'";
+$zshAction = static fn(string $value): string => str_replace(':', '\\:', $value);
+$zshDescription = static fn(string $value): string => str_replace(':', '\\:', trim($value));
+$casePattern = static fn(string $value): string => str_replace(['\\', ')', '|'], ['\\\\', '\\)', '\\|'], $value);
+
+echo "#compdef nix bin/nix ./bin/nix\n";
+echo "autoload -Uz compinit\n";
+echo "if ! whence -w compdef >/dev/null 2>&1; then\n";
+echo "  compinit -i\n";
+echo "fi\n\n";
+echo "_nixcms_completion() {\n";
+echo "  local context state line\n";
+echo "  typeset -A opt_args\n";
+echo "  local -a command_specs\n";
+echo "  command_specs=(\n";
+
+foreach ($commands as $name => $metadata) {
+    echo "  " . $singleQuote($zshAction((string) $name) . ':' . $zshDescription((string) $metadata['description'])) . "\n";
+}
+
+echo "  )\n\n";
+echo "  _arguments -C \\\n";
+echo "    '1:command:->command' \\\n";
+echo "    '*::argument:->argument' && return\n\n";
+echo "  case \"\$state\" in\n";
+echo "    command)\n";
+echo "      _describe -t commands 'nix command' command_specs\n";
+echo "      return\n";
+echo "      ;;\n";
+echo "  esac\n\n";
+echo "  local cmd=\"\${words[2]}\"\n";
+echo "  case \"\$cmd\" in\n";
+
+foreach ($commands as $name => $metadata) {
+    echo "    " . $casePattern((string) $name) . ")\n";
+    echo "      _arguments -S \\\n";
+
+    $options = [];
+    foreach ($metadata['options'] as $option => $mode) {
+        $options[] = $mode === 'value'
+            ? "    " . $singleQuote($option . '[option]:value:')
+            : "    " . $singleQuote($option . '[option]');
+    }
+
+    echo ($options === [] ? "        '*:argument:'" : implode(" \\\n", $options)) . "\n";
+    echo "      ;;\n";
+}
+
+echo "  esac\n";
+echo "}\n\n";
+echo "compdef _nixcms_completion nix\n";
+echo "compdef _nixcms_completion bin/nix\n";
+echo "compdef _nixcms_completion ./bin/nix\n";
+PHP
+}
+
+script_path="$(nixcms_completion_absolute_path "$(nixcms_completion_script_path)")"
+script_dir="$(nixcms_completion_directory "$script_path")"
+root_dir="$(nixcms_completion_resolve_directory "$script_dir/..")"
+shell_name="$(nixcms_completion_shell)"
+action="${1:-source}"
+
+if [ -z "$script_dir" ] || [ -z "$root_dir" ] || [ ! -f "$root_dir/bin/nix" ]; then
+    nixcms_completion_fail "Could not resolve NixCMS project path for shell completion."
+    return 1 2>/dev/null || exit 1
+fi
+
+case "$action" in
+    install)
+        nixcms_completion_install || return 1 2>/dev/null || exit 1
+        ;;
+    source)
+        nixcms_completion_source || return 1 2>/dev/null || exit 1
+        ;;
+    *)
+        printf "%s\n" "Usage:"
+        printf "%s\n" "  source bin/nix-completion"
+        printf "%s\n" "  source bin/nix-completion install"
+        printf "%s\n" "  bin/nix-completion install"
+        ;;
+esac
+
+unset action completion_dir completion_file rc_file root_dir script_dir script_path shell_name
+unset -f nixcms_completion_script_path nixcms_completion_shell nixcms_completion_is_sourced 2>/dev/null || true
+unset -f nixcms_completion_fail nixcms_completion_absolute_path nixcms_completion_directory 2>/dev/null || true
+unset -f nixcms_completion_resolve_directory 2>/dev/null || true
+unset -f nixcms_completion_omz_custom_dir 2>/dev/null || true
+unset -f nixcms_completion_install nixcms_completion_source nixcms_completion_generate 2>/dev/null || true

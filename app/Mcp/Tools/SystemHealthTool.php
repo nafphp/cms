@@ -22,7 +22,14 @@ final class SystemHealthTool implements ToolInterface, ScopedToolInterface
 
     public function description(): string
     {
-        return 'Returns basic NixCMS health information for PHP, storage paths, and loaded NixPHP plugins.';
+        return implode(' ', [
+            'Returns current NixCMS system health data.',
+            'The result includes php.version, php.memory_limit, database.available, database.driver, database.server_version, session storage settings, MCP auth token-file status, storage directory readability/writability, and loaded NixPHP plugins.',
+            'When summarizing this tool result for a user, use the exact returned values and present all returned sections as compact Markdown tables.',
+            'Use tables for PHP, database, session, MCP auth, storage, and plugins when those sections are present; do not render scalar diagnostics only as label-colon text when they can be represented as table rows.',
+            'Do not say that PHP version, database version, modules, storage, or plugin data are missing when the returned JSON contains those fields.',
+            'Do not invent modules or health checks that are not present in the result.',
+        ]);
     }
 
     public function inputSchema(): array

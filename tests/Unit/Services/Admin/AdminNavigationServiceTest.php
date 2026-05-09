@@ -6,7 +6,10 @@ namespace Tests\Unit\Services\Admin;
 
 use NixCMS\Enums\Permission;
 use NixCMS\Navigation\NavigationItem;
-use NixCMS\Navigation\NavigationRegistry;
+use NixCMS\Api\NavigationApi;
+use NixCMS\Api\ScopedNavigationApi;
+use NixCMS\Enums\Scope;
+use NixCMS\Repositories\NavigationRepository;
 use NixCMS\Page\Page;
 use NixCMS\Page\PageRegistry;
 use NixCMS\Services\Admin\AdminNavigationService;
@@ -17,7 +20,7 @@ final class AdminNavigationServiceTest extends TestCase
 {
     public function testServiceBuildsNestedNavigationFromRegistryAndPages(): void
     {
-        $navigation = new NavigationRegistry();
+        $navigation = new ScopedNavigationApi(new NavigationApi(new NavigationRepository(), false), Scope::ADMIN);
         $navigation->addMany([
             NavigationItem::create('content')->setLabel('Content')->setOrder(20)->setScope('admin'),
             NavigationItem::create('content.reports')->setLabel('Reports')->setParent('content')->setOrder(20)->setScope('admin'),
@@ -59,7 +62,7 @@ final class AdminNavigationServiceTest extends TestCase
                 ->setAdminNavigation('Plugin Home', parent: 'plugins.analytics', key: 'plugins.analytics.home')
         );
 
-        $items = (new AdminNavigationService(new NavigationRegistry(), $pages, includeConfiguredItems: false))->items();
+        $items = (new AdminNavigationService(new ScopedNavigationApi(new NavigationApi(new NavigationRepository(), false), Scope::ADMIN), $pages, includeConfiguredItems: false))->items();
 
         self::assertSame('plugins', $items[0]['key']);
         self::assertSame('Analytics', $items[0]['children'][0]['label']);
@@ -68,11 +71,10 @@ final class AdminNavigationServiceTest extends TestCase
 
     public function testServiceIgnoresFrontendNavigationItems(): void
     {
-        $navigation = new NavigationRegistry();
-        $navigation->addMany([
-            NavigationItem::create('frontend.docs')->setLabel('Docs'),
-            NavigationItem::create('admin.tools')->setLabel('Tools')->setScope('admin'),
-        ]);
+        $baseNavigation = new NavigationApi(new NavigationRepository(), false);
+        $baseNavigation->add(NavigationItem::create('frontend.docs')->setLabel('Docs'));
+        $navigation = new ScopedNavigationApi($baseNavigation, Scope::ADMIN);
+        $navigation->add(NavigationItem::create('admin.tools')->setLabel('Tools'));
 
         $pages = new PageRegistry();
         $pages->addMany([
@@ -93,7 +95,7 @@ final class AdminNavigationServiceTest extends TestCase
 
     public function testServiceBuildsArbitrarilyDeepTreeAndPropagatesDescendantRoutes(): void
     {
-        $navigation = new NavigationRegistry();
+        $navigation = new ScopedNavigationApi(new NavigationApi(new NavigationRepository(), false), Scope::ADMIN);
         $navigation->addMany([
             NavigationItem::create('plugins')
                 ->setLabel('Plugins')
@@ -150,7 +152,7 @@ final class AdminNavigationServiceTest extends TestCase
 
     public function testServiceSortsSiblingsByOrderThenLabel(): void
     {
-        $navigation = new NavigationRegistry();
+        $navigation = new ScopedNavigationApi(new NavigationApi(new NavigationRepository(), false), Scope::ADMIN);
         $navigation->addMany([
             NavigationItem::create('tools.zebra')->setLabel('Zebra')->setParent('tools')->setOrder(20)->setScope('admin'),
             NavigationItem::create('tools.alpha')->setLabel('Alpha')->setParent('tools')->setOrder(20)->setScope('admin'),
@@ -180,7 +182,7 @@ final class AdminNavigationServiceTest extends TestCase
                 ->setAdminNavigation('Admin Docs', parent: 'docs.admin', key: 'docs.admin.index'),
         ]);
 
-        $items = (new AdminNavigationService(new NavigationRegistry(), $pages, includeConfiguredItems: false))->items();
+        $items = (new AdminNavigationService(new ScopedNavigationApi(new NavigationApi(new NavigationRepository(), false), Scope::ADMIN), $pages, includeConfiguredItems: false))->items();
 
         self::assertCount(1, $items);
         self::assertSame('docs', $items[0]['key']);
@@ -201,7 +203,7 @@ final class AdminNavigationServiceTest extends TestCase
                 ->setAdminNavigation('Dashboard', key: 'dashboard'),
         ]);
 
-        $items = (new AdminNavigationService(new NavigationRegistry(), $pages, includeConfiguredItems: false))->items();
+        $items = (new AdminNavigationService(new ScopedNavigationApi(new NavigationApi(new NavigationRepository(), false), Scope::ADMIN), $pages, includeConfiguredItems: false))->items();
 
         self::assertCount(1, $items);
         self::assertSame('dashboard', $items[0]['key']);
@@ -224,7 +226,7 @@ final class AdminNavigationServiceTest extends TestCase
 
         $user = new UserHelper(null, [Permission::PAGES_VIEW], [], true);
         $items = (new AdminNavigationService(
-            new NavigationRegistry(),
+            new ScopedNavigationApi(new NavigationApi(new NavigationRepository(), false), Scope::ADMIN),
             $pages,
             includeConfiguredItems: false,
             userResolver: static fn(): UserHelper => $user,
@@ -236,7 +238,7 @@ final class AdminNavigationServiceTest extends TestCase
 
     public function testServiceKeepsDeniedParentWhenChildIsVisible(): void
     {
-        $navigation = new NavigationRegistry();
+        $navigation = new ScopedNavigationApi(new NavigationApi(new NavigationRepository(), false), Scope::ADMIN);
         $navigation->add(
             NavigationItem::create('content')
                 ->setLabel('Content')
@@ -272,7 +274,7 @@ final class AdminNavigationServiceTest extends TestCase
 
     public function testAccentForPathInheritsParentNavigationAccent(): void
     {
-        $navigation = new NavigationRegistry();
+        $navigation = new ScopedNavigationApi(new NavigationApi(new NavigationRepository(), false), Scope::ADMIN);
         $navigation->add(
             NavigationItem::create('content')
                 ->setLabel('Content')
@@ -314,7 +316,7 @@ final class AdminNavigationServiceTest extends TestCase
 
     public function testAccentForPathAllowsNavigationMetaOverride(): void
     {
-        $navigation = new NavigationRegistry();
+        $navigation = new ScopedNavigationApi(new NavigationApi(new NavigationRepository(), false), Scope::ADMIN);
         $navigation->addMany([
             NavigationItem::create('plugins')
                 ->setLabel('Plugins')

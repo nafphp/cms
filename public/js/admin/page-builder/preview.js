@@ -405,13 +405,14 @@ export const previewMethods = {
         const blocks = this.layoutBlocks(template);
         const usesCustomLayout = this.usesCustomLayout(template);
         if (usesCustomLayout) {
+            const hasCustomHeader = blocks.some((block) => this.customSlotRegion(block) === 'header');
             const hasFullBleedHeader = blocks.some((block) => {
                 const content = this.blockContent[block.id] || null;
                 return this.customSlotRegion(block) === 'header'
                     && content?.type === 'header'
                     && !this.headerBackgroundWidthIncludesChrome();
             });
-            const toolbarMarginClass = hasFullBleedHeader ? 'mb-0' : 'mb-4';
+            const toolbarMarginClass = hasCustomHeader || hasFullBleedHeader ? 'mb-0' : 'mb-4';
             const headerDefinition = this.contentTypeDefinition('header');
             const footerDefinition = this.contentTypeDefinition('footer');
             const hasHeaderSlot = headerDefinition?.unique === true && blocks.some((block) => this.uniqueTypeForSlot(block) === 'header');
@@ -629,7 +630,8 @@ export const previewMethods = {
             ? 'overflow-visible focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--page-accent)]/40'
             : 'overflow-hidden bg-transparent hover:border-[var(--page-card-border)] hover:bg-[var(--page-card-bg)] focus:border-[var(--page-accent)] focus:bg-[var(--page-card-bg)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--page-accent)]/40';
         const frameClass = [
-            'group/page-block relative grid w-full min-w-0 justify-self-stretch rounded-xl border border-transparent text-left transition',
+            'group/page-block relative grid w-full min-w-0 justify-self-stretch rounded-xl text-left transition',
+            isChromeBlock ? 'border-0' : 'border border-transparent',
             content ? `page-builder-block--${escapeHtml(content.type || 'content')}` : '',
             content?.type === 'header' && !this.headerBackgroundWidthIncludesChrome() ? 'page-builder-block--full-bleed-header' : '',
             content?.type === 'footer' && !this.footerBackgroundWidthIncludesChrome() ? 'page-builder-block--full-bleed-footer' : '',
@@ -1003,7 +1005,7 @@ export const previewMethods = {
         if (content.type === 'header') {
             const compact = this.isMobilePreview();
             const logoImage = String(content.props?.logoImage || '');
-            const logoText = String(content.props?.logoText || 'NixCMS');
+            const logoText = this.translateContentText(content.props?.logoText || 'NixCMS');
             const showLogoMark = Boolean(content.props?.showLogoMark);
             const dividerClass = content.props?.showDivider ? 'border-b border-[var(--page-border)]' : '';
             const desktopNavigation = this.renderNavigationItems(content.props?.navigationIdentifier, content.props?.presentation || 'horizontal', '', content.props?.linkStyle || 'blank', content.props?.linkTheme || 'default');
@@ -1026,7 +1028,7 @@ export const previewMethods = {
 
         if (content.type === 'footer') {
             const compact = this.isMobilePreview();
-            const footerText = String(content.props?.text ?? 'Powered by NixCMS').trim();
+            const footerText = this.translateContentText(content.props?.text ?? 'Powered by NixCMS').trim();
             const footerAlignment = footerText === ''
                 ? 'items-center justify-end'
                 : (compact ? 'items-start' : 'items-center justify-between');
@@ -1044,8 +1046,8 @@ export const previewMethods = {
             return `
                 <aside class="grid gap-3 rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-4">
                     <div>
-                        <h3 class="m-0 text-sm font-bold text-[var(--page-text)]">${escapeHtml(content.props?.title || 'Aside')}</h3>
-                        <p class="m-0 mt-1 text-xs leading-relaxed text-[var(--page-muted)]">${escapeHtml(content.props?.text || '')}</p>
+                        <h3 class="m-0 text-sm font-bold text-[var(--page-text)]">${escapeHtml(this.translateContentText(content.props?.title || 'Aside'))}</h3>
+                        <p class="m-0 mt-1 text-xs leading-relaxed text-[var(--page-muted)]">${escapeHtml(this.translateContentText(content.props?.text || ''))}</p>
                     </div>
                     ${this.renderNavigationItems(content.props?.navigationIdentifier, 'vertical', '', content.props?.linkStyle || 'blank', content.props?.linkTheme || 'default')}
                 </aside>
@@ -1055,7 +1057,7 @@ export const previewMethods = {
         if (content.type === 'heading') {
             return `
                 <div class="px-1 py-2">
-                    <span class="text-xl font-extrabold leading-tight text-[var(--page-text)]">${escapeHtml(content.props?.text || this.uiText(content.previewTitle || 'Headline'))}</span>
+                    <span class="text-xl font-extrabold leading-tight text-[var(--page-text)]">${escapeHtml(this.translateContentText(content.props?.text || content.previewTitle || 'Headline'))}</span>
                 </div>
             `;
         }
@@ -1082,7 +1084,7 @@ export const previewMethods = {
 
             return `
                 <div class="grid px-1 py-2">
-                    <p class="m-0 max-w-[58ch] leading-relaxed ${toneClass} ${alignClass} ${verticalClass}">${escapeHtml(content.props?.text || this.uiText(content.previewTitle || 'Text block'))}</p>
+                    <p class="m-0 max-w-[58ch] leading-relaxed ${toneClass} ${alignClass} ${verticalClass}">${escapeHtml(this.translateContentText(content.props?.text || content.previewTitle || 'Text block'))}</p>
                 </div>
             `;
         }
@@ -1111,10 +1113,10 @@ export const previewMethods = {
             return `
                 <section class="${surfaceClass} ${compact ? '' : 'grid-cols-[minmax(0,1fr)_minmax(280px,.72fr)]'}">
                     <div class="grid gap-5">
-                        ${content.props?.eyebrow ? `<p class="m-0 text-xs font-bold uppercase tracking-wide text-[var(--page-accent)]">${escapeHtml(this.uiText(content.props.eyebrow))}</p>` : ''}
-                        <h1 class="m-0 text-[clamp(2.4rem,5vw,4.6rem)] font-black leading-none text-[var(--page-text)]">${escapeHtml(this.uiText(content.props?.title || 'Hero title'))}</h1>
-                        ${content.props?.text ? `<p class="m-0 max-w-[62ch] text-lg leading-relaxed text-[var(--page-muted)]">${escapeHtml(this.uiText(content.props.text))}</p>` : ''}
-                        ${content.props?.buttonLabel ? `<span class="inline-flex min-h-11 w-max items-center rounded-md bg-[var(--page-accent)] px-5 text-sm font-bold text-white">${escapeHtml(this.uiText(content.props.buttonLabel))}</span>` : ''}
+                        ${content.props?.eyebrow ? `<p class="m-0 text-xs font-bold uppercase tracking-wide text-[var(--page-accent)]">${escapeHtml(this.translateContentText(content.props.eyebrow))}</p>` : ''}
+                        <h1 class="m-0 text-[clamp(2.4rem,5vw,4.6rem)] font-black leading-none text-[var(--page-text)]">${escapeHtml(this.translateContentText(content.props?.title || 'Hero title'))}</h1>
+                        ${content.props?.text ? `<p class="m-0 max-w-[62ch] text-lg leading-relaxed text-[var(--page-muted)]">${escapeHtml(this.translateContentText(content.props.text))}</p>` : ''}
+                        ${content.props?.buttonLabel ? `<span class="inline-flex min-h-11 w-max items-center rounded-md bg-[var(--page-accent)] px-5 text-sm font-bold text-white">${escapeHtml(this.translateContentText(content.props.buttonLabel))}</span>` : ''}
                     </div>
                     ${compact ? '' : image
                         ? `<img class="aspect-[4/3] w-full rounded-lg object-cover" src="${escapeHtml(image)}" alt="">`
@@ -1127,7 +1129,7 @@ export const previewMethods = {
             const metrics = this.chartMetrics(content);
             const count = metrics.length;
             const type = content.props?.chartType || 'metric-bars';
-            const labels = metrics.map((metric) => metric.label);
+            const labels = metrics.map((metric) => this.translateContentText(metric.label));
             const values = metrics.map((metric) => Number(metric.value || 0));
             const colors = metrics.map((metric, index) => this.normalizeColor(metric.color) || chartMetricColors[index % chartMetricColors.length]);
             const surface = String(content.props?.surface || 'none').replace(/[^a-z0-9_-]/gi, '-').toLowerCase();
@@ -1139,8 +1141,8 @@ export const previewMethods = {
             const payload = {
                 id: chartId,
                 type,
-                title: content.props?.title || '',
-                subtitle: content.props?.subtitle || '',
+                title: this.translateContentText(content.props?.title || ''),
+                subtitle: this.translateContentText(content.props?.subtitle || ''),
                 height: chartHeight,
                 empty: labels.length === 0,
                 emptyText: 'No chart data available.',
@@ -1151,8 +1153,8 @@ export const previewMethods = {
                 <figure class="nixcms-chart nixcms-chart--surface-${escapeHtml(surface)}" data-nixcms-chart="${escapeHtml(chartId)}">
                     <div class="nixcms-chart__header">
                         <div>
-                            ${content.props?.title ? `<h3 class="nixcms-chart__title">${escapeHtml(this.uiText(content.props.title))}</h3>` : ''}
-                            ${content.props?.subtitle ? `<p class="nixcms-chart__subtitle">${escapeHtml(this.uiText(content.props.subtitle))}</p>` : ''}
+                            ${content.props?.title ? `<h3 class="nixcms-chart__title">${escapeHtml(this.translateContentText(content.props.title))}</h3>` : ''}
+                            ${content.props?.subtitle ? `<p class="nixcms-chart__subtitle">${escapeHtml(this.translateContentText(content.props.subtitle))}</p>` : ''}
                         </div>
                     </div>
                     <div class="nixcms-chart__surface" style="min-height:${chartHeight}px;">
@@ -1171,7 +1173,7 @@ export const previewMethods = {
                     ${src
                         ? `<img class="aspect-video w-full rounded object-cover" src="${escapeHtml(src)}" alt="">`
                         : '<span class="grid aspect-video place-items-center rounded border border-dashed border-[var(--page-border)] text-xs text-[var(--page-muted)]">Image</span>'}
-                    <figcaption class="truncate text-xs text-[var(--page-muted)]">${escapeHtml(content.props?.caption || content.props?.alt || '')}</figcaption>
+                    <figcaption class="truncate text-xs text-[var(--page-muted)]">${escapeHtml(this.translateContentText(content.props?.caption || content.props?.alt || ''))}</figcaption>
                 </figure>
             `;
         }
@@ -1182,7 +1184,7 @@ export const previewMethods = {
                     <div class="grid aspect-video place-items-center rounded border border-dashed border-[var(--page-border)] bg-slate-950/10">
                         <span class="text-xs font-semibold text-[var(--page-muted)]">External embed</span>
                     </div>
-                    <strong class="truncate text-sm text-[var(--page-text)]">${escapeHtml(content.props?.title || 'External content')}</strong>
+                    <strong class="truncate text-sm text-[var(--page-text)]">${escapeHtml(this.translateContentText(content.props?.title || 'External content'))}</strong>
                     <span class="truncate font-mono text-[11px] text-[var(--page-muted)]">${escapeHtml(content.props?.url || '')}</span>
                 </div>
             `;
@@ -1196,7 +1198,7 @@ export const previewMethods = {
                         <span class="absolute inset-y-0 left-1/3 w-px bg-[var(--page-border)]"></span>
                         <span class="grid h-10 w-10 place-items-center rounded-full bg-[var(--page-accent)] text-xs font-black text-white">Map</span>
                     </div>
-                    <strong class="truncate text-sm text-[var(--page-text)]">${escapeHtml(content.props?.title || 'Map')}</strong>
+                    <strong class="truncate text-sm text-[var(--page-text)]">${escapeHtml(this.translateContentText(content.props?.title || 'Map'))}</strong>
                     <span class="truncate text-xs text-[var(--page-muted)]">${escapeHtml(content.props?.query || content.props?.embedUrl || '')}</span>
                 </div>
             `;
@@ -1210,7 +1212,7 @@ export const previewMethods = {
                     ${items.map((item) => `
                         <div class="${this.contentSurfaceClass(content, 'grid gap-1', 'card', 'p-4')}">
                             <strong class="text-2xl font-black leading-tight text-[var(--page-text)]">${escapeHtml(item.value || '0')}</strong>
-                            <span class="text-xs font-semibold text-[var(--page-muted)]">${escapeHtml(this.uiText(item.label))}</span>
+                            <span class="text-xs font-semibold text-[var(--page-muted)]">${escapeHtml(this.translateContentText(item.label))}</span>
                         </div>
                     `).join('')}
                 </div>
@@ -1220,8 +1222,8 @@ export const previewMethods = {
         if (['cta', 'feature', 'quote', 'media'].includes(content.type)) {
             return `
                 <div class="${this.contentSurfaceClass(content)}">
-                    <strong class="text-base font-bold text-[var(--page-text)]">${escapeHtml(content.props?.title || content.props?.quote || this.uiText(content.previewTitle || content.label || 'Block'))}</strong>
-                    <span class="text-sm leading-relaxed text-[var(--page-muted)]">${escapeHtml(content.props?.text || content.props?.caption || content.props?.source || '')}</span>
+                    <strong class="text-base font-bold text-[var(--page-text)]">${escapeHtml(this.translateContentText(content.props?.title || content.props?.quote || content.previewTitle || content.label || 'Block'))}</strong>
+                    <span class="text-sm leading-relaxed text-[var(--page-muted)]">${escapeHtml(this.translateContentText(content.props?.text || content.props?.caption || content.props?.source || ''))}</span>
                 </div>
             `;
         }
@@ -1230,7 +1232,7 @@ export const previewMethods = {
             return `
                 <div class="${this.contentSurfaceClass(content, 'grid gap-3', 'none')}">
                     <div>
-                        <strong class="text-base font-bold text-[var(--page-text)]">${escapeHtml(content.props?.title || 'Form')}</strong>
+                        <strong class="text-base font-bold text-[var(--page-text)]">${escapeHtml(this.translateContentText(content.props?.title || 'Form'))}</strong>
                         <div class="mt-1 text-xs font-mono text-[var(--page-muted)]">${escapeHtml(content.props?.formIdentifier || 'contact')}</div>
                     </div>
                     <span class="h-9 rounded border border-[var(--page-border)]"></span>
@@ -1274,7 +1276,7 @@ export const previewMethods = {
             return `
                 <div class="rounded-md border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-3">
                     <div class="flex items-center justify-between gap-3 text-xs">
-                        <span class="font-semibold">${escapeHtml(content.props?.title || this.uiText(content.previewTitle || 'Related articles'))}</span>
+                        <span class="font-semibold">${escapeHtml(this.translateContentText(content.props?.title || content.previewTitle || 'Related articles'))}</span>
                         <span class="rounded bg-white px-2 py-1 font-mono dark:bg-slate-800">${escapeHtml(content.props?.presentation || 'cards')}</span>
                     </div>
                     <div class="mt-2 grid gap-1.5">

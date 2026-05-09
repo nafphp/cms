@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace NixCMS\Localization;
 
 use NixCMS\Enums\Language;
-use NixPHP\I18n\Core\Language as NixPHPLanguage;
 use function NixPHP\config;
 use function NixPHP\I18n\t;
 
@@ -49,7 +48,7 @@ final class LanguageRegistry
     public function known(): array
     {
         $languages = [
-            ...$this->normalizeList(NixPHPLanguage::all()),
+            ...$this->normalizeList(\NixPHP\I18n\Support\Language::all()),
             ...$this->available(),
         ];
 
@@ -97,7 +96,7 @@ final class LanguageRegistry
             return $translated;
         }
 
-        $label = (new NixPHPLanguage())->label($language, '');
+        $label = (new \NixPHP\I18n\Support\Language())->label($language, '');
         return $label !== '' ? $label : strtoupper($language);
     }
 

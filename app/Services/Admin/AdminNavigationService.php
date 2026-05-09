@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NixCMS\Services\Admin;
 
-use NixCMS\Navigation\NavigationRegistry;
+use NixCMS\Api\ScopedNavigationApi;
+use NixCMS\Enums\Scope;
 use NixCMS\Page\Page;
 use NixCMS\Page\PageRegistry;
 use NixCMS\Support\UserHelper;
@@ -17,7 +18,7 @@ final class AdminNavigationService
     private const SCOPE = 'admin';
 
     public function __construct(
-        private ?NavigationRegistry $navigation = null,
+        private ?ScopedNavigationApi $navigation = null,
         private ?PageRegistry $pages = null,
         private bool $includeConfiguredItems = true,
         private mixed $userResolver = null,
@@ -42,7 +43,7 @@ final class AdminNavigationService
     private function flatItems(): array
     {
         $items = [];
-        foreach ($this->navigation()->allForScope(self::SCOPE) as $item) {
+        foreach ($this->navigation()->all() as $item) {
             $data = $item->toArray();
             $items[$data['key']] = $this->normalizeItem($data);
         }
@@ -634,9 +635,9 @@ final class AdminNavigationService
         return '#64748b';
     }
 
-    private function navigation(): NavigationRegistry
+    private function navigation(): ScopedNavigationApi
     {
-        return $this->navigation ??= cms()->navigationRegistry();
+        return $this->navigation ??= cms()->scope(Scope::ADMIN)->navigation();
     }
 
     private function pages(): PageRegistry

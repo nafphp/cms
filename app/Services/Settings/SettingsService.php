@@ -10,7 +10,6 @@ use NixCMS\Settings\SettingSection;
 use function NixPHP\config;
 use function NixPHP\I18n\t;
 use function NixCMS\cms;
-use function NixCMS\settings;
 use function NixCMS\audit;
 
 final class SettingsService
@@ -26,7 +25,7 @@ final class SettingsService
         $stored = $this->repository()->all();
         $sections = [];
 
-        foreach (settings()->sections($group) as $section) {
+        foreach (cms()->settings()->sections($group) as $section) {
             $sections[] = $this->sectionPayload($section, $stored);
         }
 
@@ -43,7 +42,7 @@ final class SettingsService
         $errors = [];
         $oldValues = $this->currentValues();
 
-        foreach (settings()->fields() as $key => $field) {
+        foreach (cms()->settings()->fields() as $key => $field) {
             if (!array_key_exists($key, $payload)) {
                 continue;
             }
@@ -190,7 +189,7 @@ final class SettingsService
         $stored = $this->repository()->all();
         $values = [];
 
-        foreach (settings()->fields() as $key => $field) {
+        foreach (cms()->settings()->fields() as $key => $field) {
             $values[$key] = $stored[$key] ?? $this->defaultValue($field);
         }
 

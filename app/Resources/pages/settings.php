@@ -7,7 +7,7 @@ use NixCMS\Page\Page;
 use NixCMS\Services\Settings\SettingsService;
 use function NixPHP\I18n\t;
 use function NixPHP\View\render;
-use function NixCMS\settings;
+use function NixCMS\cms;
 
 return [
     Page::create('admin.settings')
@@ -44,7 +44,7 @@ return [
         ->hideFromAdminNavigation('settings.general')
         ->setContent(static function (string $group) {
             $group = strtolower(trim($group));
-            $groups = settings()->groups();
+            $groups = cms()->settings()->groups();
             if (!isset($groups[$group]) || in_array($group, ['general', 'languages'], true)) {
                 $group = 'general';
             }

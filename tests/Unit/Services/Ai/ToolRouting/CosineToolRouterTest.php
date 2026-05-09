@@ -36,6 +36,36 @@ final class CosineToolRouterTest extends TestCase
         self::assertSame('cms_article_draft_create', $selected[0]['name']);
         self::assertSame(['cosine'], $selected[0]['route']['reasons']);
     }
+
+    public function testFallsBackToSearchToolWhenCosineConfidenceIsTooLow(): void
+    {
+        $tools = (new LocalAiToolCatalog())->enrich([
+            [
+                'name' => 'cms_queue_status',
+                'description' => 'Returns queue status.',
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ],
+            [
+                'name' => 'cms_page_overview',
+                'description' => 'Returns page overview.',
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ],
+            [
+                'name' => 'cms_tools_search',
+                'description' => 'Searches the registered CMS tools.',
+                'inputSchema' => ['type' => 'object', 'properties' => ['query' => ['type' => 'string']]],
+            ],
+        ]);
+
+        $selected = (new CosineToolRouter($tools, new LowConfidenceEmbeddingClient()))->select(
+            'Kannst du etwas komplett Undefiniertes finden?',
+            ToolContext::fromArray([]),
+            8,
+        );
+
+        self::assertSame(['cms_tools_search'], array_column($selected, 'name'));
+        self::assertSame(['no-match-search'], $selected[0]['route']['reasons']);
+    }
 }
 
 final class FakeEmbeddingClient implements EmbeddingClientInterface
@@ -60,5 +90,18 @@ final class FakeEmbeddingClient implements EmbeddingClientInterface
         return str_contains($text, 'artikel') || str_contains($text, 'article') || str_contains($text, 'draft') || str_contains($text, 'entwurf') || str_contains($text, 'erstelle')
             ? [1.0, 0.0]
             : [0.0, 1.0];
+    }
+}
+
+final class LowConfidenceEmbeddingClient implements EmbeddingClientInterface
+{
+    public function embed(string $text): ?array
+    {
+        return [1.0, 0.0];
+    }
+
+    public function embedMany(array $texts): array
+    {
+        return array_map(static fn(): array => [0.1, 0.995], $texts);
     }
 }

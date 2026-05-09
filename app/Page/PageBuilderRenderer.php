@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace NixCMS\Page;
 
+use NixPHP\I18n\Core\Translator;
+use function NixPHP\app;
 use function NixPHP\I18n\t;
 use function NixPHP\View\view;
 
@@ -13,6 +15,27 @@ final class PageBuilderRenderer
      * @param array<string, mixed> $context
      */
     public function render(Page $page, array $context = []): string
+    {
+        $translator = $this->translator();
+        $previousLanguage = $translator?->getLanguage();
+        $pageLanguage = strtolower(trim((string) ($page->language() ?? '')));
+        if ($translator instanceof Translator && $pageLanguage !== '') {
+            $translator->setLanguage($pageLanguage);
+        }
+
+        try {
+            return $this->renderWithCurrentLanguage($page, $context);
+        } finally {
+            if ($translator instanceof Translator && $previousLanguage !== null) {
+                $translator->setLanguage($previousLanguage);
+            }
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     */
+    private function renderWithCurrentLanguage(Page $page, array $context = []): string
     {
         $layout = $page->pageLayout() ?? new Layout('default');
         $template = $layout->template();
@@ -56,5 +79,15 @@ final class PageBuilderRenderer
         ];
 
         return view('page.template', $variables);
+    }
+
+    private function translator(): ?Translator
+    {
+        try {
+            $translator = app()->container()->get(Translator::class);
+            return $translator instanceof Translator ? $translator : null;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

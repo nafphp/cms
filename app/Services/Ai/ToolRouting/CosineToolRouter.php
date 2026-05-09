@@ -6,6 +6,8 @@ namespace NixCMS\Services\Ai\ToolRouting;
 
 final class CosineToolRouter implements ToolRouterInterface
 {
+    private const float MINIMUM_RELEVANCE_SCORE = 0.24;
+
     /**
      * @param array<int, array<string, mixed>> $tools
      */
@@ -40,7 +42,7 @@ final class CosineToolRouter implements ToolRouterInterface
             }
 
             $score = $this->cosineSimilarity($queryEmbedding, $toolEmbedding);
-            if ($score <= 0.0) {
+            if ($score < self::MINIMUM_RELEVANCE_SCORE) {
                 continue;
             }
 

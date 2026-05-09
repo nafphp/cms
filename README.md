@@ -39,7 +39,36 @@ cms()->pages()->add(
         ->setTitle('Reports')
         ->setLayout('admin')
         ->requirePermission(Permission::ARTICLES_VIEW)
+        ->setAdminNavigation('Reports', parent: 'content', icon: 'stats', key: 'plugin.reports')
         ->setContent(fn () => view('admin.reports.index'))
+);
+```
+
+## Admin Navigation
+
+`Scope::FRONTEND` is the default CMS scope. Use `cms()->scope()`, `cms()->scope(Scope::FRONTEND)`, or the direct unscoped helpers for frontend-facing registrations, and switch to `Scope::ADMIN` only when extending the admin area.
+Scoped CMS APIs are generic: any CMS entry point that returns an object implementing `NixCMS\Contracts\ScopeAwareInterface` is automatically bound when called through `cms()->scope(...)`.
+
+Use the page metadata when the menu item belongs to a registered admin page:
+
+```php
+Page::create('plugin.reports')
+    ->setPath('/admin/reports')
+    ->setAdminNavigation('Reports', parent: 'content', icon: 'stats', key: 'plugin.reports');
+```
+
+Use `cms()->scope(Scope::ADMIN)->navigation()->add(...)` when a plugin contributes admin navigation metadata directly, for example a parent item, an external tool link, or a menu entry registered outside a page definition:
+
+```php
+use NixCMS\Enums\Scope;
+use NixCMS\Navigation\NavigationItem;
+
+cms()->scope(Scope::ADMIN)->navigation()->add(
+    NavigationItem::create('plugin.reports')
+        ->setLabel('Reports')
+        ->setHref('/admin/reports')
+        ->setParent('content')
+        ->setIcon('stats')
 );
 ```
 
@@ -64,22 +93,21 @@ These sections are generated from registries and enums. Edit the source code, th
 | Entry point | Purpose |
 | --- | --- |
 | `cms()->pages()` | Renderable HTTP pages and page data handlers. |
+| `cms()->scope(Scope::ADMIN)` | Scope-bound CMS APIs; defaults to Scope::FRONTEND. |
 | `cms()->api()` | JSON/API/action endpoints. |
 | `cms()->contentTypes()` | Registered CMS content types. |
 | `cms()->content(Model::class)` | Resolve a content API by model class. |
 | `cms()->articles()` | Convenience API for the Article content type. |
 | `cms()->forms()` | Convenience API for the Form content type. |
 | `cms()->media()` | Convenience API for the Media content type. |
-| `cms()->navigation()` | Convenience API for published site navigation content. |
+| `cms()->navigation()` | Site navigation content and navigation metadata registration. |
 | `cms()->storage(Model::class)` | Criteria-based CRUD for one ORM entity. |
-| `cms()->navigationRegistry()` | Named frontend and admin navigation metadata. |
 | `cms()->visualizations()` | Registered chart definitions and rendering. |
 | `cms()->blocks()` | Page-builder block type to view mappings. |
 | `cms()->blockTypes()` | Page-builder block metadata for the admin builder. |
 | `cms()->themes()` | Frontend theme assets and builder-visible surfaces. |
 | `cms()->languages()` | Enabled, available, and discovered language codes. |
-| `cms()->settings()` | Resolved runtime settings. |
-| `cms()->settingsRegistry()` | Admin-editable setting sections and fields. |
+| `cms()->settings()` | Resolved runtime settings and admin-editable setting metadata. |
 <!-- /nix:auto:cms -->
 
 ### Pages

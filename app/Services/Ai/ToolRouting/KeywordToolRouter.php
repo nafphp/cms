@@ -53,10 +53,7 @@ final class KeywordToolRouter implements ToolRouterInterface
             return $this->withSearchTool($selected, $candidates, $limit);
         }
 
-        return array_slice(array_values(array_filter(
-            $candidates,
-            fn(array $tool): bool => ($this->meta($tool)['risk'] ?? 'read') !== 'write'
-        )), 0, $limit);
+        return $this->searchOnly($candidates, 'no-match-search');
     }
 
     /**
@@ -90,6 +87,29 @@ final class KeywordToolRouter implements ToolRouterInterface
         }
 
         return $selected;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $candidates
+     * @return array<int, array<string, mixed>>
+     */
+    private function searchOnly(array $candidates, string $reason): array
+    {
+        foreach ($candidates as $candidate) {
+            if (($candidate['name'] ?? '') !== 'cms_tools_search') {
+                continue;
+            }
+
+            return [[
+                ...$candidate,
+                'route' => [
+                    'score' => 0.1,
+                    'reasons' => [$reason],
+                ],
+            ]];
+        }
+
+        return [];
     }
 
     /**
@@ -163,7 +183,12 @@ final class KeywordToolRouter implements ToolRouterInterface
     private function tokens(string $text): array
     {
         $words = preg_split('/[^a-zA-Z0-9\x{00C0}-\x{017F}]+/u', strtolower($text)) ?: [];
-        $stop = array_flip(['und', 'oder', 'der', 'die', 'das', 'ein', 'eine', 'with', 'the', 'for', 'and', 'this', 'that', 'bitte', 'hier']);
+        $stop = array_flip([
+            'und', 'oder', 'der', 'die', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem',
+            'ist', 'sind', 'war', 'wie', 'was', 'wer', 'wen', 'wem', 'wann', 'wo', 'mir', 'mal',
+            'dazu', 'etwas', 'bitte', 'hier', 'mit', 'ohne', 'für', 'fuer', 'kann', 'kannst',
+            'with', 'the', 'for', 'and', 'this', 'that',
+        ]);
 
         return array_values(array_unique(array_filter(
             $words,

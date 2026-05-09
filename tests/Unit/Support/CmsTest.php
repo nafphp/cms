@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support;
 
+use NixCMS\Enums\Scope;
+use NixCMS\Navigation\NavigationItem;
+use NixCMS\Settings\SettingField;
+use NixCMS\Settings\SettingSection;
 use NixCMS\Support\Cms;
 use NixCMS\Content\Page\Block\BlockTypeRegistry;
 use NixCMS\Visualization\VisualizationRegistry;
@@ -40,10 +44,73 @@ final class CmsTest extends TestCase
     public function testCmsLoadsDefaultFrontendNavigation(): void
     {
         $cms = new Cms();
-        $navigation = $cms->navigationRegistry()->getNavigation('main');
+        $navigation = $cms->navigation()->get('main');
 
         self::assertNotNull($navigation);
         self::assertSame('Main navigation', $navigation->title());
         self::assertSame(['Home', 'Articles'], array_column($navigation->toArray()['items'], 'label'));
+    }
+
+    public function testNavigationApiRegistersMetadataItems(): void
+    {
+        $cms = new Cms();
+
+        $cms->navigation()->add(
+            NavigationItem::create('admin.example')
+                ->setScope('admin')
+                ->setLabel('Example')
+        );
+
+        self::assertSame('Example', $cms->navigation()->item('admin.example')?->toArray()['label']);
+    }
+
+    public function testScopedNavigationApiRegistersAdminMetadataItems(): void
+    {
+        $cms = new Cms();
+
+        $cms->scope(Scope::ADMIN)->navigation()->add(
+            NavigationItem::create('admin.scoped')
+                ->setLabel('Scoped Admin')
+        );
+
+        $item = $cms->scope(Scope::ADMIN)->navigation()->item('admin.scoped');
+
+        self::assertSame('Scoped Admin', $item?->toArray()['label']);
+        self::assertSame('admin', $item?->scope());
+        self::assertNull($cms->scope(Scope::FRONTEND)->navigation()->item('admin.scoped'));
+    }
+
+    public function testScopeDefaultsToFrontend(): void
+    {
+        $cms = new Cms();
+
+        $cms->scope()->navigation()->add(
+            NavigationItem::create('frontend.scoped')
+                ->setLabel('Scoped Frontend')
+        );
+
+        $item = $cms->scope(Scope::FRONTEND)->navigation()->item('frontend.scoped');
+
+        self::assertSame('Scoped Frontend', $item?->toArray()['label']);
+        self::assertSame('frontend', $item?->scope());
+        self::assertNull($cms->scope(Scope::ADMIN)->navigation()->item('frontend.scoped'));
+    }
+
+    public function testScopedCmsPassesThroughApisWithoutScopeSupport(): void
+    {
+        $cms = new Cms();
+
+        self::assertSame($cms->pages(), $cms->scope(Scope::ADMIN)->pages());
+    }
+
+    public function testSettingsApiRegistersSettingMetadata(): void
+    {
+        $cms = new Cms();
+
+        $cms->settings()
+            ->add(SettingSection::create('example', 'Example'))
+            ->addField('example', SettingField::text('example.title', 'Title'));
+
+        self::assertSame('Title', $cms->settings()->field('example.title')?->label());
     }
 }

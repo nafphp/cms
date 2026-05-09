@@ -2,6 +2,12 @@
     "name": "fkde/nixcms",
     "description": "Lightweight extensible CMS built on NixPHP",
     "type": "project",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../nixphp-i18n"
+        }
+    ],
     "require": {
         "php": ">=8.3",
         "nixphp/framework": "^0.1",
@@ -10,7 +16,7 @@
         "nixphp/database": "^0.1",
         "nixphp/orm": "^0.1",
         "nixphp/session": "^0.1",
-        "nixphp/i18n": "^0.1",
+        "nixphp/i18n": "dev-v0.1.4-rc",
         "nixphp/cli": "^0.1",
         "nixphp/queue": "^0.1",
         "nixphp/schedule": "^0.1",

@@ -8,14 +8,17 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
 {
     /** @var array<string, array<int, float>> */
     private array $cache = [];
+    private ?string $cacheDirectory;
 
     public function __construct(
         private string $baseUrl,
         private string $model,
         private float $timeout = 1.5,
+        ?string $cacheDirectory = null,
     ) {
         $this->baseUrl = rtrim(trim($baseUrl), '/');
         $this->model = trim($model);
+        $this->cacheDirectory = $cacheDirectory ?? $this->defaultCacheDirectory();
     }
 
     /**
@@ -32,11 +35,16 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
         if (array_key_exists($cacheKey, $this->cache)) {
             return $this->cache[$cacheKey];
         }
+        if (($cached = $this->readCached($cacheKey)) !== null) {
+            return $this->cache[$cacheKey] = $cached;
+        }
 
         $embedding = $this->embedViaApiEmbed($text) ?? $this->embedViaApiEmbeddings($text);
         if ($embedding === null) {
             return null;
         }
+
+        $this->writeCached($cacheKey, $embedding);
 
         return $this->cache[$cacheKey] = $embedding;
     }
@@ -63,6 +71,10 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
                 $results[$index] = $this->cache[$cacheKey];
                 continue;
             }
+            if (($cached = $this->readCached($cacheKey)) !== null) {
+                $results[$index] = $this->cache[$cacheKey] = $cached;
+                continue;
+            }
 
             $missingIndexes[] = $index;
             $missingTexts[] = $text;
@@ -75,6 +87,7 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
                 if ($embedding !== null) {
                     $cacheKey = hash('sha256', $this->model . "\n" . $missingTexts[$offset]);
                     $this->cache[$cacheKey] = $embedding;
+                    $this->writeCached($cacheKey, $embedding);
                 }
 
                 $results[$index] = $embedding;
@@ -183,5 +196,83 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
         }
 
         return $normalized !== [] ? $normalized : null;
+    }
+
+    private function defaultCacheDirectory(): ?string
+    {
+        if (!defined('BASE_PATH')) {
+            return null;
+        }
+
+        return rtrim((string) constant('BASE_PATH'), '/') . '/storage/cache/ai-embeddings';
+    }
+
+    private function cachePath(string $cacheKey): ?string
+    {
+        if ($this->cacheDirectory === null || $this->cacheDirectory === '') {
+            return null;
+        }
+
+        return rtrim($this->cacheDirectory, '/') . '/' . substr($cacheKey, 0, 2) . '/' . $cacheKey . '.json';
+    }
+
+    /**
+     * @return array<int, float>|null
+     */
+    private function readCached(string $cacheKey): ?array
+    {
+        $path = $this->cachePath($cacheKey);
+        if ($path === null || !is_file($path)) {
+            return null;
+        }
+
+        $raw = @file_get_contents($path);
+        if (!is_string($raw) || trim($raw) === '') {
+            return null;
+        }
+
+        try {
+            $payload = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        if (($payload['model'] ?? '') !== $this->model || !is_array($payload['embedding'] ?? null)) {
+            return null;
+        }
+
+        return $this->normalizeEmbedding($payload['embedding']);
+    }
+
+    /**
+     * @param array<int, float> $embedding
+     */
+    private function writeCached(string $cacheKey, array $embedding): void
+    {
+        $path = $this->cachePath($cacheKey);
+        if ($path === null) {
+            return;
+        }
+
+        $directory = dirname($path);
+        if (!is_dir($directory) && !@mkdir($directory, 0775, true) && !is_dir($directory)) {
+            return;
+        }
+
+        try {
+            $payload = json_encode([
+                'model' => $this->model,
+                'embedding' => $embedding,
+            ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+        } catch (\Throwable) {
+            return;
+        }
+
+        $temporary = $path . '.' . str_replace('.', '', uniqid('', true)) . '.tmp';
+        if (@file_put_contents($temporary, $payload, LOCK_EX) === false) {
+            return;
+        }
+
+        @rename($temporary, $path);
     }
 }

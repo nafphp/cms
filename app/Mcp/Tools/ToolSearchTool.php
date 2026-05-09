@@ -18,7 +18,11 @@ final class ToolSearchTool implements ToolInterface, ScopedToolInterface
 
     public function description(): string
     {
-        return 'Searches the registered CMS tools for the current request and UI context.';
+        return implode(' ', [
+            'Searches the registered CMS tools for the current request and UI context.',
+            'Use this when the currently visible tools do not clearly cover the user request.',
+            'The result returns candidate tool definitions that can be used in the next tool-call step.',
+        ]);
     }
 
     public function inputSchema(): array

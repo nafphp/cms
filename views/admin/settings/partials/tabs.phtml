@@ -3,10 +3,10 @@
 use function NixPHP\I18n\t;
 use function NixPHP\route;
 use function NixPHP\View\s;
-use function NixCMS\settings;
+use function NixCMS\cms;
 
 $active = (string) ($active ?? 'general');
-$groups = settings()->groups();
+$groups = cms()->settings()->groups();
 $tabs = [];
 foreach ($groups as $key => $group) {
     $key = (string) $key;

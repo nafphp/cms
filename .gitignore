@@ -4,6 +4,7 @@
 /.env
 /.env.local
 /logs/*.log
+/storage/cache/
 /storage/mcp/tokens.json
 /storage/queue/**/*.job
 /storage/queue/**/*.lock

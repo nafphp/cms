@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace NixCMS\Api;
 
+use NixCMS\Contracts\ScopeAwareInterface;
+use NixCMS\Enums\Scope;
 use NixCMS\Models\SiteNavigation;
 use NixCMS\Navigation\Navigation;
+use NixCMS\Navigation\NavigationItem;
+use NixCMS\Navigation\NavigationRegistry;
 use NixCMS\Repositories\NavigationRepository;
 use NixCMS\Storage\EntityStorage;
 use NixCMS\Support\AuditEntry;
 use function NixPHP\I18n\t;
-use function NixCMS\cms;
 
 /**
  * Domain API for site navigations. Exposes navigation-specific behaviour and delegates persistence/queries to NavigationRepository.
@@ -18,14 +21,18 @@ use function NixCMS\cms;
  * Data access path: ContentApi → Storage<SiteNavigation> → NavigationRepository → db()
  * Use ->storage() for generic Criteria-based reads, ->repository() for tree-aware queries.
  */
-final class NavigationApi
+final class NavigationApi implements ScopeAwareInterface
 {
     /**
      * @var EntityStorage<SiteNavigation>|null
      */
     private ?EntityStorage $storage = null;
+    private ?NavigationRegistry $registry = null;
 
-    public function __construct(private NavigationRepository $repository)
+    public function __construct(
+        private NavigationRepository $repository,
+        private bool $loadConfiguredRegistry = true,
+    )
     {
     }
 
@@ -42,6 +49,11 @@ final class NavigationApi
         return $this->repository;
     }
 
+    public function forScope(Scope $scope): ScopedNavigationApi
+    {
+        return new ScopedNavigationApi($this, $scope);
+    }
+
     public function get(string $identifier, ?string $language = null, string $scope = 'frontend'): ?Navigation
     {
         $stored = $this->repository->findByIdentifier($identifier, $scope, $language);
@@ -49,7 +61,54 @@ final class NavigationApi
             return $stored;
         }
 
-        return cms()->navigationRegistry()->getNavigation($identifier, $scope, $language);
+        return $this->registry()->getNavigation($identifier, $scope, $language);
+    }
+
+    private function registry(): NavigationRegistry
+    {
+        if ($this->registry === null) {
+            $this->registry = new NavigationRegistry();
+            $navigationFile = BASE_PATH . '/app/navigation.php';
+            if ($this->loadConfiguredRegistry && is_file($navigationFile)) {
+                $this->registry->addMany(require $navigationFile);
+            }
+        }
+
+        return $this->registry;
+    }
+
+    public function add(NavigationItem|array $item, bool $replace = false): self
+    {
+        $this->registry()->add($item, $replace);
+        return $this;
+    }
+
+    /**
+     * @param iterable<NavigationItem|Navigation|array> $items
+     */
+    public function addMany(iterable $items, bool $replace = false): self
+    {
+        $this->registry()->addMany($items, $replace);
+        return $this;
+    }
+
+    public function addNavigation(Navigation|array $navigation, bool $replace = false): self
+    {
+        $this->registry()->addNavigation($navigation, $replace);
+        return $this;
+    }
+
+    public function item(string $key): ?NavigationItem
+    {
+        return $this->registry()->get($key);
+    }
+
+    /**
+     * @return array<string, NavigationItem>
+     */
+    public function allForScope(string $scope): array
+    {
+        return $this->registry()->allForScope($scope);
     }
 
     /**

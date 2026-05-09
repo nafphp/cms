@@ -43,7 +43,11 @@ final class LocalAiToolCatalog
 
     private function category(string $text, string $name): string
     {
-        if (str_starts_with($name, 'external_trending') || $this->contains($text, ['trend', 'news', 'current topics', 'public-interest'])) {
+        if ($name === 'cms_tools_search') {
+            return 'cms_tools';
+        }
+
+        if ($this->contains($text, ['trend', 'news', 'current topics', 'public-interest'])) {
             return 'external_trends';
         }
 
@@ -122,7 +126,7 @@ final class LocalAiToolCatalog
         if ($this->contains($text, ['page', 'layout', 'block'])) {
             $capabilities[] = 'layout.read';
         }
-        if (str_starts_with($name, 'cms_pagebuilder_') || $this->contains($text, ['pagebuilder', 'page builder', 'show mode', 'zeigemodus'])) {
+        if ($this->contains($text, ['pagebuilder', 'page builder', 'show mode', 'zeigemodus'])) {
             $capabilities[] = 'pages.read';
         }
         if ($this->contains($text, ['media', 'image', 'file'])) {
@@ -137,10 +141,10 @@ final class LocalAiToolCatalog
         if ($this->contains($text, ['health', 'system', 'queue', 'plugin', 'status'])) {
             $capabilities[] = 'system.read';
         }
-        if (str_starts_with($name, 'cms_tools_') || $this->contains($text, ['tool registry', 'registered cms tools', 'tool search'])) {
+        if ($name === 'cms_tools_search' || $this->contains($text, ['tool registry', 'registered cms tools', 'tool search'])) {
             $capabilities[] = 'tools.read';
         }
-        if (str_starts_with($name, 'cms_admin_navigate') || $this->contains($text, ['navigate', 'admin ui', 'admin area'])) {
+        if ($this->contains($text, ['navigate', 'admin ui', 'admin area'])) {
             $capabilities[] = 'admin.navigate';
         }
         if ($this->contains($text, ['user', 'role', 'permission'])) {
@@ -187,37 +191,11 @@ final class LocalAiToolCatalog
         ));
 
         return match ($name) {
-            'cms_article_draft_create' => [
-                ...$examples,
-                'Create an article draft',
-                'Write a new blog post draft',
-                'Erstelle einen Artikelentwurf',
-            ],
-            'cms_article_draft_append' => [
-                ...$examples,
-                'Append text to an article draft',
-                'Ergaenze diesen Artikel',
-            ],
             'cms_tools_search' => [
                 ...$examples,
                 'Find more tools for this request',
                 'Search tools by capability',
                 'Welche Tools passen hierzu?',
-            ],
-            'cms_admin_navigate' => [
-                ...$examples,
-                'Open the PageBuilder',
-                'Navigate to the Theme Editor',
-                'Gehe in den PageBuilder',
-                'Öffne die AI Einstellungen',
-            ],
-            'cms_pagebuilder_inspect' => [
-                ...$examples,
-                'Start PageBuilder show mode',
-                'Inspect the block I click',
-                'Zeigemodus starten',
-                'Ich zeige Dir den Block',
-                'Beschreibe das angeklickte PageBuilder Element',
             ],
             default => $examples,
         };
