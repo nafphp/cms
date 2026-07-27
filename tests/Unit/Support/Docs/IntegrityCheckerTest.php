@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support\Docs;
 
-use NixCMS\Support\Docs\IntegrityChecker;
+use src\Support\Docs\IntegrityChecker;
 use PHPUnit\Framework\TestCase;
 
 final class IntegrityCheckerTest extends TestCase
@@ -15,8 +15,8 @@ final class IntegrityCheckerTest extends TestCase
     {
         $this->basePath = sys_get_temp_dir() . '/nixcms-integrity-' . bin2hex(random_bytes(6));
         $this->mkdir('app/Resources/pages');
-        $this->mkdir('views/page/blocks');
-        $this->mkdir('views/page/templates');
+        $this->mkdir('src/views/page/blocks');
+        $this->mkdir('src/views/page/templates');
     }
 
     protected function tearDown(): void
@@ -27,7 +27,7 @@ final class IntegrityCheckerTest extends TestCase
     public function testCheckReportsAndSortsDriftIssues(): void
     {
         $blockTypes = [
-            new class implements \NixCMS\Content\Page\Block\BlockTypeInterface {
+            new class implements \src\Content\Page\Block\BlockTypeInterface {
         public function id(): string { return 'hero'; }
         public function label(): string { return 'Hero'; }
         public function description(): string { return ''; }
@@ -58,16 +58,16 @@ return [
     ],
 ];
 PHP);
-        $this->write('views/page/blocks/orphan.phtml', '<div>orphan</div>');
-        $this->write('views/page/templates/orphan.phtml', '<main>orphan</main>');
+        $this->write('src/views/page/blocks/orphan.phtml', '<div>orphan</div>');
+        $this->write('src/views/page/templates/orphan.phtml', '<main>orphan</main>');
 
         $issues = (new IntegrityChecker($this->basePath, $blockTypes))->check();
         $messages = array_column($issues, 'message');
 
-        self::assertContains('BlockType "hero" maps to missing view "page.blocks.hero" (views/page/blocks/hero.phtml).', $messages);
-        self::assertContains('Block view "views/page/blocks/orphan.phtml" is not referenced by any registered BlockType.', $messages);
-        self::assertContains('Page template "landing" maps to missing view "page.templates.missing" (views/page/templates/missing.phtml).', $messages);
-        self::assertContains('Page template view "views/page/templates/orphan.phtml" is not registered in app/Resources/pages/page_templates.php.', $messages);
+        self::assertContains('BlockType "hero" maps to missing view "page.blocks.hero" (src/views/page/blocks/hero.phtml).', $messages);
+        self::assertContains('Block view "src/views/page/blocks/orphan.phtml" is not referenced by any registered BlockType.', $messages);
+        self::assertContains('Page template "landing" maps to missing view "page.templates.missing" (src/views/page/templates/missing.phtml).', $messages);
+        self::assertContains('Page template view "src/views/page/templates/orphan.phtml" is not registered in app/Resources/pages/page_templates.php.', $messages);
         self::assertContains('Page template "landing" block "hero_slot" accepts unknown BlockType "ghost".', $messages);
         self::assertContains('Page template "landing" block "hero_slot" defaults to unknown BlockType "phantom".', $messages);
 

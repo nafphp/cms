@@ -1,0 +1,31 @@
+# Changelog
+
+All notable changes to NixCMS are documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses semantic version tags, while APIs and stored preview payloads may still change before `0.1.0`.
+
+## [Unreleased]
+
+## [0.0.1] - 2026-07-21
+
+### Added
+
+- Installable `nixphp-plugin` package with explicit pages, APIs, content types, block types, commands, migrations, views, events, permissions, and MCP tools.
+- Admin workflows for articles and versions, pages/Sitebuilder, forms, media, navigation, themes, settings, users, roles, permissions, audit, queue, and health visibility.
+- Local Ollama assistant with backend-selected, scope-aware MCP tools, keyword/optional embedding routing, and tool-owned metadata.
+- Host-safe asset publishing, immutable package defaults, atomic runtime overrides, and a managed host `AGENTS.md` installer.
+- PHP 8.3/8.4 CI, MariaDB and SQLite migration coverage, DOM builder flow, package archive checks, and a fresh mirrored-host installation smoke test.
+
+### Security
+
+- Central stored-output sanitizing and URL policy, SSRF-resistant outbound HTTP, auth-by-default, CSRF-protected logout, login/form rate limits, request limits, password policy, and baseline security headers.
+- Repository-level RBAC privilege boundaries for admin/role assignment and dedicated permissions for AI instructions and editable theme code.
+- No persisted remote AI key field; routing fallback telemetry omits normal user query text.
+
+### Known Limitations
+
+- The Sitebuilder and its version-1 payload are experimental before `0.1.0`; undo/redo, collaborative editing, full responsive authoring, and backward payload migrations are not promised.
+- Local AI supports browser-local Ollama only. Remote providers and a corresponding secret store are reserved for a later release.
+- Theme JavaScript is disabled; reviewed plugins may register scripts through normal PHP/bootstrap paths.
+- PHP 8.5 is an experimental allowed-failure CI target while the current ORM dependency emits deprecations.
+
+[Unreleased]: https://github.com/nixphp/cms/compare/v0.0.1...HEAD
+[0.0.1]: https://github.com/nixphp/cms/releases/tag/v0.0.1

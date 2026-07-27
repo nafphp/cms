@@ -8,7 +8,6 @@ const storageKeys = {
     url: `${storagePrefix}url`,
     model: `${storagePrefix}model`,
     embeddingModel: `${storagePrefix}embedding-model`,
-    apiKey: `${storagePrefix}api-key`,
     instructions: `${storagePrefix}instructions`,
 };
 
@@ -425,7 +424,6 @@ export function initLocalAiSettings(root) {
     const enabledInput = root.querySelector('[name="ai.enabled"]');
     const typeInput = root.querySelector('[name="ai.type"]');
     const urlInput = root.querySelector('[name="ai.url"]');
-    const apiKeyInput = root.querySelector('[name="ai.api_key"]');
     const instructionsInput = root.querySelector('[name="ai.instructions"]');
     const modelSelect = root.querySelector('[data-ai-model-select]');
     const embeddingModelSelect = root.querySelector('[data-ai-embedding-model-select]');
@@ -509,14 +507,12 @@ export function initLocalAiSettings(root) {
     restoreField(enabledInput, storageKeys.enabled);
     restoreField(typeInput, storageKeys.type);
     restoreField(urlInput, storageKeys.url);
-    restoreField(apiKeyInput, storageKeys.apiKey);
     restoreField(instructionsInput, storageKeys.instructions);
     persistField(enabledInput, storageKeys.enabled);
     persistField(typeInput, storageKeys.type);
     persistField(urlInput, storageKeys.url);
-    persistField(apiKeyInput, storageKeys.apiKey);
     persistField(instructionsInput, storageKeys.instructions);
-    [enabledInput, typeInput, urlInput, apiKeyInput, instructionsInput].forEach((field) => {
+    [enabledInput, typeInput, urlInput, instructionsInput].forEach((field) => {
         if (field instanceof HTMLElement) {
             field.dispatchEvent(new Event('input', {bubbles: true}));
             field.dispatchEvent(new Event('change', {bubbles: true}));

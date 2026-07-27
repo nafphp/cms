@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Navigation;
 
-use NixCMS\Navigation\NavigationItem;
-use NixCMS\Navigation\Navigation;
-use NixCMS\Navigation\NavigationRegistry;
+use src\Navigation\NavigationItem;
+use src\Navigation\Navigation;
+use src\Navigation\NavigationRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class NavigationRegistryTest extends TestCase

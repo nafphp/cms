@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mcp;
 
-use NixCMS\Mcp\Tools\AdminNavigateTool;
+use src\Mcp\Tools\AdminNavigateTool;
 use PHPUnit\Framework\TestCase;
 
 final class AdminNavigateToolTest extends TestCase

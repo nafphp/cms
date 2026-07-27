@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
-use NixCMS\Repositories\FormRepository;
+use src\Repositories\FormRepository;
 use Tests\Support\DatabaseTestCase;
 
 final class FormRepositoryTest extends DatabaseTestCase

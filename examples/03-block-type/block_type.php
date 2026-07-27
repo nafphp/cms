@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NixCMS\Examples\BlockType;
 
-use NixCMS\Content\Page\Block\AbstractBlockType;
+use src\Content\Page\Block\AbstractBlockType;
 use function NixCMS\cms;
 
 final class ExampleQuoteBlockType extends AbstractBlockType

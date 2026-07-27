@@ -1,0 +1,51 @@
+<?php
+
+use function NixPHP\View\s;
+use function NixPHP\I18n\t;
+
+$items = is_array($items ?? null) ? $items : [];
+$logoText = trim((string) ($logoText ?? 'NixCMS'));
+$drawerId = trim((string) ($drawerId ?? 'page-mobile-navigation'));
+
+?>
+<button
+    class="page-mobile-menu-trigger"
+    type="button"
+    aria-label="<?= s(t('Open navigation')) ?>"
+    aria-expanded="false"
+    aria-controls="<?= s($drawerId) ?>"
+    data-page-mobile-menu-trigger
+>
+    <span aria-hidden="true"></span>
+    <span aria-hidden="true"></span>
+    <span aria-hidden="true"></span>
+</button>
+
+<aside
+    class="page-mobile-navigation-drawer"
+    id="<?= s($drawerId) ?>"
+    aria-label="<?= s(t('Mobile navigation')) ?>"
+    aria-hidden="true"
+    data-page-mobile-menu-drawer
+>
+    <div class="page-mobile-navigation-drawer__head">
+        <strong><?= s($logoText) ?></strong>
+        <button
+            class="page-mobile-navigation-drawer__close"
+            type="button"
+            aria-label="<?= s(t('Close navigation')) ?>"
+            data-page-mobile-menu-close
+        >
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </button>
+    </div>
+    <nav class="page-mobile-navigation-drawer__nav" aria-label="<?= s(t('Mobile navigation')) ?>">
+        <?php foreach (array_slice($items, 0, 8) as $item): ?>
+            <?php $href = \src\Security\UrlPolicy::link((string) ($item['href'] ?? '#')) ?? '#'; ?>
+            <a href="<?= s($href) ?>" data-page-mobile-menu-link>
+                <?= s(t((string) ($item['label'] ?? $item['title'] ?? $item['key'] ?? 'Item'))) ?>
+            </a>
+        <?php endforeach; ?>
+    </nav>
+</aside>

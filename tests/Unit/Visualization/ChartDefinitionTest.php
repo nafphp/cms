@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Visualization;
 
-use NixCMS\Visualization\ChartDefinition;
+use src\Visualization\ChartDefinition;
 use PHPUnit\Framework\TestCase;
 
 final class ChartDefinitionTest extends TestCase
@@ -37,7 +37,7 @@ final class ChartDefinitionTest extends TestCase
             'metric-bars',
             'metric-bars',
             ['Draft'],
-            [\NixCMS\Visualization\ChartDataset::make('Value', [4])],
+            [\src\Visualization\ChartDataset::make('Value', [4])],
         );
 
         self::assertSame('metric-bars', $chart->type);

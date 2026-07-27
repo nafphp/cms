@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support;
 
-use NixCMS\Repositories\AuditLogRepository;
-use NixCMS\Support\Audit;
-use NixCMS\Support\AuditActorInfo;
-use NixCMS\Support\AuditActorResolver;
-use NixCMS\Support\AuditEntry;
+use src\Repositories\AuditLogRepository;
+use src\Support\Audit;
+use src\Support\AuditActorInfo;
+use src\Support\AuditActorResolver;
+use src\Support\AuditEntry;
 use Tests\Support\DatabaseTestCase;
 use function NixCMS\audit;
 use function NixCMS\audit_log;

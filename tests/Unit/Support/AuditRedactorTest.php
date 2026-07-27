@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support;
 
-use NixCMS\Support\AuditRedactor;
+use src\Support\AuditRedactor;
 use PHPUnit\Framework\TestCase;
 
 final class AuditRedactorTest extends TestCase

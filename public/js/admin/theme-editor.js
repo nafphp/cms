@@ -1404,7 +1404,6 @@
                 `Theme::create('${phpString(id)}')`,
                 `    ->setLabel('${phpString(label)}')`,
                 `    ->addStylesheet('/css/themes/${phpString(id)}.css')`,
-                `    ->addScript('/js/themes/${phpString(id)}.js', ['type' => 'module'])`,
             ];
             this.currentSurfaces().forEach((surface) => {
                 lines.push(`    ->addSurface('${phpString(surface.key)}', '${phpString(surface.label)}')`);

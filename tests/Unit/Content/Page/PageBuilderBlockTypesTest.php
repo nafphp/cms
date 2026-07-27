@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Content\Page;
 
-use NixCMS\Content\Page\Block\AbstractBlockType;
+use src\Content\Page\Block\AbstractBlockType;
 use NixPHP\Core\Config;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -12,7 +12,6 @@ use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Tests\Support\CoreBlockTypes;
 use function NixPHP\guard;
 use function NixPHP\app;
 use function NixCMS\cms;
@@ -27,7 +26,7 @@ final class PageBuilderBlockTypesTest extends TestCase
         $app = app();
         $this->registerCliViewGuards();
 
-        self::assertNull(cms()->blockTypes()->get('hero'));
+        self::assertNotNull(cms()->blockTypes()->get('hero'));
 
         $config = $app->container()->get(Config::class)->all();
         $config['view']['paths'] = [$viewRoot, 'views', 'app/views'];
@@ -37,7 +36,6 @@ final class PageBuilderBlockTypesTest extends TestCase
         $app->container()->set(RequestInterface::class, $request);
         $app->container()->set(ServerRequestInterface::class, $request);
 
-        cms()->blockTypes()->addMany(CoreBlockTypes::all());
         cms()->blockTypes()->add(new class extends AbstractBlockType {
             public function id(): string
             {

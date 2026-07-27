@@ -1,0 +1,42 @@
+<?php
+
+use src\Security\UrlPolicy;
+use function NixPHP\View\s;
+use function NixPHP\I18n\t;
+
+$content = is_array($content ?? null) ? $content : [];
+$props = is_array($content['props'] ?? null) ? $content['props'] : [];
+$title = t((string) ($props['title'] ?? 'Build with NixCMS'));
+$eyebrow = trim(t((string) ($props['eyebrow'] ?? '')));
+$text = trim(t((string) ($props['text'] ?? '')));
+$image = UrlPolicy::media((string) ($props['image'] ?? ''));
+$buttonLabel = trim(t((string) ($props['buttonLabel'] ?? '')));
+$buttonUrl = UrlPolicy::link((string) ($props['buttonUrl'] ?? '#')) ?? '#';
+$surface = \src\Theme\Theme::slug((string) ($props['surface'] ?? 'card')) ?: 'card';
+$surfaceClass = [
+    'none' => 'px-1 py-2',
+    'soft' => 'rounded-lg bg-[var(--page-panel-soft)] p-8',
+    'card' => 'rounded-lg bg-[var(--page-card-bg)] p-8',
+    'accent' => 'rounded-lg border border-[color-mix(in_srgb,var(--page-accent)_36%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))] p-8',
+][$surface] ?? '';
+
+?>
+<section class="<?= s(trim('page-block--surface-' . $surface . ' grid min-h-[420px] items-center gap-8 overflow-hidden md:grid-cols-[minmax(0,1fr)_minmax(280px,.72fr)] ' . $surfaceClass)) ?>">
+    <div class="grid gap-5">
+        <?php if ($eyebrow !== ''): ?>
+            <p class="m-0 text-xs font-bold uppercase tracking-wide text-[var(--page-accent)]"><?= s($eyebrow) ?></p>
+        <?php endif; ?>
+        <h1 class="m-0 text-[clamp(2.4rem,5vw,4.6rem)] font-black leading-none text-[var(--page-text)]"><?= s($title) ?></h1>
+        <?php if ($text !== ''): ?>
+            <p class="m-0 max-w-[62ch] text-lg leading-relaxed text-[var(--page-muted)]"><?= s($text) ?></p>
+        <?php endif; ?>
+        <?php if ($buttonLabel !== ''): ?>
+            <a class="inline-flex min-h-11 w-max items-center rounded-md bg-[var(--page-accent)] px-5 text-sm font-bold text-white transition hover:brightness-110" href="<?= s($buttonUrl) ?>"><?= s($buttonLabel) ?></a>
+        <?php endif; ?>
+    </div>
+    <?php if ($image !== null): ?>
+        <img class="aspect-[4/3] w-full rounded-lg object-cover" src="<?= s($image) ?>" alt="">
+    <?php else: ?>
+        <div class="aspect-[4/3] rounded-lg border border-dashed border-[var(--page-border)] bg-[var(--page-bg)]"></div>
+    <?php endif; ?>
+</section>

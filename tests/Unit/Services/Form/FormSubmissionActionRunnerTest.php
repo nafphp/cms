@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Form;
 
-use NixCMS\Services\Form\FormSubmissionActionRunner;
+use src\Services\Form\FormSubmissionActionRunner;
+use src\Services\Http\OutboundHttpPolicy;
 use Tests\Support\NixPHPTestCase;
 
 final class FormSubmissionActionRunnerTest extends NixPHPTestCase
@@ -16,7 +17,7 @@ final class FormSubmissionActionRunnerTest extends NixPHPTestCase
             static function (int $formId, array $payload, array $meta) use (&$stored): int {
                 $stored = compact('formId', 'payload', 'meta');
                 return 42;
-            }
+            },
         );
 
         $result = $runner->run(['id' => 10, 'settings' => []], ['email' => 'a@example.com'], ['ip' => '127.0.0.1']);
@@ -34,7 +35,8 @@ final class FormSubmissionActionRunnerTest extends NixPHPTestCase
             static function (string $url, string $method, array $payload) use (&$sent): array {
                 $sent = compact('url', 'method', 'payload');
                 return ['success' => true, 'status' => 204];
-            }
+            },
+            $this->publicPolicy(),
         );
 
         $result = $runner->run([
@@ -59,7 +61,8 @@ final class FormSubmissionActionRunnerTest extends NixPHPTestCase
     {
         $runner = new FormSubmissionActionRunner(
             static fn(): int => 0,
-            static fn(): array => ['success' => false, 'status' => 500, 'reason' => 'Webhook returned HTTP 500']
+            static fn(): array => ['success' => false, 'status' => 500, 'reason' => 'Webhook returned HTTP 500'],
+            $this->publicPolicy(),
         );
 
         $result = $runner->run([
@@ -76,5 +79,34 @@ final class FormSubmissionActionRunnerTest extends NixPHPTestCase
 
         self::assertFalse($result['success']);
         self::assertSame(['Webhook returned HTTP 500'], $result['errors']);
+    }
+
+    public function testBlockedWebhookNeverReachesInjectedSender(): void
+    {
+        $sent = false;
+        $runner = new FormSubmissionActionRunner(
+            static fn(): int => 0,
+            static function () use (&$sent): array {
+                $sent = true;
+                return ['success' => true, 'status' => 204];
+            },
+        );
+
+        $result = $runner->run([
+            'settings' => ['actions' => [[
+                'type' => 'webhook',
+                'url' => 'https://169.254.169.254/latest/meta-data',
+                'failOnError' => true,
+            ]]],
+        ], [], []);
+
+        self::assertFalse($result['success']);
+        self::assertFalse($sent);
+        self::assertSame(['Webhook target is not allowed.'], $result['errors']);
+    }
+
+    private function publicPolicy(): OutboundHttpPolicy
+    {
+        return new OutboundHttpPolicy(static fn(string $host): array => ['93.184.216.34']);
     }
 }

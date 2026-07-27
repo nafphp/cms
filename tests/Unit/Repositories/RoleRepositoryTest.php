@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
-use NixCMS\Models\Role;
-use NixCMS\Repositories\RoleRepository;
+use src\Models\Role;
+use src\Repositories\RoleRepository;
 use NixPHP\ORM\Core\EntityManager;
 use Tests\Support\DatabaseTestCase;
 
 final class RoleRepositoryTest extends DatabaseTestCase
 {
     private RoleRepository $repository;
+    private int $actorId;
 
     protected function setUp(): void
     {
@@ -32,14 +33,26 @@ final class RoleRepositoryTest extends DatabaseTestCase
                 permission_id INTEGER NOT NULL,
                 PRIMARY KEY (role_id, permission_id)
             )',
+            'CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL)',
+            'CREATE TABLE user_role (
+                user_id INTEGER NOT NULL,
+                role_id INTEGER NOT NULL,
+                PRIMARY KEY (user_id, role_id)
+            )',
         );
+
+        $permissionId = $this->insertRow('permissions', ['name' => 'roles.manage']);
+        $roleId = $this->insertRow('roles', ['name' => 'security-admin']);
+        $this->insertRow('role_permissions', ['role_id' => $roleId, 'permission_id' => $permissionId]);
+        $this->actorId = $this->insertRow('users', ['username' => 'actor']);
+        $this->insertRow('user_role', ['user_id' => $this->actorId, 'role_id' => $roleId]);
 
         $this->repository = new RoleRepository($this->pdo, new EntityManager($this->pdo));
     }
 
     public function testCreateByNamePersistsNormalizedRole(): void
     {
-        $role = $this->repository->createByName('  Managing Editor  ');
+        $role = $this->repository->createByName($this->actorId, '  Managing Editor  ');
 
         self::assertInstanceOf(Role::class, $role);
         self::assertSame('managing editor', $role->getName());
@@ -53,9 +66,17 @@ final class RoleRepositoryTest extends DatabaseTestCase
 
     public function testCreateByNameRejectsDuplicateRole(): void
     {
-        self::assertInstanceOf(Role::class, $this->repository->createByName('Publisher'));
+        self::assertInstanceOf(Role::class, $this->repository->createByName($this->actorId, 'Publisher'));
 
-        self::assertNull($this->repository->createByName(' publisher '));
-        self::assertSame(1, (int) $this->pdo->query('SELECT COUNT(*) FROM roles')->fetchColumn());
+        self::assertNull($this->repository->createByName($this->actorId, ' publisher '));
+        self::assertSame(2, (int) $this->pdo->query('SELECT COUNT(*) FROM roles')->fetchColumn());
+    }
+
+    public function testCreateByNameRequiresRolesManageAtRepositoryBoundary(): void
+    {
+        $viewerId = $this->insertRow('users', ['username' => 'viewer']);
+
+        $this->expectException(\src\Exceptions\PrivilegedActionDenied::class);
+        $this->repository->createByName($viewerId, 'forbidden');
     }
 }

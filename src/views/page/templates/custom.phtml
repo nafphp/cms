@@ -1,0 +1,90 @@
+<?php
+
+use src\Page\PageBlock;
+use src\Page\CustomLayoutOptions;
+use function NixPHP\View\s;
+
+/** @var \src\Page\Template $template */
+/** @var \src\Page\Layout $layout */
+/** @var array<string, string> $blocks */
+
+$slots = $layout->blocks();
+
+$slotsForRegion = static function (string $region) use ($slots): array {
+    return array_filter(
+        $slots,
+        static fn(PageBlock $slot): bool => (string) ($slot->data()['region'] ?? 'main') === $region
+    );
+};
+
+$renderSlot = static function (PageBlock $slot) use ($blocks): void {
+    $data = $slot->data();
+    $region = CustomLayoutOptions::choice($data['region'] ?? null, CustomLayoutOptions::REGIONS, 'main');
+    $size = CustomLayoutOptions::choice($data['size'] ?? null, CustomLayoutOptions::SIZES, 'medium');
+    $position = CustomLayoutOptions::choice($data['position'] ?? null, CustomLayoutOptions::POSITIONS, 'stretch');
+    $maxHeight = CustomLayoutOptions::choice($data['maxHeight'] ?? null, CustomLayoutOptions::MAX_HEIGHTS, 'none');
+    $overflow = CustomLayoutOptions::choice($data['overflow'] ?? null, CustomLayoutOptions::OVERFLOWS, 'visible');
+    $surface = \src\Theme\Theme::slug((string) ($data['surface'] ?? 'none')) ?: 'none';
+    $content = is_array($data['content'] ?? null) ? $data['content'] : [];
+    $contentType = \src\Theme\Theme::slug((string) ($content['type'] ?? 'empty')) ?: 'empty';
+    ?>
+    <section
+        class="page-template-region page-template-custom-slot page-template-custom-slot--<?= s($region) ?> page-template-custom-slot--<?= s($size) ?> page-template-custom-slot--content-<?= s($contentType) ?> page-template-custom-slot--position-<?= s($position) ?> page-template-custom-slot--max-<?= s($maxHeight) ?> page-template-custom-slot--overflow-<?= s($overflow) ?> page-template-custom-slot--surface-<?= s($surface) ?>"
+        data-region="<?= s($region) ?>"
+        data-size="<?= s($size) ?>"
+        data-position="<?= s($position) ?>"
+        data-max-height="<?= s($maxHeight) ?>"
+    >
+        <?= $blocks[$slot->id()] ?? '' ?>
+    </section>
+    <?php
+};
+
+$headerSlots = $slotsForRegion('header');
+$mainSlots = $slotsForRegion('main');
+$asideSlots = $slotsForRegion('aside');
+$footerSlots = $slotsForRegion('footer');
+
+?>
+<div class="page-template-shell page-template-shell--custom">
+    <?php if ($headerSlots !== []): ?>
+        <div class="page-template-custom-region page-template-custom-region--header">
+            <?php foreach ($headerSlots as $slot): ?>
+                <?php $renderSlot($slot) ?>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <main class="page-template-main page-template-main--custom">
+        <?php if ($mainSlots === [] && $asideSlots === []): ?>
+            <section class="page-template-region page-template-custom-empty"></section>
+        <?php elseif ($asideSlots !== []): ?>
+            <div class="page-template-custom-grid">
+                <div class="page-template-custom-stack">
+                    <?php foreach ($mainSlots as $slot): ?>
+                        <?php $renderSlot($slot) ?>
+                    <?php endforeach; ?>
+                </div>
+                <aside class="page-template-custom-stack">
+                    <?php foreach ($asideSlots as $slot): ?>
+                        <?php $renderSlot($slot) ?>
+                    <?php endforeach; ?>
+                </aside>
+            </div>
+        <?php else: ?>
+            <div class="page-template-custom-stack">
+                <?php foreach ($mainSlots as $slot): ?>
+                    <?php $renderSlot($slot) ?>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </main>
+
+    <?php if ($footerSlots !== []): ?>
+        <div class="page-template-custom-region page-template-custom-region--footer">
+            <?php foreach ($footerSlots as $slot): ?>
+                <?php $renderSlot($slot) ?>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</div>

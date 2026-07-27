@@ -1,0 +1,20 @@
+<?php
+
+use src\Page\PageNestedBlockRenderer;
+use function NixPHP\View\s;
+
+$content = is_array($content ?? null) ? $content : [];
+$props = is_array($content['props'] ?? null) ? $content['props'] : [];
+$children = is_array($props['children'] ?? null) ? $props['children'] : [];
+$columns = max(2, min(4, (int) ($props['columns'] ?? 2)));
+$gap = (string) ($props['gap'] ?? 'medium');
+$gap = in_array($gap, ['small', 'medium', 'large'], true) ? $gap : 'medium';
+$align = (string) ($props['align'] ?? 'start');
+$align = in_array($align, ['start', 'center', 'end', 'stretch'], true) ? $align : 'start';
+$renderer = isset($nestedRenderer) && $nestedRenderer instanceof PageNestedBlockRenderer ? $nestedRenderer : new PageNestedBlockRenderer();
+$depth = (int) ($nestedDepth ?? 0);
+
+?>
+<div class="page-layout-block page-layout-columns page-layout-columns--gap-<?= s($gap) ?> page-layout-columns--align-<?= s($align) ?>" style="--page-layout-columns: <?= s((string) $columns) ?>">
+    <?= $renderer->renderMany($children, get_defined_vars(), $depth) ?>
+</div>

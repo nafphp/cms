@@ -516,10 +516,6 @@ export const eventMethods = {
                             <span class="notify-field-label">Stylesheet</span>
                             <textarea spellcheck="false" data-theme-editor-css>${escapeHtml(theme.css || '')}</textarea>
                         </label>
-                        <label class="notify-field">
-                            <span class="notify-field-label">JavaScript</span>
-                            <textarea spellcheck="false" data-theme-editor-js>${escapeHtml(theme.js || 'export default {};\n')}</textarea>
-                        </label>
                     </div>
                 </div>
                 <p class="page-builder-theme-prompt__status" data-theme-editor-status></p>
@@ -576,7 +572,6 @@ export const eventMethods = {
             label,
             identifier,
             css: container?.querySelector('[data-theme-editor-css]')?.value || '',
-            js: container?.querySelector('[data-theme-editor-js]')?.value || '',
             surfaces,
         };
     },

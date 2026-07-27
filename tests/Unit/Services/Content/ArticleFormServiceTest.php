@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Content;
 
-use NixCMS\Services\Content\ArticleFormService;
+use src\Services\Content\ArticleFormService;
 use Tests\Support\DatabaseTestCase;
 
 final class ArticleFormServiceTest extends DatabaseTestCase

@@ -1,15 +1,18 @@
 {
   "name": "nixcms",
-  "version": "0.1.0",
+  "private": true,
+  "version": "0.0.1",
   "description": "Lightweight extensible CMS built on NixPHP.",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "tailwindcss -i ./app/Resources/css/nixcms.css -o ./public/css/nixcms.css --watch --verbose",
-    "build": "tailwindcss -i ./app/Resources/css/nixcms.css -o ./public/css/nixcms.css --minify --verbose"
+    "build": "tailwindcss -i ./app/Resources/css/nixcms.css -o ./public/css/nixcms.css --minify --verbose",
+    "test:builder": "node --test tests/js/page-builder-flow.test.js"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.13",
+    "jsdom": "^26.1.0",
     "tailwindcss": "^4.1.13"
   }
 }

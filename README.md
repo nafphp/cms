@@ -2,20 +2,84 @@
 
 NixCMS is a lightweight, extensible CMS built on top of NixPHP. It is bare-metal first: PHP 8.3+, Composer, server-rendered `.phtml` templates, Tailwind v4, and optional MCP/AI integration without a separate documentation-site toolchain.
 
+PHP 8.3 and 8.4 are the supported v0.0.1 release targets and are required CI gates. PHP 8.5 is exercised by an allowed-failure compatibility job while the current `nixphp/orm` release still emits PHP 8.5 deprecations; it is not a release-blocking support target yet.
+
 ## Quickstart
+
+Prerequisites are PHP 8.3 or 8.4 with cURL, DOM, PDO, and either PDO SQLite or PDO MySQL, plus Composer 2. Node.js is needed only when changing NixCMS frontend sources, not in an installed host.
+
+Create a regular NixPHP host application, then install NixCMS as a plugin:
+
+```bash
+composer create-project nixphp/app my-cms
+cd my-cms
+composer require fkde/nixcms
+```
+
+NixPHP discovers `fkde/nixcms` from its Composer package type and loads its configuration, routes, views, migrations, commands, and MCP tools. Because those registrations consume the other NixPHP plugins, list NixCMS last in the host's `app/plugins.php`:
+
+```php
+return [
+    'nixphp/cli',
+    'nixphp/database',
+    'nixphp/session',
+    'nixphp/form',
+    'nixphp/view',
+    'nixphp/i18n',
+    'nixphp/orm',
+    'nixphp/queue',
+    'nixphp/schedule',
+    'nixphp/mail',
+    'nixphp/mcp',
+    'fkde/nixcms',
+];
+```
+
+This uses NixPHP's normal explicit plugin-order mechanism; it does not copy NixCMS source into the host. The host owns `BASE_PATH`, its configuration, runtime storage, public webroot, and application lifecycle; NixCMS never starts the host from its plugin bootstrap. If the ordering file is missing, the bootstrap reports which dependency was not loaded yet instead of failing later with an undefined helper or registry.
+
+For a small SQLite installation, configure the host before running migrations:
+
+```php
+// app/config.php
+return [
+    'database' => [
+        'driver' => 'sqlite',
+        'database' => BASE_PATH . '/storage/nixcms.sqlite',
+    ],
+];
+```
+
+For MariaDB/MySQL, set the host's `DB_DRIVER`, `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, and `DB_DATABASE` values instead. `install:database` may create a configured database and migrate it; `db:migrate up` only applies pending migrations and is the safer deployment command when infrastructure owns database creation.
+
+After the plugin order and database are configured, finish setup:
+
+```bash
+vendor/bin/nix nixcms:agents:install
+vendor/bin/nix nixcms:assets:publish
+vendor/bin/nix db:migrate up
+vendor/bin/nix user:create admin admin@example.com admin
+vendor/bin/nix mcp:token:create
+php -S 127.0.0.1:8080 -t public
+```
+
+`nixcms:agents:install` creates the short project guide used by people and AI coding agents at the host root. It never overwrites an existing user-owned `AGENTS.md`; `--update` refreshes only a file carrying the NixCMS managed marker. The guide gives a synchronized inspection order and the explicit Page, API, content, migration, view, handler, service, repository, model, plugin, and MCP extension points.
+
+`user:create` requests the password twice with terminal echo disabled. For non-interactive installation, pass `--password-file` with a short-lived mode-`0600` file instead of exposing a password in shell history or the process list. Open `http://127.0.0.1:8080/admin` after installation. Configure the host database in `app/config.php` or its environment file before migrating. Production web servers should use the host's `public` directory as the DocumentRoot and rewrite missing files to `index.php`.
+
+In production, terminate TLS, keep auth enabled, restrict writable paths to host runtime/public asset targets, and keep `.env`, database credentials, MCP tokens, logs, and `storage/nixcms` outside the public webroot. Run `nixcms:assets:check` after Composer deployment, back up the database and installation-owned runtime files, and supervise `queue:consume` plus `schedule:ticker` only when those workflows are used. The PHP built-in server is for local development, not production.
+
+For development of NixCMS itself, clone this repository and use its small demo host:
 
 ```bash
 composer install
-# Set CMS_SETUP_MODE=1 in .env.local for the first local setup.
-bin/nix install:database
-bin/nix user:create admin change-me admin@example.com admin
-bin/nix mcp:token:create
+bin/nix db:migrate
+bin/nix user:create admin admin@example.com admin
 composer serve
 ```
 
-Open `http://127.0.0.1:8080/admin`, then disable `CMS_SETUP_MODE` again. Copy `.env.example` to `.env.local` first when your local database settings differ from the defaults. The webroot is `public`; production web servers should use it as the DocumentRoot and rewrite missing files to `index.php`.
+The asset publisher copies only the package's `css`, `js`, `fonts`, and `images` trees into the configured host public directory. `.nixcms-assets.json` records ownership and hashes: repeat publishes update unchanged owned files, while host-modified collisions stop with an error. Use `vendor/bin/nix nixcms:assets:check` in deployments and `vendor/bin/nix nixcms:assets:remove` before uninstalling; removal never deletes a modified host file.
 
-Frontend assets are intentionally simple:
+When developing NixCMS itself, frontend assets are intentionally simple:
 
 ```bash
 npm install
@@ -24,13 +88,76 @@ npm run build
 
 Use `npm run dev` while working on Tailwind or admin UI assets.
 
+## Release Gates
+
+Every change is checked on PHP 8.3 and 8.4 with Composer validation, PHPUnit, generated-documentation drift detection, and the repository integrity check. Separate jobs rebuild the Tailwind asset, audit the locked Composer dependencies, apply all migrations to MariaDB, inspect the Composer archive, and install the mirrored package into a freshly generated NixPHP host. The host smoke test verifies plugin boot idempotence, views and admin routing, commands, SQLite migrations, published assets, authenticated admin boundaries, scoped MCP execution, and that normal host writes never modify `vendor/fkde/nixcms`.
+
+Run the same package-level checks locally with:
+
+```bash
+scripts/check-package.sh
+scripts/package-smoke.sh
+```
+
+The smoke script needs network access to create the temporary official `nixphp/app` host. It deletes the fixture after the run and does not require Docker; MariaDB is only an additional CI migration gate.
+
+## Sitebuilder Preview
+
+The v0.0.1 Sitebuilder is an explicitly experimental preview. The supported built-in templates are Default, Landing page, Editorial index, Two column, Feature grid, Article detail, Full bleed, and Custom layout. The supported block registry includes the shipped text, heading, hero, media/image, embed/map, navigation/header/footer, CTA, feature, quote, form, articles/article, chart/stats, and nested section/stack/columns/grid block types. Plugin block types participate only when they provide the same field metadata contract.
+
+Builder requests carry `builderVersion: 1`. The server derives validation from each registered block type's fields: text and textarea lengths, numeric ranges, select options, booleans, media/link/embed URL policy, statistics, chart metrics, and nested children. Unknown slot IDs, block types, payload fields, and block properties are rejected with validation errors instead of being silently persisted. Payloads are limited to 256 KiB, 50 custom slots, 100 total blocks, 24 children per container, and four nested container levels. The normalized data is applied both when saving and when `PageFactory` constructs a preview or public page.
+
+The preview does not promise payload migration or backward compatibility before v0.1. It has no undo/redo, collaborative editing, or guaranteed autosave recovery; responsive controls are viewport approximations rather than per-breakpoint authoring. Deep nested layouts remain deliberately constrained, and browser-local draft state is not a substitute for a successful server save. Run the representative DOM flow with:
+
+```bash
+npm run test:builder
+```
+
+That flow adds and configures a block, creates a nested layout, saves and reloads it, checks preview and published payload state, and confirms that a rejected save leaves the editable data intact.
+
+## Runtime State and Package Updates
+
+Package defaults remain read-only under `vendor/fkde/nixcms`. Installation-specific prompts, AI memory, mistake logs, translation overrides, rate-limit counters, and embedding caches live below the host-relative `storage/nixcms` directory by default. Override the root in the host's `app/config.php` when needed:
+
+```php
+return [
+    'cms' => [
+        'runtime_path' => 'storage/nixcms',
+    ],
+];
+```
+
+Relative runtime paths are resolved below the host `BASE_PATH` and may not contain `..`; absolute paths are allowed for deliberate external volumes. Reads use host override first and immutable package default second, so prompt and translation customizations survive Composer updates. Runtime files are written atomically with restrictive permissions. Generated theme CSS is written atomically below the host's configured `view.assets.publicPath`; arbitrary theme JavaScript remains disabled.
+
+The v0.0.1 local Ollama assistant has no persisted API-key field. A future remote provider must introduce a real secret store before accepting credentials. Global prompt/memory/mistake administration requires `ai.instructions.manage`, and editable theme code requires `themes.code.manage`.
+
+Normal AI tool-routing fallbacks record a SHA-256 query fingerprint, character count, requested mode/capabilities, and UI area—not the user text. A host may deliberately set `ai.routing_debug=true` while diagnosing routing; debug text is capped at 500 characters and should not be enabled in routine production operation. MCP tools may implement `NixCMS\Contracts\LocalAiToolMetadataInterface` to provide their title, routing text, examples, capabilities, mode, risk, and auto-run policy. These tool-owned values take precedence; the catalog only derives missing metadata.
+
+AI and MCP features are permission-, scope-, and tool-driven. The executable tool registry and plugin metadata define what an assistant can do; NixCMS does not promise or maintain a separate static capability catalog. Browser-local Ollama support selects a small relevant tool set, concrete write tools use the same CMS domain APIs and permissions as other callers, and MCP Bearer tokens should receive only the scopes their client needs.
+
+Removing the Composer package intentionally leaves `storage/nixcms` and generated theme CSS in place because they are installation data. Back up or remove those paths explicitly after running `nixcms:assets:remove` if the installation is being permanently deleted.
+
+## Outbound HTTP Security
+
+Server-side form webhooks accept public HTTPS targets only. Before connecting, NixCMS resolves and validates every target address, pins cURL to a validated address, disables proxy inheritance, and repeats the policy check for every redirect. Loopback, private, link-local, multicast, documentation/reserved, and cloud-metadata networks are blocked by default.
+
+Local development HTTP webhooks require both `cms.outbound_http.webhooks.allow_development_http=true` and an exact hostname in `cms.outbound_http.webhooks.development_hosts`; do not enable this exception in production. Server-side Ollama embeddings are intentionally narrower: `ai.url` must use `localhost`, `127.0.0.1`, or `::1` and a port listed in `cms.outbound_http.ollama.allowed_ports` (`11434` by default). If the embedding target is blocked or unavailable, tool selection falls back to the deterministic keyword router.
+
+## Authentication and HTTP Defaults
+
+Authentication is always enabled in the v0.0.1 preview; there is no implicit setup or auth-off mode. Failed logins are temporarily limited by hashed username/IP and IP-only buckets, and public form submissions have per-form/IP rate limits, a 64 KiB body limit, per-field limits, a honeypot, and a minimum-fill-time check. Limiter files contain only counters, reset times, and hashed keys.
+
+Logout is a CSRF-protected `POST`. User creation, invites, admin password resets, and the bootstrap CLI share the same password policy. The CLI requests passwords with terminal echo disabled or accepts a protected `--password-file`; passwords must never be passed as positional shell arguments.
+
+NixCMS adds CSP, clickjacking, MIME-sniffing, referrer, browser-permission, and HTTPS HSTS headers centrally. The preview CSP still permits inline scripts/styles because the current server-rendered admin and editor use them, but executable theme JavaScript remains disabled. Session cookies come from `nixphp/session` with `HttpOnly`, `SameSite=Lax`, and `Secure` when HTTPS is detected. Behind TLS-terminating proxies, set `session.trust_proxy_headers=true` only together with exact `session.trusted_proxies` addresses; never trust forwarded protocol headers from arbitrary clients.
+
 ## First Page
 
 Register pages through the CMS registry. A plugin can run this from its bootstrap file:
 
 ```php
-use NixCMS\Enums\Permission;
-use NixCMS\Page\Page;
+use src\Enums\Permission;
+use src\Page\Page;
 use function NixPHP\View\view;
 
 cms()->pages()->add(
@@ -60,8 +187,8 @@ Page::create('plugin.reports')
 Use `cms()->scope(Scope::ADMIN)->navigation()->add(...)` when a plugin contributes admin navigation metadata directly, for example a parent item, an external tool link, or a menu entry registered outside a page definition:
 
 ```php
-use NixCMS\Enums\Scope;
-use NixCMS\Navigation\NavigationItem;
+use src\Enums\Scope;
+use src\Navigation\NavigationItem;
 
 cms()->scope(Scope::ADMIN)->navigation()->add(
     NavigationItem::create('plugin.reports')
@@ -140,15 +267,15 @@ These sections are generated from registries and enums. Edit the source code, th
 | `admin.pages.create` | `/admin/pages/create` | `layouts.admin` | `pages.create` | no |
 | `admin.roles` | `/admin/roles` | `layouts.admin` | `roles.manage` | no |
 | `admin.settings` | `/admin/settings` | `layouts.admin` | `admin.access` | no |
-| `admin.settings.ai` | `/admin/settings/ai` | `layouts.admin` | `admin.access` | no |
+| `admin.settings.ai` | `/admin/settings/ai` | `layouts.admin` | `ai.instructions.manage` | no |
 | `admin.settings.audit` | `/admin/settings/audit` | `layouts.admin` | `admin.access` | no |
 | `admin.settings.group` | `/admin/settings/group/{group}` | `layouts.admin` | `admin.access` | no |
 | `admin.translations` | `/admin/settings/translations` | `layouts.admin` | `admin.access` | no |
 | `admin.themes` | `/admin/themes` | `layouts.admin` | `themes.view` | no |
-| `admin.themes.create` | `/admin/themes/create` | `layouts.admin` | `themes.create` | yes |
-| `admin.themes.edit` | `/admin/themes/{themeId}/edit` | `layouts.admin` | `themes.edit` | yes |
+| `admin.themes.create` | `/admin/themes/create` | `layouts.admin` | `themes.create`, `themes.code.manage` | yes |
+| `admin.themes.edit` | `/admin/themes/{themeId}/edit` | `layouts.admin` | `themes.edit`, `themes.code.manage` | yes |
 | `admin.users` | `/admin/users` | `layouts.admin` | `users.view` | no |
-| `admin.users.create` | `/admin/users/create` | `layouts.admin` | `users.create` | no |
+| `admin.users.create` | `/admin/users/create` | `layouts.admin` | `users.create`, `roles.manage` | no |
 | `admin.users.edit` | `/admin/users/{userId}/edit` | `layouts.admin` | `users.edit` | no |
 | `frontend.article.detail` | `/articles/{slug}` | - | - | no |
 | `auth.register` | `/register/{token}` | - | - | yes |
@@ -162,12 +289,12 @@ These sections are generated from registries and enums. Edit the source code, th
 | ID | Method | Path | Permissions |
 | --- | --- | --- | --- |
 | `admin.articles.image` | `POST` | `/admin/articles/image` | any of `media.upload`, `articles.edit` |
-| `api.admin.ai.memory.append` | `POST` | `/api/admin/ai/memory` | `admin.access` |
-| `api.admin.ai.mistakes` | `POST` | `/api/admin/ai/mistakes` | `admin.access` |
-| `api.admin.ai.mistakes.delete` | `POST` | `/api/admin/ai/mistakes/delete` | `admin.access` |
-| `api.admin.ai.mistakes.review` | `GET` | `/api/admin/ai/mistakes/review` | `admin.access` |
-| `api.admin.ai.prompts` | `GET` | `/api/admin/ai/prompts` | `admin.access` |
-| `api.admin.ai.prompts.save` | `POST` | `/api/admin/ai/prompts` | `admin.access` |
+| `api.admin.ai.memory.append` | `POST` | `/api/admin/ai/memory` | `ai.instructions.manage` |
+| `api.admin.ai.mistakes` | `POST` | `/api/admin/ai/mistakes` | `ai.instructions.manage` |
+| `api.admin.ai.mistakes.delete` | `POST` | `/api/admin/ai/mistakes/delete` | `ai.instructions.manage` |
+| `api.admin.ai.mistakes.review` | `GET` | `/api/admin/ai/mistakes/review` | `ai.instructions.manage` |
+| `api.admin.ai.prompts` | `GET` | `/api/admin/ai/prompts` | `ai.instructions.manage` |
+| `api.admin.ai.prompts.save` | `POST` | `/api/admin/ai/prompts` | `ai.instructions.manage` |
 | `api.admin.ai.tools` | `GET` | `/api/admin/ai/tools` | `mcp.tools.call` |
 | `api.admin.ai.tools.call` | `POST` | `/api/admin/ai/tools/call` | `mcp.tools.call` |
 | `api.admin.ai.tools.select` | `POST` | `/api/admin/ai/tools/select` | `mcp.tools.call` |
@@ -195,21 +322,21 @@ These sections are generated from registries and enums. Edit the source code, th
 | `api.admin.rbac.roles` | `GET` | `/api/admin/rbac/roles` | `roles.manage` |
 | `api.admin.rbac.roles.create` | `POST` | `/api/admin/rbac/roles/create` | `roles.manage` |
 | `api.admin.rbac.roles.delete` | `POST` | `/api/admin/rbac/roles/delete` | `roles.manage` |
-| `api.admin.rbac.roles.permissions` | `POST` | `/api/admin/rbac/roles/permissions` | `roles.manage` |
+| `api.admin.rbac.roles.permissions` | `POST` | `/api/admin/rbac/roles/permissions` | `roles.manage`, `permissions.manage` |
 | `api.admin.rbac.roles.update` | `POST` | `/api/admin/rbac/roles/update` | `roles.manage` |
 | `api.admin.roles` | `GET` | `/api/admin/roles` | `roles.manage` |
 | `api.admin.settings.update` | `POST` | `/api/admin/settings` | `admin.access` |
 | `api.admin.summary` | `GET` | `/api/admin/summary` | `admin.access` |
-| `api.admin.themes.store` | `POST` | `/api/admin/themes` | any of `themes.create`, `themes.edit` |
+| `api.admin.themes.store` | `POST` | `/api/admin/themes` | `themes.code.manage` |
 | `api.admin.translations.show` | `GET` | `/api/admin/translations/{language}` | any of `admin.access`, `pages.view`, `pages.create`, `pages.edit` |
 | `api.admin.translations.update` | `POST` | `/api/admin/translations/{language}` | `admin.access` |
 | `api.admin.users` | `GET` | `/api/admin/users` | `users.view` |
 | `api.admin.users.delete` | `POST` | `/api/admin/users/delete` | `users.delete` |
-| `api.admin.users.invite` | `POST` | `/api/admin/users/invite` | `users.create` |
+| `api.admin.users.invite` | `POST` | `/api/admin/users/invite` | `users.create`, `roles.manage` |
 | `api.admin.users.list` | `GET` | `/api/admin/users/list` | `users.view` |
 | `api.admin.users.password` | `POST` | `/api/admin/users/password` | `users.edit` |
-| `api.admin.users.roles` | `POST` | `/api/admin/users/roles` | `users.edit` |
-| `api.admin.users.store` | `POST` | `/api/admin/users/store` | `users.create` |
+| `api.admin.users.roles` | `POST` | `/api/admin/users/roles` | `users.edit`, `roles.manage` |
+| `api.admin.users.store` | `POST` | `/api/admin/users/store` | `users.create`, `roles.manage` |
 | `api.admin.users.update` | `POST` | `/api/admin/users/update` | `users.edit` |
 | `api.forms.submit` | `POST` | `/api/forms/{identifier}/submit` | - |
 | `media.serve` | `GET` | `/media/{publicId}/{filename}` | - |
@@ -259,6 +386,7 @@ These sections are generated from registries and enums. Edit the source code, th
 | `themes.create` | Create themes. |
 | `themes.edit` | Edit themes. |
 | `themes.delete` | Delete themes. |
+| `themes.code.manage` | Manage themes code. |
 | `navigation.view` | View navigation. |
 | `navigation.create` | Create navigation. |
 | `navigation.edit` | Edit navigation. |
@@ -274,6 +402,7 @@ These sections are generated from registries and enums. Edit the source code, th
 | `media.delete` | Delete media. |
 | `queue.read` | Read queue. |
 | `mcp.tools.call` | Call allowed MCP tools. |
+| `ai.instructions.manage` | Manage ai instructions. |
 <!-- /nix:auto:permissions -->
 
 ### MCP Tools
@@ -295,7 +424,7 @@ These sections are generated from registries and enums. Edit the source code, th
 | `cms_pagebuilder_inspect` | Starts the PageBuilder show mode so the user can click a visible block or nested element and return structured read-only information about it. |
 | `cms_plugin_overview` | Returns loaded NixPHP plugins and registry counts relevant to NixCMS extensions. |
 | `cms_queue_status` | Returns file-backed queue counts for pending, locked, and deadletter jobs. |
-| `cms_system_health` | Returns current NixCMS system health data. The result includes php.version, php.memory_limit, database.available, database.driver, database.server_version, session storage settings, MCP auth token-file status, storage directory readability/writability, and loaded NixPHP plugins. When summarizing this tool result for a user, use the exact returned values and present all returned sections as compact Markdown tables. Use tables for PHP, database, session, MCP auth, storage, and plugins when those sections are present; do not render scalar diagnostics only as label-colon text when they can be represented as table rows. Do not say that PHP version, database version, modules, storage, or plugin data are missing when the returned JSON contains those fields. Do not invent modules or health checks that are not present in the result. |
+| `cms_system_health` | Returns current NixCMS system health data. The result includes php.version, php.memory_limit, database.available, database.driver, database.server_version, session storage settings, MCP auth token-file status, host runtime directories, published asset status, and loaded NixPHP plugins. When summarizing this tool result for a user, use the exact returned values and present all returned sections as compact Markdown tables. Use tables for PHP, database, session, MCP auth, storage, and plugins when those sections are present; do not render scalar diagnostics only as label-colon text when they can be represented as table rows. Do not say that PHP version, database version, modules, storage, or plugin data are missing when the returned JSON contains those fields. Do not invent modules or health checks that are not present in the result. |
 | `cms_tools_search` | Searches the registered CMS tools for the current request and UI context. Use this when the currently visible tools do not clearly cover the user request. The result returns candidate tool definitions that can be used in the next tool-call step. |
 | `cms_user_role_summary` | Returns user, role, permission, and assignment counts for the NixCMS RBAC model. |
 | `external_air_quality` | Returns current air quality, UV index, and pollen context for a location so local businesses can plan outdoor, health, sport, and seasonal campaigns. |
@@ -316,10 +445,11 @@ These sections are generated from registries and enums. Edit the source code, th
 | [02-custom-content-type](examples/02-custom-content-type/) | Shows a minimal content type backed by a NixPHP ORM model. |
 | [03-block-type](examples/03-block-type/) | Shows how to register page-builder block metadata through `cms()->blockTypes()`. |
 | [04-mcp-tool](examples/04-mcp-tool/) | Shows the small class pattern used by NixCMS MCP tools. |
+| [05-complete-plugin](examples/05-complete-plugin/) | This compact example shows the explicit registration path for a Composer package of type `nixphp-plugin`: `bootstrap.php` registers a protected Page, API endpoint, migration path, and scoped MCP tool. NixPHP discovers the package's `src/views` directory by convention; the Page references that view explicitly. |
 <!-- /nix:auto:examples -->
 
 ## Conventions And Security
 
 Public extension points are listed in the Auto Reference above. Auth is enabled by default; permissions and MCP scopes should be named clearly, and tokens or API secrets must not be stored in plaintext.
 
-For architecture principles, audit rules, testing expectations, and AI-agent editing guidance, read [AGENTS.md](AGENTS.md).
+For architecture principles, audit rules, testing expectations, and contributor AI-agent editing guidance, read [AGENTS.md](AGENTS.md). Release users should also review [the changelog](CHANGELOG.md), [v0.0.1 release notes](RELEASE_NOTES_0.0.1.md), and [the security policy](SECURITY.md); suspected vulnerabilities belong on the private path described there, not in a public issue.

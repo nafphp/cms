@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support;
 
-use NixCMS\Support\Cms;
+use src\Support\Cms;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;

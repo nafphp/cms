@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Ai;
 
-use NixCMS\Services\Ai\LocalAiToolBridge;
+use src\Contracts\LocalAiToolMetadataInterface;
+use src\Services\Ai\LocalAiToolBridge;
 use NixPHP\Database\Core\Database;
 use NixPHP\MCP\Support\ToolRegistry;
 use NixPHP\MCP\Tools\ScopedToolInterface;
@@ -34,6 +35,8 @@ final class LocalAiToolBridgeTest extends TestCase
         $definitions = (new LocalAiToolBridge())->definitions();
 
         self::assertSame(['local_ai_unscoped_fixture'], array_column($definitions, 'name'));
+        self::assertSame('Fixture metadata title', $definitions[0]['meta']['title']);
+        self::assertSame(['fixtures.read'], $definitions[0]['meta']['capabilities']);
     }
 
     public function testCallTrimsToolNameAndPassesArguments(): void
@@ -77,8 +80,17 @@ final class LocalAiToolBridgeTest extends TestCase
     }
 }
 
-final class LocalAiUnscopedToolFixture implements ToolInterface
+final class LocalAiUnscopedToolFixture implements ToolInterface, LocalAiToolMetadataInterface
 {
+    public function localAiMetadata(): array
+    {
+        return [
+            'title' => 'Fixture metadata title',
+            'capabilities' => ['fixtures.read'],
+            'mode' => 'read',
+        ];
+    }
+
     public function name(): string
     {
         return 'local_ai_unscoped_fixture';

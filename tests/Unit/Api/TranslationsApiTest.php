@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Api;
 
-use NixCMS\Enums\Permission;
-use NixCMS\Handlers\Api\Settings\GetTranslations;
-use NixCMS\Handlers\Api\Settings\UpdateTranslations;
+use src\Enums\Permission;
+use src\Handlers\Api\Settings\GetTranslations;
+use src\Handlers\Api\Settings\UpdateTranslations;
 use PHPUnit\Framework\TestCase;
 
 final class TranslationsApiTest extends TestCase

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mcp;
 
-use NixCMS\Mcp\Tools\PageOverviewTool;
+use src\Mcp\Tools\PageOverviewTool;
 use Tests\Support\DatabaseTestCase;
 
 final class PageOverviewToolTest extends DatabaseTestCase

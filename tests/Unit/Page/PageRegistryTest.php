@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Page;
 
-use NixCMS\Enums\Permission;
-use NixCMS\Page\Page;
-use NixCMS\Page\PageRegistry;
+use src\Enums\Permission;
+use src\Page\Page;
+use src\Page\PageRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class PageRegistryTest extends TestCase

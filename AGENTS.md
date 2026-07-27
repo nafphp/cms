@@ -99,7 +99,7 @@ Important: MCP tools are concrete executable capabilities. A future capability o
 NixCMS may provide a browser-local AI assistant backed by Ollama before broader provider abstractions exist.
 
 - Keep the first implementation simple and local: the admin browser talks directly to Ollama, usually at `http://localhost:11434`.
-- Store AI settings below the `ai` key only, for example `ai.type`, `ai.url`, `ai.model`, `ai.embedding_model`, `ai.api_key`, and `ai.instructions`.
+- Store AI settings below the `ai` key only, for example `ai.type`, `ai.url`, `ai.model`, `ai.embedding_model`, and `ai.instructions`. The v0.0.1 local-only assistant has no persisted API-key setting.
 - `ai.type=local` means browser-local Ollama. `ai.type=remote` is reserved for a later remote/OpenAI-compatible provider and should not imply a backend abstraction yet.
 - `ai.model` is the chat/generation model. `ai.embedding_model` is optional and is used only for semantic tool routing; leave it empty to use the deterministic keyword router.
 - The Local AI settings UI should list only Ollama chat models whose `/api/show` capabilities include `tools` for `ai.model`; models without tool support should not be selectable for the assistant because the admin chat relies on tool calls.
@@ -185,6 +185,7 @@ When building NixCMS:
 ## Testing
 
 - Run `composer test` for the PHPUnit suite.
+- Run `npm run test:builder` for the PageBuilder DOM flow, including nested save/reload, preview, publish payloads, and validation-error state retention.
 - Keep fast unit tests as the default safety net.
 - Extend `Tests\Support\NixPHPTestCase` for unit tests that need common CMS fixtures such as `mockArticle()`, `mockArticleVersion()`, or Editor.js block payload helpers.
 - Use `Tests\Support\DatabaseTestCase` for DB-shaped service or repository tests that can run against an in-memory SQLite database.
@@ -314,7 +315,7 @@ Follow these rules when extending HTTP behavior:
 - Core defaults live in `NixCMS\Content\BlockViewRegistry`; plugins may call `cms()->blocks()->add('mycustom', 'page.blocks.mycustom')` during bootstrap.
 - Keep aliases explicit in the registry constructor so agents can grep which block types share a view.
 - Unknown block types must fall back to `page.blocks.placeholder`.
-- Block views live under `views/page/blocks`; files directly inside that directory should be renderable blocks, while shared helpers belong in `views/page/blocks/_helpers`.
+- Block views live under `src/views/page/blocks`; files directly inside that directory should be renderable blocks, while shared helpers belong in `src/views/page/blocks/_helpers`.
 
 ## Service Design Rules
 
@@ -598,7 +599,7 @@ Avoid landing-page or marketing-style admin screens. The first screen should be 
 
 For this NixCMS repository, browser-consumed assets must exist below `public/css` and `public/js`. `app/Resources` is for source/build inputs only.
 
-Admin UI components should be self-contained by default. Prefer Tailwind utility classes and small local class decisions inside `views/components/admin/*`; keep global CSS for Tailwind entrypoint concerns, tokens, base behavior, complex selectors, and third-party integration only. A plugin should usually be able to override one component file without also patching global CSS.
+Admin UI components should be self-contained by default. Prefer Tailwind utility classes and small local class decisions inside `src/views/components/admin/*`; keep global CSS for Tailwind entrypoint concerns, tokens, base behavior, complex selectors, and third-party integration only. A plugin should usually be able to override one component file without also patching global CSS.
 
 ## Operational Notes To Carry Forward
 

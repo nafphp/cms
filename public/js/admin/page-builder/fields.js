@@ -160,12 +160,11 @@ export const fieldMethods = {
         }));
 
         content.props.metrics = normalized;
-        content.props.metricCount = normalized.length;
-        for (let index = 0; index < Math.min(6, normalized.length); index++) {
-            const metric = normalized[index];
-            content.props[`label${index + 1}`] = metric.label;
-            content.props[`value${index + 1}`] = metric.value;
-            content.props[`color${index + 1}`] = metric.color;
+        delete content.props.metricCount;
+        for (let index = 1; index <= 6; index++) {
+            delete content.props[`label${index}`];
+            delete content.props[`value${index}`];
+            delete content.props[`color${index}`];
         }
     },
 

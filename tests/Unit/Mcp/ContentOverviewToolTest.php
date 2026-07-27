@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mcp;
 
-use NixCMS\Mcp\Tools\ContentOverviewTool;
+use src\Mcp\Tools\ContentOverviewTool;
 use Tests\Support\DatabaseTestCase;
 use function NixCMS\audit_log;
 

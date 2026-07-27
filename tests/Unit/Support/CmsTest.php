@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support;
 
-use NixCMS\Enums\Scope;
-use NixCMS\Navigation\NavigationItem;
-use NixCMS\Settings\SettingField;
-use NixCMS\Settings\SettingSection;
-use NixCMS\Support\Cms;
-use NixCMS\Content\Page\Block\BlockTypeRegistry;
-use NixCMS\Visualization\VisualizationRegistry;
+use src\Content\Navigation\NavigationContentType;
+use src\Enums\Scope;
+use src\Navigation\NavigationItem;
+use src\Settings\SettingField;
+use src\Settings\SettingSection;
+use src\Support\Cms;
+use src\Content\Page\Block\BlockTypeRegistry;
+use src\Visualization\VisualizationRegistry;
 use PHPUnit\Framework\TestCase;
 use function NixCMS\cms;
 
@@ -43,7 +44,8 @@ final class CmsTest extends TestCase
 
     public function testCmsLoadsDefaultFrontendNavigation(): void
     {
-        $cms = new Cms();
+        $cms = $this->cmsWithNavigation();
+        $cms->navigation()->addMany(require BASE_PATH . '/app/navigation.php');
         $navigation = $cms->navigation()->get('main');
 
         self::assertNotNull($navigation);
@@ -53,7 +55,7 @@ final class CmsTest extends TestCase
 
     public function testNavigationApiRegistersMetadataItems(): void
     {
-        $cms = new Cms();
+        $cms = $this->cmsWithNavigation();
 
         $cms->navigation()->add(
             NavigationItem::create('admin.example')
@@ -66,7 +68,7 @@ final class CmsTest extends TestCase
 
     public function testScopedNavigationApiRegistersAdminMetadataItems(): void
     {
-        $cms = new Cms();
+        $cms = $this->cmsWithNavigation();
 
         $cms->scope(Scope::ADMIN)->navigation()->add(
             NavigationItem::create('admin.scoped')
@@ -82,7 +84,7 @@ final class CmsTest extends TestCase
 
     public function testScopeDefaultsToFrontend(): void
     {
-        $cms = new Cms();
+        $cms = $this->cmsWithNavigation();
 
         $cms->scope()->navigation()->add(
             NavigationItem::create('frontend.scoped')
@@ -112,5 +114,13 @@ final class CmsTest extends TestCase
             ->addField('example', SettingField::text('example.title', 'Title'));
 
         self::assertSame('Title', $cms->settings()->field('example.title')?->label());
+    }
+
+    private function cmsWithNavigation(): Cms
+    {
+        $cms = new Cms();
+        $cms->contentTypes()->add(new NavigationContentType());
+
+        return $cms;
     }
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Storage;
 
-use NixCMS\Storage\Criteria;
+use src\Storage\Criteria;
 use PHPUnit\Framework\TestCase;
 
 final class CriteriaTest extends TestCase

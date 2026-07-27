@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3c3add2733e14217ee85e713d694a697",
+    "content-hash": "1b63513084b6234046e973a39ef29e9d",
     "packages": [
         {
             "name": "nixphp/cli",
@@ -206,11 +206,17 @@
         },
         {
             "name": "nixphp/i18n",
-            "version": "dev-v0.1.4-rc",
+            "version": "v0.1.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nixphp/i18n.git",
+                "reference": "6ffc85953df0763145a1cf3a64ff89fe32a18451"
+            },
             "dist": {
-                "type": "path",
-                "url": "../nixphp-i18n",
-                "reference": "da7f444956350035051c74784f075c17d73567eb"
+                "type": "zip",
+                "url": "https://api.github.com/repos/nixphp/i18n/zipball/6ffc85953df0763145a1cf3a64ff89fe32a18451",
+                "reference": "6ffc85953df0763145a1cf3a64ff89fe32a18451",
+                "shasum": ""
             },
             "require": {
                 "nixphp/framework": "^0.1.0",
@@ -226,16 +232,7 @@
                     "NixPHP\\I18n\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "Tests\\": "tests/"
-                }
-            },
-            "scripts": {
-                "test": [
-                    "phpunit --colors=always"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -246,9 +243,11 @@
                 }
             ],
             "description": "NixPHP Internationalization Plugin",
-            "transport-options": {
-                "relative": true
-            }
+            "support": {
+                "issues": "https://github.com/nixphp/i18n/issues",
+                "source": "https://github.com/nixphp/i18n/tree/v0.1.4"
+            },
+            "time": "2026-05-09T13:31:26+00:00"
         },
         {
             "name": "nixphp/mail",
@@ -2612,13 +2611,13 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "nixphp/i18n": 20
-    },
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=8.3"
+        "php": ">=8.3",
+        "ext-curl": "*",
+        "ext-dom": "*"
     },
     "platform-dev": {},
     "plugin-api-version": "2.9.0"

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support;
 
-use NixCMS\Enums\ArticleStatus;
-use NixCMS\Enums\Language;
+use src\Enums\ArticleStatus;
+use src\Enums\Language;
 use Tests\Support\NixPHPTestCase;
 
 final class NixPHPTestCaseTest extends NixPHPTestCase
@@ -34,5 +34,14 @@ final class NixPHPTestCaseTest extends NixPHPTestCase
         self::assertSame(ArticleStatus::PUBLISHED, $article->getStatus());
         self::assertSame(['cms', 'testing'], $article->getTagNames());
         self::assertSame('/fixture.png', $article->getImage());
+    }
+
+    public function testArticleImageRejectsActiveUrlSchemes(): void
+    {
+        $article = $this->mockArticle([], $this->mockArticleVersion([
+            'content' => [$this->mockImageBlock('data:image/svg+xml,<svg onload=alert(1)>')],
+        ]));
+
+        self::assertNull($article->getImage());
     }
 }

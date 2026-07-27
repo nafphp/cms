@@ -1,0 +1,174 @@
+<?php
+
+use function NixPHP\I18n\t;
+use function NixPHP\View\s;
+use function NixPHP\View\view;
+
+$fields = is_array($fields ?? null) ? $fields : [];
+$routingFallbacks = is_array($routingFallbacks ?? null) ? $routingFallbacks : [];
+$modelField = null;
+$embeddingModelField = null;
+$otherFields = [];
+foreach ($fields as $field) {
+    if ((string) ($field['key'] ?? '') === 'ai.model') {
+        $modelField = $field;
+        continue;
+    }
+    if ((string) ($field['key'] ?? '') === 'ai.embedding_model') {
+        $embeddingModelField = $field;
+        continue;
+    }
+
+    $otherFields[] = $field;
+}
+$modelValue = (string) ($modelField['value'] ?? 'llama3.1:8b');
+$modelSource = (string) ($modelField['source'] ?? 'default');
+$modelLabel = (string) ($modelField['label'] ?? t('Default model'));
+$modelDescription = (string) ($modelField['description'] ?? t('Default Ollama model for CMS assistant tasks.'));
+$embeddingModelValue = (string) ($embeddingModelField['value'] ?? '');
+$embeddingModelSource = (string) ($embeddingModelField['source'] ?? 'default');
+$embeddingModelLabel = (string) ($embeddingModelField['label'] ?? t('Embedding model'));
+$embeddingModelDescription = (string) ($embeddingModelField['description'] ?? t('Optional Ollama embedding model for semantic tool routing.'));
+$sourceLabels = [
+    'database' => t('Database'),
+    'config' => t('config.php'),
+    'default' => t('Default'),
+];
+$modelSourceLabel = (string) ($sourceLabels[$modelSource] ?? $sourceLabels['default']);
+$embeddingModelSourceLabel = (string) ($sourceLabels[$embeddingModelSource] ?? $sourceLabels['default']);
+
+?>
+<div data-local-ai-settings class="grid gap-5">
+    <?= view('admin.settings.partials.fields', ['fields' => $otherFields]) ?>
+
+    <section class="grid gap-4 border-t border-slate-200 pt-5 dark:border-slate-700">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <h3 class="m-0 text-sm font-semibold text-slate-950 dark:text-white"><?= s(t('Ollama connection')) ?></h3>
+                    <span
+                        class="inline-flex min-h-6 items-center rounded-full border border-slate-300 bg-slate-100 px-2.5 text-xs font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400"
+                        data-ai-connection-status
+                    >
+                        <?= s(t('Unknown')) ?>
+                    </span>
+                </div>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    <?= s(t('Runs entirely from this browser against your local Ollama server and supports live responses.')) ?>
+                </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <button
+                    type="button"
+                    class="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    data-ai-load-models
+                >
+                    <?= s(t('Load models')) ?>
+                </button>
+                <button
+                    type="button"
+                    class="inline-flex min-h-10 items-center justify-center rounded-lg bg-accent px-3 text-sm font-semibold text-white transition hover:brightness-95"
+                    data-ai-test
+                >
+                    <?= s(t('Test live response')) ?>
+                </button>
+                <button
+                    type="button"
+                    class="inline-flex min-h-10 items-center justify-center rounded-lg border border-accent/50 bg-accent/10 px-3 text-sm font-semibold text-accent transition hover:bg-accent/15 dark:border-accent/60 dark:bg-accent/15"
+                    data-ai-review-mistakes
+                >
+                    <?= s(t('Analyze mistakes')) ?>
+                </button>
+                <button
+                    type="button"
+                    class="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    data-ai-edit-prompts
+                >
+                    <?= s(t('Edit prompts')) ?>
+                </button>
+            </div>
+        </div>
+
+        <div class="settings-field" data-setting-field="ai.model">
+            <div class="settings-field-head">
+                <span class="settings-field-label"><?= s($modelLabel) ?></span>
+                <span class="settings-source-chip settings-source-<?= s($modelSource) ?>">
+                    <?= s(t('Source:')) ?> <?= s($modelSourceLabel) ?>
+                </span>
+            </div>
+            <select
+                name="ai.model"
+                class="block min-h-11 w-full rounded-lg border border-[var(--border)] bg-admin-field px-3 py-2.5 text-sm text-[var(--text)] outline-none transition focus:border-accent focus:bg-admin-field-focus"
+                data-ai-model-select
+                data-configured-model="<?= s($modelValue) ?>"
+            >
+                <option value="<?= s($modelValue) ?>"><?= s($modelValue !== '' ? $modelValue : t('Load models from Ollama')) ?></option>
+            </select>
+            <?php if (trim($modelDescription) !== ''): ?>
+                <small class="text-xs text-slate-500 dark:text-slate-400"><?= s($modelDescription) ?></small>
+            <?php endif; ?>
+            <small class="hidden text-xs font-semibold text-rose-600 dark:text-rose-300" data-setting-error></small>
+        </div>
+
+        <div class="settings-field" data-setting-field="ai.embedding_model">
+            <div class="settings-field-head">
+                <span class="settings-field-label"><?= s($embeddingModelLabel) ?></span>
+                <span class="settings-source-chip settings-source-<?= s($embeddingModelSource) ?>">
+                    <?= s(t('Source:')) ?> <?= s($embeddingModelSourceLabel) ?>
+                </span>
+            </div>
+            <select
+                name="ai.embedding_model"
+                class="block min-h-11 w-full rounded-lg border border-[var(--border)] bg-admin-field px-3 py-2.5 text-sm text-[var(--text)] outline-none transition focus:border-accent focus:bg-admin-field-focus"
+                data-ai-embedding-model-select
+                data-configured-model="<?= s($embeddingModelValue) ?>"
+            >
+                <option value=""><?= s(t('Keyword routing only')) ?></option>
+                <?php if ($embeddingModelValue !== ''): ?>
+                    <option value="<?= s($embeddingModelValue) ?>" selected><?= s($embeddingModelValue) ?></option>
+                <?php endif; ?>
+            </select>
+            <?php if (trim($embeddingModelDescription) !== ''): ?>
+                <small class="text-xs text-slate-500 dark:text-slate-400"><?= s($embeddingModelDescription) ?></small>
+            <?php endif; ?>
+            <small class="hidden text-xs font-semibold text-rose-600 dark:text-rose-300" data-setting-error></small>
+        </div>
+
+        <div class="grid gap-2 border border-dashed border-slate-300 bg-white p-3 text-sm dark:border-slate-700 dark:bg-slate-900">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <strong class="text-slate-700 dark:text-slate-100"><?= s(t('Live test output')) ?></strong>
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400" data-ai-status><?= s(t('Not tested yet.')) ?></span>
+            </div>
+            <pre class="min-h-16 max-h-56 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-slate-600 dark:text-slate-300" data-ai-output>-</pre>
+        </div>
+
+        <div class="grid gap-3 border border-slate-200 bg-white p-3 text-sm dark:border-slate-700 dark:bg-slate-900">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <strong class="text-slate-700 dark:text-slate-100"><?= s(t('Latest routing fallbacks')) ?></strong>
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400"><?= s((string) count($routingFallbacks)) ?></span>
+            </div>
+            <?php if ($routingFallbacks === []): ?>
+                <p class="m-0 text-xs text-slate-500 dark:text-slate-400"><?= s(t('No routing fallbacks recorded yet.')) ?></p>
+            <?php else: ?>
+                <div class="grid gap-2">
+                    <?php foreach ($routingFallbacks as $fallback): ?>
+                        <?php $meta = is_array($fallback['meta'] ?? null) ? $fallback['meta'] : []; ?>
+                        <div class="grid gap-1 border-t border-slate-200 pt-2 first:border-t-0 first:pt-0 dark:border-slate-700">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <span class="font-semibold text-slate-700 dark:text-slate-100"><?= s((string) ($meta['reason'] ?? 'unknown')) ?></span>
+                                <time class="text-xs text-slate-500 dark:text-slate-400"><?= s((string) ($fallback['created_at'] ?? '')) ?></time>
+                            </div>
+                            <code class="break-words text-xs text-slate-500 dark:text-slate-400"><?php if (isset($meta['debug_query'])): ?><?= s((string) $meta['debug_query']) ?><?php else: ?>sha256:<?= s(substr((string) ($meta['query_hash'] ?? ''), 0, 16)) ?> · <?= s((string) ($meta['query_length'] ?? 0)) ?> chars<?php endif; ?></code>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </section>
+</div>
+
+<script type="module">
+    import { initLocalAiSettings } from '/js/admin/local-ai-settings.js';
+
+    initLocalAiSettings(document.querySelector('[data-local-ai-settings]'));
+</script>

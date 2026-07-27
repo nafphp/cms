@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Theme;
 
-use NixCMS\Theme\Theme;
-use NixCMS\Theme\ThemeRegistry;
+use src\Theme\Theme;
+use src\Theme\ThemeRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class ThemeRegistryTest extends TestCase

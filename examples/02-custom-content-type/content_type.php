@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NixCMS\Examples\CustomContentType;
 
-use NixCMS\Content\ContentTypeInterface;
+use src\Content\ContentTypeInterface;
 use function NixCMS\cms;
 
 final class ExampleProductContentType implements ContentTypeInterface

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Page;
 
-use NixCMS\Enums\Permission;
-use NixCMS\Enums\Role;
-use NixCMS\Page\Layout;
-use NixCMS\Page\Page;
-use NixCMS\Page\Template;
+use src\Enums\Permission;
+use src\Enums\Role;
+use src\Page\Layout;
+use src\Page\Page;
+use src\Page\Template;
 use PHPUnit\Framework\TestCase;
 
 final class PageTest extends TestCase

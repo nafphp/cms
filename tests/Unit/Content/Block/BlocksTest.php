@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Content\Block;
 
-use NixCMS\Content\Article\Block\CodeBlock;
-use NixCMS\Content\Article\Block\EmbedBlock;
-use NixCMS\Content\Article\Block\HeaderBlock;
-use NixCMS\Content\Article\Block\ImageBlock;
-use NixCMS\Content\Article\Block\ListBlock;
-use NixCMS\Content\Article\Block\ParagraphBlock;
-use NixCMS\Content\Article\Block\QuoteBlock;
-use NixCMS\Content\Article\Block\TableBlock;
+use src\Content\Article\Block\CodeBlock;
+use src\Content\Article\Block\EmbedBlock;
+use src\Content\Article\Block\HeaderBlock;
+use src\Content\Article\Block\ImageBlock;
+use src\Content\Article\Block\ListBlock;
+use src\Content\Article\Block\ParagraphBlock;
+use src\Content\Article\Block\QuoteBlock;
+use src\Content\Article\Block\TableBlock;
 use PHPUnit\Framework\TestCase;
 
 final class BlocksTest extends TestCase
@@ -43,6 +43,15 @@ final class BlocksTest extends TestCase
             '<p>hello <strong>world</strong></p>',
             $block->render(['text' => '<div>hello </div><strong>world</strong>'])
         );
+    }
+
+    public function testParagraphRemovesActiveInlineAttributesAndUrls(): void
+    {
+        $html = (new ParagraphBlock())->render([
+            'text' => '<a href="javascript:alert(1)" onclick="alert(2)">link</a><strong style="color:red">safe</strong>',
+        ]);
+
+        self::assertSame('<p><a>link</a><strong>safe</strong></p>', $html);
     }
 
     public function testParagraphHandlesMissingText(): void
@@ -113,10 +122,16 @@ final class BlocksTest extends TestCase
         self::assertSame('', (new ImageBlock())->render([]));
     }
 
+    public function testImageRejectsActiveUrlSchemes(): void
+    {
+        self::assertSame('', (new ImageBlock())->render(['file' => ['url' => 'javascript:alert(1)']]));
+        self::assertSame('', (new ImageBlock())->render(['url' => 'data:image/svg+xml,<svg onload=alert(1)>']));
+    }
+
     public function testEmbedRendersIframe(): void
     {
         self::assertSame(
-            '<iframe src="https://example.com" loading="lazy" allowfullscreen></iframe>',
+            '<iframe src="https://example.com" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-forms allow-popups allow-same-origin allow-scripts" allowfullscreen></iframe>',
             (new EmbedBlock())->render(['embed' => 'https://example.com'])
         );
     }
@@ -124,5 +139,11 @@ final class BlocksTest extends TestCase
     public function testEmbedReturnsEmptyStringWhenMissing(): void
     {
         self::assertSame('', (new EmbedBlock())->render([]));
+    }
+
+    public function testEmbedRejectsActiveUrlSchemes(): void
+    {
+        self::assertSame('', (new EmbedBlock())->render(['embed' => 'javascript:alert(1)']));
+        self::assertSame('', (new EmbedBlock())->render(['embed' => 'data:text/html,<script>alert(1)</script>']));
     }
 }

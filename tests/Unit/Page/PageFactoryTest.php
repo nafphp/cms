@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Page;
 
-use NixCMS\Enums\Permission;
-use NixCMS\Page\PageFactory;
+use src\Enums\Permission;
+use src\Page\PageFactory;
+use src\Page\PageBuilderRenderer;
 use PHPUnit\Framework\TestCase;
 
 final class PageFactoryTest extends TestCase
@@ -160,5 +161,56 @@ final class PageFactoryTest extends TestCase
         self::assertSame(['site_header', 'slot_extra'], array_keys($blocks));
         self::assertSame('page.blocks.text', $blocks['slot_extra']->template()->view());
         self::assertSame('main', $blocks['slot_extra']->data()['region']);
+    }
+
+    public function testPublishedRenderUsesTheSameNormalizedNestedPayloadAsPreviewLoading(): void
+    {
+        $page = (new PageFactory())->fromStoredRow([
+            'id' => 17,
+            'path' => '/nested',
+            'title' => 'Nested',
+            'language' => 'en',
+            'status' => 'published',
+            'blocks' => [
+                'main' => [
+                    'type' => 'section',
+                    'props' => [
+                        'width' => 'default',
+                        'padding' => 'medium',
+                        'tone' => 'none',
+                        'children' => [[
+                            'type' => 'text',
+                            'props' => [
+                                'text' => 'Normalized public copy',
+                                'tone' => 'body',
+                                'align' => 'left',
+                                'verticalAlign' => 'top',
+                            ],
+                        ]],
+                    ],
+                ],
+            ],
+            'meta' => [
+                'version' => 1,
+                'custom_layout' => [[
+                    'id' => 'main',
+                    'label' => 'Main',
+                    'region' => 'main',
+                    'size' => 'large',
+                    'accepts' => ['section'],
+                    'defaultContentType' => 'section',
+                ]],
+            ],
+        ], [
+            'id' => 'custom',
+            'kind' => 'custom',
+            'view' => 'page.templates.custom',
+            'blocks' => [],
+        ]);
+
+        $html = (new PageBuilderRenderer())->render($page);
+
+        self::assertStringContainsString('Normalized public copy', $html);
+        self::assertSame('page.blocks.section', $page->pageLayout()?->blocks()['main']->template()->view());
     }
 }

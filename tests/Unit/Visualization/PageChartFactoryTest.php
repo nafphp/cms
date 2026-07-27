@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Visualization;
 
-use NixCMS\Visualization\PageChartFactory;
+use src\Visualization\PageChartFactory;
 use PHPUnit\Framework\TestCase;
 
 final class PageChartFactoryTest extends TestCase

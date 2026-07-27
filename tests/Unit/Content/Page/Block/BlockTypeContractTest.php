@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Content\Page\Block;
 
-use NixCMS\Content\BlockViewRegistry;
-use NixCMS\Content\Page\Block\BlockTypeInterface;
+use src\Content\BlockViewRegistry;
+use src\Content\Page\Block\BlockTypeInterface;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
-use Tests\Support\CoreBlockTypes;
 use function NixCMS\cms;
 
 final class BlockTypeContractTest extends TestCase
@@ -26,8 +25,6 @@ final class BlockTypeContractTest extends TestCase
     #[PreserveGlobalState(false)]
     public function testRegisteredBlockTypesFollowBuilderContract(): void
     {
-        cms()->blockTypes()->addMany(CoreBlockTypes::all());
-
         $types = cms()->blockTypes()->all();
         self::assertGreaterThanOrEqual(27, count($types));
 
@@ -95,6 +92,6 @@ final class BlockTypeContractTest extends TestCase
 
     private function viewFile(string $view): string
     {
-        return BASE_PATH . '/views/' . str_replace('.', '/', trim($view, '/')) . '.phtml';
+        return BASE_PATH . '/src/views/' . str_replace('.', '/', trim($view, '/')) . '.phtml';
     }
 }

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Examples;
 
-use NixCMS\Content\ContentTypeInterface;
+use src\Content\ContentTypeInterface;
 use NixCMS\Examples\BlockType\ExampleQuoteBlockType;
-use NixCMS\Enums\Permission;
+use src\Enums\Permission;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;

@@ -3,16 +3,18 @@
 
 declare(strict_types=1);
 
-error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
-
 $root = dirname(__DIR__);
-$target = $root . '/vendor/bin/nix';
+$autoload = $root . '/vendor/autoload.php';
 
-if (!is_file($target)) {
+if (!is_file($autoload)) {
     fwrite(STDERR, "NixPHP CLI not found. Run composer install first.\n");
     exit(1);
 }
 
 chdir($root);
 
-require $target;
+require $root . '/dev/bootstrap.php';
+
+$registry = \NixPHP\app()->container()->get(\NixPHP\CLI\Support\CommandRegistry::class);
+$console = new \NixPHP\CLI\Core\Console($registry);
+$console->run($argv);

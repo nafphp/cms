@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Theme;
 
-use NixCMS\Repositories\ThemeRepository;
-use NixCMS\Services\Theme\ThemeCodeNormalizer;
+use src\Repositories\ThemeRepository;
+use src\Services\Theme\ThemeCodeNormalizer;
 use Tests\Support\DatabaseTestCase;
 
 final class ThemeCodeNormalizationTest extends DatabaseTestCase
@@ -15,7 +15,7 @@ final class ThemeCodeNormalizationTest extends DatabaseTestCase
         self::assertSame("a\nb\nc\n", (new ThemeCodeNormalizer())->normalize("a\r\nb\rc\r\n"));
     }
 
-    public function testThemeRepositoryStoresNormalizedThemeCode(): void
+    public function testThemeRepositoryStoresNormalizedCssButDiscardsCustomJavaScript(): void
     {
         $this->createSchema(<<<SQL
             CREATE TABLE themes (
@@ -41,6 +41,7 @@ final class ThemeCodeNormalizationTest extends DatabaseTestCase
         $row = $this->fetchOne('SELECT css, js FROM themes WHERE id = :id', ['id' => $id]);
 
         self::assertSame(".theme-brand {\n    color: red;\n}\n", $row['css'] ?? null);
-        self::assertSame("export default {\n    mounted() {}\n};\n", $row['js'] ?? null);
+        self::assertSame('', $row['js'] ?? null);
+        self::assertSame([], (new ThemeRepository($this->pdo))->themes()[0]->scripts());
     }
 }

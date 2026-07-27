@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Form;
 
-use NixCMS\Services\Form\FormSubmissionValidator;
+use src\Services\Form\FormSubmissionValidator;
 use Tests\Support\NixPHPTestCase;
 
 final class FormSubmissionValidatorTest extends NixPHPTestCase

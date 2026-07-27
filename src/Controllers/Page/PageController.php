@@ -1,0 +1,129 @@
+<?php
+
+declare(strict_types=1);
+
+namespace src\Controllers\Page;
+
+use src\Page\PageDataHandler;
+use src\Page\Page;
+use src\Page\PageAuthorization;
+use src\Page\PageBuilderRenderer;
+use src\Support\HandlerInvoker;
+use Psr\Http\Message\ResponseInterface;
+use function NixPHP\I18n\t;
+use function NixPHP\request;
+use function NixPHP\response;
+use function NixPHP\route;
+use function NixPHP\View\view;
+use function NixCMS\cms;
+
+final class PageController
+{
+    public function show(mixed ...$params): ResponseInterface
+    {
+        $page = $this->resolvePage();
+        (new PageAuthorization())->authorize($page);
+
+        $handler = $page->handler();
+        $usesPageLayout = false;
+        if ($handler !== null) {
+            $result = HandlerInvoker::call($handler, $params);
+        } elseif ($page->hasContent()) {
+            $content = $page->content();
+            $result = $content(...$params);
+        } else {
+            $usesPageLayout = $page->pageLayout() !== null;
+            $result = (new PageBuilderRenderer())->render($page);
+        }
+
+        if ($result instanceof ResponseInterface) {
+            return $result;
+        }
+
+        if ($usesPageLayout) {
+            return response((string) $result);
+        }
+
+        return $this->renderPage($page, (string) $result);
+    }
+
+    public function handleData(mixed ...$params): ResponseInterface
+    {
+        $page = $this->resolvePage();
+        $dataHandler = $this->resolveDataHandler($page);
+
+        (new PageAuthorization())->authorize($page, $dataHandler->permission);
+
+        $response = HandlerInvoker::call($dataHandler->handler, $params);
+        if ($response instanceof ResponseInterface) {
+            return $response;
+        }
+
+        throw new \RuntimeException(sprintf(
+            'Data handler for page "%s" must return a PSR response.',
+            $page->id()
+        ));
+    }
+
+    private function resolvePage(): Page
+    {
+        $routeName = route()->current();
+        if (is_string($routeName) && $routeName !== '') {
+            if (str_starts_with($routeName, 'db.page.')) {
+                $request = request();
+                $page = cms()->pages()->findByPath($request->getUri()->getPath(), $request->getMethod());
+                if ($page instanceof Page) {
+                    return $page;
+                }
+            }
+
+            $page = cms()->pages()->get($routeName);
+            if ($page instanceof Page) {
+                return $page;
+            }
+
+            $page = cms()->pages()->findByDataRouteName($routeName);
+            if ($page instanceof Page) {
+                return $page;
+            }
+        }
+
+        $request = request();
+        $page = cms()->pages()->findByPath($request->getUri()->getPath(), $request->getMethod());
+        if ($page instanceof Page) {
+            return $page;
+        }
+
+        throw new \RuntimeException('No registered page matches the current request.');
+    }
+
+    private function resolveDataHandler(Page $page): PageDataHandler
+    {
+        $method = request()->getMethod();
+        $dataHandler = $page->dataHandler($method);
+        if (!$dataHandler instanceof PageDataHandler) {
+            throw new \RuntimeException(sprintf(
+                'Page "%s" has no data handler for %s.',
+                $page->id(),
+                strtoupper($method)
+            ));
+        }
+
+        return $dataHandler;
+    }
+
+    private function renderPage(Page $page, string $content): ResponseInterface
+    {
+        if ($page->layout() === null || $page->layout() === '') {
+            return response($content);
+        }
+
+        return response(view('page.shell', [
+            'title' => t($page->title()),
+            'pageTitle' => t($page->title()),
+            'page' => $page,
+            'content' => $content,
+            'layout' => $page->layout(),
+        ]));
+    }
+}

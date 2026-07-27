@@ -1,50 +1,43 @@
+<!-- managed-by: fkde/nixcms agent-guide -->
 # NixCMS Project Guide
 
-This file is intended for people and AI agents working inside an installed NixCMS project.
+This is an installed NixPHP host with NixCMS plugins. The host owns configuration, application code, public assets, and runtime data; Composer packages below `vendor/` are read-only dependencies. Put shared CMS behavior in a focused plugin or host module instead of editing `vendor/fkde/nixcms`.
 
-## Structure
+## Inspect First
 
-- `app/config.php`: application and plugin configuration.
-- `app/routes.php`: HTTP routes.
-- `app/Controllers`: web, admin, and API/action controllers.
-- `app/Services`: reusable domain workflows.
-- `app/Repositories`: persistence queries.
-- `app/Models`: ORM entities and entity behavior.
-- `app/Migrations`: database migrations.
-- `app/Mcp/Tools`: MCP tools exposed to AI clients.
-- `views`: server-rendered `.phtml` templates.
-- `views/components`: self-contained view components; prefer overriding these before editing global CSS.
-- `app/Resources`: source assets, language files, and prompts.
-- `public`: webroot and built public assets.
-- `storage`: runtime files.
-- `logs`: application logs.
+Read these in order: `composer.json`, `app/config.php`, `app/plugins.php`, `app/routes.php`, `app/pages.php` plus `app/Resources/pages`, `app/api.php` plus `app/Resources/api`, `app/content.php` plus `app/Content`, `app/Migrations`, then the relevant `app/Handlers`, `app/Services`, `app/Repositories`, `app/Models`, `app/Mcp/Tools`, and `views`. Registration is explicit; do not assume a class is active because its file exists.
 
-## Local Run
+## Where Changes Belong
 
-Install dependencies with Composer, then run the PHP built-in server:
+- Pages: define UI resources through `cms()->pages()` in `app/pages.php` or `app/Resources/pages/*.php`. Same-page form actions use a page data handler under `app/Handlers/Page` and must return a PSR response.
+- APIs: define endpoints through `cms()->api()` in `app/api.php` or `app/Resources/api/*.php`; put invokable handlers under `app/Handlers/Api`.
+- Content types: register through `cms()->contentTypes()` in `app/content.php`; keep type-specific code under `app/Content/<Type>`.
+- Views: host templates live in `views`; plugin views are added to the NixPHP view path. Escape stored output and reuse NixPHP/NixCMS URL and sanitizing helpers.
+- Domain behavior: workflows belong in narrowly named services; joins and optimized reads in repositories; entities and simple derived behavior in models.
+- Schema: add explicit migrations under `app/Migrations` and register plugin migration paths during bootstrap.
+- Extensions: plugin bootstrap may explicitly register pages, APIs, views, content/block types, commands, migrations, services, jobs, scheduler entries, navigation, permissions, and MCP tools. Never use hidden directory scans for feature activation.
+
+## Commands
+
+From the host root, use `vendor/bin/nix` (or the host's `bin/nix` wrapper):
 
 ```bash
 composer install
-composer serve
+vendor/bin/nix db:migrate up
+vendor/bin/nix nixcms:assets:publish
+vendor/bin/nix nixcms:assets:check
+vendor/bin/nix user:create
+vendor/bin/nix queue:consume
+vendor/bin/nix schedule:ticker
+vendor/bin/nix mcp:token:create
+composer test
+php -S 127.0.0.1:8080 -t public
 ```
 
-The web server DocumentRoot must be `public`. Unknown paths should be routed
-through the front controller (`public/index.php`); static files that exist under
-`public/css`, `public/js`, fonts, and images may be served directly.
+Run `vendor/bin/nix` without a command to inspect the actual `queue:*`, `schedule:*`, and `mcp:*` commands if a host changes its optional package set. Docker is optional and only supported when this host deliberately ships a compose file; the bare-metal PHP/Composer path is the baseline.
 
-Use the project CLI wrapper from the project root:
+## Safety and Generated Files
 
-```bash
-bin/nix command:name
-```
+Auth is enabled by default. Apply permissions to admin pages/APIs and scopes to MCP tools; keep tokens, passwords, API secrets, `.env` data, logs, and runtime state out of Git. CMS actions exposed to AI must be concrete scoped tools, not raw filesystem or database access. Tool and plugin metadata are the capability source of truth; do not maintain a second AI capability list.
 
-## Conventions
-
-- Keep controllers thin.
-- Put reusable workflows in services.
-- Put query logic in repositories.
-- Keep MCP tools concrete and scope-aware.
-- Do not edit generated build output manually.
-- Browser-consumed CSS and JS live under `public/css` and `public/js`; source/build inputs can live under `app/Resources`.
-- Admin component styling should live in the component markup whenever practical. Keep global CSS for tokens, base rules, and infrastructure only.
-- Keep secrets out of version control.
+Do not edit `vendor/`, `node_modules/`, Composer-generated autoload files, published `.nixcms-assets.json`, compiled `public/css/nixcms.css`, or runtime files below `storage/nixcms` by hand. Edit their source/configuration and rerun the owning Composer, asset, migration, or CMS command. Before handing off, run the smallest relevant tests, then `composer test` and `vendor/bin/nix nixcms:assets:check` when assets changed.

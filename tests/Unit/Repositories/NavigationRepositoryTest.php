@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
-use NixCMS\Repositories\NavigationRepository;
+use src\Repositories\NavigationRepository;
 use Tests\Support\DatabaseTestCase;
 
 final class NavigationRepositoryTest extends DatabaseTestCase

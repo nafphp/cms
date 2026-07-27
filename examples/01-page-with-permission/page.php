@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use NixCMS\Enums\Permission;
-use NixCMS\Page\Page;
+use src\Enums\Permission;
+use src\Page\Page;
 use function NixPHP\View\view;
 use function NixCMS\cms;
 

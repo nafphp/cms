@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
-use NixCMS\Enums\ArticleStatus;
-use NixCMS\Repositories\ArticleRepository;
+use src\Enums\ArticleStatus;
+use src\Repositories\ArticleRepository;
 use NixPHP\ORM\Core\EntityManager;
 use Tests\Support\DatabaseTestCase;
 

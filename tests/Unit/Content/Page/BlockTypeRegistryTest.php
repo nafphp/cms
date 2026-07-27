@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Content\Page;
 
-use NixCMS\Content\Page\Block\AbstractBlockType;
-use NixCMS\Content\Page\Block\BlockTypeRegistry;
+use src\Content\Page\Block\AbstractBlockType;
+use src\Content\Page\Block\BlockTypeRegistry;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\CoreBlockTypes;
 

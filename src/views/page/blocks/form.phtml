@@ -1,0 +1,108 @@
+<?php
+
+use src\Services\Form\FormTextTranslator;
+use function NixPHP\Form\csrf;
+use function NixPHP\I18n\t;
+use function NixPHP\Session\session;
+use function NixPHP\View\s;
+use function NixCMS\cms;
+
+$content = is_array($content ?? null) ? $content : [];
+$props = is_array($content['props'] ?? null) ? $content['props'] : [];
+$identifier = trim((string) ($props['formIdentifier'] ?? $props['identifier'] ?? ''));
+$form = $identifier !== '' ? cms()->forms()->findByIdentifier($identifier, true) : null;
+$fields = is_array($form['fields'] ?? null) ? $form['fields'] : [];
+$settings = is_array($form['settings'] ?? null) ? $form['settings'] : [];
+$translator = new FormTextTranslator();
+$title = trim(t((string) ($props['title'] ?? $translator->translate(
+    is_string($settings['titleKey'] ?? null) ? $settings['titleKey'] : null,
+    (string) ($form['title'] ?? 'Contact')
+))));
+$intro = trim(t((string) ($props['intro'] ?? '')));
+$submitLabel = t((string) ($props['submitLabel'] ?? $translator->setting($settings, 'submitLabel', t('Send'))));
+$surface = \src\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
+$surfaceClass = [
+    'none' => 'grid gap-5',
+    'soft' => 'grid gap-5 rounded-lg bg-[var(--page-panel-soft)] p-6',
+    'card' => 'grid gap-5 rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-6',
+    'accent' => 'grid gap-5 rounded-lg border border-[color-mix(in_srgb,var(--page-accent)_36%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))] p-6',
+][$surface] ?? 'grid gap-5';
+$csrfToken = session()->get('_csrf');
+if (!is_string($csrfToken) || $csrfToken === '') {
+    $csrfToken = csrf()->generate();
+}
+
+?>
+<section class="<?= s(trim('page-block--surface-' . $surface . ' ' . $surfaceClass)) ?>">
+    <div class="grid gap-2">
+        <h2 class="m-0 text-2xl font-extrabold text-[var(--page-text)]"><?= s($title) ?></h2>
+        <?php if ($intro !== ''): ?>
+            <p class="m-0 text-sm leading-relaxed text-[var(--page-muted)]"><?= s($intro) ?></p>
+        <?php endif; ?>
+    </div>
+    <?php if (is_array($form) && $fields !== []): ?>
+        <form class="grid gap-4" method="post" data-public-form action="/api/forms/<?= s((string) ($form['identifier'] ?? '')) ?>/submit">
+            <input type="hidden" name="_csrf" value="<?= s($csrfToken) ?>">
+            <input type="hidden" name="_nixcms_started_at" value="<?= time() ?>">
+            <label class="absolute -left-[10000px] h-px w-px overflow-hidden" aria-hidden="true">
+                Website
+                <input type="text" name="_nixcms_hp" value="" tabindex="-1" autocomplete="off">
+            </label>
+            <?php foreach ($fields as $field): ?>
+                <?php
+                if (!is_array($field)) {
+                    continue;
+                }
+                $name = (string) ($field['name'] ?? '');
+                $type = (string) ($field['type'] ?? 'text');
+                $label = $translator->fieldLabel($field);
+                $placeholder = $translator->fieldPlaceholder($field);
+                $validators = is_array($field['validators'] ?? null) ? $field['validators'] : [];
+                $required = (bool) ($field['required'] ?? false);
+                $minLength = max(0, (int) ($field['minLength'] ?? 0));
+                $maxLength = max(0, (int) ($field['maxLength'] ?? 0));
+                foreach ($validators as $validator) {
+                    if (!is_array($validator)) {
+                        continue;
+                    }
+                    $rule = (string) ($validator['rule'] ?? '');
+                    if ($rule === 'required') {
+                        $required = true;
+                    } elseif ($rule === 'min') {
+                        $minLength = max(0, (int) ($validator['param'] ?? 0));
+                    } elseif ($rule === 'max') {
+                        $maxLength = max(0, (int) ($validator['param'] ?? 0));
+                    }
+                }
+                $lengthAttributes = trim(
+                    ($minLength > 0 ? ' minlength="' . s((string) $minLength) . '"' : '')
+                    . ($maxLength > 0 ? ' maxlength="' . s((string) $maxLength) . '"' : '')
+                );
+                ?>
+                <label class="grid gap-1.5">
+                    <span class="text-sm font-semibold text-[var(--page-text)]"><?= s($label) ?><?= $required ? ' *' : '' ?></span>
+                    <?php if ($type === 'textarea'): ?>
+                        <textarea class="min-h-28 rounded-md border border-[var(--page-border)] bg-[var(--page-bg)] px-3 py-2 text-sm text-[var(--page-text)]" name="<?= s($name) ?>" placeholder="<?= s($placeholder) ?>"<?= $lengthAttributes !== '' ? ' ' . $lengthAttributes : '' ?> <?= $required ? 'required' : '' ?>></textarea>
+                    <?php elseif ($type === 'select'): ?>
+                        <select class="min-h-10 rounded-md border border-[var(--page-border)] bg-[var(--page-bg)] px-3 text-sm text-[var(--page-text)]" name="<?= s($name) ?>" <?= $required ? 'required' : '' ?>>
+                            <?php foreach (is_array($field['options'] ?? null) ? $field['options'] : [] as $option): ?>
+                                <option value="<?= s((string) $option) ?>"><?= s((string) $option) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    <?php elseif ($type === 'checkbox'): ?>
+                        <span class="inline-flex items-center gap-2 text-sm text-[var(--page-muted)]">
+                            <input type="checkbox" name="<?= s($name) ?>" value="1" <?= $required ? 'required' : '' ?>>
+                            <?= s($placeholder !== '' ? $placeholder : $label) ?>
+                        </span>
+                    <?php else: ?>
+                        <input class="min-h-10 rounded-md border border-[var(--page-border)] bg-[var(--page-bg)] px-3 text-sm text-[var(--page-text)]" type="<?= s($type === 'email' ? 'email' : 'text') ?>" name="<?= s($name) ?>" placeholder="<?= s($placeholder) ?>"<?= $lengthAttributes !== '' ? ' ' . $lengthAttributes : '' ?> <?= $required ? 'required' : '' ?>>
+                    <?php endif; ?>
+                </label>
+            <?php endforeach; ?>
+            <button class="inline-flex min-h-10 w-max items-center rounded-md bg-[var(--page-accent)] px-4 text-sm font-bold text-white" type="submit"><?= s($submitLabel) ?></button>
+            <p class="hidden text-sm text-[var(--page-muted)]" data-public-form-state></p>
+        </form>
+    <?php else: ?>
+        <div class="rounded-md border border-dashed border-[var(--page-border)] p-5 text-sm text-[var(--page-muted)]">No published form selected.</div>
+    <?php endif; ?>
+</section>

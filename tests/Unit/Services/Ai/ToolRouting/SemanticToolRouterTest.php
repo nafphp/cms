@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Ai\ToolRouting;
 
-use NixCMS\Services\Ai\LocalAiToolCatalog;
-use NixCMS\Services\Ai\ToolRouting\SemanticToolRouter;
-use NixCMS\Services\Ai\ToolRouting\ToolContext;
-use NixCMS\Services\Ai\ToolRouting\ToolHardFilter;
+use src\Services\Ai\LocalAiToolCatalog;
+use src\Services\Ai\ToolRouting\SemanticToolRouter;
+use src\Services\Ai\ToolRouting\ToolContext;
+use src\Services\Ai\ToolRouting\ToolHardFilter;
 use PHPUnit\Framework\TestCase;
 
 final class SemanticToolRouterTest extends TestCase

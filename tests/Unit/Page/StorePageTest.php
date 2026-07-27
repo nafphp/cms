@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Page;
 
-use NixCMS\Handlers\Page\Pages\StorePage;
+use src\Handlers\Page\Pages\StorePage;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
@@ -84,7 +84,12 @@ final class StorePageTest extends TestCase
         ]);
 
         self::assertSame([
-            'slot_text' => ['type' => 'text', 'props' => ['text' => 'Hello']],
+            'slot_text' => [
+                'type' => 'text',
+                'label' => 'Text block',
+                'previewTitle' => 'Short text',
+                'props' => ['text' => 'Hello'],
+            ],
         ], $normalized);
     }
 }

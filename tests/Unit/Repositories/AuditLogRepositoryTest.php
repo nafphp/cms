@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
-use NixCMS\Repositories\AuditLogRepository;
+use src\Repositories\AuditLogRepository;
 use Tests\Support\DatabaseTestCase;
 use function NixCMS\audit_log;
 

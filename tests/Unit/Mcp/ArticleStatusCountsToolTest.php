@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mcp;
 
-use NixCMS\Mcp\Tools\ArticleStatusCountsTool;
+use src\Mcp\Tools\ArticleStatusCountsTool;
 use Tests\Support\DatabaseTestCase;
 
 final class ArticleStatusCountsToolTest extends DatabaseTestCase

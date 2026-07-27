@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Api;
 
-use NixCMS\Api\MediaApi;
-use NixCMS\Models\Media;
-use NixCMS\Services\Media\MediaStorageService;
-use NixCMS\Storage\EntityStorage;
+use src\Api\MediaApi;
+use src\Models\Media;
+use src\Services\Media\MediaStorageService;
+use src\Storage\EntityStorage;
 use Tests\Support\DatabaseTestCase;
 
 final class MediaApiTest extends DatabaseTestCase

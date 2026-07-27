@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use function NixPHP\guard;
+
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 if (!defined('BASE_PATH')) {
@@ -11,3 +13,16 @@ if (!defined('BASE_PATH')) {
 if (!defined('PHPUNIT_RUNNING')) {
     define('PHPUNIT_RUNNING', true);
 }
+
+require_once dirname(__DIR__) . '/vendor/nixphp/view/src/view_helpers.php';
+
+guard()->register('safeOutput', static function (string|array|null $value): string|array|null {
+    if (is_array($value)) {
+        return array_map(
+            static fn(mixed $item): mixed => is_string($item) ? htmlspecialchars($item, ENT_QUOTES, 'UTF-8') : $item,
+            $value,
+        );
+    }
+
+    return $value === null ? null : htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+});

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Settings;
 
-use NixCMS\Repositories\SettingRepository;
-use NixCMS\Services\Settings\SettingsService;
+use src\Repositories\SettingRepository;
+use src\Services\Settings\SettingsService;
 use Tests\Support\DatabaseTestCase;
 
 final class SettingsServiceTest extends DatabaseTestCase
@@ -24,7 +24,7 @@ final class SettingsServiceTest extends DatabaseTestCase
             )
         SQL);
 
-        $this->service = new SettingsService(new SettingRepository($this->pdo));
+        $this->service = new SettingsService(new SettingRepository($this->pdo), static fn(): bool => true);
     }
 
     public function testSavePersistsOnlyRegisteredSettingsWithNormalizedValues(): void
@@ -85,5 +85,21 @@ final class SettingsServiceTest extends DatabaseTestCase
         self::assertSame('config', $fields['app.short_name']['source']);
         self::assertSame('', $fields['branding.logoText']['value']);
         self::assertSame('default', $fields['branding.logoText']['source']);
+    }
+
+    public function testDedicatedSectionPermissionBlocksReadsAndWrites(): void
+    {
+        $service = new SettingsService(new SettingRepository($this->pdo), static fn(): bool => false);
+
+        self::assertSame([], $service->sections('ai'));
+
+        $result = $service->save(['ai.instructions' => 'Do something global']);
+
+        self::assertFalse($result['success']);
+        self::assertSame(
+            ['You do not have permission to update this setting.'],
+            $result['errors']['ai.instructions'],
+        );
+        self::assertSame(0, (int) $this->fetchOne('SELECT COUNT(*) AS total FROM cms_settings')['total']);
     }
 }

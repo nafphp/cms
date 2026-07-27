@@ -130,6 +130,7 @@ export const persistenceMethods = {
         }
 
         return {
+            builderVersion: 1,
             id: this.savedId || 0,
             identifier: this.persistedValues.identifier || '',
             title,

@@ -21,7 +21,7 @@ final class PageTemplateRegionTest extends TestCase
         ];
 
         foreach ($templates as $template => $blocks) {
-            $content = file_get_contents(BASE_PATH . '/views/page/templates/' . $template . '.phtml');
+            $content = file_get_contents(BASE_PATH . '/src/views/page/templates/' . $template . '.phtml');
             self::assertIsString($content);
 
             foreach ($blocks as $block) {

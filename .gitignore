@@ -10,7 +10,9 @@
 /storage/queue/**/*.lock
 /storage/media/*
 !/storage/media/.gitkeep
+/storage/nixcms/
 /.phpunit.cache/
 /.phpunit.result.cache
 .claude/
 .idea/
+/prompts/

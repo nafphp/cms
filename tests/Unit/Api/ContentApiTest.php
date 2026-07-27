@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Api;
 
-use NixCMS\Api\ContentApi;
-use NixCMS\Models\Article;
-use NixCMS\Repositories\ArticleRepository;
+use src\Api\ContentApi;
+use src\Models\Article;
+use src\Repositories\ArticleRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use Tests\Support\NixPHPTestCase;
 

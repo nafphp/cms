@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Content;
 
-use NixCMS\Content\BlockViewRegistry;
+use src\Content\BlockViewRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class BlockViewRegistryTest extends TestCase

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Localization;
 
-use NixCMS\Localization\LanguageRegistry;
+use src\Localization\LanguageRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class LanguageRegistryTest extends TestCase

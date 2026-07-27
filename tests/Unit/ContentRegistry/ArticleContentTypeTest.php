@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\ContentRegistry;
 
-use NixCMS\Content\Article\ArticleContentType;
-use NixCMS\Content\Article\BlockRegistry;
-use NixCMS\Models\Article;
-use NixCMS\Services\Content\ArticleCatalogService;
-use NixCMS\Services\Content\ArticleFormService;
-use NixCMS\Services\Content\ArticleRenderer;
+use src\Content\Article\ArticleContentType;
+use src\Content\Article\BlockRegistry;
+use src\Models\Article;
+use src\Services\Content\ArticleCatalogService;
+use src\Services\Content\ArticleFormService;
+use src\Services\Content\ArticleRenderer;
 use PHPUnit\Framework\TestCase;
 
 final class ArticleContentTypeTest extends TestCase
