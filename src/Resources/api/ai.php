@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-use src\Api\ApiEndpoint;
-use src\Enums\Permission;
-use src\Handlers\Api\Ai\AppendAiMemory;
-use src\Handlers\Api\Ai\CallAiTool;
-use src\Handlers\Api\Ai\DeleteAiMistakes;
-use src\Handlers\Api\Ai\ListAiTools;
-use src\Handlers\Api\Ai\ListAiPromptFiles;
-use src\Handlers\Api\Ai\RecordAiMistake;
-use src\Handlers\Api\Ai\ReviewAiMistakes;
-use src\Handlers\Api\Ai\SaveAiPromptFile;
-use src\Handlers\Api\Ai\SelectAiTools;
+use NixPHP\CMS\Api\ApiEndpoint;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Handlers\Api\Ai\AppendAiMemory;
+use NixPHP\CMS\Handlers\Api\Ai\CallAiTool;
+use NixPHP\CMS\Handlers\Api\Ai\DeleteAiMistakes;
+use NixPHP\CMS\Handlers\Api\Ai\ListAiTools;
+use NixPHP\CMS\Handlers\Api\Ai\ListAiPromptFiles;
+use NixPHP\CMS\Handlers\Api\Ai\RecordAiMistake;
+use NixPHP\CMS\Handlers\Api\Ai\ReviewAiMistakes;
+use NixPHP\CMS\Handlers\Api\Ai\SaveAiPromptFile;
+use NixPHP\CMS\Handlers\Api\Ai\SelectAiTools;
 
 return [
     ApiEndpoint::get('api.admin.ai.tools', '/api/admin/ai/tools')

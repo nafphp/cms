@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Repositories;
+namespace NixPHP\CMS\Repositories;
 
-use src\Models\Tag;
-use src\Support\Slug;
+use NixPHP\CMS\Models\Tag;
+use NixPHP\CMS\Support\Slug;
 use NixPHP\ORM\Repository\AbstractRepository;
 use function NixPHP\ORM\em;
 

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Commands;
+namespace NixPHP\CMS\Commands;
 
-use src\Support\Docs\DefaultDocRenderers;
-use src\Support\Docs\ReadmeDocBlockUpdater;
+use NixPHP\CMS\Support\Docs\DefaultDocRenderers;
+use NixPHP\CMS\Support\Docs\ReadmeDocBlockUpdater;
 use NixPHP\CLI\Core\AbstractCommand;
 use NixPHP\CLI\Core\Input;
 use NixPHP\CLI\Core\Output;

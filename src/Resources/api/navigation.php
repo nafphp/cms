@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use src\Api\ApiEndpoint;
-use src\Enums\Permission;
-use src\Handlers\Api\Navigation\DeleteNavigation;
-use src\Handlers\Api\Navigation\PublishNavigation;
+use NixPHP\CMS\Api\ApiEndpoint;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Handlers\Api\Navigation\DeleteNavigation;
+use NixPHP\CMS\Handlers\Api\Navigation\PublishNavigation;
 
 return [
     ApiEndpoint::post('api.admin.navigation.publish', '/api/admin/navigation/{navigationId}/publish')

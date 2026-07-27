@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mcp;
 
-use src\Mcp\Tools\UserRoleSummaryTool;
+use NixPHP\CMS\Mcp\Tools\UserRoleSummaryTool;
 use Tests\Support\DatabaseTestCase;
 
 final class UserRoleSummaryToolTest extends DatabaseTestCase

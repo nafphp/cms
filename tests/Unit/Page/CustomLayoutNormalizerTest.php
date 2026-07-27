@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Page;
 
-use src\Page\CustomLayoutNormalizer;
+use NixPHP\CMS\Page\CustomLayoutNormalizer;
 use PHPUnit\Framework\TestCase;
 
 final class CustomLayoutNormalizerTest extends TestCase

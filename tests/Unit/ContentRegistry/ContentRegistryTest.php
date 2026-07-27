@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\ContentRegistry;
 
-use src\Content\Article\ArticleContentType;
-use src\Content\ContentRegistry;
-use src\Models\Article;
+use NixPHP\CMS\Content\Article\ArticleContentType;
+use NixPHP\CMS\Content\ContentRegistry;
+use NixPHP\CMS\Models\Article;
 use PHPUnit\Framework\TestCase;
 
 final class ContentRegistryTest extends TestCase

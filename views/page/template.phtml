@@ -1,0 +1,16 @@
+<?php
+
+use function NixPHP\View\view;
+/** @var string $templateView */
+/** @var \NixPHP\CMS\Page\Template $template */
+
+if ($template->parent() !== null && $template->parent() !== '') {
+    $this->setLayout($template->parent());
+    $this->block('content');
+}
+
+echo view($templateView, get_defined_vars());
+
+if ($template->parent() !== null && $template->parent() !== '') {
+    $this->endBlock('content');
+}

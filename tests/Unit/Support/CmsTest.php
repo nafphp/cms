@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support;
 
-use src\Content\Navigation\NavigationContentType;
-use src\Enums\Scope;
-use src\Navigation\NavigationItem;
-use src\Settings\SettingField;
-use src\Settings\SettingSection;
-use src\Support\Cms;
-use src\Content\Page\Block\BlockTypeRegistry;
-use src\Visualization\VisualizationRegistry;
+use NixPHP\CMS\Content\Navigation\NavigationContentType;
+use NixPHP\CMS\Enums\Scope;
+use NixPHP\CMS\Navigation\NavigationItem;
+use NixPHP\CMS\Settings\SettingField;
+use NixPHP\CMS\Settings\SettingSection;
+use NixPHP\CMS\Support\Cms;
+use NixPHP\CMS\Content\Page\Block\BlockTypeRegistry;
+use NixPHP\CMS\Visualization\VisualizationRegistry;
 use PHPUnit\Framework\TestCase;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class CmsTest extends TestCase
 {

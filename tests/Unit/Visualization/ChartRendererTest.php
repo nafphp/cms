@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Visualization;
 
-use src\Visualization\ChartDefinition;
-use src\Visualization\ChartRenderer;
+use NixPHP\CMS\Visualization\ChartDefinition;
+use NixPHP\CMS\Visualization\ChartRenderer;
 use PHPUnit\Framework\TestCase;
 
 final class ChartRendererTest extends TestCase

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use src\Api\ApiEndpoint;
-use src\Enums\Permission;
-use src\Handlers\Api\Form\DeleteForm;
-use src\Handlers\Api\Form\SubmitForm;
+use NixPHP\CMS\Api\ApiEndpoint;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Handlers\Api\Form\DeleteForm;
+use NixPHP\CMS\Handlers\Api\Form\SubmitForm;
 
 return [
     ApiEndpoint::post('api.admin.forms.delete', '/api/admin/forms/{id}/delete')

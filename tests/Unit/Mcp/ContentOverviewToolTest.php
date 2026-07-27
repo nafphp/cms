@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mcp;
 
-use src\Mcp\Tools\ContentOverviewTool;
+use NixPHP\CMS\Mcp\Tools\ContentOverviewTool;
 use Tests\Support\DatabaseTestCase;
-use function NixCMS\audit_log;
+use function NixPHP\CMS\audit_log;
 
 final class ContentOverviewToolTest extends DatabaseTestCase
 {

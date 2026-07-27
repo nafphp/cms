@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Content\Article\Block;
+namespace NixPHP\CMS\Content\Article\Block;
 
-use src\Security\UrlPolicy;
-use src\Content\Article\Block\AbstractBlock;
+use NixPHP\CMS\Security\UrlPolicy;
+use NixPHP\CMS\Content\Article\Block\AbstractBlock;
 
 final class ImageBlock extends AbstractBlock
 {

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Ai\ToolRouting;
+namespace NixPHP\CMS\Services\Ai\ToolRouting;
 
-use src\Services\Ai\ToolRouting\ToolContext;
-use function NixCMS\cms;
+use NixPHP\CMS\Services\Ai\ToolRouting\ToolContext;
+use function NixPHP\CMS\cms;
 
 final class RoutingTelemetry
 {

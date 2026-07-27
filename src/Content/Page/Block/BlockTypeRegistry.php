@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Content\Page\Block;
+namespace NixPHP\CMS\Content\Page\Block;
 
-use src\Content\Page\Block\BlockTypeInterface;
+use NixPHP\CMS\Content\Page\Block\BlockTypeInterface;
 
 final class BlockTypeRegistry
 {

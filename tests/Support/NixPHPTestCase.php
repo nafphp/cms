@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
-use src\Enums\ArticleStatus;
-use src\Enums\Language;
-use src\Models\Article;
-use src\Models\ArticleVersion;
+use NixPHP\CMS\Enums\ArticleStatus;
+use NixPHP\CMS\Enums\Language;
+use NixPHP\CMS\Models\Article;
+use NixPHP\CMS\Models\ArticleVersion;
 use PHPUnit\Framework\TestCase;
 
 abstract class NixPHPTestCase extends TestCase

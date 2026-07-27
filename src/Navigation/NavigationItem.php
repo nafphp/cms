@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Navigation;
+namespace NixPHP\CMS\Navigation;
 
 final class NavigationItem
 {

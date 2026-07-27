@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support;
 
-use src\Enums\ArticleStatus;
-use src\Enums\Language;
+use NixPHP\CMS\Enums\ArticleStatus;
+use NixPHP\CMS\Enums\Language;
 use Tests\Support\NixPHPTestCase;
 
 final class NixPHPTestCaseTest extends NixPHPTestCase

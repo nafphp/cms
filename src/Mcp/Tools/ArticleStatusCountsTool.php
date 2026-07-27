@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Mcp\Tools;
+namespace NixPHP\CMS\Mcp\Tools;
 
-use src\Enums\ArticleStatus;
+use NixPHP\CMS\Enums\ArticleStatus;
 use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;

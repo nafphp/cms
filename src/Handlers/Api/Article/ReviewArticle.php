@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Article;
+namespace NixPHP\CMS\Handlers\Api\Article;
 
-use src\Enums\ArticleStatus;
-use src\Enums\Permission;
-use src\Exceptions\AuthException;
-use src\Handlers\Support\ReadsJsonBody;
-use src\Support\AuditEntry;
+use NixPHP\CMS\Enums\ArticleStatus;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Exceptions\AuthException;
+use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
+use NixPHP\CMS\Support\AuditEntry;
 use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 use function NixPHP\Database\database;
 use function NixPHP\json;
 use function NixPHP\Session\session;
-use function NixCMS\user;
+use function NixPHP\CMS\user;
 
 final class ReviewArticle
 {

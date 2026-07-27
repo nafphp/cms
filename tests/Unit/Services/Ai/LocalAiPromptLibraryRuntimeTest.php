@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Ai;
 
-use src\Services\Ai\LocalAiPromptLibrary;
+use NixPHP\CMS\Services\Ai\LocalAiPromptLibrary;
 use PHPUnit\Framework\TestCase;
 
 final class LocalAiPromptLibraryRuntimeTest extends TestCase

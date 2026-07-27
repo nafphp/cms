@@ -2,29 +2,29 @@
 
 declare(strict_types=1);
 
-namespace src\Support;
+namespace NixPHP\CMS\Support;
 
-use use src\Api\ArticleApi;
-use src\Api\ApiRegistry;
-use src\Api\FormApi;
-use src\Api\MediaApi;
-use src\Api\NavigationApi;
-use src\Content\BlockViewRegistry;
-use src\Content\ContentRegistry;
-use src\Content\Page\Block\BlockTypeRegistry;
-use src\Enums\Scope;
-use src\Localization\LanguageRegistry;
-use src\Models\Article;
-use src\Models\Form;
-use src\Models\Media;
-use src\Models\SiteNavigation;
-use src\Page\PageRegistry;
-use src\Repositories\ThemeRepository;
-use src\Storage\EntityStorage;
-use src\Theme\ThemeRegistry;
-use src\Visualization\VisualizationRegistry;
-use src\Support\ScopedCms;
-use src\Support\Settings;
+use NixPHP\CMS\Api\ArticleApi;
+use NixPHP\CMS\Api\ApiRegistry;
+use NixPHP\CMS\Api\FormApi;
+use NixPHP\CMS\Api\MediaApi;
+use NixPHP\CMS\Api\NavigationApi;
+use NixPHP\CMS\Content\BlockViewRegistry;
+use NixPHP\CMS\Content\ContentRegistry;
+use NixPHP\CMS\Content\Page\Block\BlockTypeRegistry;
+use NixPHP\CMS\Enums\Scope;
+use NixPHP\CMS\Localization\LanguageRegistry;
+use NixPHP\CMS\Models\Article;
+use NixPHP\CMS\Models\Form;
+use NixPHP\CMS\Models\Media;
+use NixPHP\CMS\Models\SiteNavigation;
+use NixPHP\CMS\Page\PageRegistry;
+use NixPHP\CMS\Repositories\ThemeRepository;
+use NixPHP\CMS\Storage\EntityStorage;
+use NixPHP\CMS\Theme\ThemeRegistry;
+use NixPHP\CMS\Visualization\VisualizationRegistry;
+use NixPHP\CMS\Support\ScopedCms;
+use NixPHP\CMS\Support\Settings;
 
 final class Cms
 {

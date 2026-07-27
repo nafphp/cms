@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Ai;
+namespace NixPHP\CMS\Handlers\Api\Ai;
 
-use src\Services\Ai\LocalAiToolBridge;
+use NixPHP\CMS\Services\Ai\LocalAiToolBridge;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 use function NixPHP\json;

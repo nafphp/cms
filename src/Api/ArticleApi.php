@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace src\Api;
+namespace NixPHP\CMS\Api;
 
-use src\Models\Article;
-use src\Models\ArticleVersion;
-use src\Localization\LanguageRegistry;
-use src\Repositories\ArticleRepository;
-use src\Storage\EntityStorage;
-use src\Support\AuditEntry;
+use NixPHP\CMS\Models\Article;
+use NixPHP\CMS\Models\ArticleVersion;
+use NixPHP\CMS\Localization\LanguageRegistry;
+use NixPHP\CMS\Repositories\ArticleRepository;
+use NixPHP\CMS\Storage\EntityStorage;
+use NixPHP\CMS\Support\AuditEntry;
 
 /**
  * Domain API for articles. Exposes article-specific behaviour and delegates persistence/queries to ArticleRepository.

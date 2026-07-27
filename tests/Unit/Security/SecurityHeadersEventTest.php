@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Security;
 
-use src\Events\SecurityHeadersEvent;
+use NixPHP\CMS\Events\SecurityHeadersEvent;
 use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 

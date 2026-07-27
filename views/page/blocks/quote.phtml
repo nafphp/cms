@@ -1,0 +1,22 @@
+<?php
+
+use function NixPHP\View\s;
+use function NixPHP\I18n\t;
+
+$content = is_array($content ?? null) ? $content : [];
+$props = is_array($content['props'] ?? null) ? $content['props'] : [];
+$surface = \NixPHP\CMS\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
+$surfaceClass = [
+    'none' => 'm-0 border-l-4 border-[var(--page-accent)] pl-5',
+    'soft' => 'm-0 rounded-lg border-l-4 border-[var(--page-accent)] bg-[var(--page-panel-soft)] p-6',
+    'card' => 'm-0 rounded-lg border-l-4 border-[var(--page-accent)] bg-[var(--page-card-bg)] p-6',
+    'accent' => 'm-0 rounded-lg border-l-4 border-[var(--page-accent)] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))] p-6',
+][$surface] ?? 'm-0 border-l-4 border-[var(--page-accent)] pl-5';
+
+?>
+<figure class="<?= s(trim('page-block--surface-' . $surface . ' ' . $surfaceClass)) ?>">
+    <blockquote class="m-0 text-xl font-semibold leading-relaxed text-[var(--page-text)]"><?= s(t((string) ($props['quote'] ?? 'A focused quote or testimonial belongs here.'))) ?></blockquote>
+    <?php if (trim((string) ($props['source'] ?? '')) !== ''): ?>
+        <figcaption class="mt-3 text-sm font-semibold text-[var(--page-muted)]"><?= s(t((string) $props['source'])) ?></figcaption>
+    <?php endif; ?>
+</figure>

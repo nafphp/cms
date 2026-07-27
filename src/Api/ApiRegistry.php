@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Api;
+namespace NixPHP\CMS\Api;
 
-use src\Controllers\Api\ApiController;
-use src\Api\ApiEndpoint;
+use NixPHP\CMS\Controllers\Api\ApiController;
+use NixPHP\CMS\Api\ApiEndpoint;
 use function NixPHP\route;
 
 final class ApiRegistry

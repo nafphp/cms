@@ -16,7 +16,7 @@ final class PluginMigrationsSqliteTest extends DatabaseTestCase
 
         foreach ($files as $file) {
             require_once $file;
-            $class = 'NixCMS\\Migrations\\' . basename($file, '.php');
+            $class = 'NixPHP\\CMS\\Migrations\\' . basename($file, '.php');
             $migration = new $class();
 
             self::assertInstanceOf(MigrationInterface::class, $migration);

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Admin;
+namespace NixPHP\CMS\Handlers\Api\Admin;
 
-use src\Services\Admin\AdminDashboardService;
+use NixPHP\CMS\Services\Admin\AdminDashboardService;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 

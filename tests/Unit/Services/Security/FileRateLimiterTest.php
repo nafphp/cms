@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Security;
 
-use src\Services\Security\FileRateLimiter;
-use src\Services\Security\LoginRateLimiter;
+use NixPHP\CMS\Services\Security\FileRateLimiter;
+use NixPHP\CMS\Services\Security\LoginRateLimiter;
 use PHPUnit\Framework\TestCase;
 
 final class FileRateLimiterTest extends TestCase

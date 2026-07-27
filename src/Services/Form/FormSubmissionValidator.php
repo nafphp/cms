@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Form;
+namespace NixPHP\CMS\Services\Form;
 
 use NixPHP\Form\Core\Validator;
 

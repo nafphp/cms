@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use src\Api\ApiEndpoint;
-use src\Enums\Permission;
-use src\Handlers\Api\Settings\GetTranslations;
-use src\Handlers\Api\Settings\UpdateSettings;
-use src\Handlers\Api\Settings\UpdateTranslations;
+use NixPHP\CMS\Api\ApiEndpoint;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Handlers\Api\Settings\GetTranslations;
+use NixPHP\CMS\Handlers\Api\Settings\UpdateSettings;
+use NixPHP\CMS\Handlers\Api\Settings\UpdateTranslations;
 
 return [
     ApiEndpoint::post('api.admin.settings.update', '/api/admin/settings')

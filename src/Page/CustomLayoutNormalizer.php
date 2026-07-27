@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Page;
+namespace NixPHP\CMS\Page;
 
-use src\Page\CustomLayoutOptions;
+use NixPHP\CMS\Page\CustomLayoutOptions;
 
 final class CustomLayoutNormalizer
 {
@@ -38,7 +38,7 @@ final class CustomLayoutNormalizer
             $position = trim((string) ($slot['position'] ?? 'stretch'));
             $maxHeight = trim((string) ($slot['maxHeight'] ?? 'none'));
             $overflow = trim((string) ($slot['overflow'] ?? 'visible'));
-            $surface = \src\Theme\Theme::slug((string) ($slot['surface'] ?? 'none')) ?: 'none';
+            $surface = \NixPHP\CMS\Theme\Theme::slug((string) ($slot['surface'] ?? 'none')) ?: 'none';
 
             if ($id === '' || !preg_match('/^[A-Za-z][A-Za-z0-9_-]{0,63}$/', $id)) {
                 $errors[] = sprintf('Custom layout slot %d needs a valid id.', $index + 1);

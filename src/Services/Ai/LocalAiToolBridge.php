@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Ai;
+namespace NixPHP\CMS\Services\Ai;
 
-use src\Enums\Permission;
-use src\Contracts\LocalAiToolMetadataInterface;
-use src\Services\Ai\LocalAiToolCatalog;
-use src\Services\Ai\ToolRouting\SemanticToolRouter;
-use src\Services\Ai\ToolRouting\ToolContext;
-use src\Services\Ai\ToolRouting\ToolRouterInterface;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
+use NixPHP\CMS\Services\Ai\LocalAiToolCatalog;
+use NixPHP\CMS\Services\Ai\ToolRouting\SemanticToolRouter;
+use NixPHP\CMS\Services\Ai\ToolRouting\ToolContext;
+use NixPHP\CMS\Services\Ai\ToolRouting\ToolRouterInterface;
 use NixPHP\MCP\Auth\McpIdentity;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use Throwable;
 use function NixPHP\Database\database;
 use function NixPHP\log;
 use function NixPHP\MCP\tool;
-use function NixCMS\user;
+use function NixPHP\CMS\user;
 
 final class LocalAiToolBridge
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Mcp\Tools;
+namespace NixPHP\CMS\Mcp\Tools;
 
 use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;

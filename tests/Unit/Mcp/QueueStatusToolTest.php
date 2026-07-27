@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mcp;
 
-use src\Mcp\Tools\QueueStatusTool;
+use NixPHP\CMS\Mcp\Tools\QueueStatusTool;
 use PHPUnit\Framework\TestCase;
 
 final class QueueStatusToolTest extends TestCase

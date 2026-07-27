@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-use src\Enums\Permission;
-use src\Handlers\Page\Navigation\StoreNavigation;
-use src\Page\Page;
-use src\Services\Settings\TranslationFileService;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Handlers\Page\Navigation\StoreNavigation;
+use NixPHP\CMS\Page\Page;
+use NixPHP\CMS\Services\Settings\TranslationFileService;
 use function NixPHP\I18n\t;
 use function NixPHP\log;
 use function NixPHP\redirect;
 use function NixPHP\route;
 use function NixPHP\View\render;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 $navigationApi = static fn() => cms()->navigation();
 $translationSuggestions = static function (): array {

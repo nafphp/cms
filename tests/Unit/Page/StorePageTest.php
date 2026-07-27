@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Page;
 
-use src\Handlers\Page\Pages\StorePage;
+use NixPHP\CMS\Handlers\Page\Pages\StorePage;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 

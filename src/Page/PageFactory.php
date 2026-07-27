@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace src\Page;
+namespace NixPHP\CMS\Page;
 
-use src\Content\BlockViewRegistry;
-use src\Enums\Permission;
-use src\Page\CustomLayoutNormalizer;
-use src\Page\Layout;
-use src\Page\Page;
-use src\Page\PageBuilderPayloadNormalizer;
-use src\Page\Template;
-use function NixCMS\cms;
+use NixPHP\CMS\Content\BlockViewRegistry;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Page\CustomLayoutNormalizer;
+use NixPHP\CMS\Page\Layout;
+use NixPHP\CMS\Page\Page;
+use NixPHP\CMS\Page\PageBuilderPayloadNormalizer;
+use NixPHP\CMS\Page\Template;
+use function NixPHP\CMS\cms;
 
 final class PageFactory
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Http;
+namespace NixPHP\CMS\Services\Http;
 
 final readonly class OutboundHttpResponse
 {

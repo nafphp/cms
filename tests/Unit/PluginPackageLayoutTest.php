@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use src\Mcp\Tools\SystemHealthTool;
+use NixPHP\CMS\Mcp\Tools\SystemHealthTool;
 use NixPHP\CLI\Support\CommandRegistry;
 use NixPHP\Database\Support\MigrationRegistry;
 use NixPHP\MCP\Support\ToolRegistry;

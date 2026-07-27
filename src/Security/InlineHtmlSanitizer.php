@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace src\Security;
+namespace NixPHP\CMS\Security;
 
 use DOMComment;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMText;
-use src\Security\UrlPolicy;
+use NixPHP\CMS\Security\UrlPolicy;
 use function NixPHP\View\s;
 
 /**

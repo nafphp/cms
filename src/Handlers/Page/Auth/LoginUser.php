@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Page\Auth;
+namespace NixPHP\CMS\Handlers\Page\Auth;
 
-use src\Models\User;
-use src\Repositories\UserRepository;
-use src\Services\Security\CredentialService;
-use src\Services\Security\LoginRateLimiter;
-use src\Services\Security\RateLimitDecision;
+use NixPHP\CMS\Models\User;
+use NixPHP\CMS\Repositories\UserRepository;
+use NixPHP\CMS\Services\Security\CredentialService;
+use NixPHP\CMS\Services\Security\LoginRateLimiter;
+use NixPHP\CMS\Services\Security\RateLimitDecision;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\Form\validator;
 use function NixPHP\ORM\repo;

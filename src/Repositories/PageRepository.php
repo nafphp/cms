@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Repositories;
+namespace NixPHP\CMS\Repositories;
 
-use src\Page\Page;
-use src\Page\PageFactory;
+use NixPHP\CMS\Page\Page;
+use NixPHP\CMS\Page\PageFactory;
 use PDO;
 use function NixPHP\Database\database;
 use function NixPHP\log;

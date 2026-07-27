@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Localization;
+namespace NixPHP\CMS\Localization;
 
-use src\Services\Settings\TranslationFileService;
+use NixPHP\CMS\Services\Settings\TranslationFileService;
 use NixPHP\I18n\Core\Translator;
 use NixPHP\I18n\Support\Language;
 use Stringable;

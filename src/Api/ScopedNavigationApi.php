@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Api;
+namespace NixPHP\CMS\Api;
 
-use src\Enums\Scope;
-use src\Navigation\Navigation;
-use src\Navigation\NavigationItem;
-use src\Api\NavigationApi;
+use NixPHP\CMS\Enums\Scope;
+use NixPHP\CMS\Navigation\Navigation;
+use NixPHP\CMS\Navigation\NavigationItem;
+use NixPHP\CMS\Api\NavigationApi;
 
 final class ScopedNavigationApi
 {

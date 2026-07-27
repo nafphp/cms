@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace ExampleVendor\ReportPlugin;
 
-use src\Api\ApiEndpoint;
-use src\Contracts\LocalAiToolMetadataInterface;
-use src\Enums\Permission;
-use src\Page\Page;
+use NixPHP\CMS\Api\ApiEndpoint;
+use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Page\Page;
 use NixPHP\Database\Support\MigrationRegistry;
 use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;
 use Psr\Http\Message\ResponseInterface;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 use function NixPHP\json;
 use function NixPHP\MCP\tool;
 use function NixPHP\View\view;

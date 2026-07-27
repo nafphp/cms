@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support;
 
-use src\Support\HandlerInvoker;
+use NixPHP\CMS\Support\HandlerInvoker;
 use PHPUnit\Framework\TestCase;
 
 final class HandlerInvokerTest extends TestCase

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Events;
+namespace NixPHP\CMS\Events;
 
 use NixPHP\I18n\Core\Translator;
 use Psr\Http\Message\ServerRequestInterface;
 use function NixPHP\app;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class SettingsLocaleEvent
 {

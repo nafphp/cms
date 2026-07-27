@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Content\Page;
 
-use src\Content\Page\Block\AbstractBlockType;
+use NixPHP\CMS\Content\Page\Block\AbstractBlockType;
 use NixPHP\Core\Config;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -14,7 +14,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use function NixPHP\guard;
 use function NixPHP\app;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class PageBuilderBlockTypesTest extends TestCase
 {

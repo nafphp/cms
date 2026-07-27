@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Contracts;
+namespace NixPHP\CMS\Contracts;
 
 /** Optional self-description consumed by LocalAiToolCatalog and the admin assistant. */
 interface LocalAiToolMetadataInterface

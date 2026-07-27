@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Commands;
+namespace NixPHP\CMS\Commands;
 
-use src\Enums\Permission;
-use src\Enums\Role;
-use src\Services\Security\CredentialService;
-use src\Support\Slug;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Enums\Role;
+use NixPHP\CMS\Services\Security\CredentialService;
+use NixPHP\CMS\Support\Slug;
 use NixPHP\CLI\Core\AbstractCommand;
 use NixPHP\CLI\Core\Input;
 use NixPHP\CLI\Core\Output;

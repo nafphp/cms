@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace src\Page;
+namespace NixPHP\CMS\Page;
 
-use use src\Enums\Permission;
-use src\Enums\Role;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Enums\Role;
 use Psr\Http\Message\ResponseInterface;
-use src\Page\Layout;
-use src\Page\PageDataHandler;
-use src\Page\PageMeta;
-use src\Page\Template;
+use NixPHP\CMS\Page\Layout;
+use NixPHP\CMS\Page\PageDataHandler;
+use NixPHP\CMS\Page\PageMeta;
+use NixPHP\CMS\Page\Template;
 
 final class Page
 {

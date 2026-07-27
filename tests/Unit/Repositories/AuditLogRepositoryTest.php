@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
-use src\Repositories\AuditLogRepository;
+use NixPHP\CMS\Repositories\AuditLogRepository;
 use Tests\Support\DatabaseTestCase;
-use function NixCMS\audit_log;
+use function NixPHP\CMS\audit_log;
 
 final class AuditLogRepositoryTest extends DatabaseTestCase
 {

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Page;
+namespace NixPHP\CMS\Handlers\Api\Page;
 
-use src\Handlers\Support\ReadsJsonBody;
-use src\Repositories\PageLayoutRepository;
+use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
+use NixPHP\CMS\Repositories\PageLayoutRepository;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 use function NixPHP\json;

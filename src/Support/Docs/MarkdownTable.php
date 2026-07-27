@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Support\Docs;
+namespace NixPHP\CMS\Support\Docs;
 
 final class MarkdownTable
 {

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
-use src\Repositories\UserRepository;
-use src\Services\Security\CredentialService;
+use NixPHP\CMS\Repositories\UserRepository;
+use NixPHP\CMS\Services\Security\CredentialService;
 use NixPHP\ORM\Core\EntityManager;
 use Tests\Support\DatabaseTestCase;
 

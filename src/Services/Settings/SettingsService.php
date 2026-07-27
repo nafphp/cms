@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Settings;
+namespace NixPHP\CMS\Services\Settings;
 
 use Closure;
-use src\Enums\Permission;
-use src\Repositories\SettingRepository;
-use src\Settings\SettingField;
-use src\Settings\SettingSection;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Repositories\SettingRepository;
+use NixPHP\CMS\Settings\SettingField;
+use NixPHP\CMS\Settings\SettingSection;
 use function NixPHP\config;
 use function NixPHP\I18n\t;
-use function NixCMS\cms;
-use function NixCMS\audit;
-use function NixCMS\user;
+use function NixPHP\CMS\cms;
+use function NixPHP\CMS\audit;
+use function NixPHP\CMS\user;
 
 final class SettingsService
 {

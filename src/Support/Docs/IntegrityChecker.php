@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Support\Docs;
+namespace NixPHP\CMS\Support\Docs;
 
-use src\Content\BlockViewRegistry;
-use src\Content\Page\Block\BlockTypeInterface;
-use src\Page\Layout;
-use function NixCMS\cms;
+use NixPHP\CMS\Content\BlockViewRegistry;
+use NixPHP\CMS\Content\Page\Block\BlockTypeInterface;
+use NixPHP\CMS\Page\Layout;
+use function NixPHP\CMS\cms;
 
 final class IntegrityChecker
 {

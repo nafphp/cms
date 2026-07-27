@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Content;
+namespace NixPHP\CMS\Services\Content;
 
-use src\Enums\ArticleStatus;
-use src\Localization\LanguageRegistry;
+use NixPHP\CMS\Enums\ArticleStatus;
+use NixPHP\CMS\Localization\LanguageRegistry;
 use PDO;
 use Throwable;
 use function NixPHP\Database\database;

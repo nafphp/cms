@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\User;
+namespace NixPHP\CMS\Handlers\Api\User;
 
-use src\Services\Security\PasswordPolicy;
+use NixPHP\CMS\Services\Security\PasswordPolicy;
 
 final class UserPayloadValidator
 {

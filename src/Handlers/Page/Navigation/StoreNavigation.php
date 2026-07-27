@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Page\Navigation;
+namespace NixPHP\CMS\Handlers\Page\Navigation;
 
-use src\Handlers\Support\ReadsJsonBody;
-use src\Navigation\Navigation;
+use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
+use NixPHP\CMS\Navigation\Navigation;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 use function NixPHP\json;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class StoreNavigation
 {

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Examples;
 
-use src\Content\ContentTypeInterface;
-use NixCMS\Examples\BlockType\ExampleQuoteBlockType;
-use src\Enums\Permission;
+use NixPHP\CMS\Content\ContentTypeInterface;
+use NixPHP\CMS\Examples\BlockType\ExampleQuoteBlockType;
+use NixPHP\CMS\Enums\Permission;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 use function NixPHP\MCP\tool;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class ExamplesSmokeTest extends TestCase
 {
@@ -50,7 +50,7 @@ final class ExamplesSmokeTest extends TestCase
 
         self::assertInstanceOf(ContentTypeInterface::class, $type);
         self::assertSame('Example product', $type->label());
-        self::assertSame('NixCMS\\Examples\\CustomContentType\\ExampleProduct', $type->modelClass());
+        self::assertSame('NixPHP\\CMS\\Examples\\CustomContentType\\ExampleProduct', $type->modelClass());
     }
 
     public function testBlockTypeExampleRegistersExpectedType(): void

@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-use src\Api\ApiEndpoint;
-use src\Enums\Permission;
-use src\Handlers\Api\Admin\ListArticles;
-use src\Handlers\Api\Article\DeleteArticleLocale;
-use src\Handlers\Api\Article\DeleteArticleVersion;
-use src\Handlers\Api\Article\EnqueueArticleTranslation;
-use src\Handlers\Api\Article\NextArticleVersion;
-use src\Handlers\Api\Article\PublishArticle;
-use src\Handlers\Api\Article\ReviewArticle;
-use src\Handlers\Api\Article\UploadArticleImage;
+use NixPHP\CMS\Api\ApiEndpoint;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Handlers\Api\Admin\ListArticles;
+use NixPHP\CMS\Handlers\Api\Article\DeleteArticleLocale;
+use NixPHP\CMS\Handlers\Api\Article\DeleteArticleVersion;
+use NixPHP\CMS\Handlers\Api\Article\EnqueueArticleTranslation;
+use NixPHP\CMS\Handlers\Api\Article\NextArticleVersion;
+use NixPHP\CMS\Handlers\Api\Article\PublishArticle;
+use NixPHP\CMS\Handlers\Api\Article\ReviewArticle;
+use NixPHP\CMS\Handlers\Api\Article\UploadArticleImage;
 
 return [
     ApiEndpoint::get('api.admin.articles', '/api/admin/articles')

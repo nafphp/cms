@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Form;
+namespace NixPHP\CMS\Services\Form;
 
-use src\Services\Security\FileRateLimiter;
-use src\Services\Security\RateLimitDecision;
+use NixPHP\CMS\Services\Security\FileRateLimiter;
+use NixPHP\CMS\Services\Security\RateLimitDecision;
 
 final class FormSubmissionGuard
 {

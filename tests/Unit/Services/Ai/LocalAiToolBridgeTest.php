@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Ai;
 
-use src\Contracts\LocalAiToolMetadataInterface;
-use src\Services\Ai\LocalAiToolBridge;
+use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
+use NixPHP\CMS\Services\Ai\LocalAiToolBridge;
 use NixPHP\Database\Core\Database;
 use NixPHP\MCP\Support\ToolRegistry;
 use NixPHP\MCP\Tools\ScopedToolInterface;

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Repositories;
+namespace NixPHP\CMS\Repositories;
 
-use src\Page\CustomLayoutNormalizer;
+use NixPHP\CMS\Page\CustomLayoutNormalizer;
 use PDO;
 use function NixPHP\Database\database;
 

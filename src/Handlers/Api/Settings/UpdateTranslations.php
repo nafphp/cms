@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Settings;
+namespace NixPHP\CMS\Handlers\Api\Settings;
 
-use src\Handlers\Support\ReadsJsonBody;
-use src\Services\Settings\TranslationFileService;
+use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
+use NixPHP\CMS\Services\Settings\TranslationFileService;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 

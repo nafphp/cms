@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace src\Repositories;
+namespace NixPHP\CMS\Repositories;
 
-use src\Enums\ArticleStatus;
-use src\Models\Article;
-use src\Models\ArticleVersion;
-use src\Models\Category;
-use src\Models\Tag;
+use NixPHP\CMS\Enums\ArticleStatus;
+use NixPHP\CMS\Models\Article;
+use NixPHP\CMS\Models\ArticleVersion;
+use NixPHP\CMS\Models\Category;
+use NixPHP\CMS\Models\Tag;
 use NixPHP\ORM\Repository\AbstractRepository;
-use src\Repositories\ArticleVersionRepository;
-use src\Repositories\CategoryRepository;
-use src\Repositories\TagRepository;
+use NixPHP\CMS\Repositories\ArticleVersionRepository;
+use NixPHP\CMS\Repositories\CategoryRepository;
+use NixPHP\CMS\Repositories\TagRepository;
 use function NixPHP\config;
 use function NixPHP\I18n\lang;
 use function NixPHP\ORM\em;
 use function NixPHP\ORM\repo;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 class ArticleRepository extends AbstractRepository
 {

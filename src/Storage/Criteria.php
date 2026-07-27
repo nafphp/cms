@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace src\Storage;
+namespace NixPHP\CMS\Storage;
 
 use BackedEnum;
 use DateTimeInterface;
-use src\Storage\Filter\ContainsFilter;
-use src\Storage\Filter\EqualsFilter;
-use src\Storage\Filter\FilterInterface;
-use src\Storage\Filter\InFilter;
-use src\Storage\Filter\NotEqualsFilter;
-use src\Storage\Filter\RangeFilter;
-use src\Storage\Sort;
+use NixPHP\CMS\Storage\Filter\ContainsFilter;
+use NixPHP\CMS\Storage\Filter\EqualsFilter;
+use NixPHP\CMS\Storage\Filter\FilterInterface;
+use NixPHP\CMS\Storage\Filter\InFilter;
+use NixPHP\CMS\Storage\Filter\NotEqualsFilter;
+use NixPHP\CMS\Storage\Filter\RangeFilter;
+use NixPHP\CMS\Storage\Sort;
 
 final class Criteria
 {

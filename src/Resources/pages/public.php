@@ -2,24 +2,26 @@
 
 declare(strict_types=1);
 
-use src\Content\Article\ArticleContentType;
-use src\Page\Layout;
-use src\Page\Page;
-use src\Page\PageBuilderRenderer;
-use src\Page\Template;
-use src\Repositories\ArticleRepository;
+use NixPHP\CMS\Content\Article\ArticleContentType;
+use NixPHP\CMS\Page\Layout;
+use NixPHP\CMS\Page\Page;
+use NixPHP\CMS\Page\PageBuilderRenderer;
+use NixPHP\CMS\Page\Template;
+use NixPHP\CMS\Repositories\ArticleRepository;
 use function NixPHP\I18n\lang;
 use function NixPHP\ORM\repo;
 use function NixPHP\response;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 $publicLayout = Layout::create(Template::create('default')
     ->setParent('page')
     ->addStylesheet('/css/nixcms.css')
     ->addBodyClass('grid min-h-screen place-items-center bg-slate-50 p-8 text-slate-950 dark:bg-slate-950 dark:text-slate-50'))
-    ->addBlock('welcome', 'page.blocks.welcome', [
+    ->addBlock('site_header', 'page.blocks.empty', ['label' => 'Site header', 'region' => 'header', 'size' => 'small'])
+    ->addBlock('main', 'page.blocks.welcome', [
         'title' => cms()->settings()->name(),
-    ]);
+    ])
+    ->addBlock('site_footer', 'page.blocks.empty', ['label' => 'Site footer', 'region' => 'footer', 'size' => 'small']);
 
 $articleLayout = Layout::create(Template::create('article_detail')
     ->setParent('page')

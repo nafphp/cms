@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Ai\ToolRouting;
+namespace NixPHP\CMS\Services\Ai\ToolRouting;
 
-use src\Services\Ai\ToolRouting\ToolContext;
-use src\Services\Ai\ToolRouting\ToolHardFilter;
-use src\Services\Ai\ToolRouting\ToolRoute;
-use src\Services\Ai\ToolRouting\ToolRouterInterface;
+use NixPHP\CMS\Services\Ai\ToolRouting\ToolContext;
+use NixPHP\CMS\Services\Ai\ToolRouting\ToolHardFilter;
+use NixPHP\CMS\Services\Ai\ToolRouting\ToolRoute;
+use NixPHP\CMS\Services\Ai\ToolRouting\ToolRouterInterface;
 
 final class KeywordToolRouter implements ToolRouterInterface
 {

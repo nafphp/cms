@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace src\Support\Docs;
+namespace NixPHP\CMS\Support\Docs;
 
-use src\Enums\Permission;
-use src\Page\Page;
-use src\Support\Docs\DocBlockRenderer;
-use src\Support\Docs\MarkdownTable;
-use function NixCMS\cms;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Page\Page;
+use NixPHP\CMS\Support\Docs\DocBlockRenderer;
+use NixPHP\CMS\Support\Docs\MarkdownTable;
+use function NixPHP\CMS\cms;
 
 final class PagesDocRenderer implements DocBlockRenderer
 {

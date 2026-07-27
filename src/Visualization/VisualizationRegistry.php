@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Visualization;
+namespace NixPHP\CMS\Visualization;
 
-use src\Visualization\ChartDefinition;
-use src\Visualization\ChartRenderer;
+use NixPHP\CMS\Visualization\ChartDefinition;
+use NixPHP\CMS\Visualization\ChartRenderer;
 
 final class VisualizationRegistry
 {

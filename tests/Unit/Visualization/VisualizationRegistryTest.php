@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Visualization;
 
-use src\Visualization\ChartDefinition;
-use src\Visualization\VisualizationRegistry;
+use NixPHP\CMS\Visualization\ChartDefinition;
+use NixPHP\CMS\Visualization\VisualizationRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class VisualizationRegistryTest extends TestCase

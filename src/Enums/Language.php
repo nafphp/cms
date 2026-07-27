@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Enums;
+namespace NixPHP\CMS\Enums;
 
 enum Language: string
 {

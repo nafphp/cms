@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Article;
+namespace NixPHP\CMS\Handlers\Api\Article;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use function NixPHP\json;
 use function NixPHP\request;
-use function NixCMS\cms;
-use function NixCMS\user;
+use function NixPHP\CMS\cms;
+use function NixPHP\CMS\user;
 
 final class UploadArticleImage
 {

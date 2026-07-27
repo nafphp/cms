@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Support;
+namespace NixPHP\CMS\Support;
 
-use src\Contracts\ScopeAwareInterface;
-use src\Api\ScopedNavigationApi;
-use src\Enums\Scope;
-use src\Support\Cms;
+use NixPHP\CMS\Contracts\ScopeAwareInterface;
+use NixPHP\CMS\Api\ScopedNavigationApi;
+use NixPHP\CMS\Enums\Scope;
+use NixPHP\CMS\Support\Cms;
 
 final class ScopedCms
 {

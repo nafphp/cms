@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mcp;
 
-use src\Mcp\Tools\ArticleDraftCreateTool;
+use NixPHP\CMS\Mcp\Tools\ArticleDraftCreateTool;
 use PHPUnit\Framework\TestCase;
 
 final class ArticleDraftCreateToolTest extends TestCase

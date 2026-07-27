@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Admin;
+namespace NixPHP\CMS\Services\Admin;
 
-use src\Page\Page;
-use src\Page\PageRegistry;
-use src\Support\UserHelper;
-use src\Services\Admin\AdminNavigationItemCollector;
-use src\Services\Admin\AdminNavigationTreeBuilder;
-use function NixCMS\cms;
-use function NixCMS\user;
+use NixPHP\CMS\Page\Page;
+use NixPHP\CMS\Page\PageRegistry;
+use NixPHP\CMS\Support\UserHelper;
+use NixPHP\CMS\Services\Admin\AdminNavigationItemCollector;
+use NixPHP\CMS\Services\Admin\AdminNavigationTreeBuilder;
+use function NixPHP\CMS\cms;
+use function NixPHP\CMS\user;
 
 final class AdminNavigationAuthorizationFilter
 {

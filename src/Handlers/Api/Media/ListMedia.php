@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Media;
+namespace NixPHP\CMS\Handlers\Api\Media;
 
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 use function NixPHP\request;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class ListMedia
 {

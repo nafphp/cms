@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace src\Mcp\Tools;
+namespace NixPHP\CMS\Mcp\Tools;
 
 use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;
 use function NixPHP\app;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class PluginOverviewTool implements ToolInterface, ScopedToolInterface
 {

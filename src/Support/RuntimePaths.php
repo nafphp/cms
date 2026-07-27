@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Support;
+namespace NixPHP\CMS\Support;
 
 use function NixPHP\app;
 use function NixPHP\config;

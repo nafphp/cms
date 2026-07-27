@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace src\Models;
+namespace NixPHP\CMS\Models;
 
-use src\Enums\Role as RoleEnum;
-use src\Enums\Permission as PermissionEnum;
-use src\Repositories\RoleRepository;
-use src\Repositories\UserRepository;
+use NixPHP\CMS\Enums\Role as RoleEnum;
+use NixPHP\CMS\Enums\Permission as PermissionEnum;
+use NixPHP\CMS\Repositories\RoleRepository;
+use NixPHP\CMS\Repositories\UserRepository;
 use NixPHP\ORM\Model\AbstractModel;
-use src\Models\Role;
+use NixPHP\CMS\Models\Role;
 use function NixPHP\ORM\repo;
 
 final class User extends AbstractModel

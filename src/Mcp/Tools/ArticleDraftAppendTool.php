@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace src\Mcp\Tools;
+namespace NixPHP\CMS\Mcp\Tools;
 
 use Closure;
-use src\Enums\ArticleStatus;
-use src\Models\Article;
-use src\Models\ArticleVersion;
+use NixPHP\CMS\Enums\ArticleStatus;
+use NixPHP\CMS\Models\Article;
+use NixPHP\CMS\Models\ArticleVersion;
 use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;
-use src\Mcp\Tools\ArticleLookupTool;
-use function NixCMS\cms;
+use NixPHP\CMS\Mcp\Tools\ArticleLookupTool;
+use function NixPHP\CMS\cms;
 
 final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface
 {

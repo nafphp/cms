@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Settings;
 
-use src\Localization\RuntimeTranslator;
-use src\Services\Settings\TranslationFileService;
+use NixPHP\CMS\Localization\RuntimeTranslator;
+use NixPHP\CMS\Services\Settings\TranslationFileService;
 use PHPUnit\Framework\TestCase;
 
 final class TranslationFileRuntimeTest extends TestCase

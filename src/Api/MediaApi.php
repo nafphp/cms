@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace src\Api;
+namespace NixPHP\CMS\Api;
 
-use src\Models\Media;
-use src\Services\Media\MediaPayload;
-use src\Services\Media\MediaStorageService;
-use src\Storage\Criteria;
-use src\Storage\EntityStorage;
-use src\Support\AuditEntry;
+use NixPHP\CMS\Models\Media;
+use NixPHP\CMS\Services\Media\MediaPayload;
+use NixPHP\CMS\Services\Media\MediaStorageService;
+use NixPHP\CMS\Storage\Criteria;
+use NixPHP\CMS\Storage\EntityStorage;
+use NixPHP\CMS\Support\AuditEntry;
 use Psr\Http\Message\UploadedFileInterface;
 
 /**

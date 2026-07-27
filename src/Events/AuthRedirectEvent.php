@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace src\Events;
+namespace NixPHP\CMS\Events;
 
-use src\Exceptions\AuthException;
-use src\Models\User;
+use NixPHP\CMS\Exceptions\AuthException;
+use NixPHP\CMS\Models\User;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\redirect;
 use function NixPHP\request;
 use function NixPHP\route;
 use function NixPHP\Session\session;
 use function NixPHP\View\render;
-use function NixCMS\user;
+use function NixPHP\CMS\user;
 
 class AuthRedirectEvent
 {

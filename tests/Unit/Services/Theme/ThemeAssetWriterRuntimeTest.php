@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Theme;
 
-use src\Services\Theme\ThemeAssetWriter;
+use NixPHP\CMS\Services\Theme\ThemeAssetWriter;
 use PHPUnit\Framework\TestCase;
 
 final class ThemeAssetWriterRuntimeTest extends TestCase

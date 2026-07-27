@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Visualization;
+namespace NixPHP\CMS\Visualization;
 
-use src\Visualization\ChartDefinition;
-use src\Visualization\EChartsOptionsFactory;
+use NixPHP\CMS\Visualization\ChartDefinition;
+use NixPHP\CMS\Visualization\EChartsOptionsFactory;
 
 final class ChartRenderer
 {
@@ -31,7 +31,7 @@ final class ChartRenderer
         $title = $this->escape((string) ($chart->title ?? ''));
         $subtitle = $this->escape((string) ($chart->subtitle ?? ''));
         $emptyText = $this->escape($chart->emptyText);
-        $surface = \src\Theme\Theme::slug((string) ($chart->options['surface'] ?? 'none')) ?: 'none';
+        $surface = \NixPHP\CMS\Theme\Theme::slug((string) ($chart->options['surface'] ?? 'none')) ?: 'none';
 
         return <<<HTML
 <figure class="nixcms-chart nixcms-chart--surface-{$this->escape($surface)}" data-nixcms-chart="{$this->escape($chart->id)}">

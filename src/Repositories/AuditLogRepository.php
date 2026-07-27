@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Repositories;
+namespace NixPHP\CMS\Repositories;
 
-use src\Support\AuditLogRecord;
+use NixPHP\CMS\Support\AuditLogRecord;
 use PDO;
 use function NixPHP\Database\database;
-use function NixCMS\audit_log;
+use function NixPHP\CMS\audit_log;
 
 final class AuditLogRepository
 {

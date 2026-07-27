@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Support;
+namespace NixPHP\CMS\Handlers\Support;
 
 use function NixPHP\request;
 

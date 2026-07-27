@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Theme;
+namespace NixPHP\CMS\Handlers\Api\Theme;
 
-use src\Handlers\Support\ReadsJsonBody;
-use src\Repositories\ThemeRepository;
-use src\Services\Theme\ThemeAssetWriter;
-use src\Theme\Theme;
+use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
+use NixPHP\CMS\Repositories\ThemeRepository;
+use NixPHP\CMS\Services\Theme\ThemeAssetWriter;
+use NixPHP\CMS\Theme\Theme;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 use function NixPHP\json;

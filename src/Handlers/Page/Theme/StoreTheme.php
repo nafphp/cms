@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Page\Theme;
+namespace NixPHP\CMS\Handlers\Page\Theme;
 
-use src\Repositories\ThemeRepository;
-use src\Services\Theme\ThemeAssetWriter;
-use src\Theme\Theme;
+use NixPHP\CMS\Repositories\ThemeRepository;
+use NixPHP\CMS\Services\Theme\ThemeAssetWriter;
+use NixPHP\CMS\Theme\Theme;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 use function NixPHP\redirect;

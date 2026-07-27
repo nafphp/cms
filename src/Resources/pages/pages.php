@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-use src\Content\Page\Block\PageBuilderBlockOptions;
-use src\Enums\Permission;
-use src\Page\Layout;
-use src\Page\Page;
-use src\Page\PageBuilderRenderer;
-use src\Handlers\Page\Pages\StorePage;
-use src\Page\Template;
-use src\Repositories\PageLayoutRepository;
+use NixPHP\CMS\Content\Page\Block\PageBuilderBlockOptions;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Page\Layout;
+use NixPHP\CMS\Page\Page;
+use NixPHP\CMS\Page\PageBuilderRenderer;
+use NixPHP\CMS\Handlers\Page\Pages\StorePage;
+use NixPHP\CMS\Page\Template;
+use NixPHP\CMS\Repositories\PageLayoutRepository;
 use function NixPHP\I18n\t;
 use function NixPHP\request;
 use function NixPHP\View\render;
 use Psr\Http\Message\ResponseInterface;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 $templateDefinitions = Layout::definitions(require __DIR__ . '/page_templates.php');
 

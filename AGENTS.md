@@ -115,7 +115,7 @@ The local assistant must not send the full MCP tool registry to the model once t
 
 - `LocalAiToolBridge::definitions()` enriches MCP tool definitions through `LocalAiToolCatalog`; do not maintain a parallel static capability list.
 - `LocalAiToolBridge::selectDefinitions()` is the stable entry point for the admin assistant and `/api/admin/ai/tools/select`.
-- Tool routing lives under `NixCMS\Services\Ai\ToolRouting`.
+- Tool routing lives under `NixPHP\CMS\Services\Ai\ToolRouting`.
 - Always apply deterministic hard filters before ranking: permissions/scopes from MCP identity, write intent, destructive intent, requested mode, requested capabilities, and UI area.
 - `KeywordToolRouter` is the reliable fallback router using routing text, parameters, examples, capabilities, mode, and UI context.
 - `SemanticToolRouter` is the primary orchestration point. When `ai.embedding_model` is configured it uses `CosineToolRouter` with `OllamaEmbeddingClient`; otherwise it falls back to `KeywordToolRouter`.
@@ -168,7 +168,7 @@ Audit entries record domain-relevant changes with redaction and actor metadata.
 - Prefer `audit()->record(AuditEntry::create(...))` when an explicit audit boundary makes the workflow clearer.
 - `AuditEntry::create(...)->record()` is equivalent and remains acceptable for compact domain actions.
 - Use `audit_log('action.name', 'subject', $id, $old, $new, $meta)` only for short direct calls where building the entry inline would add noise.
-- Keep actor resolution inside `NixCMS\Support\AuditActorResolver`; other code should not reach into global auth helpers just to build audit metadata.
+- Keep actor resolution inside `NixPHP\CMS\Support\AuditActorResolver`; other code should not reach into global auth helpers just to build audit metadata.
 
 ## Development Style
 
@@ -290,7 +290,7 @@ Follow these rules when extending HTTP behavior:
 - Define core content types in `app/content.php`.
 - Put content-type-specific logic under `app/Content/<Type>/`, for example `app/Content/Article/ArticleContentType.php`.
 - A content type should describe its ID, label, model class, API object, and type-specific helpers such as form/catalog/rendering services.
-- Article Editor.js block renderers live under `app/Content/Article/Block` and are registered through `NixCMS\Content\Article\BlockRegistry`.
+- Article Editor.js block renderers live under `app/Content/Article/Block` and are registered through `NixPHP\CMS\Content\Article\BlockRegistry`.
 - Do not add global CMS block registries for article-specific rendering; expose block extension through the Article content type.
 - Pages and API endpoints should reach article form/catalog/rendering behavior through the Article content type instead of directly creating scattered article services.
 - Treat articles as the first content type, not as a special HTTP architecture.
@@ -312,7 +312,7 @@ Follow these rules when extending HTTP behavior:
 ### Block View Registry
 
 - Register page-builder block view mappings through `cms()->blocks()`.
-- Core defaults live in `NixCMS\Content\BlockViewRegistry`; plugins may call `cms()->blocks()->add('mycustom', 'page.blocks.mycustom')` during bootstrap.
+- Core defaults live in `NixPHP\CMS\Content\BlockViewRegistry`; plugins may call `cms()->blocks()->add('mycustom', 'page.blocks.mycustom')` during bootstrap.
 - Keep aliases explicit in the registry constructor so agents can grep which block types share a view.
 - Unknown block types must fall back to `page.blocks.placeholder`.
 - Block views live under `src/views/page/blocks`; files directly inside that directory should be renderable blocks, while shared helpers belong in `src/views/page/blocks/_helpers`.
@@ -507,16 +507,16 @@ These can later become example plugins or separate integration plugins.
 
 Start with small modules that match real admin needs:
 
-- `NixCMS\Admin`: dashboard, navigation, layout, health/status panels.
-- `NixCMS\Auth`: login, logout, sessions, password hashing, invites, explicit auth modes.
-- `NixCMS\Users`: users, roles, permissions, account management.
-- `NixCMS\Content`: articles, versions, statuses, preview, publish, schedule, archive.
-- `NixCMS\Taxonomy`: categories and tags.
-- `NixCMS\Localization`: languages, translation helpers, language switching.
-- `NixCMS\Media`: uploads, media metadata, image handling.
-- `NixCMS\Jobs`: queue and scheduler integration.
-- `NixCMS\Mcp`: scope-aware tools exposing concrete CMS operations.
-- `NixCMS\Plugins`: admin navigation, permission, route, migration, command, job, scheduler, asset, and MCP registration points.
+- `NixPHP\CMS\Admin`: dashboard, navigation, layout, health/status panels.
+- `NixPHP\CMS\Auth`: login, logout, sessions, password hashing, invites, explicit auth modes.
+- `NixPHP\CMS\Users`: users, roles, permissions, account management.
+- `NixPHP\CMS\Content`: articles, versions, statuses, preview, publish, schedule, archive.
+- `NixPHP\CMS\Taxonomy`: categories and tags.
+- `NixPHP\CMS\Localization`: languages, translation helpers, language switching.
+- `NixPHP\CMS\Media`: uploads, media metadata, image handling.
+- `NixPHP\CMS\Jobs`: queue and scheduler integration.
+- `NixPHP\CMS\Mcp`: scope-aware tools exposing concrete CMS operations.
+- `NixPHP\CMS\Plugins`: admin navigation, permission, route, migration, command, job, scheduler, asset, and MCP registration points.
 
 Keep module boundaries plain PHP at first. Extract to Composer plugins when the seams are proven by use.
 

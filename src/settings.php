@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use src\Settings\SettingField;
-use src\Settings\SettingSection;
-use src\Enums\Permission;
-use function NixCMS\cms;
+use NixPHP\CMS\Settings\SettingField;
+use NixPHP\CMS\Settings\SettingSection;
+use NixPHP\CMS\Enums\Permission;
+use function NixPHP\CMS\cms;
 
 $languageOptions = array_combine(
     cms()->languages()->available(),

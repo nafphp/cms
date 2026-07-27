@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Storage;
 
-use src\Enums\ArticleStatus;
-use src\Models\Media;
-use src\Storage\Criteria;
-use src\Storage\EntityStorage;
+use NixPHP\CMS\Enums\ArticleStatus;
+use NixPHP\CMS\Models\Media;
+use NixPHP\CMS\Storage\Criteria;
+use NixPHP\CMS\Storage\EntityStorage;
 use Tests\Support\DatabaseTestCase;
 
 final class EntityStorageTest extends DatabaseTestCase

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Repositories;
+namespace NixPHP\CMS\Repositories;
 
-use src\Models\ArticleReviewAction;
+use NixPHP\CMS\Models\ArticleReviewAction;
 use NixPHP\ORM\Repository\AbstractRepository;
 
 class ArticleReviewActionRepository extends AbstractRepository

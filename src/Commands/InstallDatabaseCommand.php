@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace src\Commands;
+namespace NixPHP\CMS\Commands;
 
 use NixPHP\CLI\Core\AbstractCommand;
 use NixPHP\CLI\Core\Input;
 use NixPHP\CLI\Core\Output;
 use NixPHP\Database\Commands\MigrateCommand;
-use src\Commands\CreateDatabaseCommand;
+use NixPHP\CMS\Commands\CreateDatabaseCommand;
 use function NixPHP\app;
 
 class InstallDatabaseCommand extends AbstractCommand

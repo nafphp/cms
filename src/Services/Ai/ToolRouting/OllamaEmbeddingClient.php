@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Ai\ToolRouting;
+namespace NixPHP\CMS\Services\Ai\ToolRouting;
 
-use src\Exceptions\OutboundHttpDenied;
-use src\Services\Http\OutboundHttpClient;
-use src\Services\Http\OutboundHttpPolicy;
-use src\Services\Ai\ToolRouting\EmbeddingClientInterface;
-use src\Services\Http\OutboundHttpProfile;
-use src\Support\RuntimePaths;
+use NixPHP\CMS\Exceptions\OutboundHttpDenied;
+use NixPHP\CMS\Services\Http\OutboundHttpClient;
+use NixPHP\CMS\Services\Http\OutboundHttpPolicy;
+use NixPHP\CMS\Services\Ai\ToolRouting\EmbeddingClientInterface;
+use NixPHP\CMS\Services\Http\OutboundHttpProfile;
+use NixPHP\CMS\Support\RuntimePaths;
 use function NixPHP\config;
 use function NixPHP\log;
 

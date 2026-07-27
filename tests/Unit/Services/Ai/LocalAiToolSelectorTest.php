@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Ai;
 
-use src\Services\Ai\LocalAiToolCatalog;
-use src\Services\Ai\LocalAiToolSelector;
+use NixPHP\CMS\Services\Ai\LocalAiToolCatalog;
+use NixPHP\CMS\Services\Ai\LocalAiToolSelector;
 use PHPUnit\Framework\TestCase;
 
 final class LocalAiToolSelectorTest extends TestCase

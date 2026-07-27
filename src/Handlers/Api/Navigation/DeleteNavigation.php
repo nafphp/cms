@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Navigation;
+namespace NixPHP\CMS\Handlers\Api\Navigation;
 
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 use function NixPHP\json;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class DeleteNavigation
 {

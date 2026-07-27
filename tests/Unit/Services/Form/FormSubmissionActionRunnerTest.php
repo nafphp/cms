@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Form;
 
-use src\Services\Form\FormSubmissionActionRunner;
-use src\Services\Http\OutboundHttpPolicy;
+use NixPHP\CMS\Services\Form\FormSubmissionActionRunner;
+use NixPHP\CMS\Services\Http\OutboundHttpPolicy;
 use Tests\Support\NixPHPTestCase;
 
 final class FormSubmissionActionRunnerTest extends NixPHPTestCase

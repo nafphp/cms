@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support;
 
-use src\Repositories\AuditLogRepository;
-use src\Support\Audit;
-use src\Support\AuditActorInfo;
-use src\Support\AuditActorResolver;
-use src\Support\AuditEntry;
+use NixPHP\CMS\Repositories\AuditLogRepository;
+use NixPHP\CMS\Support\Audit;
+use NixPHP\CMS\Support\AuditActorInfo;
+use NixPHP\CMS\Support\AuditActorResolver;
+use NixPHP\CMS\Support\AuditEntry;
 use Tests\Support\DatabaseTestCase;
-use function NixCMS\audit;
-use function NixCMS\audit_log;
+use function NixPHP\CMS\audit;
+use function NixPHP\CMS\audit_log;
 
 final class AuditTest extends DatabaseTestCase
 {

@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace src\Controllers\Page;
+namespace NixPHP\CMS\Controllers\Page;
 
-use src\Page\PageDataHandler;
-use src\Page\Page;
-use src\Page\PageAuthorization;
-use src\Page\PageBuilderRenderer;
-use src\Support\HandlerInvoker;
+use NixPHP\CMS\Page\PageDataHandler;
+use NixPHP\CMS\Page\Page;
+use NixPHP\CMS\Page\PageAuthorization;
+use NixPHP\CMS\Page\PageBuilderRenderer;
+use NixPHP\CMS\Support\HandlerInvoker;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\I18n\t;
 use function NixPHP\request;
 use function NixPHP\response;
 use function NixPHP\route;
 use function NixPHP\View\view;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class PageController
 {

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Localization;
+namespace NixPHP\CMS\Localization;
 
-use src\Enums\Language;
-use src\Support\RuntimePaths;
+use NixPHP\CMS\Enums\Language;
+use NixPHP\CMS\Support\RuntimePaths;
 use function NixPHP\config;
 use function NixPHP\I18n\t;
 

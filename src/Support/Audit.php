@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Support;
+namespace NixPHP\CMS\Support;
 
-use src\Repositories\AuditLogRepository;
-use src\Support\AuditActorResolver;
-use src\Support\AuditEntry;
-use src\Support\AuditRedactor;
+use NixPHP\CMS\Repositories\AuditLogRepository;
+use NixPHP\CMS\Support\AuditActorResolver;
+use NixPHP\CMS\Support\AuditEntry;
+use NixPHP\CMS\Support\AuditRedactor;
 use function NixPHP\request;
 
 final class Audit

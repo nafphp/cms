@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Commands;
+namespace NixPHP\CMS\Commands;
 
-use src\Support\Docs\IntegrityChecker;
+use NixPHP\CMS\Support\Docs\IntegrityChecker;
 use NixPHP\CLI\Core\AbstractCommand;
 use NixPHP\CLI\Core\Input;
 use NixPHP\CLI\Core\Output;

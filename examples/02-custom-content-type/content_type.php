@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixCMS\Examples\CustomContentType;
+namespace NixPHP\CMS\Examples\CustomContentType;
 
-use src\Content\ContentTypeInterface;
-use function NixCMS\cms;
+use NixPHP\CMS\Content\ContentTypeInterface;
+use function NixPHP\CMS\cms;
 
 final class ExampleProductContentType implements ContentTypeInterface
 {

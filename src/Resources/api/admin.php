@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use src\Api\ApiEndpoint;
-use src\Enums\Permission;
-use src\Handlers\Api\Admin\GetRolesOverview;
-use src\Handlers\Api\Admin\GetSummary;
-use src\Handlers\Api\Admin\ListUsers;
+use NixPHP\CMS\Api\ApiEndpoint;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Handlers\Api\Admin\GetRolesOverview;
+use NixPHP\CMS\Handlers\Api\Admin\GetSummary;
+use NixPHP\CMS\Handlers\Api\Admin\ListUsers;
 
 return [
     ApiEndpoint::get('api.admin.summary', '/api/admin/summary')

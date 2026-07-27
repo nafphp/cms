@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Security;
+namespace NixPHP\CMS\Services\Security;
 
-use src\Services\Security\PasswordVerificationResult;
+use NixPHP\CMS\Services\Security\PasswordVerificationResult;
 
 class CredentialService
 {

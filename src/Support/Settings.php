@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace src\Support;
+namespace NixPHP\CMS\Support;
 
-use src\Repositories\SettingRepository;
-use src\Settings\SettingField;
-use src\Settings\SettingSection;
-use src\Settings\SettingsRegistry;
-use src\Services\Settings\TranslationFileService;
+use NixPHP\CMS\Repositories\SettingRepository;
+use NixPHP\CMS\Settings\SettingField;
+use NixPHP\CMS\Settings\SettingSection;
+use NixPHP\CMS\Settings\SettingsRegistry;
+use NixPHP\CMS\Services\Settings\TranslationFileService;
 use NixPHP\I18n\Core\Translator;
 use function NixPHP\app;
 use function NixPHP\config;
 use function NixPHP\request;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class Settings
 {

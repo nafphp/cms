@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Ai\ToolRouting;
+namespace NixPHP\CMS\Services\Ai\ToolRouting;
 
 interface EmbeddingClientInterface
 {

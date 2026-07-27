@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Theme;
 
-use src\Repositories\ThemeRepository;
-use src\Services\Theme\ThemeCodeNormalizer;
+use NixPHP\CMS\Repositories\ThemeRepository;
+use NixPHP\CMS\Services\Theme\ThemeCodeNormalizer;
 use Tests\Support\DatabaseTestCase;
 
 final class ThemeCodeNormalizationTest extends DatabaseTestCase

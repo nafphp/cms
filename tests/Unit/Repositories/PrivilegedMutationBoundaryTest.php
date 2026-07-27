@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
-use src\Exceptions\PrivilegedActionDenied;
-use src\Repositories\PermissionRepository;
-use src\Repositories\RoleRepository;
-use src\Repositories\UserRepository;
-use src\Services\Security\CredentialService;
+use NixPHP\CMS\Exceptions\PrivilegedActionDenied;
+use NixPHP\CMS\Repositories\PermissionRepository;
+use NixPHP\CMS\Repositories\RoleRepository;
+use NixPHP\CMS\Repositories\UserRepository;
+use NixPHP\CMS\Services\Security\CredentialService;
 use NixPHP\ORM\Core\EntityManager;
 use Tests\Support\DatabaseTestCase;
 

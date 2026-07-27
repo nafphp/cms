@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace src\Api;
+namespace NixPHP\CMS\Api;
 
-use src\Contracts\ScopeAwareInterface;
-use src\Enums\Scope;
-use src\Models\SiteNavigation;
-use src\Navigation\Navigation;
-use src\Navigation\NavigationItem;
-use src\Navigation\NavigationRegistry;
-use src\Repositories\NavigationRepository;
-use src\Storage\EntityStorage;
-use src\Support\AuditEntry;
-use src\Api\ScopedNavigationApi;
+use NixPHP\CMS\Contracts\ScopeAwareInterface;
+use NixPHP\CMS\Enums\Scope;
+use NixPHP\CMS\Models\SiteNavigation;
+use NixPHP\CMS\Navigation\Navigation;
+use NixPHP\CMS\Navigation\NavigationItem;
+use NixPHP\CMS\Navigation\NavigationRegistry;
+use NixPHP\CMS\Repositories\NavigationRepository;
+use NixPHP\CMS\Storage\EntityStorage;
+use NixPHP\CMS\Support\AuditEntry;
+use NixPHP\CMS\Api\ScopedNavigationApi;
 use function NixPHP\I18n\t;
 
 /**

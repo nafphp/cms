@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use src\Services\Developer\AgentGuideInstaller;
+use NixPHP\CMS\Services\Developer\AgentGuideInstaller;
 use NixPHP\CLI\Support\CommandRegistry;
 use PHPUnit\Framework\TestCase;
 use function NixPHP\app;

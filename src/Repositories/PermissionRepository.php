@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Repositories;
+namespace NixPHP\CMS\Repositories;
 
-use src\Models\Permission;
-use src\Services\Security\UserPrivilegePolicy;
+use NixPHP\CMS\Models\Permission;
+use NixPHP\CMS\Services\Security\UserPrivilegePolicy;
 use NixPHP\ORM\Repository\AbstractRepository;
 use function NixPHP\ORM\em;
 

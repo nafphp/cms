@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\User;
+namespace NixPHP\CMS\Handlers\Api\User;
 
-use src\Exceptions\PrivilegedActionDenied;
-use src\Handlers\Support\ReadsJsonBody;
-use src\Handlers\Support\RejectsPrivilegedAction;
-use src\Repositories\UserRepository;
-use src\Services\Security\PasswordPolicy;
-use src\Support\AuditEntry;
+use NixPHP\CMS\Exceptions\PrivilegedActionDenied;
+use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
+use NixPHP\CMS\Handlers\Support\RejectsPrivilegedAction;
+use NixPHP\CMS\Repositories\UserRepository;
+use NixPHP\CMS\Services\Security\PasswordPolicy;
+use NixPHP\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 use function NixPHP\ORM\repo;
-use function NixCMS\user;
+use function NixPHP\CMS\user;
 
 final class UpdateUserPassword
 {

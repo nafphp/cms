@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Migrations;
+namespace NixPHP\CMS\Migrations;
 
-use src\Enums\Permission;
-use src\Enums\Role;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Enums\Role;
 use NixPHP\Database\Core\AbstractMigration;
 use PDO;
 

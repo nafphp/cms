@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use src\Enums\Permission;
-use src\Handlers\Page\Theme\StoreTheme;
-use src\Page\Page;
-use src\Repositories\ThemeRepository;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Handlers\Page\Theme\StoreTheme;
+use NixPHP\CMS\Page\Page;
+use NixPHP\CMS\Repositories\ThemeRepository;
 use function NixPHP\I18n\t;
 use function NixPHP\redirect;
 use function NixPHP\request;

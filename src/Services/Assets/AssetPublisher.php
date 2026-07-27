@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Assets;
+namespace NixPHP\CMS\Services\Assets;
 
 use Composer\InstalledVersions;
-use src\Support\AtomicFileWriter;
-use src\Support\RuntimePaths;
+use NixPHP\CMS\Support\AtomicFileWriter;
+use NixPHP\CMS\Support\RuntimePaths;
 
 final class AssetPublisher
 {

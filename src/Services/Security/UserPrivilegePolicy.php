@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Security;
+namespace NixPHP\CMS\Services\Security;
 
-use src\Enums\Permission;
-use src\Enums\Role;
-use src\Exceptions\PrivilegedActionDenied;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Enums\Role;
+use NixPHP\CMS\Exceptions\PrivilegedActionDenied;
 use PDO;
 use function NixPHP\Database\database;
 

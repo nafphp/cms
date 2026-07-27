@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace src\Page;
+namespace NixPHP\CMS\Page;
 
 use NixPHP\I18n\Core\Translator;
-use src\Page\Layout;
-use src\Page\Page;
+use NixPHP\CMS\Page\Layout;
+use NixPHP\CMS\Page\Page;
 use function NixPHP\app;
 use function NixPHP\I18n\t;
 use function NixPHP\log;

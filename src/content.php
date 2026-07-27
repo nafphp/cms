@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use src\Content\Article\ArticleContentType;
-use src\Content\Form\FormContentType;
-use src\Content\Media\MediaContentType;
-use src\Content\Navigation\NavigationContentType;
+use NixPHP\CMS\Content\Article\ArticleContentType;
+use NixPHP\CMS\Content\Form\FormContentType;
+use NixPHP\CMS\Content\Media\MediaContentType;
+use NixPHP\CMS\Content\Navigation\NavigationContentType;
 
 return [
     new ArticleContentType(),

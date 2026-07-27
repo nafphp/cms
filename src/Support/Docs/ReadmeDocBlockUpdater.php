@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Support\Docs;
+namespace NixPHP\CMS\Support\Docs;
 
-use src\Support\Docs\DocBlockRenderer;
+use NixPHP\CMS\Support\Docs\DocBlockRenderer;
 
 final class ReadmeDocBlockUpdater
 {

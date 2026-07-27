@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Page;
+namespace NixPHP\CMS\Handlers\Api\Page;
 
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class DeletePage
 {

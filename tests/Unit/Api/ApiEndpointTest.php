@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Api;
 
-use src\Api\ApiEndpoint;
-use src\Enums\Permission;
-use src\Enums\Role;
+use NixPHP\CMS\Api\ApiEndpoint;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Enums\Role;
 use PHPUnit\Framework\TestCase;
 
 final class ApiEndpointTest extends TestCase

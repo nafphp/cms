@@ -1,0 +1,18 @@
+<?php
+
+use function NixPHP\View\s;
+use function NixPHP\I18n\t;
+use function NixPHP\CMS\cms;
+
+$settings = cms()->settings();
+
+?>
+<main class="w-[min(720px,100%)]">
+    <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-accent"><?= s(t('Nothing published yet')) ?></p>
+    <h1 class="m-0 text-[42px] leading-[1.1]"><?= s($settings->name()) ?></h1>
+    <p><?= s(t('This is the built-in placeholder for the home page. No page has been created for this address yet — as soon as you publish one, it replaces this screen.')) ?></p>
+    <div class="mt-6 flex flex-wrap items-center gap-3">
+        <a class="inline-flex min-h-10 items-center justify-center rounded-lg bg-accent px-4 text-sm font-bold text-white" href="/admin/pages/create"><?= s(t('Create the first page')) ?></a>
+        <a class="inline-flex min-h-10 items-center justify-center rounded-lg px-4 text-sm font-bold underline" href="/admin"><?= s(t('Open admin')) ?></a>
+    </div>
+</main>

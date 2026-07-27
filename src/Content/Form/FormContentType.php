@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Content\Form;
+namespace NixPHP\CMS\Content\Form;
 
-use src\Api\FormApi;
-use src\Content\ContentTypeInterface;
-use src\Models\Form;
-use src\Repositories\FormRepository;
+use NixPHP\CMS\Api\FormApi;
+use NixPHP\CMS\Content\ContentTypeInterface;
+use NixPHP\CMS\Models\Form;
+use NixPHP\CMS\Repositories\FormRepository;
 
 final class FormContentType implements ContentTypeInterface
 {

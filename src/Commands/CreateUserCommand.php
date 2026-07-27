@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace src\Commands;
+namespace NixPHP\CMS\Commands;
 
-use src\Enums\Role as RoleName;
-use src\Models\Role;
-use src\Models\User;
-use src\Repositories\RoleRepository;
-use src\Repositories\UserRepository;
-use src\Services\Security\PasswordPolicy;
+use NixPHP\CMS\Enums\Role as RoleName;
+use NixPHP\CMS\Models\Role;
+use NixPHP\CMS\Models\User;
+use NixPHP\CMS\Repositories\RoleRepository;
+use NixPHP\CMS\Repositories\UserRepository;
+use NixPHP\CMS\Services\Security\PasswordPolicy;
 use NixPHP\CLI\Core\AbstractCommand;
 use NixPHP\CLI\Core\Input;
 use NixPHP\CLI\Core\Output;

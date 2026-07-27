@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Ai\ToolRouting;
 
-use src\Services\Ai\LocalAiToolCatalog;
-use src\Services\Ai\ToolRouting\CosineToolRouter;
-use src\Services\Ai\ToolRouting\KeywordToolRouter;
-use src\Services\Ai\ToolRouting\OllamaEmbeddingClient;
-use src\Services\Ai\ToolRouting\ToolContext;
-use src\Services\Http\OutboundHttpClient;
-use src\Services\Http\OutboundHttpPolicy;
-use src\Services\Http\OutboundHttpProfile;
+use NixPHP\CMS\Services\Ai\LocalAiToolCatalog;
+use NixPHP\CMS\Services\Ai\ToolRouting\CosineToolRouter;
+use NixPHP\CMS\Services\Ai\ToolRouting\KeywordToolRouter;
+use NixPHP\CMS\Services\Ai\ToolRouting\OllamaEmbeddingClient;
+use NixPHP\CMS\Services\Ai\ToolRouting\ToolContext;
+use NixPHP\CMS\Services\Http\OutboundHttpClient;
+use NixPHP\CMS\Services\Http\OutboundHttpPolicy;
+use NixPHP\CMS\Services\Http\OutboundHttpProfile;
 use Tests\Support\NixPHPTestCase;
 
 final class OllamaEmbeddingClientSecurityTest extends NixPHPTestCase

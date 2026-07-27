@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NixCMS\Examples\CustomContentType;
+namespace NixPHP\CMS\Examples\CustomContentType;
 
 use NixPHP\ORM\Model\AbstractModel;
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Assets;
 
-use src\Services\Assets\AssetPublisher;
+use NixPHP\CMS\Services\Assets\AssetPublisher;
 use PHPUnit\Framework\TestCase;
 
 final class AssetPublisherTest extends TestCase

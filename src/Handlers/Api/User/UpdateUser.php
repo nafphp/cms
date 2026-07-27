@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\User;
+namespace NixPHP\CMS\Handlers\Api\User;
 
-use src\Handlers\Api\User\UserPayloadValidator;
-use src\Handlers\Support\ReadsJsonBody;
-use src\Repositories\UserRepository;
-use src\Support\AuditEntry;
+use NixPHP\CMS\Handlers\Api\User\UserPayloadValidator;
+use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
+use NixPHP\CMS\Repositories\UserRepository;
+use NixPHP\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 use function NixPHP\ORM\repo;

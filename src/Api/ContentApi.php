@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Api;
+namespace NixPHP\CMS\Api;
 
 use NixPHP\ORM\Core\EntityInterface;
 use NixPHP\ORM\Repository\AbstractRepository;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mcp;
 
-use src\Enums\ArticleStatus;
-use src\Mcp\Tools\ArticleDraftAppendTool;
-use src\Models\Article;
+use NixPHP\CMS\Enums\ArticleStatus;
+use NixPHP\CMS\Mcp\Tools\ArticleDraftAppendTool;
+use NixPHP\CMS\Models\Article;
 use Tests\Support\NixPHPTestCase;
 
 final class ArticleDraftAppendToolTest extends NixPHPTestCase

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace src\Repositories;
+namespace NixPHP\CMS\Repositories;
 
-use src\Enums\Permission as PermissionEnum;
-use src\Models\User;
-use src\Services\Security\CredentialService;
-use src\Services\Security\PasswordPolicy;
-use src\Services\Security\UserPrivilegePolicy;
+use NixPHP\CMS\Enums\Permission as PermissionEnum;
+use NixPHP\CMS\Models\User;
+use NixPHP\CMS\Services\Security\CredentialService;
+use NixPHP\CMS\Services\Security\PasswordPolicy;
+use NixPHP\CMS\Services\Security\UserPrivilegePolicy;
 use DateInterval;
 use DateTimeImmutable;
 use NixPHP\ORM\Core\EntityManager;

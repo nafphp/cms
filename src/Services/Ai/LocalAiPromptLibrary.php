@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Ai;
+namespace NixPHP\CMS\Services\Ai;
 
-use src\Support\AtomicFileWriter;
-use src\Support\RuntimePaths;
+use NixPHP\CMS\Support\AtomicFileWriter;
+use NixPHP\CMS\Support\RuntimePaths;
 use function NixPHP\log;
 
 final class LocalAiPromptLibrary

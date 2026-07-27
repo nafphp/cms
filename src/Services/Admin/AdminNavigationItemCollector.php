@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Admin;
+namespace NixPHP\CMS\Services\Admin;
 
-use src\Api\ScopedNavigationApi;
-use src\Enums\Scope;
-use src\Page\Page;
-use src\Page\PageRegistry;
-use function NixCMS\cms;
+use NixPHP\CMS\Api\ScopedNavigationApi;
+use NixPHP\CMS\Enums\Scope;
+use NixPHP\CMS\Page\Page;
+use NixPHP\CMS\Page\PageRegistry;
+use function NixPHP\CMS\cms;
 use function NixPHP\config;
 
 final class AdminNavigationItemCollector

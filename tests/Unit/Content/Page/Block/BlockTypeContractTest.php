@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Content\Page\Block;
 
-use src\Content\BlockViewRegistry;
-use src\Content\Page\Block\BlockTypeInterface;
+use NixPHP\CMS\Content\BlockViewRegistry;
+use NixPHP\CMS\Content\Page\Block\BlockTypeInterface;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class BlockTypeContractTest extends TestCase
 {

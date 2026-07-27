@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace src\Mcp\Tools;
+namespace NixPHP\CMS\Mcp\Tools;
 
 use Closure;
-use src\Localization\LanguageRegistry;
-use src\Support\Slug;
+use NixPHP\CMS\Localization\LanguageRegistry;
+use NixPHP\CMS\Support\Slug;
 use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class ArticleDraftCreateTool implements ToolInterface, ScopedToolInterface
 {

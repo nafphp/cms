@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Ai;
+namespace NixPHP\CMS\Handlers\Api\Ai;
 
-use src\Handlers\Support\ReadsJsonBody;
-use src\Services\Ai\LocalAiToolBridge;
+use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
+use NixPHP\CMS\Services\Ai\LocalAiToolBridge;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 use function NixPHP\json;

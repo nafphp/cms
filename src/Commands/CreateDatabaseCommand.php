@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Commands;
+namespace NixPHP\CMS\Commands;
 
 use NixPHP\CLI\Core\AbstractCommand;
 use NixPHP\CLI\Core\Input;

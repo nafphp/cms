@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Media;
 
-use src\Models\Media;
-use src\Services\Media\MediaStorageService;
-use src\Storage\EntityStorage;
+use NixPHP\CMS\Models\Media;
+use NixPHP\CMS\Services\Media\MediaStorageService;
+use NixPHP\CMS\Storage\EntityStorage;
 use Nyholm\Psr7\Stream;
 use Nyholm\Psr7\UploadedFile;
 use Tests\Support\DatabaseTestCase;

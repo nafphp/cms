@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Api;
+namespace NixPHP\CMS\Api;
 
-use src\Models\Form;
-use src\Repositories\FormRepository;
-use src\Storage\EntityStorage;
-use src\Support\AuditEntry;
+use NixPHP\CMS\Models\Form;
+use NixPHP\CMS\Repositories\FormRepository;
+use NixPHP\CMS\Storage\EntityStorage;
+use NixPHP\CMS\Support\AuditEntry;
 
 /**
  * Domain API for forms. Exposes form-specific behaviour and delegates persistence/queries to FormRepository.

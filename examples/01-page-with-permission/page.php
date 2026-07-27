@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use src\Enums\Permission;
-use src\Page\Page;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Page\Page;
 use function NixPHP\View\view;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 cms()->pages()->add(
     Page::create('example.reports')

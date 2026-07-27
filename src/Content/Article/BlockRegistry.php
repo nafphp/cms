@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace src\Content\Article;
+namespace NixPHP\CMS\Content\Article;
 
-use use src\Content\Article\Block\BlockInterface;
-use src\Content\Article\Block\CodeBlock;
-use src\Content\Article\Block\EmbedBlock;
-use src\Content\Article\Block\HeaderBlock;
-use src\Content\Article\Block\ImageBlock;
-use src\Content\Article\Block\ListBlock;
-use src\Content\Article\Block\ParagraphBlock;
-use src\Content\Article\Block\QuoteBlock;
-use src\Content\Article\Block\TableBlock;
+use NixPHP\CMS\Content\Article\Block\BlockInterface;
+use NixPHP\CMS\Content\Article\Block\CodeBlock;
+use NixPHP\CMS\Content\Article\Block\EmbedBlock;
+use NixPHP\CMS\Content\Article\Block\HeaderBlock;
+use NixPHP\CMS\Content\Article\Block\ImageBlock;
+use NixPHP\CMS\Content\Article\Block\ListBlock;
+use NixPHP\CMS\Content\Article\Block\ParagraphBlock;
+use NixPHP\CMS\Content\Article\Block\QuoteBlock;
+use NixPHP\CMS\Content\Article\Block\TableBlock;
 
 /**
  * Registry mapping Editor.js block type strings to BlockInterface classes.

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Media;
+namespace NixPHP\CMS\Services\Media;
 
-use src\Models\Media;
-use src\Storage\EntityStorage;
-use src\Support\Slug;
+use NixPHP\CMS\Models\Media;
+use NixPHP\CMS\Storage\EntityStorage;
+use NixPHP\CMS\Support\Slug;
 use Psr\Http\Message\UploadedFileInterface;
-use src\Services\Media\MediaPayload;
+use NixPHP\CMS\Services\Media\MediaPayload;
 use function NixPHP\config;
 use function NixPHP\I18n\t;
 

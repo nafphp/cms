@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Ai\ToolRouting;
+namespace NixPHP\CMS\Services\Ai\ToolRouting;
 
-use src\Services\Ai\ToolRouting\EmbeddingClientInterface;
-use src\Services\Ai\ToolRouting\KeywordToolRouter;
-use src\Services\Ai\ToolRouting\RoutingTelemetry;
-use src\Services\Ai\ToolRouting\ToolContext;
-use src\Services\Ai\ToolRouting\ToolHardFilter;
-use src\Services\Ai\ToolRouting\ToolRoute;
-use src\Services\Ai\ToolRouting\ToolRouterInterface;
-use function NixCMS\audit_log;
-use function NixCMS\cms;
+use NixPHP\CMS\Services\Ai\ToolRouting\EmbeddingClientInterface;
+use NixPHP\CMS\Services\Ai\ToolRouting\KeywordToolRouter;
+use NixPHP\CMS\Services\Ai\ToolRouting\RoutingTelemetry;
+use NixPHP\CMS\Services\Ai\ToolRouting\ToolContext;
+use NixPHP\CMS\Services\Ai\ToolRouting\ToolHardFilter;
+use NixPHP\CMS\Services\Ai\ToolRouting\ToolRoute;
+use NixPHP\CMS\Services\Ai\ToolRouting\ToolRouterInterface;
+use function NixPHP\CMS\audit_log;
+use function NixPHP\CMS\cms;
 use function NixPHP\log;
 
 final class CosineToolRouter implements ToolRouterInterface

@@ -1,0 +1,21 @@
+<?php
+
+use NixPHP\CMS\Page\PageNestedBlockRenderer;
+use NixPHP\CMS\Theme\Theme;
+use function NixPHP\View\s;
+
+$content = is_array($content ?? null) ? $content : [];
+$props = is_array($content['props'] ?? null) ? $content['props'] : [];
+$children = is_array($props['children'] ?? null) ? $props['children'] : [];
+$width = (string) ($props['width'] ?? 'default');
+$width = in_array($width, ['default', 'narrow', 'wide', 'full'], true) ? $width : 'default';
+$padding = (string) ($props['padding'] ?? 'medium');
+$padding = in_array($padding, ['none', 'small', 'medium', 'large'], true) ? $padding : 'medium';
+$tone = Theme::slug((string) ($props['tone'] ?? 'none')) ?: 'none';
+$renderer = isset($nestedRenderer) && $nestedRenderer instanceof PageNestedBlockRenderer ? $nestedRenderer : new PageNestedBlockRenderer();
+$depth = (int) ($nestedDepth ?? 0);
+
+?>
+<section class="page-layout-block page-layout-section page-layout-section--<?= s($width) ?> page-layout-section--padding-<?= s($padding) ?> page-layout-section--tone-<?= s($tone) ?>">
+    <?= $renderer->renderMany($children, get_defined_vars(), $depth) ?>
+</section>

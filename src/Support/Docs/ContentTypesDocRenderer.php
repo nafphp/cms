@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Support\Docs;
+namespace NixPHP\CMS\Support\Docs;
 
-use src\Content\ContentTypeInterface;
-use src\Support\Docs\DocBlockRenderer;
-use src\Support\Docs\MarkdownTable;
-use function NixCMS\cms;
+use NixPHP\CMS\Content\ContentTypeInterface;
+use NixPHP\CMS\Support\Docs\DocBlockRenderer;
+use NixPHP\CMS\Support\Docs\MarkdownTable;
+use function NixPHP\CMS\cms;
 
 final class ContentTypesDocRenderer implements DocBlockRenderer
 {

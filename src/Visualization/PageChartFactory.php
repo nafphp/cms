@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Visualization;
+namespace NixPHP\CMS\Visualization;
 
-use src\Visualization\ChartDefinition;
-use function NixCMS\Visualization\t;
+use NixPHP\CMS\Visualization\ChartDefinition;
+use function NixPHP\CMS\Visualization\t;
 use function NixPHP\I18n\t as i18n_t;
 
 final class PageChartFactory
@@ -213,7 +213,7 @@ final class PageChartFactory
 
     private function surface(mixed $surface): string
     {
-        return \src\Theme\Theme::slug((string) $surface) ?: 'none';
+        return \NixPHP\CMS\Theme\Theme::slug((string) $surface) ?: 'none';
     }
 
     private function height(mixed $value): int

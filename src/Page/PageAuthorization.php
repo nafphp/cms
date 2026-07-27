@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Page;
+namespace NixPHP\CMS\Page;
 
-use src\Enums\Permission;
-use src\Exceptions\AuthException;
-use src\Page\Page;
-use function NixCMS\user;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Exceptions\AuthException;
+use NixPHP\CMS\Page\Page;
+use function NixPHP\CMS\user;
 
 final class PageAuthorization
 {

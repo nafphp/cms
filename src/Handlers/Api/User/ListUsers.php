@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\User;
+namespace NixPHP\CMS\Handlers\Api\User;
 
-use src\Repositories\UserRepository;
+use NixPHP\CMS\Repositories\UserRepository;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 use function NixPHP\ORM\repo;

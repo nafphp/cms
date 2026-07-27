@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use src\Page\Layout;
-use src\Page\Template;
+use NixPHP\CMS\Page\Layout;
+use NixPHP\CMS\Page\Template;
 
 $page = static fn(string $view): Template => Template::create($view)->setParent('page');
 

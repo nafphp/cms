@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Content;
+namespace NixPHP\CMS\Services\Content;
 
-use src\Content\Article\Block\ParagraphBlock;
-use src\Content\Article\BlockRegistry;
+use NixPHP\CMS\Content\Article\Block\ParagraphBlock;
+use NixPHP\CMS\Content\Article\BlockRegistry;
 
 final class ArticleRenderer
 {

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Settings;
+namespace NixPHP\CMS\Settings;
 
-use src\Settings\SettingField;
-use src\Settings\SettingSection;
+use NixPHP\CMS\Settings\SettingField;
+use NixPHP\CMS\Settings\SettingSection;
 
 final class SettingsRegistry
 {

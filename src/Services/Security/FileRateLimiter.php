@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Security;
+namespace NixPHP\CMS\Services\Security;
 
 use Closure;
-use src\Support\RuntimePaths;
-use src\Services\Security\RateLimitDecision;
+use NixPHP\CMS\Support\RuntimePaths;
+use NixPHP\CMS\Services\Security\RateLimitDecision;
 
 final class FileRateLimiter
 {

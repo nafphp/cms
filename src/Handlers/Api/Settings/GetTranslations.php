@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Settings;
+namespace NixPHP\CMS\Handlers\Api\Settings;
 
-use src\Services\Settings\TranslationFileService;
+use NixPHP\CMS\Services\Settings\TranslationFileService;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class GetTranslations
 {

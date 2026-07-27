@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Developer;
+namespace NixPHP\CMS\Services\Developer;
 
-use src\Support\AtomicFileWriter;
+use NixPHP\CMS\Support\AtomicFileWriter;
 
 final class AgentGuideInstaller
 {

@@ -87,19 +87,19 @@ grep -q 'managed-by: fkde/nixcms agent-guide' "$FIXTURE_ROOT/AGENTS.md"
     require "vendor/autoload.php";
     $app = NixPHP\app();
     $plugin = $app->getPlugin("fkde/nixcms");
-    $before = [count(NixCMS\cms()->pages()->all()), count(NixCMS\cms()->blockTypes()->all())];
+    $before = [count(NixPHP\CMS\cms()->pages()->all()), count(NixPHP\CMS\cms()->blockTypes()->all())];
     $plugin->boot();
-    $after = [count(NixCMS\cms()->pages()->all()), count(NixCMS\cms()->blockTypes()->all())];
+    $after = [count(NixPHP\CMS\cms()->pages()->all()), count(NixPHP\CMS\cms()->blockTypes()->all())];
     if ($before !== $after) throw new RuntimeException("Plugin bootstrap is not idempotent.");
     if (NixPHP\View\render("page.blocks.empty")->getStatusCode() !== 200) throw new RuntimeException("Plugin view failed.");
-    if (NixCMS\cms()->pages()->require("admin.dashboard")->path() !== "/admin") throw new RuntimeException("Admin route missing.");
+    if (NixPHP\CMS\cms()->pages()->require("admin.dashboard")->path() !== "/admin") throw new RuntimeException("Admin route missing.");
     if ($app->container()->get(NixPHP\CLI\Support\CommandRegistry::class)->get("user:create") === null) throw new RuntimeException("CMS command missing.");
     $identity = new NixPHP\MCP\Auth\McpIdentity("smoke", "Smoke", ["system:read"]);
     $health = $app->container()->get(NixPHP\MCP\Support\ToolRegistry::class)->call("cms_system_health", [], $identity);
     if (($health["database"]["available"] ?? false) !== true) throw new RuntimeException("Scoped MCP health tool failed.");
-    (new NixCMS\Services\Ai\LocalAiPromptLibrary())->savePromptFile("IDENTITY.md", "Host override");
-    (new NixCMS\Services\Settings\TranslationFileService())->save("de", ["Dashboard" => "Host-Dashboard"]);
-    (new NixCMS\Services\Theme\ThemeAssetWriter())->write("smoke", ".theme-smoke { color: red; }");
+    (new NixPHP\CMS\Services\Ai\LocalAiPromptLibrary())->savePromptFile("IDENTITY.md", "Host override");
+    (new NixPHP\CMS\Services\Settings\TranslationFileService())->save("de", ["Dashboard" => "Host-Dashboard"]);
+    (new NixPHP\CMS\Services\Theme\ThemeAssetWriter())->write("smoke", ".theme-smoke { color: red; }");
 ')
 
 AFTER_HASH="$(package_hash)"

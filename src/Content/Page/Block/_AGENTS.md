@@ -1,4 +1,4 @@
-Page builder BlockTypes live in `Types/` and are rendered through `NixCMS\Content\BlockViewRegistry`.
+Page builder BlockTypes live in `Types/` and are rendered through `NixPHP\CMS\Content\BlockViewRegistry`.
 
 Naming convention:
 

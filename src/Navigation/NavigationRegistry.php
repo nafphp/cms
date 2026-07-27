@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Navigation;
+namespace NixPHP\CMS\Navigation;
 
-use src\Navigation\Navigation;
-use src\Navigation\NavigationItem;
+use NixPHP\CMS\Navigation\Navigation;
+use NixPHP\CMS\Navigation\NavigationItem;
 
 final class NavigationRegistry
 {

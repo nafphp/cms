@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Support;
+namespace NixPHP\CMS\Support;
 
-use use ReflectionFunction;
+use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionNamedType;
 use function NixPHP\app;

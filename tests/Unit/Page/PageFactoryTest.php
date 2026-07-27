@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Page;
 
-use src\Enums\Permission;
-use src\Page\PageFactory;
-use src\Page\PageBuilderRenderer;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Page\PageFactory;
+use NixPHP\CMS\Page\PageBuilderRenderer;
 use PHPUnit\Framework\TestCase;
 
 final class PageFactoryTest extends TestCase

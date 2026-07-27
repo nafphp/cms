@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use src\Api\ApiEndpoint;
-use src\Enums\Permission;
-use src\Handlers\Api\User\CreateInvite;
-use src\Handlers\Api\User\DeleteUser;
-use src\Handlers\Api\User\ListUsers;
-use src\Handlers\Api\User\StoreUser;
-use src\Handlers\Api\User\UpdateUser;
-use src\Handlers\Api\User\UpdateUserPassword;
-use src\Handlers\Api\User\UpdateUserRoles;
+use NixPHP\CMS\Api\ApiEndpoint;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Handlers\Api\User\CreateInvite;
+use NixPHP\CMS\Handlers\Api\User\DeleteUser;
+use NixPHP\CMS\Handlers\Api\User\ListUsers;
+use NixPHP\CMS\Handlers\Api\User\StoreUser;
+use NixPHP\CMS\Handlers\Api\User\UpdateUser;
+use NixPHP\CMS\Handlers\Api\User\UpdateUserPassword;
+use NixPHP\CMS\Handlers\Api\User\UpdateUserRoles;
 
 return [
     ApiEndpoint::get('api.admin.users.list', '/api/admin/users/list')

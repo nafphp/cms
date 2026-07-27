@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Rbac;
+namespace NixPHP\CMS\Handlers\Api\Rbac;
 
-use src\Repositories\PermissionRepository;
+use NixPHP\CMS\Repositories\PermissionRepository;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 use function NixPHP\ORM\repo;

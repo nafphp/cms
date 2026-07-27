@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Security;
 
-use src\Security\InlineHtmlSanitizer;
+use NixPHP\CMS\Security\InlineHtmlSanitizer;
 use PHPUnit\Framework\TestCase;
 use function NixPHP\View\s;
 

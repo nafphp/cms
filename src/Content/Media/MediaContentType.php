@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace src\Content\Media;
+namespace NixPHP\CMS\Content\Media;
 
-use src\Api\MediaApi;
-use src\Content\ContentTypeInterface;
-use src\Models\Media;
-use src\Services\Media\MediaStorageService;
-use src\Storage\EntityStorage;
+use NixPHP\CMS\Api\MediaApi;
+use NixPHP\CMS\Content\ContentTypeInterface;
+use NixPHP\CMS\Models\Media;
+use NixPHP\CMS\Services\Media\MediaStorageService;
+use NixPHP\CMS\Storage\EntityStorage;
 
 final class MediaContentType implements ContentTypeInterface
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Page;
+namespace NixPHP\CMS\Page;
 
 /**
  * Render description for a concrete .phtml template and its optional parent.

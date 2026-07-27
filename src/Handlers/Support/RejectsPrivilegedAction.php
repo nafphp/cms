@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Support;
+namespace NixPHP\CMS\Handlers\Support;
 
-use src\Exceptions\PrivilegedActionDenied;
-use src\Support\AuditEntry;
+use NixPHP\CMS\Exceptions\PrivilegedActionDenied;
+use NixPHP\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 

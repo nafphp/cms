@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixCMS\Examples\BlockType;
+namespace NixPHP\CMS\Examples\BlockType;
 
-use src\Content\Page\Block\AbstractBlockType;
-use function NixCMS\cms;
+use NixPHP\CMS\Content\Page\Block\AbstractBlockType;
+use function NixPHP\CMS\cms;
 
 final class ExampleQuoteBlockType extends AbstractBlockType
 {

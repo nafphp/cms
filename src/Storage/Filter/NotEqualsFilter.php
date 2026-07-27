@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Storage\Filter;
+namespace NixPHP\CMS\Storage\Filter;
 
-use src\Storage\Filter\FilterInterface;
+use NixPHP\CMS\Storage\Filter\FilterInterface;
 
 final readonly class NotEqualsFilter implements FilterInterface
 {

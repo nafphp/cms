@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Admin;
+namespace NixPHP\CMS\Services\Admin;
 
-use src\Enums\ArticleStatus;
-use src\Repositories\ArticleRepository;
-use src\Repositories\PermissionRepository;
-use src\Repositories\RoleRepository;
-use src\Repositories\UserRepository;
-use src\Visualization\ChartDataset;
-use src\Visualization\ChartDefinition;
-use src\Support\RuntimePaths;
+use NixPHP\CMS\Enums\ArticleStatus;
+use NixPHP\CMS\Repositories\ArticleRepository;
+use NixPHP\CMS\Repositories\PermissionRepository;
+use NixPHP\CMS\Repositories\RoleRepository;
+use NixPHP\CMS\Repositories\UserRepository;
+use NixPHP\CMS\Visualization\ChartDataset;
+use NixPHP\CMS\Visualization\ChartDefinition;
+use NixPHP\CMS\Support\RuntimePaths;
 use function NixPHP\app;
 use function NixPHP\config;
 use function NixPHP\I18n\t;
 use function NixPHP\MCP\tool;
 use function NixPHP\ORM\repo;
 use function NixPHP\route;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class AdminDashboardService
 {

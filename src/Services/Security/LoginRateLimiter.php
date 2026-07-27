@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Security;
+namespace NixPHP\CMS\Services\Security;
 
-use src\Services\Security\FileRateLimiter;
-use src\Services\Security\RateLimitDecision;
+use NixPHP\CMS\Services\Security\FileRateLimiter;
+use NixPHP\CMS\Services\Security\RateLimitDecision;
 
 final class LoginRateLimiter
 {

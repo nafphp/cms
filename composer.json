@@ -1,6 +1,6 @@
 {
-    "name": "fkde/nixcms",
-    "description": "Lightweight extensible CMS built on NixPHP",
+    "name": "nixphp/cms",
+    "description": "Fully working CMS for NixPHP.",
     "type": "nixphp-plugin",
     "keywords": [
         "nixphp",
@@ -35,7 +35,7 @@
             "src/functions.php"
         ],
         "psr-4": {
-            "NixCMS\\": "src/"
+            "NixPHP\\CMS\\": "src/"
         }
     },
     "autoload-dev": {
@@ -67,10 +67,8 @@
             "/.phpunit.cache",
             "/.phpunit.result.cache",
             "/bin",
-            "/dev",
             "/logs",
             "/node_modules",
-            "/prompts",
             "/public/.htaccess",
             "/public/css/themes",
             "/public/index.php",

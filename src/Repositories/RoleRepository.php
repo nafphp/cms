@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Repositories;
+namespace NixPHP\CMS\Repositories;
 
-use src\Models\Role;
-use src\Services\Security\UserPrivilegePolicy;
+use NixPHP\CMS\Models\Role;
+use NixPHP\CMS\Services\Security\UserPrivilegePolicy;
 use NixPHP\ORM\Repository\AbstractRepository;
 
 class RoleRepository extends AbstractRepository

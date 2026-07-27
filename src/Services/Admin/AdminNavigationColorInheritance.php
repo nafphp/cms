@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Admin;
+namespace NixPHP\CMS\Services\Admin;
 
-use src\Page\PageRegistry;
-use src\Services\Admin\AdminNavigationItemCollector;
-use function NixCMS\cms;
+use NixPHP\CMS\Page\PageRegistry;
+use NixPHP\CMS\Services\Admin\AdminNavigationItemCollector;
+use function NixPHP\CMS\cms;
 use function NixPHP\config;
 use function NixPHP\log;
 

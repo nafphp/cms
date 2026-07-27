@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use src\Api\ApiEndpoint;
-use src\Enums\Permission;
-use src\Handlers\Api\Theme\StoreTheme;
+use NixPHP\CMS\Api\ApiEndpoint;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Handlers\Api\Theme\StoreTheme;
 
 return [
     ApiEndpoint::post('api.admin.themes.store', '/api/admin/themes')

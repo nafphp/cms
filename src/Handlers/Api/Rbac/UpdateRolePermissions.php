@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Rbac;
+namespace NixPHP\CMS\Handlers\Api\Rbac;
 
-use src\Exceptions\PrivilegedActionDenied;
-use src\Handlers\Support\ReadsJsonBody;
-use src\Handlers\Support\RejectsPrivilegedAction;
-use src\Repositories\RoleRepository;
-use src\Support\AuditEntry;
+use NixPHP\CMS\Exceptions\PrivilegedActionDenied;
+use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
+use NixPHP\CMS\Handlers\Support\RejectsPrivilegedAction;
+use NixPHP\CMS\Repositories\RoleRepository;
+use NixPHP\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 use function NixPHP\ORM\repo;
-use function NixCMS\user;
+use function NixPHP\CMS\user;
 
 final class UpdateRolePermissions
 {

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Content\Page\Block\Types;
+namespace NixPHP\CMS\Content\Page\Block\Types;
 
-use src\Content\Page\Block\AbstractBlockType;
+use NixPHP\CMS\Content\Page\Block\AbstractBlockType;
 
 final class StackBlockType extends AbstractBlockType
 {

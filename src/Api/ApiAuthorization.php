@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace src\Api;
+namespace NixPHP\CMS\Api;
 
-use src\Exceptions\AuthException;
-use src\Api\ApiEndpoint;
-use function NixCMS\user;
+use NixPHP\CMS\Exceptions\AuthException;
+use NixPHP\CMS\Api\ApiEndpoint;
+use function NixPHP\CMS\user;
 
 final class ApiAuthorization
 {

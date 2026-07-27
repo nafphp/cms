@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Security;
 
-use src\Page\Page;
+use NixPHP\CMS\Page\Page;
 use NixPHP\Exceptions\AbortException;
 use NixPHP\Form\Events\CsrfListener;
 use Nyholm\Psr7\ServerRequest;

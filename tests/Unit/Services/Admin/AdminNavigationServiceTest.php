@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Admin;
 
-use src\Enums\Permission;
-use src\Navigation\NavigationItem;
-use src\Api\NavigationApi;
-use src\Api\ScopedNavigationApi;
-use src\Enums\Scope;
-use src\Repositories\NavigationRepository;
-use src\Page\Page;
-use src\Page\PageRegistry;
-use src\Services\Admin\AdminNavigationService;
-use src\Support\UserHelper;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Navigation\NavigationItem;
+use NixPHP\CMS\Api\NavigationApi;
+use NixPHP\CMS\Api\ScopedNavigationApi;
+use NixPHP\CMS\Enums\Scope;
+use NixPHP\CMS\Repositories\NavigationRepository;
+use NixPHP\CMS\Page\Page;
+use NixPHP\CMS\Page\PageRegistry;
+use NixPHP\CMS\Services\Admin\AdminNavigationService;
+use NixPHP\CMS\Support\UserHelper;
 use PHPUnit\Framework\TestCase;
 
 final class AdminNavigationServiceTest extends TestCase

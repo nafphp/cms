@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Events;
+namespace NixPHP\CMS\Events;
 
-use src\Enums\Permission;
-use src\Exceptions\AuthException;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Exceptions\AuthException;
 use Psr\Http\Message\ServerRequestInterface;
-use function NixCMS\user;
+use function NixPHP\CMS\user;
 
 class AdminGuardEvent
 {

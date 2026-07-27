@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use src\Handlers\Page\Auth\LoginUser;
-use src\Handlers\Page\Auth\RegisterInvitedUser;
-use src\Page\Page;
-use src\Repositories\UserRepository;
+use NixPHP\CMS\Handlers\Page\Auth\LoginUser;
+use NixPHP\CMS\Handlers\Page\Auth\RegisterInvitedUser;
+use NixPHP\CMS\Page\Page;
+use NixPHP\CMS\Repositories\UserRepository;
 use function NixPHP\ORM\repo;
 use function NixPHP\redirect;
 use function NixPHP\Session\session;
 use function NixPHP\View\render;
-use function NixCMS\user;
+use function NixPHP\CMS\user;
 
 $inviteStateError = static function (array $invite): ?string {
     if ($invite['used_at'] !== null) {

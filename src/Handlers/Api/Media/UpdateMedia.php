@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Media;
+namespace NixPHP\CMS\Handlers\Api\Media;
 
-use src\Handlers\Support\ReadsJsonBody;
+use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\I18n\t;
 use function NixPHP\json;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class UpdateMedia
 {

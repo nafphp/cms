@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Support;
+namespace NixPHP\CMS\Support;
 
-use src\Support\AuditActorInfo;
-use function NixCMS\user;
+use NixPHP\CMS\Support\AuditActorInfo;
+use function NixPHP\CMS\user;
 
 class AuditActorResolver
 {

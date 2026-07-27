@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Settings;
+namespace NixPHP\CMS\Settings;
 
-use src\Settings\SettingField;
+use NixPHP\CMS\Settings\SettingField;
 
 final class SettingSection
 {

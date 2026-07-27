@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Visualization;
 
-use src\Visualization\ChartDataset;
-use src\Visualization\ChartDefinition;
-use src\Visualization\EChartsOptionsFactory;
+use NixPHP\CMS\Visualization\ChartDataset;
+use NixPHP\CMS\Visualization\ChartDefinition;
+use NixPHP\CMS\Visualization\EChartsOptionsFactory;
 use PHPUnit\Framework\TestCase;
 
 final class EChartsOptionsFactoryTest extends TestCase

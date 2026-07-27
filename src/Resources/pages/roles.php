@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use src\Enums\Permission;
-use src\Page\Page;
-use src\Repositories\PermissionRepository;
-use src\Repositories\RoleRepository;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Page\Page;
+use NixPHP\CMS\Repositories\PermissionRepository;
+use NixPHP\CMS\Repositories\RoleRepository;
 use function NixPHP\I18n\t;
 use function NixPHP\ORM\repo;
 use function NixPHP\View\render;

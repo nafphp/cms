@@ -131,7 +131,7 @@ Relative runtime paths are resolved below the host `BASE_PATH` and may not conta
 
 The v0.0.1 local Ollama assistant has no persisted API-key field. A future remote provider must introduce a real secret store before accepting credentials. Global prompt/memory/mistake administration requires `ai.instructions.manage`, and editable theme code requires `themes.code.manage`.
 
-Normal AI tool-routing fallbacks record a SHA-256 query fingerprint, character count, requested mode/capabilities, and UI area—not the user text. A host may deliberately set `ai.routing_debug=true` while diagnosing routing; debug text is capped at 500 characters and should not be enabled in routine production operation. MCP tools may implement `NixCMS\Contracts\LocalAiToolMetadataInterface` to provide their title, routing text, examples, capabilities, mode, risk, and auto-run policy. These tool-owned values take precedence; the catalog only derives missing metadata.
+Normal AI tool-routing fallbacks record a SHA-256 query fingerprint, character count, requested mode/capabilities, and UI area—not the user text. A host may deliberately set `ai.routing_debug=true` while diagnosing routing; debug text is capped at 500 characters and should not be enabled in routine production operation. MCP tools may implement `NixPHP\CMS\Contracts\LocalAiToolMetadataInterface` to provide their title, routing text, examples, capabilities, mode, risk, and auto-run policy. These tool-owned values take precedence; the catalog only derives missing metadata.
 
 AI and MCP features are permission-, scope-, and tool-driven. The executable tool registry and plugin metadata define what an assistant can do; NixCMS does not promise or maintain a separate static capability catalog. Browser-local Ollama support selects a small relevant tool set, concrete write tools use the same CMS domain APIs and permissions as other callers, and MCP Bearer tokens should receive only the scopes their client needs.
 
@@ -156,8 +156,8 @@ NixCMS adds CSP, clickjacking, MIME-sniffing, referrer, browser-permission, and 
 Register pages through the CMS registry. A plugin can run this from its bootstrap file:
 
 ```php
-use src\Enums\Permission;
-use src\Page\Page;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Page\Page;
 use function NixPHP\View\view;
 
 cms()->pages()->add(
@@ -174,7 +174,7 @@ cms()->pages()->add(
 ## Admin Navigation
 
 `Scope::FRONTEND` is the default CMS scope. Use `cms()->scope()`, `cms()->scope(Scope::FRONTEND)`, or the direct unscoped helpers for frontend-facing registrations, and switch to `Scope::ADMIN` only when extending the admin area.
-Scoped CMS APIs are generic: any CMS entry point that returns an object implementing `NixCMS\Contracts\ScopeAwareInterface` is automatically bound when called through `cms()->scope(...)`.
+Scoped CMS APIs are generic: any CMS entry point that returns an object implementing `NixPHP\CMS\Contracts\ScopeAwareInterface` is automatically bound when called through `cms()->scope(...)`.
 
 Use the page metadata when the menu item belongs to a registered admin page:
 
@@ -187,8 +187,8 @@ Page::create('plugin.reports')
 Use `cms()->scope(Scope::ADMIN)->navigation()->add(...)` when a plugin contributes admin navigation metadata directly, for example a parent item, an external tool link, or a menu entry registered outside a page definition:
 
 ```php
-use src\Enums\Scope;
-use src\Navigation\NavigationItem;
+use NixPHP\CMS\Enums\Scope;
+use NixPHP\CMS\Navigation\NavigationItem;
 
 cms()->scope(Scope::ADMIN)->navigation()->add(
     NavigationItem::create('plugin.reports')
@@ -349,10 +349,10 @@ These sections are generated from registries and enums. Edit the source code, th
 
 | ID | Label | Model class |
 | --- | --- | --- |
-| `article` | Article | `NixCMS\Models\Article` |
-| `form` | Form | `NixCMS\Models\Form` |
-| `media` | Media | `NixCMS\Models\Media` |
-| `navigation` | Navigation | `NixCMS\Models\SiteNavigation` |
+| `article` | Article | `NixPHP\CMS\Models\Article` |
+| `form` | Form | `NixPHP\CMS\Models\Form` |
+| `media` | Media | `NixPHP\CMS\Models\Media` |
+| `navigation` | Navigation | `NixPHP\CMS\Models\SiteNavigation` |
 <!-- /nix:auto:contenttypes -->
 
 ### Permissions

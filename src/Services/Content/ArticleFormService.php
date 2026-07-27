@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Content;
+namespace NixPHP\CMS\Services\Content;
 
 use PDO;
 use Throwable;

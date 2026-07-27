@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Page;
+namespace NixPHP\CMS\Page;
 
-use src\Page\Layout;
+use NixPHP\CMS\Page\Layout;
 use function NixPHP\app;
 
 final class PageTemplateCatalog

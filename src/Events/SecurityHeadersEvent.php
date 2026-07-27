@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Events;
+namespace NixPHP\CMS\Events;
 
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\request;

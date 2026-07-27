@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Admin;
+namespace NixPHP\CMS\Services\Admin;
 
-use src\Api\ScopedNavigationApi;
-use src\Page\PageRegistry;
-use src\Services\Admin\AdminNavigationAuthorizationFilter;
-use src\Services\Admin\AdminNavigationColorInheritance;
-use src\Services\Admin\AdminNavigationItemCollector;
-use src\Services\Admin\AdminNavigationTreeBuilder;
+use NixPHP\CMS\Api\ScopedNavigationApi;
+use NixPHP\CMS\Page\PageRegistry;
+use NixPHP\CMS\Services\Admin\AdminNavigationAuthorizationFilter;
+use NixPHP\CMS\Services\Admin\AdminNavigationColorInheritance;
+use NixPHP\CMS\Services\Admin\AdminNavigationItemCollector;
+use NixPHP\CMS\Services\Admin\AdminNavigationTreeBuilder;
 
 final class AdminNavigationService
 {

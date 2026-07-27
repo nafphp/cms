@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use src\Enums\Permission;
-use src\Handlers\Page\Form\StoreForm;
-use src\Page\Page;
-use src\Services\Settings\TranslationFileService;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Handlers\Page\Form\StoreForm;
+use NixPHP\CMS\Page\Page;
+use NixPHP\CMS\Services\Settings\TranslationFileService;
 use function NixPHP\I18n\t;
 use function NixPHP\redirect;
 use function NixPHP\route;
 use function NixPHP\View\render;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 $translationSuggestions = static function (): array {
     $language = cms()->settings()->currentLanguage();

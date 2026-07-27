@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Theme;
+namespace NixPHP\CMS\Services\Theme;
 
-use src\Support\AtomicFileWriter;
-use src\Support\RuntimePaths;
-use src\Theme\Theme;
-use src\Services\Theme\ThemeCodeNormalizer;
+use NixPHP\CMS\Support\AtomicFileWriter;
+use NixPHP\CMS\Support\RuntimePaths;
+use NixPHP\CMS\Theme\Theme;
+use NixPHP\CMS\Services\Theme\ThemeCodeNormalizer;
 
 final class ThemeAssetWriter
 {

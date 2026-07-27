@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Content\Page\Block;
+namespace NixPHP\CMS\Content\Page\Block;
 
 interface BlockTypeInterface
 {

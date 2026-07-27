@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Settings;
 
-use src\Repositories\SettingRepository;
-use src\Services\Settings\SettingsService;
+use NixPHP\CMS\Repositories\SettingRepository;
+use NixPHP\CMS\Services\Settings\SettingsService;
 use Tests\Support\DatabaseTestCase;
 
 final class SettingsServiceTest extends DatabaseTestCase

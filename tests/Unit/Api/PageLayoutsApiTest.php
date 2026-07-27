@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Api;
 
-use src\Api\ApiAuthorization;
-use src\Api\ApiEndpoint;
-use src\Enums\Permission;
-use src\Exceptions\AuthException;
-use src\Handlers\Api\Page\DeletePageLayout;
-use src\Handlers\Api\Page\StorePageLayout;
+use NixPHP\CMS\Api\ApiAuthorization;
+use NixPHP\CMS\Api\ApiEndpoint;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Exceptions\AuthException;
+use NixPHP\CMS\Handlers\Api\Page\DeletePageLayout;
+use NixPHP\CMS\Handlers\Api\Page\StorePageLayout;
 use PHPUnit\Framework\TestCase;
 
 final class PageLayoutsApiTest extends TestCase

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Media;
+namespace NixPHP\CMS\Handlers\Api\Media;
 
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\I18n\t;
 use function NixPHP\response;
-use function NixCMS\cms;
-use function NixCMS\user;
+use function NixPHP\CMS\cms;
+use function NixPHP\CMS\user;
 
 final class ServeMedia
 {

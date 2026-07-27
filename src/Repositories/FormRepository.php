@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Repositories;
+namespace NixPHP\CMS\Repositories;
 
 use PDO;
 use function NixPHP\Database\database;

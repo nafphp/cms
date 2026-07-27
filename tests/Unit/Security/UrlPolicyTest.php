@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Security;
 
-use src\Security\UrlPolicy;
+use NixPHP\CMS\Security\UrlPolicy;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

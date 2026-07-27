@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Security;
+namespace NixPHP\CMS\Services\Security;
 
 final readonly class RateLimitDecision
 {

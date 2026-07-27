@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use src\Enums\Permission;
-use src\Page\Page;
-use src\Services\Settings\SettingsService;
-use src\Services\Settings\TranslationFileService;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Page\Page;
+use NixPHP\CMS\Services\Settings\SettingsService;
+use NixPHP\CMS\Services\Settings\TranslationFileService;
 use function NixPHP\I18n\t;
 use function NixPHP\request;
 use function NixPHP\View\render;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 return [
     Page::create('admin.translations')

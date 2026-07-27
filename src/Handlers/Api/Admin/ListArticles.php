@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Admin;
+namespace NixPHP\CMS\Handlers\Api\Admin;
 
-use src\Models\Article;
+use NixPHP\CMS\Models\Article;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 final class ListArticles
 {

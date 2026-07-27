@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Api;
 
-use src\Api\ApiEndpoint;
-use src\Api\ApiRegistry;
+use NixPHP\CMS\Api\ApiEndpoint;
+use NixPHP\CMS\Api\ApiRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class ApiRegistryTest extends TestCase

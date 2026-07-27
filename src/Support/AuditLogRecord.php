@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Support;
+namespace NixPHP\CMS\Support;
 
-use src\Support\AuditEntry;
+use NixPHP\CMS\Support\AuditEntry;
 
 final class AuditLogRecord
 {

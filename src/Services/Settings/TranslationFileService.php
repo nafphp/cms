@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Settings;
+namespace NixPHP\CMS\Services\Settings;
 
-use src\Support\AtomicFileWriter;
-use src\Support\RuntimePaths;
-use function NixCMS\cms;
-use function NixCMS\audit;
+use NixPHP\CMS\Support\AtomicFileWriter;
+use NixPHP\CMS\Support\RuntimePaths;
+use function NixPHP\CMS\cms;
+use function NixPHP\CMS\audit;
 
 final class TranslationFileService
 {

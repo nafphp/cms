@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace src\Mcp\Tools;
+namespace NixPHP\CMS\Mcp\Tools;
 
-use src\Contracts\LocalAiToolMetadataInterface;
-use src\Services\Assets\AssetPublisher;
-use src\Support\RuntimePaths;
+use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
+use NixPHP\CMS\Services\Assets\AssetPublisher;
+use NixPHP\CMS\Support\RuntimePaths;
 use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;

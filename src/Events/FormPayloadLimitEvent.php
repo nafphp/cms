@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Events;
+namespace NixPHP\CMS\Events;
 
-use src\Services\Form\FormSubmissionGuard;
+use NixPHP\CMS\Services\Form\FormSubmissionGuard;
 use Psr\Http\Message\ServerRequestInterface;
 use function NixPHP\abort;
 

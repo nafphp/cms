@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-namespace src\Storage;
+namespace NixPHP\CMS\Storage;
 
 use InvalidArgumentException;
-use src\Storage\Filter\ContainsFilter;
-use src\Storage\Filter\EqualsFilter;
-use src\Storage\Filter\FilterInterface;
-use src\Storage\Filter\InFilter;
-use src\Storage\Filter\NotEqualsFilter;
-use src\Storage\Filter\RangeFilter;
+use NixPHP\CMS\Storage\Filter\ContainsFilter;
+use NixPHP\CMS\Storage\Filter\EqualsFilter;
+use NixPHP\CMS\Storage\Filter\FilterInterface;
+use NixPHP\CMS\Storage\Filter\InFilter;
+use NixPHP\CMS\Storage\Filter\NotEqualsFilter;
+use NixPHP\CMS\Storage\Filter\RangeFilter;
 use NixPHP\ORM\Core\EntityManager;
 use NixPHP\ORM\Core\EntityInterface;
 use PDO;
-use src\Api\ContentApi;
-use src\Storage\Criteria;
-use src\Storage\StorageQuery;
+use NixPHP\CMS\Api\ContentApi;
+use NixPHP\CMS\Storage\Criteria;
+use NixPHP\CMS\Storage\StorageQuery;
 use function NixPHP\Database\database;
 use function NixPHP\ORM\em;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 
 /**
  * Generic typed CRUD over a single entity.

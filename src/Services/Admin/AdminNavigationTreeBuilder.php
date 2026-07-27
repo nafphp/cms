@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Services\Admin;
+namespace NixPHP\CMS\Services\Admin;
 
-use src\Services\Admin\AdminNavigationItemCollector;
+use NixPHP\CMS\Services\Admin\AdminNavigationItemCollector;
 
 final class AdminNavigationTreeBuilder
 {

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-namespace src\Content\Page\Block;
-use function NixCMS\cms;
+namespace NixPHP\CMS\Content\Page\Block;
+use function NixPHP\CMS\cms;
 use function NixPHP\log;
 
 final class PageBuilderBlockOptions

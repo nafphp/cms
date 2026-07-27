@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace src\Page;
+namespace NixPHP\CMS\Page;
 
-use use src\Enums\Permission;
+use NixPHP\CMS\Enums\Permission;
 
 final readonly class PageDataHandler
 {

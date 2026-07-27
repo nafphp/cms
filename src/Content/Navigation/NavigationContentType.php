@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace src\Content\Navigation;
+namespace NixPHP\CMS\Content\Navigation;
 
-use src\Api\NavigationApi;
-use src\Content\ContentTypeInterface;
-use src\Models\SiteNavigation;
-use src\Repositories\NavigationRepository;
+use NixPHP\CMS\Api\NavigationApi;
+use NixPHP\CMS\Content\ContentTypeInterface;
+use NixPHP\CMS\Models\SiteNavigation;
+use NixPHP\CMS\Repositories\NavigationRepository;
 
 final class NavigationContentType implements ContentTypeInterface
 {

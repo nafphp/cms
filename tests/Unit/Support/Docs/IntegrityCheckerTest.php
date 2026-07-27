@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support\Docs;
 
-use src\Support\Docs\IntegrityChecker;
+use NixPHP\CMS\Support\Docs\IntegrityChecker;
 use PHPUnit\Framework\TestCase;
 
 final class IntegrityCheckerTest extends TestCase
@@ -27,7 +27,7 @@ final class IntegrityCheckerTest extends TestCase
     public function testCheckReportsAndSortsDriftIssues(): void
     {
         $blockTypes = [
-            new class implements \src\Content\Page\Block\BlockTypeInterface {
+            new class implements \NixPHP\CMS\Content\Page\Block\BlockTypeInterface {
         public function id(): string { return 'hero'; }
         public function label(): string { return 'Hero'; }
         public function description(): string { return ''; }

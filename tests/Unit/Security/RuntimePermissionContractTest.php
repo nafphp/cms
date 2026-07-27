@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Security;
 
-use src\Enums\Permission;
+use NixPHP\CMS\Enums\Permission;
 use PHPUnit\Framework\TestCase;
 
 final class RuntimePermissionContractTest extends TestCase

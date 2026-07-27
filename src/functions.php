@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NixCMS;
+namespace NixPHP\CMS;
 
-use src\Models\User;
-use src\Repositories\UserRepository;
-use src\Support\Audit;
-use src\Support\AuditEntry;
-use src\Support\Cms;
-use src\Support\UserHelper;
+use NixPHP\CMS\Models\User;
+use NixPHP\CMS\Repositories\UserRepository;
+use NixPHP\CMS\Support\Audit;
+use NixPHP\CMS\Support\AuditEntry;
+use NixPHP\CMS\Support\Cms;
+use NixPHP\CMS\Support\UserHelper;
 use function NixPHP\ORM\repo;
 use function NixPHP\Session\session;
 

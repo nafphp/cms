@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Form;
 
-use src\Events\FormPayloadLimitEvent;
-use src\Services\Form\FormSubmissionGuard;
-use src\Services\Security\FileRateLimiter;
+use NixPHP\CMS\Events\FormPayloadLimitEvent;
+use NixPHP\CMS\Services\Form\FormSubmissionGuard;
+use NixPHP\CMS\Services\Security\FileRateLimiter;
 use PHPUnit\Framework\TestCase;
 use NixPHP\Exceptions\AbortException;
 use Nyholm\Psr7\ServerRequest;

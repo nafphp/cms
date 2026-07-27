@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace src\Content\Page\Block\Types;
+namespace NixPHP\CMS\Content\Page\Block\Types;
 
-use src\Content\Page\Block\AbstractBlockType;
-use src\Content\Page\Block\PageBuilderBlockOptions;
+use NixPHP\CMS\Content\Page\Block\AbstractBlockType;
+use NixPHP\CMS\Content\Page\Block\PageBuilderBlockOptions;
 
 final class NavigationBlockType extends AbstractBlockType
 {

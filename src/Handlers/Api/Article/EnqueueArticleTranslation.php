@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace src\Handlers\Api\Article;
+namespace NixPHP\CMS\Handlers\Api\Article;
 
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;

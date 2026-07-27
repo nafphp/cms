@@ -1,0 +1,79 @@
+<?php
+
+use function NixPHP\Form\csrf;
+use function NixPHP\I18n\t;
+use function NixPHP\route;
+use function NixPHP\View\view;
+use function NixPHP\CMS\cms;
+
+$languages = cms()->settings()->languages();
+$endpoint = (string) ($endpoint ?? route('api.admin.articles'));
+
+$config = [
+    'endpoint' => $endpoint,
+    'csrfToken' => csrf()->generate(),
+    'languages' => $languages,
+    'urls' => [
+        'create' => route('admin.articles.create'),
+        'edit' => '/admin/articles/{articleId}/{language}/edit',
+        'editVersion' => '/admin/articles/{articleId}/{language}/{version}/edit',
+        'createVersion' => '/admin/articles/{articleId}/version/create',
+        'createTranslation' => '/admin/articles/{articleId}/{language}/create',
+        'preview' => '/admin/articles/{articleId}/{language}/preview',
+        'publish' => '/api/admin/articles/{articleId}/{language}/publish',
+        'delete' => '/api/admin/articles/{articleId}/{language}/delete',
+        'deleteVersion' => '/api/admin/articles/{articleId}/{language}/{version}/delete',
+        'translate' => '/api/admin/articles/{articleId}/translate/enqueue',
+    ],
+    'labels' => [
+        'actions' => t('Actions'),
+        'allLanguages' => t('All languages'),
+        'autoTranslate' => t('Auto translate'),
+        'cancel' => t('Cancel'),
+        'chooseLanguage' => t('Choose language'),
+        'chooseLanguages' => t('Choose one or more languages'),
+        'continue' => t('Continue'),
+        'createArticle' => t('Create article'),
+        'delete' => t('Delete'),
+        'deleteConfirm' => t('Really delete?'),
+        'edit' => t('Edit'),
+        'editDraft' => t('Edit draft'),
+        'empty' => t('No articles found.'),
+        'language' => t('Language'),
+        'languages' => t('Languages'),
+        'languageCount' => t('%s languages'),
+        'loading' => t('Loading articles...'),
+        'newTranslation' => t('New translation'),
+        'newVersion' => t('New version'),
+        'noDraft' => t('No editable draft version found.'),
+        'noLanguage' => t('No language available.'),
+        'noResults' => t('No matching articles found.'),
+        'oneLanguage' => t('One language'),
+        'preview' => t('Preview'),
+        'publish' => t('Publish'),
+        'publishConfirm' => t('Really publish?'),
+        'publishedAt' => t('Publish date'),
+        'queue' => t('Queue'),
+        'search' => t('Search articles...'),
+        'select' => t('Select'),
+        'sourceLanguage' => t('Choose source language'),
+        'status' => t('Status'),
+        'targetLanguage' => t('Choose target language'),
+        'targetMode' => t('Choose target mode'),
+        'title' => t('Title'),
+        'version' => t('Version'),
+        'versions' => t('Versions'),
+    ],
+];
+
+?>
+<?= view('components.admin.grid', [
+    'attributes' => ['data-article-grid' => true],
+    'frameAttributes' => ['data-article-grid-frame' => true],
+    'config' => $config,
+    'searchPlaceholder' => t('Search articles...'),
+    'actionLabel' => t('Create article'),
+    'actionHref' => route('admin.articles.create'),
+    'loadingLabel' => t('Loading articles...'),
+    'script' => '/js/admin/article-grid.js',
+]) ?>

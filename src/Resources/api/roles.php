@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-use src\Api\ApiEndpoint;
-use src\Enums\Permission;
-use src\Handlers\Api\Rbac\CreatePermission;
-use src\Handlers\Api\Rbac\CreateRole;
-use src\Handlers\Api\Rbac\DeletePermission;
-use src\Handlers\Api\Rbac\DeleteRole;
-use src\Handlers\Api\Rbac\ListPermissions;
-use src\Handlers\Api\Rbac\ListRoles;
-use src\Handlers\Api\Rbac\UpdatePermission;
-use src\Handlers\Api\Rbac\UpdateRole;
-use src\Handlers\Api\Rbac\UpdateRolePermissions;
+use NixPHP\CMS\Api\ApiEndpoint;
+use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Handlers\Api\Rbac\CreatePermission;
+use NixPHP\CMS\Handlers\Api\Rbac\CreateRole;
+use NixPHP\CMS\Handlers\Api\Rbac\DeletePermission;
+use NixPHP\CMS\Handlers\Api\Rbac\DeleteRole;
+use NixPHP\CMS\Handlers\Api\Rbac\ListPermissions;
+use NixPHP\CMS\Handlers\Api\Rbac\ListRoles;
+use NixPHP\CMS\Handlers\Api\Rbac\UpdatePermission;
+use NixPHP\CMS\Handlers\Api\Rbac\UpdateRole;
+use NixPHP\CMS\Handlers\Api\Rbac\UpdateRolePermissions;
 
 return [
     ApiEndpoint::get('api.admin.rbac.roles', '/api/admin/rbac/roles')

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Security;
 
-use src\Exceptions\PrivilegedActionDenied;
-use src\Services\Security\UserPrivilegePolicy;
+use NixPHP\CMS\Exceptions\PrivilegedActionDenied;
+use NixPHP\CMS\Services\Security\UserPrivilegePolicy;
 use Tests\Support\DatabaseTestCase;
 
 final class UserPrivilegePolicyTest extends DatabaseTestCase
@@ -116,7 +116,7 @@ final class UserPrivilegePolicyTest extends DatabaseTestCase
             $this->users['editor'],
             null,
             ['viewer'],
-            \src\Enums\Permission::USERS_CREATE,
+            \NixPHP\CMS\Enums\Permission::USERS_CREATE,
         ));
     }
 

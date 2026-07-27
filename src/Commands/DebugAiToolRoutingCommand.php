@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace src\Commands;
+namespace NixPHP\CMS\Commands;
 
-use src\Services\Ai\LocalAiToolCatalog;
-use src\Services\Ai\ToolRouting\KeywordToolRouter;
-use src\Services\Ai\ToolRouting\SemanticToolRouter;
-use src\Services\Ai\ToolRouting\ToolContext;
+use NixPHP\CMS\Services\Ai\LocalAiToolCatalog;
+use NixPHP\CMS\Services\Ai\ToolRouting\KeywordToolRouter;
+use NixPHP\CMS\Services\Ai\ToolRouting\SemanticToolRouter;
+use NixPHP\CMS\Services\Ai\ToolRouting\ToolContext;
 use NixPHP\CLI\Core\AbstractCommand;
 use NixPHP\CLI\Core\Input;
 use NixPHP\CLI\Core\Output;
-use function NixCMS\cms;
+use function NixPHP\CMS\cms;
 use function NixPHP\MCP\tool;
 
 final class DebugAiToolRoutingCommand extends AbstractCommand
