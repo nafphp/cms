@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Handlers\Page\Auth;
 
+use NixPHP\CMS\Contracts\RateLimiterInterface;
 use NixPHP\CMS\Models\User;
 use NixPHP\CMS\Repositories\UserRepository;
 use NixPHP\CMS\Services\Security\CredentialService;
-use NixPHP\CMS\Services\Security\LoginRateLimiter;
 use NixPHP\CMS\Services\Security\RateLimitDecision;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\Form\validator;
@@ -21,7 +21,7 @@ final class LoginUser
 {
     public function __construct(
         private readonly CredentialService $credentialService,
-        private readonly LoginRateLimiter $rateLimiter = new LoginRateLimiter(),
+        private readonly RateLimiterInterface $rateLimiter,
     ) {
     }
 

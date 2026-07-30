@@ -8,7 +8,7 @@ use NixPHP\CMS\Support\AtomicFileWriter;
 
 final class AgentGuideInstaller
 {
-    public const MARKER = '<!-- managed-by: fkde/nixcms agent-guide -->';
+    public const MARKER = '<!-- managed-by: nixphp/cms agent-guide -->';
 
     public function __construct(
         private readonly string $source,

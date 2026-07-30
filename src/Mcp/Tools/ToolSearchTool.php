@@ -4,13 +4,20 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Mcp\Tools;
 
+use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
+use NixPHP\CMS\Enums\ToolRisk;
+
 use NixPHP\CMS\Services\Ai\LocalAiToolBridge;
 use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;
 
-final class ToolSearchTool implements ToolInterface, ScopedToolInterface
+final class ToolSearchTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
+    use DeclaresLocalAiToolRisk;
+
+    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const bool AI_DESTRUCTIVE = false;
     public function name(): string
     {
         return 'cms_tools_search';
@@ -21,7 +28,8 @@ final class ToolSearchTool implements ToolInterface, ScopedToolInterface
         return implode(' ', [
             'Searches the registered CMS tools for the current request and UI context.',
             'Use this when the currently visible tools do not clearly cover the user request.',
-            'The result returns candidate tool definitions that can be used in the next tool-call step.',
+            'The result returns candidate tool definitions. It never answers the user request itself:',
+            'always call one of the returned tools afterwards instead of describing them.',
         ]);
     }
 
@@ -65,10 +73,12 @@ final class ToolSearchTool implements ToolInterface, ScopedToolInterface
             trim((string) ($args['query'] ?? '')),
             $context,
             (int) ($args['limit'] ?? 8),
+            includeSearchTool: false,
         );
 
         return [
             'success' => true,
+            'count' => count($tools),
             'tools' => array_map(static fn(array $tool): array => [
                 'name' => (string) ($tool['name'] ?? ''),
                 'description' => (string) ($tool['description'] ?? ''),

@@ -103,7 +103,7 @@ final class AssetPublisher
         }
 
         $manifest = json_encode([
-            'package' => 'fkde/nixcms',
+            'package' => 'nixphp/cms',
             'version' => $this->version(),
             'files' => $source,
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL;
@@ -215,7 +215,7 @@ final class AssetPublisher
     private function version(): string
     {
         try {
-            return InstalledVersions::getPrettyVersion('fkde/nixcms') ?? 'dev';
+            return InstalledVersions::getPrettyVersion('nixphp/cms') ?? 'dev';
         } catch (\OutOfBoundsException) {
             return 'dev';
         }

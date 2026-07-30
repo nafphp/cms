@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Services\Media;
 
+use NixPHP\CMS\Contracts\MediaStorageInterface;
 use NixPHP\CMS\Models\Media;
 use NixPHP\CMS\Storage\EntityStorage;
 use NixPHP\CMS\Support\Slug;
 use Psr\Http\Message\UploadedFileInterface;
 use NixPHP\CMS\Services\Media\MediaPayload;
 use function NixPHP\config;
+use function NixPHP\log;
 use function NixPHP\I18n\t;
 
-final class MediaStorageService
+final class MediaStorageService implements MediaStorageInterface
 {
     private const int DEFAULT_MAX_UPLOAD_SIZE = 25 * 1024 * 1024;
 
@@ -33,6 +35,12 @@ final class MediaStorageService
         'xlsx' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip'],
         'pptx' => ['application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/zip'],
     ];
+
+    /** @return array<string, array<int, string>> */
+    public static function defaultAllowedExtensions(): array
+    {
+        return self::DEFAULT_ALLOWED_EXTENSIONS;
+    }
 
     public function __construct(
         private EntityStorage $storage,
@@ -141,11 +149,52 @@ final class MediaStorageService
 
         $payload = MediaPayload::fromEntity($media);
         $fullPath = $this->absolutePath((string) ($payload['storage_path'] ?? ''));
+        $quarantinePath = null;
         if ($fullPath !== null && is_file($fullPath)) {
-            @unlink($fullPath);
+            $quarantinePath = $fullPath . '.deleting-' . bin2hex(random_bytes(6));
+            if (!rename($fullPath, $quarantinePath)) {
+                log()->error('MediaStorageService.delete could not quarantine media file.', [
+                    'media_id' => $id,
+                    'path' => $fullPath,
+                ]);
+                return false;
+            }
         }
 
-        return $this->storage->delete($id);
+        try {
+            $deleted = $this->storage->delete($id);
+        } catch (\Throwable $exception) {
+            $this->restoreQuarantinedFile($quarantinePath, $fullPath, $id);
+            throw $exception;
+        }
+
+        if (!$deleted) {
+            $this->restoreQuarantinedFile($quarantinePath, $fullPath, $id);
+            return false;
+        }
+
+        if ($quarantinePath !== null && is_file($quarantinePath) && !unlink($quarantinePath)) {
+            log()->warning('MediaStorageService.delete left a quarantined file for cleanup.', [
+                'media_id' => $id,
+                'path' => $quarantinePath,
+            ]);
+        }
+
+        return true;
+    }
+
+    private function restoreQuarantinedFile(?string $quarantinePath, ?string $fullPath, int $mediaId): void
+    {
+        if ($quarantinePath === null || $fullPath === null || !is_file($quarantinePath)) {
+            return;
+        }
+
+        if (!rename($quarantinePath, $fullPath)) {
+            log()->error('MediaStorageService.delete could not restore quarantined media file.', [
+                'media_id' => $mediaId,
+                'path' => $quarantinePath,
+            ]);
+        }
     }
 
     /**
@@ -172,7 +221,8 @@ final class MediaStorageService
 
         try {
             return (int) config('cms:media:max_upload_size', self::DEFAULT_MAX_UPLOAD_SIZE);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->warning(sprintf('MediaStorageService.maxUploadSize failed: %s', $e->getMessage()), ['exception' => $e]);
             return self::DEFAULT_MAX_UPLOAD_SIZE;
         }
     }
@@ -203,7 +253,8 @@ final class MediaStorageService
             if ($stream->isSeekable()) {
                 $stream->rewind();
             }
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->warning(sprintf('MediaStorageService.detectMimeType failed: %s', $e->getMessage()), ['exception' => $e]);
             $sample = '';
         }
 
@@ -239,7 +290,8 @@ final class MediaStorageService
         } else {
             try {
                 $configured = config('cms:media:allowed_extensions', []);
-            } catch (\Throwable) {
+            } catch (\Throwable $e) {
+                log()->warning(sprintf('MediaStorageService.allowedExtensions failed: %s', $e->getMessage()), ['exception' => $e]);
                 $configured = [];
             }
         }
@@ -270,7 +322,8 @@ final class MediaStorageService
 
         try {
             $root = (string) config('cms:media:storage_path', config('cms:media:public_path', BASE_PATH . '/storage/media'));
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->warning(sprintf('MediaStorageService.storageRoot failed: %s', $e->getMessage()), ['exception' => $e]);
             $root = BASE_PATH . '/storage/media';
         }
 
@@ -284,7 +337,8 @@ final class MediaStorageService
         } else {
             try {
                 $prefix = (string) config('cms:media:public_url', '/media');
-            } catch (\Throwable) {
+            } catch (\Throwable $e) {
+                log()->warning(sprintf('MediaStorageService.publicUrlPrefix failed: %s', $e->getMessage()), ['exception' => $e]);
                 $prefix = '/media';
             }
         }

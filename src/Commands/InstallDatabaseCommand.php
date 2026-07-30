@@ -28,8 +28,8 @@ class InstallDatabaseCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine(sprintf('    php bin/nix %s', static::NAME));
-            $output->writeLine(sprintf('    php bin/nix %s --force', static::NAME));
+            $output->writeLine(sprintf('    vendor/bin/nix %s', static::NAME));
+            $output->writeLine(sprintf('    vendor/bin/nix %s --force', static::NAME));
             $output->writeLine('  Creates the configured database if needed, then runs db:migrate up.');
             $output->writeLine('  --force drops the configured database before recreating it.');
             return self::SUCCESS;

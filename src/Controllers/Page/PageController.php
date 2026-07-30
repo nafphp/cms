@@ -9,6 +9,7 @@ use NixPHP\CMS\Page\Page;
 use NixPHP\CMS\Page\PageAuthorization;
 use NixPHP\CMS\Page\PageBuilderRenderer;
 use NixPHP\CMS\Support\HandlerInvoker;
+use NixPHP\Exceptions\RouteNotFoundException;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\I18n\t;
 use function NixPHP\request;
@@ -94,7 +95,11 @@ final class PageController
             return $page;
         }
 
-        throw new \RuntimeException('No registered page matches the current request.');
+        // A route exists but no page resolved. That is the normal outcome for a
+        // draft requested by someone without PAGES_VIEW: the lookup filters it
+        // out before any content is built. Answer exactly like a path that was
+        // never there, so the draft's existence stays hidden.
+        throw new RouteNotFoundException();
     }
 
     private function resolveDataHandler(Page $page): PageDataHandler

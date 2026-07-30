@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Support;
 
-use NixPHP\CMS\Repositories\AuditLogRepository;
+use NixPHP\CMS\Contracts\AuditSinkInterface;
 use NixPHP\CMS\Support\AuditActorResolver;
 use NixPHP\CMS\Support\AuditEntry;
 use NixPHP\CMS\Support\AuditRedactor;
@@ -13,7 +13,7 @@ use function NixPHP\request;
 final class Audit
 {
     public function __construct(
-        private readonly ?AuditLogRepository $repository = null,
+        private readonly ?AuditSinkInterface $repository = null,
         private readonly ?AuditRedactor $redactor = null,
         private readonly ?AuditActorResolver $actorResolver = null,
     ) {
@@ -76,9 +76,15 @@ final class Audit
         }
     }
 
-    private function repository(): AuditLogRepository
+    private function repository(): AuditSinkInterface
     {
-        return $this->repository ?? new AuditLogRepository();
+        if ($this->repository instanceof AuditSinkInterface) {
+            return $this->repository;
+        }
+
+        /** @var AuditSinkInterface $repository */
+        $repository = \NixPHP\app()->container()->get(AuditSinkInterface::class);
+        return $repository;
     }
 
     private function redactor(): AuditRedactor

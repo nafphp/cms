@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Api;
 
+use NixPHP\CMS\Contracts\MediaStorageInterface;
 use NixPHP\CMS\Models\Media;
 use NixPHP\CMS\Services\Media\MediaPayload;
-use NixPHP\CMS\Services\Media\MediaStorageService;
 use NixPHP\CMS\Storage\Criteria;
 use NixPHP\CMS\Storage\EntityStorage;
 use NixPHP\CMS\Support\AuditEntry;
@@ -22,7 +22,7 @@ use Psr\Http\Message\UploadedFileInterface;
 final class MediaApi
 {
     public function __construct(
-        private MediaStorageService $storage,
+        private MediaStorageInterface $storage,
         private ?EntityStorage $mediaStorage = null,
     ) {
     }

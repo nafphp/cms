@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Services\Security;
 
+use NixPHP\CMS\Contracts\RateLimiterInterface;
 use NixPHP\CMS\Services\Security\FileRateLimiter;
 use NixPHP\CMS\Services\Security\RateLimitDecision;
 
-final class LoginRateLimiter
+final class LoginRateLimiter implements RateLimiterInterface
 {
     private const int PAIR_ATTEMPTS = 5;
     private const int IP_ATTEMPTS = 30;

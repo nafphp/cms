@@ -26,8 +26,8 @@ final class DocsCheckCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine('    php bin/nix docs:check');
-            $output->writeLine('  Exits with code 1 when README.md is out of sync. Run bin/nix docs:sync to fix it.');
+            $output->writeLine('    vendor/bin/nix docs:check');
+            $output->writeLine('  Exits with code 1 when README.md is out of sync. Run vendor/bin/nix docs:sync to fix it.');
             return self::SUCCESS;
         }
 
@@ -43,7 +43,7 @@ final class DocsCheckCommand extends AbstractCommand
             $synced = $updater->sync($current);
         } catch (\Throwable $e) {
             $output->writeLine($e->getMessage(), 'error');
-            $output->writeLine('Run `bin/nix docs:sync` after restoring the missing README.md markers.');
+            $output->writeLine('Run `vendor/bin/nix docs:sync` after restoring the missing README.md markers.');
             return $this->fail();
         }
         $normalizedCurrent = str_replace("\r\n", "\n", $current);
@@ -58,7 +58,7 @@ final class DocsCheckCommand extends AbstractCommand
         if ($changedBlocks !== []) {
             $output->writeLine('Changed blocks: ' . implode(', ', $changedBlocks));
         }
-        $output->writeLine('Run `bin/nix docs:sync` and commit the README.md changes.');
+        $output->writeLine('Run `vendor/bin/nix docs:sync` and commit the README.md changes.');
 
         return $this->fail();
     }

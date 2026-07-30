@@ -4,13 +4,20 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Mcp\Tools;
 
+use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
+use NixPHP\CMS\Enums\ToolRisk;
+
 use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;
 use Throwable;
 
-final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface
+final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
+    use DeclaresLocalAiToolRisk;
+
+    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const bool AI_DESTRUCTIVE = false;
     public function name(): string
     {
         return 'external_trending_topics';

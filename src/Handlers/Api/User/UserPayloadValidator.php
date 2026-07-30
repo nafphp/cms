@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Handlers\Api\User;
 
+use NixPHP\CMS\Contracts\PasswordPolicyInterface;
 use NixPHP\CMS\Services\Security\PasswordPolicy;
 
 final class UserPayloadValidator
 {
+    public function __construct(
+        private readonly PasswordPolicyInterface $passwords = new PasswordPolicy(),
+    ) {}
+
     /**
      * @param array<string, mixed> $data
      * @return array<string, array<int, string>>
      */
-    public static function validate(array $data, bool $creating, bool $requireRoles = true): array
+    public function validate(array $data, bool $creating, bool $requireRoles = true): array
     {
         $errors = [];
         $username = trim((string) ($data['username'] ?? ''));
@@ -29,12 +34,12 @@ final class UserPayloadValidator
             $errors['email'][] = 'Please enter a valid email address.';
         }
 
-        if ($creating && !PasswordPolicy::accepts($password)) {
-            $errors['password'][] = PasswordPolicy::message();
+        if ($creating && !$this->passwords->accepts($password)) {
+            $errors['password'][] = $this->passwords->message();
         }
 
-        if (!$creating && $password !== '' && !PasswordPolicy::accepts($password)) {
-            $errors['password'][] = PasswordPolicy::message();
+        if (!$creating && $password !== '' && !$this->passwords->accepts($password)) {
+            $errors['password'][] = $this->passwords->message();
         }
 
         if (trim($password) !== '' && $password !== $passwordConfirmation) {

@@ -25,6 +25,7 @@ final class Page
     /** @var array<int, Permission> */
     private array $requiredPermissions = [];
     private bool $requiresAnyPermission = false;
+    private bool $storedOverridable = false;
     /** @var callable|null */
     private $content = null;
     /** @var callable|array{0: class-string, 1: string}|null */
@@ -63,6 +64,24 @@ final class Page
     public function method(): string
     {
         return $this->method;
+    }
+
+    /**
+     * Let an editor's stored page take over this path.
+     *
+     * For code pages that only exist so the path is not empty, such as the
+     * built-in home page. Without this a stored page on the same path is
+     * silently unreachable, because the code route is registered first.
+     */
+    public function allowStoredOverride(bool $allow = true): self
+    {
+        $this->storedOverridable = $allow;
+        return $this;
+    }
+
+    public function isStoredOverridable(): bool
+    {
+        return $this->storedOverridable;
     }
 
     public function setMethod(string $method): self

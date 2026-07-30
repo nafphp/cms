@@ -6,9 +6,10 @@ namespace NixPHP\CMS\Content\Media;
 
 use NixPHP\CMS\Api\MediaApi;
 use NixPHP\CMS\Content\ContentTypeInterface;
+use NixPHP\CMS\Contracts\MediaStorageInterface;
 use NixPHP\CMS\Models\Media;
-use NixPHP\CMS\Services\Media\MediaStorageService;
 use NixPHP\CMS\Storage\EntityStorage;
+use function NixPHP\app;
 
 final class MediaContentType implements ContentTypeInterface
 {
@@ -33,7 +34,9 @@ final class MediaContentType implements ContentTypeInterface
     {
         if ($this->api === null) {
             $storage = new EntityStorage(Media::class);
-            $this->api = new MediaApi(new MediaStorageService($storage), $storage);
+            /** @var MediaStorageInterface $fileStorage */
+            $fileStorage = app()->container()->get(MediaStorageInterface::class);
+            $this->api = new MediaApi($fileStorage, $storage);
         }
 
         return $this->api;

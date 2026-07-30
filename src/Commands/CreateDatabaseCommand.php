@@ -28,8 +28,8 @@ class CreateDatabaseCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine('    php bin/nix db:create');
-            $output->writeLine('    php bin/nix db:create --force');
+            $output->writeLine('    vendor/bin/nix db:create');
+            $output->writeLine('    vendor/bin/nix db:create --force');
             $output->writeLine('  Reads driver/host/port/username/password/database from app config (.env).');
             $output->writeLine('  --force drops the configured database before recreating it.');
             return self::SUCCESS;

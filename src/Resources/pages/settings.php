@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 use NixPHP\CMS\Enums\Permission;
 use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Repositories\AuditLogRepository;
-use NixPHP\CMS\Services\Settings\SettingsService;
+use NixPHP\CMS\Contracts\AuditSinkInterface;
+use NixPHP\CMS\Contracts\SettingsServiceInterface;
+use function NixPHP\app;
 use function NixPHP\I18n\t;
 use function NixPHP\View\render;
 use function NixPHP\CMS\cms;
@@ -21,7 +22,7 @@ return [
             'title' => t('Settings'),
             'pageTitle' => t('Settings'),
             'pageSubtitle' => t('Manage application defaults and plugin-provided settings.'),
-            'sections' => (new SettingsService())->sections('general'),
+            'sections' => app()->container()->get(SettingsServiceInterface::class)->sections('general'),
             'activeGroup' => 'general',
         ])),
     Page::create('admin.settings.ai')
@@ -34,10 +35,10 @@ return [
             'title' => t('Local AI'),
             'pageTitle' => t('Local AI'),
             'pageSubtitle' => t('Configure the browser-local Ollama assistant.'),
-            'sections' => (new SettingsService())->sections('ai'),
+            'sections' => app()->container()->get(SettingsServiceInterface::class)->sections('ai'),
             'activeGroup' => 'ai',
             'routingFallbacks' => array_slice(array_values(array_filter(
-                (new AuditLogRepository())->latest(50, 'router'),
+                app()->container()->get(AuditSinkInterface::class)->latest(50, 'router'),
                 static fn(array $entry): bool => (string) ($entry['action'] ?? '') === 'ai.routing.fallback',
             )), 0, 10),
         ])),
@@ -58,7 +59,7 @@ return [
                 'title' => t('Settings'),
                 'pageTitle' => t((string) ($groups[$group]['label'] ?? 'Settings')),
                 'pageSubtitle' => t('Manage application defaults and plugin-provided settings.'),
-                'sections' => (new SettingsService())->sections($group),
+                'sections' => app()->container()->get(SettingsServiceInterface::class)->sections($group),
                 'activeGroup' => $group,
             ]);
         }),

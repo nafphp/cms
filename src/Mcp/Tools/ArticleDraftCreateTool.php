@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Mcp\Tools;
 
+use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
+use NixPHP\CMS\Enums\ToolRisk;
+
 use Closure;
 use NixPHP\CMS\Localization\LanguageRegistry;
 use NixPHP\CMS\Support\Slug;
@@ -12,8 +15,12 @@ use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;
 use function NixPHP\CMS\cms;
 
-final class ArticleDraftCreateTool implements ToolInterface, ScopedToolInterface
+final class ArticleDraftCreateTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
+    use DeclaresLocalAiToolRisk;
+
+    private const ToolRisk AI_RISK = ToolRisk::WRITE;
+    private const bool AI_DESTRUCTIVE = false;
     /**
      * @param Closure(array<string, mixed>, ?int): array{articleId:int,articleVersionId:int}|null $createDraft
      */

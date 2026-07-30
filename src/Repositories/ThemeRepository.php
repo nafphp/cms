@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Repositories;
 
+use NixPHP\CMS\Contracts\ThemeSourceInterface;
 use NixPHP\CMS\Services\Theme\ThemeCodeNormalizer;
 use NixPHP\CMS\Theme\Theme;
 use PDO;
 use function NixPHP\Database\database;
+use function NixPHP\log;
 
-final class ThemeRepository
+final class ThemeRepository implements ThemeSourceInterface
 {
     public function __construct(private ?PDO $connection = null)
     {
@@ -27,7 +29,8 @@ final class ThemeRepository
 
         try {
             $rows = $connection->query('SELECT * FROM themes ORDER BY updated_at DESC, created_at DESC, label ASC')->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('ThemeRepository.summaries failed: %s', $e->getMessage()), ['exception' => $e]);
             return [];
         }
 
@@ -50,7 +53,8 @@ final class ThemeRepository
                 $statement->execute(['identifier' => Theme::slug((string) $id)]);
             }
             $row = $statement->fetch(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('ThemeRepository.find failed: %s', $e->getMessage()), ['exception' => $e]);
             return null;
         }
 
@@ -63,13 +67,16 @@ final class ThemeRepository
     public function themes(): array
     {
         $connection = $this->connection();
-        if (!$connection instanceof PDO || !$this->tableExists()) {
+        if (!$connection instanceof PDO) {
             return [];
         }
 
         try {
+            // Avoid the former table-existence probe on every public page.
+            // A missing schema is already handled by this repository boundary.
             $rows = $connection->query('SELECT * FROM themes ORDER BY label ASC')->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('ThemeRepository.themes failed: %s', $e->getMessage()), ['exception' => $e]);
             return [];
         }
 
@@ -226,7 +233,8 @@ final class ThemeRepository
     {
         try {
             $decoded = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->warning(sprintf('ThemeRepository.decodeJson failed: %s', $e->getMessage()), ['exception' => $e]);
             return [];
         }
 
@@ -251,7 +259,8 @@ final class ThemeRepository
             $statement = $connection->prepare('SHOW TABLES LIKE :table');
             $statement->execute(['table' => 'themes']);
             return (bool) $statement->fetchColumn();
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->warning(sprintf('ThemeRepository.tableExists failed: %s', $e->getMessage()), ['exception' => $e]);
             return false;
         }
     }
@@ -264,7 +273,8 @@ final class ThemeRepository
 
         try {
             $connection = database();
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('ThemeRepository.connection failed: %s', $e->getMessage()), ['exception' => $e]);
             return null;
         }
 

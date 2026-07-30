@@ -4,19 +4,31 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Services\Security;
 
-final class PasswordPolicy
+use NixPHP\CMS\Contracts\PasswordPolicyInterface;
+
+final class PasswordPolicy implements PasswordPolicyInterface
 {
     public const int MINIMUM_LENGTH = 8;
     public const int MAXIMUM_LENGTH = 4096;
 
-    public static function accepts(string $password): bool
+    public function accepts(string $password): bool
     {
         $length = mb_strlen($password);
-        return $length >= self::MINIMUM_LENGTH && $length <= self::MAXIMUM_LENGTH;
+        return $length >= $this->minimumLength() && $length <= $this->maximumLength();
     }
 
-    public static function message(): string
+    public function message(): string
     {
-        return sprintf('Please enter a password with at least %d characters.', self::MINIMUM_LENGTH);
+        return sprintf('Please enter a password with at least %d characters.', $this->minimumLength());
+    }
+
+    public function minimumLength(): int
+    {
+        return self::MINIMUM_LENGTH;
+    }
+
+    public function maximumLength(): int
+    {
+        return self::MAXIMUM_LENGTH;
     }
 }

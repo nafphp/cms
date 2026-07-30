@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace NixPHP\CMS\Services\Http;
 
 use Closure;
+use NixPHP\CMS\Contracts\OutboundHttpClientInterface;
 use NixPHP\CMS\Exceptions\OutboundHttpDenied;
 use NixPHP\CMS\Services\Http\OutboundHttpPolicy;
 use NixPHP\CMS\Services\Http\OutboundHttpProfile;
 use NixPHP\CMS\Services\Http\OutboundHttpResponse;
 use NixPHP\CMS\Services\Http\OutboundHttpTarget;
+use function NixPHP\log;
 
-final class OutboundHttpClient
+final class OutboundHttpClient implements OutboundHttpClientInterface
 {
     private ?Closure $transport;
 
@@ -146,7 +148,10 @@ final class OutboundHttpClient
             throw new \RuntimeException('Outbound response exceeded the configured size limit.');
         }
         if ($success === false) {
-            throw new \RuntimeException($error !== '' ? 'Outbound request failed.' : 'Outbound request failed.');
+            // curl details can expose resolved hostnames and IP addresses. Keep
+            // them in operational logs instead of user-facing exceptions.
+            log()->warning('Outbound request failed.', ['error' => $error, 'host' => $target->host]);
+            throw new \RuntimeException('Outbound request failed.');
         }
 
         return ['status' => $status, 'headers' => $responseHeaders, 'body' => $responseBody];

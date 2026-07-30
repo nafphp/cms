@@ -63,7 +63,7 @@ final class StoreTheme
         } catch (\InvalidArgumentException $exception) {
             return json(['success' => false, 'reason' => $exception->getMessage()], 400);
         } catch (Throwable $exception) {
-            error_log($exception);
+            error_log((string) $exception);
             return json(['success' => false, 'reason' => 'Theme could not be saved.'], 500);
         }
     }

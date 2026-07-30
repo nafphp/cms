@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Services\Security;
 
+use NixPHP\CMS\Contracts\UserPrivilegePolicyInterface;
 use NixPHP\CMS\Enums\Permission;
 use NixPHP\CMS\Enums\Role;
 use NixPHP\CMS\Exceptions\PrivilegedActionDenied;
@@ -13,7 +14,7 @@ use function NixPHP\Database\database;
 /**
  * Central authorization boundary for user, role, credential, and deletion mutations.
  */
-final class UserPrivilegePolicy
+final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
 {
     public function __construct(private ?PDO $connection = null)
     {

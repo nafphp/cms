@@ -3,9 +3,10 @@
 declare(strict_types=1);
 
 use NixPHP\CMS\Enums\Permission;
+use NixPHP\CMS\Contracts\TranslationServiceInterface;
 use NixPHP\CMS\Handlers\Page\Navigation\StoreNavigation;
 use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Services\Settings\TranslationFileService;
+use function NixPHP\app;
 use function NixPHP\I18n\t;
 use function NixPHP\log;
 use function NixPHP\redirect;
@@ -15,7 +16,7 @@ use function NixPHP\CMS\cms;
 
 $navigationApi = static fn() => cms()->navigation();
 $translationSuggestions = static function (): array {
-    $service = new TranslationFileService();
+    $service = app()->container()->get(TranslationServiceInterface::class);
     $languages = array_values(array_unique([
         ...cms()->settings()->languages(),
         ...array_map(

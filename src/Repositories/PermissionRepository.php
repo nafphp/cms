@@ -4,14 +4,36 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Repositories;
 
+use NixPHP\CMS\Contracts\UserPrivilegePolicyInterface;
 use NixPHP\CMS\Models\Permission;
 use NixPHP\CMS\Services\Security\UserPrivilegePolicy;
+use NixPHP\ORM\Core\EntityManager;
 use NixPHP\ORM\Repository\AbstractRepository;
+use PDO;
 use function NixPHP\ORM\em;
+use function NixPHP\log;
 
 class PermissionRepository extends AbstractRepository
 {
     private const string ROLE_PERMISSION_TABLE = 'role_permissions';
+
+    public function __construct(
+        protected PDO $pdo,
+        protected EntityManager $entityManager,
+        private ?UserPrivilegePolicyInterface $privilegePolicy = null,
+    ) {
+        parent::__construct($pdo, $entityManager);
+    }
+
+    /**
+     * The container binding wins when the repository is autowired. The fallback
+     * keeps this repository's own connection, which matters for tests that build
+     * it with a dedicated PDO instead of the application database.
+     */
+    private function privileges(): UserPrivilegePolicyInterface
+    {
+        return $this->privilegePolicy ??= new UserPrivilegePolicy($this->pdo);
+    }
 
     protected function getEntityClass(): string
     {
@@ -90,7 +112,8 @@ class PermissionRepository extends AbstractRepository
 
             $this->pdo->commit();
             return $removed;
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('PermissionRepository.mergeDuplicateNames failed: %s', $e->getMessage()), ['exception' => $e]);
             $this->pdo->rollBack();
             return 0;
         }
@@ -112,7 +135,7 @@ class PermissionRepository extends AbstractRepository
 
     public function createByName(int $actorId, string $name): ?Permission
     {
-        (new UserPrivilegePolicy($this->pdo))->assertPermissionDefinitionCreate($actorId);
+        $this->privileges()->assertPermissionDefinitionCreate($actorId);
 
         $normalized = $this->normalizeName($name);
         if ($normalized === null) {
@@ -133,7 +156,7 @@ class PermissionRepository extends AbstractRepository
 
     public function renameById(int $actorId, int $permissionId, string $name): bool
     {
-        (new UserPrivilegePolicy($this->pdo))->assertPermissionDefinitionChange($actorId, $permissionId);
+        $this->privileges()->assertPermissionDefinitionChange($actorId, $permissionId);
 
         $normalized = $this->normalizeName($name);
         if ($permissionId <= 0 || $normalized === null) {
@@ -158,7 +181,7 @@ class PermissionRepository extends AbstractRepository
 
     public function deleteById(int $actorId, int $permissionId): bool
     {
-        (new UserPrivilegePolicy($this->pdo))->assertPermissionDefinitionChange($actorId, $permissionId);
+        $this->privileges()->assertPermissionDefinitionChange($actorId, $permissionId);
 
         if ($permissionId <= 0) {
             return false;
@@ -176,7 +199,8 @@ class PermissionRepository extends AbstractRepository
 
             $this->pdo->commit();
             return $deletePermissionStmt->rowCount() > 0;
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('PermissionRepository.deleteById failed: %s', $e->getMessage()), ['exception' => $e]);
             $this->pdo->rollBack();
             return false;
         }

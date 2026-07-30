@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 use NixPHP\CMS\Enums\Permission;
 use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Services\Settings\SettingsService;
-use NixPHP\CMS\Services\Settings\TranslationFileService;
+use NixPHP\CMS\Contracts\SettingsServiceInterface;
+use NixPHP\CMS\Contracts\TranslationServiceInterface;
+use function NixPHP\app;
 use function NixPHP\I18n\t;
 use function NixPHP\request;
 use function NixPHP\View\render;
@@ -19,10 +20,10 @@ return [
         ->requirePermission(Permission::ADMIN_ACCESS)
         ->setAdminNavigation('Languages', parent: 'settings', icon: 'content', order: 20, key: 'settings.translations')
         ->setContent(static function () {
-            $service = new TranslationFileService();
+            $service = app()->container()->get(TranslationServiceInterface::class);
             $language = cms()->languages()->normalize((string) (request()->getQueryParams()['language'] ?? cms()->settings()->currentLanguage()))
                 ?? cms()->settings()->currentLanguage();
-            $settingSections = (new SettingsService())->sections('languages');
+            $settingSections = app()->container()->get(SettingsServiceInterface::class)->sections('languages');
 
             return render('admin.settings.translations', [
                 'title' => t('Languages'),

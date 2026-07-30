@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Services\Settings;
 
+use NixPHP\CMS\Contracts\TranslationServiceInterface;
 use NixPHP\CMS\Support\AtomicFileWriter;
 use NixPHP\CMS\Support\RuntimePaths;
 use function NixPHP\CMS\cms;
-use function NixPHP\CMS\audit;
+use function NixPHP\CMS\audit_log;
 
-final class TranslationFileService
+final class TranslationFileService implements TranslationServiceInterface
 {
     private readonly string $overrideDirectory;
     private readonly string $defaultDirectory;
@@ -60,10 +61,55 @@ final class TranslationFileService
     }
 
     /**
+     * Replace the whole override file with the given entries.
+     *
+     * For the translation editor, which owns the complete set and needs to be
+     * able to drop keys. Everything else should use merge().
+     *
      * @param array<string, mixed> $entries
      * @return array{success: bool, errors: array<string, list<string>>, changed: int}
      */
     public function save(string $language, array $entries): array
+    {
+        return $this->writeOverrides(
+            $language,
+            fn(string $language): array => $this->normalizeEntries($entries),
+        );
+    }
+
+    /**
+     * Apply single keys on top of the existing overrides.
+     *
+     * For the key pickers in the page builder, form builder and navigation,
+     * which only know about the one key being edited. Sending the whole set
+     * from there made every default key an override and let two editors
+     * overwrite each other's work.
+     *
+     * @param array<string, mixed> $entries Keys to add or update
+     * @param array<int, string> $remove Keys to drop from the overrides
+     * @return array{success: bool, errors: array<string, list<string>>, changed: int}
+     */
+    public function merge(string $language, array $entries, array $remove = []): array
+    {
+        return $this->writeOverrides($language, function (string $language) use ($entries, $remove): array {
+            $overrides = array_replace(
+                $this->readFile($this->overrideFile($language)),
+                $this->normalizeEntries($entries),
+            );
+
+            foreach ($remove as $key) {
+                unset($overrides[trim((string) $key)]);
+            }
+
+            return $overrides;
+        });
+    }
+
+    /**
+     * @param callable(string): array<string, string> $buildOverrides
+     * @return array{success: bool, errors: array<string, list<string>>, changed: int}
+     */
+    private function writeOverrides(string $language, callable $buildOverrides): array
     {
         $language = $this->normalizeLanguage($language);
         if ($language === '') {
@@ -71,7 +117,7 @@ final class TranslationFileService
         }
 
         $old = $this->read($language);
-        $new = $this->normalizeEntries($entries);
+        $new = $buildOverrides($language);
         ksort($new, SORT_NATURAL | SORT_FLAG_CASE);
         $json = json_encode($new, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         if (!is_string($json)) {
@@ -85,7 +131,16 @@ final class TranslationFileService
             return ['success' => false, 'errors' => ['file' => ['Translation file is not writable.']], 'changed' => 0];
         }
 
-        return ['success' => true, 'errors' => [], 'changed' => $this->auditChanges($language, $old, $new, $file)];
+        // Audit the values a visitor ends up seeing, not the override file:
+        // dropping an override falls back to the shipped default rather than
+        // removing the string.
+        $effectiveNew = array_replace($this->readFile($this->defaultFile($language)), $new);
+
+        return [
+            'success' => true,
+            'errors' => [],
+            'changed' => $this->auditChanges($language, $old, $effectiveNew, $file),
+        ];
     }
 
     /** @return array<string, string> */
@@ -159,7 +214,7 @@ final class TranslationFileService
                 continue;
             }
 
-            audit('translation.updated', 'translation', $language . '.' . $key, $oldValue, $newValue, [
+            audit_log('translation.updated', 'translation', $language . '.' . $key, $oldValue, $newValue, [
                 'language' => $language,
                 'key' => $key,
                 'file' => $file,

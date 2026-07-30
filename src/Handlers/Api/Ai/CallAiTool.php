@@ -16,6 +16,9 @@ final class CallAiTool
 
     public function __invoke(): ResponseInterface
     {
+        // Tool failures deliberately remain HTTP 200: the assistant consumes
+        // them as tool results and needs the model turn to continue. Server
+        // authorization still happens in LocalAiToolBridge/MCP scopes.
         $body = $this->jsonBody();
         $name = trim((string) ($body['name'] ?? ''));
         $arguments = $body['arguments'] ?? $body['args'] ?? [];

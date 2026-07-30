@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Repositories;
 
+use NixPHP\CMS\Contracts\AuditSinkInterface;
 use NixPHP\CMS\Support\AuditLogRecord;
 use PDO;
 use function NixPHP\Database\database;
+use function NixPHP\log;
 use function NixPHP\CMS\audit_log;
 
-final class AuditLogRepository
+final class AuditLogRepository implements AuditSinkInterface
 {
     public function __construct(private ?PDO $connection = null)
     {
@@ -74,7 +76,8 @@ final class AuditLogRepository
             }
 
             return $statement->execute($parameters);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('AuditLogRepository.record failed: %s', $e->getMessage()), ['exception' => $e]);
             return false;
         }
     }
@@ -121,7 +124,8 @@ final class AuditLogRepository
             SQL);
             $statement->execute($params);
             $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('AuditLogRepository.latestRecords failed: %s', $e->getMessage()), ['exception' => $e]);
             return [];
         }
 
@@ -175,7 +179,8 @@ final class AuditLogRepository
     {
         try {
             return json_decode($value, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->warning(sprintf('AuditLogRepository.decodeValue failed: %s', $e->getMessage()), ['exception' => $e]);
             return $value;
         }
     }
@@ -188,7 +193,8 @@ final class AuditLogRepository
 
         try {
             $connection = database();
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('AuditLogRepository.connection failed: %s', $e->getMessage()), ['exception' => $e]);
             return null;
         }
 

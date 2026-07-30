@@ -22,10 +22,14 @@ final class StoreUser
     use ReadsJsonBody;
     use RejectsPrivilegedAction;
 
+    public function __construct(
+        private readonly UserPayloadValidator $validator = new UserPayloadValidator(),
+    ) {}
+
     public function __invoke(): ResponseInterface
     {
         $data = $this->jsonBody();
-        $errors = UserPayloadValidator::validate($data, true);
+        $errors = $this->validator->validate($data, true);
         if ($errors !== []) {
             return json(['success' => false, 'errors' => $errors], 400);
         }

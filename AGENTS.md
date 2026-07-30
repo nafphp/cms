@@ -215,7 +215,7 @@ The shipped project should include its own `AGENTS.md` that explains the applica
 
 ## CMS API Reference
 
-The public `cms()` entry points and registry-derived reference tables live in the README's Auto Reference section. Keep this file focused on vision, conventions, and safe editing guidance; when public pages, API endpoints, content types, permissions, MCP tools, or examples change, update the source registry and run `bin/nix docs:sync`.
+The public `cms()` entry points and registry-derived reference tables live in the README's Auto Reference section. Keep this file focused on vision, conventions, and safe editing guidance; when public pages, API endpoints, content types, permissions, MCP tools, or examples change, update the source registry and run `vendor/bin/nix docs:sync` from a host that has this package installed.
 
 ## CMS Registry Conventions
 
@@ -410,7 +410,9 @@ It should not include:
 
 ## Long-Term Goal
 
-NixCMS should become a standalone product built on NixPHP and powered by its plugin ecosystem.
+NixCMS should become a complete product built on NixPHP and powered by its plugin ecosystem.
+
+It is itself a NixPHP plugin and is always installed into a host application; this repository ships no front controller and is never served directly. `nixphp/app` is the starter host for that.
 
 It should feel:
 

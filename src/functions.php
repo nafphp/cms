@@ -6,6 +6,7 @@ namespace NixPHP\CMS;
 
 use NixPHP\CMS\Models\User;
 use NixPHP\CMS\Repositories\UserRepository;
+use NixPHP\CMS\Security\CspNonce;
 use NixPHP\CMS\Support\Audit;
 use NixPHP\CMS\Support\AuditEntry;
 use NixPHP\CMS\Support\Cms;
@@ -13,9 +14,33 @@ use NixPHP\CMS\Support\UserHelper;
 use function NixPHP\ORM\repo;
 use function NixPHP\Session\session;
 
-function cms(): Cms
+/**
+ * Reset request-scoped helper state between tests.
+ */
+function cms_reset(): void
+{
+    cms(reset: true);
+    user(reset: true);
+    audit(reset: true);
+    CspNonce::reset();
+}
+
+function csp_nonce(): string
+{
+    return CspNonce::value();
+}
+
+function cms(bool $reset = false, ?Cms $override = null): Cms
 {
     static $cache = null;
+
+    if ($override instanceof Cms) {
+        return $cache = $override;
+    }
+
+    if ($reset) {
+        $cache = null;
+    }
 
     if ($cache === null) {
         $cache = new Cms();
@@ -24,10 +49,31 @@ function cms(): Cms
     return $cache;
 }
 
-function user(): ?UserHelper
+/**
+ * The override exists for isolated tests only; production callers must rely on
+ * the authenticated session.
+ */
+function user(?UserHelper $override = null, bool $reset = false): ?UserHelper
 {
     static $cache = null;
     static $cachedUserId = null;
+    static $forced = null;
+
+    if ($reset) {
+        $cache = null;
+        $cachedUserId = null;
+        $forced = null;
+        return null;
+    }
+
+    if ($override !== null) {
+        $forced = $override;
+        return $forced;
+    }
+
+    if ($forced !== null) {
+        return $forced;
+    }
 
     if (!function_exists('NixPHP\Session\session')) {
         return null;
@@ -57,9 +103,13 @@ function user(): ?UserHelper
     return $cache;
 }
 
-function audit(): Audit
+function audit(bool $reset = false): Audit
 {
     static $cache = null;
+
+    if ($reset) {
+        $cache = null;
+    }
 
     if ($cache === null) {
         $cache = new Audit();

@@ -12,6 +12,61 @@ use NixPHP\CMS\Services\Ai\ToolRouting\ToolRouterInterface;
 final class KeywordToolRouter implements ToolRouterInterface
 {
     /**
+     * Maps German query stems to the English vocabulary used in tool names,
+     * descriptions and capabilities. Matched as a substring so both inflected
+     * forms ("Benutzern", "Rollen") and compounds ("Systemgesundheit",
+     * "Medienübersicht") resolve as well.
+     *
+     * @var array<string, array<int, string>>
+     */
+    private const QUERY_ALIASES = [
+        'benutzer' => ['user', 'users', 'account', 'role'],
+        'nutzer' => ['user', 'users', 'account'],
+        'konto' => ['user', 'account'],
+        'rolle' => ['role', 'roles', 'permission', 'user'],
+        'berechtigung' => ['permission', 'permissions', 'role', 'user'],
+        'recht' => ['permission', 'role', 'user'],
+        'seite' => ['page', 'pages'],
+        'artikel' => ['article', 'articles', 'content'],
+        'beitrag' => ['article', 'articles', 'content'],
+        'beiträge' => ['article', 'articles', 'content'],
+        'entwurf' => ['draft', 'article'],
+        'entwürfe' => ['draft', 'article'],
+        'inhalt' => ['content'],
+        'medien' => ['media', 'image', 'file'],
+        'bild' => ['media', 'image'],
+        'datei' => ['media', 'file'],
+        'formular' => ['form', 'forms'],
+        'einstellung' => ['settings', 'configuration'],
+        'design' => ['theme', 'design'],
+        'farbe' => ['theme', 'color'],
+        'gesundheit' => ['health', 'system', 'status'],
+        'zustand' => ['health', 'system', 'status'],
+        'system' => ['system', 'health', 'status'],
+        'warteschlange' => ['queue'],
+        'protokoll' => ['audit', 'log', 'activity'],
+        'verlauf' => ['audit', 'log', 'activity'],
+        'aktivität' => ['audit', 'log', 'activity'],
+        'erweiterung' => ['plugin', 'plugins'],
+        'übersicht' => ['overview', 'summary'],
+        'zusammenfassung' => ['overview', 'summary'],
+        'wetter' => ['weather', 'forecast'],
+        'feiertag' => ['holiday', 'holidays'],
+        'wechselkurs' => ['exchange', 'currency', 'rates'],
+        'währung' => ['exchange', 'currency', 'rates'],
+        'navigiere' => ['navigate', 'admin'],
+        'navigation' => ['navigate', 'navigation', 'admin'],
+        'bringe' => ['navigate', 'admin'],
+        'gehe' => ['navigate', 'admin'],
+        'wechsle' => ['navigate', 'admin'],
+        'springe' => ['navigate', 'admin'],
+        'öffne' => ['navigate', 'open', 'admin'],
+        'oeffne' => ['navigate', 'open', 'admin'],
+        'zeige' => ['navigate', 'overview', 'admin'],
+        'bereich' => ['area', 'admin'],
+    ];
+
+    /**
      * @param array<int, array<string, mixed>> $tools
      */
     public function __construct(
@@ -195,10 +250,33 @@ final class KeywordToolRouter implements ToolRouterInterface
             'with', 'the', 'for', 'and', 'this', 'that',
         ]);
 
-        return array_values(array_unique(array_filter(
+        $tokens = array_values(array_filter(
             $words,
             static fn(string $word): bool => mb_strlen($word) >= 3 && !isset($stop[$word])
-        )));
+        ));
+
+        return array_values(array_unique([...$tokens, ...$this->aliasTokens($tokens)]));
+    }
+
+    /**
+     * @param array<int, string> $tokens
+     * @return array<int, string>
+     */
+    private function aliasTokens(array $tokens): array
+    {
+        $aliases = [];
+
+        foreach ($tokens as $token) {
+            foreach (self::QUERY_ALIASES as $stem => $translations) {
+                if (str_contains($token, $stem)) {
+                    foreach ($translations as $translation) {
+                        $aliases[$translation] = $translation;
+                    }
+                }
+            }
+        }
+
+        return array_values($aliases);
     }
 
     /**
@@ -255,9 +333,13 @@ final class KeywordToolRouter implements ToolRouterInterface
             'content.write' => ['erstelle', 'create', 'append', 'ergänze', 'aendere', 'ändere', 'draft'],
             'articles.write' => ['artikel', 'article', 'draft', 'entwurf'],
             'media.read' => ['media', 'bild', 'image', 'datei'],
-            'system.read' => ['system', 'status', 'queue', 'health', 'plugin'],
+            'system.read' => ['system', 'status', 'queue', 'health', 'plugin', 'gesundheit', 'zustand'],
+            'users.read' => ['benutzer', 'nutzer', 'user', 'konto', 'account', 'rolle', 'rollen', 'role', 'permission', 'berechtigung'],
             'external.fetch' => ['wetter', 'weather', 'trend', 'holiday', 'wechselkurs', 'news'],
-            'admin.navigate' => ['navigiere', 'navigate', 'gehe', 'öffne', 'oeffne', 'open', 'pagebuilder', 'builder', 'editor'],
+            'admin.navigate' => [
+                'navigiere', 'navigate', 'gehe', 'öffne', 'oeffne', 'open', 'pagebuilder', 'builder', 'editor',
+                'bringe', 'wechsle', 'springe', 'zeig', 'bereich', 'navigation',
+            ],
         ];
 
         foreach ($map as $capability => $needles) {

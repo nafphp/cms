@@ -6,6 +6,7 @@ namespace NixPHP\CMS\Repositories;
 
 use PDO;
 use function NixPHP\Database\database;
+use function NixPHP\log;
 
 final class SettingRepository
 {
@@ -24,7 +25,8 @@ final class SettingRepository
             $statement = $connection->prepare('SELECT value FROM cms_settings WHERE setting_key = :setting_key LIMIT 1');
             $statement->execute(['setting_key' => trim($key)]);
             $value = $statement->fetchColumn();
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('SettingRepository.value failed: %s', $e->getMessage()), ['exception' => $e]);
             return null;
         }
 
@@ -42,7 +44,8 @@ final class SettingRepository
         try {
             $rows = $connection->query('SELECT setting_key, value FROM cms_settings ORDER BY setting_key ASC')
                 ->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('SettingRepository.all failed: %s', $e->getMessage()), ['exception' => $e]);
             return [];
         }
 
@@ -71,7 +74,8 @@ final class SettingRepository
                 $this->save($key, $value, $connection);
             }
             $connection->commit();
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('SettingRepository.saveMany failed: %s', $e->getMessage()), ['exception' => $e]);
             if ($connection->inTransaction()) {
                 $connection->rollBack();
             }
@@ -116,7 +120,8 @@ final class SettingRepository
 
         try {
             $connection = database();
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('SettingRepository.connection failed: %s', $e->getMessage()), ['exception' => $e]);
             return null;
         }
 

@@ -9,6 +9,7 @@ use NixPHP\CMS\Models\Role;
 use NixPHP\CMS\Models\User;
 use NixPHP\CMS\Repositories\RoleRepository;
 use NixPHP\CMS\Repositories\UserRepository;
+use NixPHP\CMS\Contracts\PasswordPolicyInterface;
 use NixPHP\CMS\Services\Security\PasswordPolicy;
 use NixPHP\CLI\Core\AbstractCommand;
 use NixPHP\CLI\Core\Input;
@@ -18,6 +19,14 @@ use function NixPHP\ORM\repo;
 class CreateUserCommand extends AbstractCommand
 {
     public const string NAME = 'user:create';
+
+    public function __construct(
+        private readonly PasswordPolicyInterface $passwords = new PasswordPolicy(),
+    ) {
+        // AbstractCommand::__construct() runs configure(), which registers the
+        // arguments and options. Skipping it leaves the command without any.
+        parent::__construct();
+    }
 
     protected function configure(): void
     {
@@ -37,7 +46,7 @@ class CreateUserCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine('    php bin/nix user:create <username> <email> <role> [-p <password-file>] [-f <firstname>] [-l <lastname>]');
+            $output->writeLine('    vendor/bin/nix user:create <username> <email> <role> [-p <password-file>] [-f <firstname>] [-l <lastname>]');
             $output->writeLine('  Without --password-file the password is requested twice without terminal echo.');
             return self::SUCCESS;
         }
@@ -98,8 +107,8 @@ class CreateUserCommand extends AbstractCommand
         if ($password === null) {
             return self::ERROR;
         }
-        if (!PasswordPolicy::accepts($password)) {
-            $output->writeLine(PasswordPolicy::message(), 'error');
+        if (!$this->passwords->accepts($password)) {
+            $output->writeLine($this->passwords->message(), 'error');
             return self::ERROR;
         }
 
@@ -139,7 +148,7 @@ class CreateUserCommand extends AbstractCommand
     {
         $passwordFile = $this->asStringOrNull($input->getOption('password-file'));
         if ($passwordFile !== null) {
-            if (!is_file($passwordFile) || !is_readable($passwordFile) || filesize($passwordFile) > PasswordPolicy::MAXIMUM_LENGTH + 2) {
+            if (!is_file($passwordFile) || !is_readable($passwordFile) || filesize($passwordFile) > $this->passwords->maximumLength() + 2) {
                 $output->writeLine('Password file is missing, unreadable, or too large.', 'error');
                 return null;
             }

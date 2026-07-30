@@ -25,7 +25,7 @@ final class IntegrityCheckCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine('    php bin/nix integrity:check');
+            $output->writeLine('    vendor/bin/nix integrity:check');
             $output->writeLine('  Exits with code 1 when block/template registries drift from filesystem views.');
             return self::SUCCESS;
         }

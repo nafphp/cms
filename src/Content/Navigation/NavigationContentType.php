@@ -30,6 +30,11 @@ final class NavigationContentType implements ContentTypeInterface
 
     public function api(): NavigationApi
     {
-        return $this->api ??= new NavigationApi(new NavigationRepository());
+        if ($this->api === null) {
+            $repository = new NavigationRepository();
+            $this->api = new NavigationApi($repository);
+        }
+
+        return $this->api;
     }
 }

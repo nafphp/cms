@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Repositories;
 
+use NixPHP\CMS\Contracts\PasswordPolicyInterface;
+use NixPHP\CMS\Contracts\UserPrivilegePolicyInterface;
 use NixPHP\CMS\Enums\Permission as PermissionEnum;
 use NixPHP\CMS\Models\User;
 use NixPHP\CMS\Services\Security\CredentialService;
@@ -14,6 +16,7 @@ use DateTimeImmutable;
 use NixPHP\ORM\Core\EntityManager;
 use NixPHP\ORM\Repository\AbstractRepository;
 use PDO;
+use function NixPHP\log;
 
 class UserRepository extends AbstractRepository
 {
@@ -21,8 +24,25 @@ class UserRepository extends AbstractRepository
         protected PDO $pdo,
         protected EntityManager $entityManager,
         private readonly CredentialService $credentialService,
+        private ?UserPrivilegePolicyInterface $privilegePolicy = null,
+        private ?PasswordPolicyInterface $passwordPolicy = null,
     ) {
         parent::__construct($pdo, $entityManager);
+    }
+
+    /**
+     * The container binding wins when the repository is autowired. The fallback
+     * keeps this repository's own connection, which matters for tests that build
+     * it with a dedicated PDO instead of the application database.
+     */
+    private function privileges(): UserPrivilegePolicyInterface
+    {
+        return $this->privilegePolicy ??= new UserPrivilegePolicy($this->pdo);
+    }
+
+    private function passwords(): PasswordPolicyInterface
+    {
+        return $this->passwordPolicy ??= new PasswordPolicy();
     }
 
     protected function getEntityClass(): string
@@ -147,7 +167,7 @@ class UserRepository extends AbstractRepository
      */
     public function updateRolesByUserId(int $actorId, int $userId, array $roles): array
     {
-        (new UserPrivilegePolicy($this->pdo))->assertRoleAssignment($actorId, $userId, $roles);
+        $this->privileges()->assertRoleAssignment($actorId, $userId, $roles);
 
         if ($userId <= 0) {
             return [];
@@ -171,7 +191,8 @@ class UserRepository extends AbstractRepository
             }
 
             $this->pdo->commit();
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('UserRepository.updateRolesByUserId failed: %s', $e->getMessage()), ['exception' => $e]);
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
@@ -186,8 +207,8 @@ class UserRepository extends AbstractRepository
 
     public function resetPasswordByActor(int $actorId, int $userId, string $plainPassword): bool
     {
-        (new UserPrivilegePolicy($this->pdo))->assertPasswordReset($actorId, $userId);
-        if (!PasswordPolicy::accepts($plainPassword)) {
+        $this->privileges()->assertPasswordReset($actorId, $userId);
+        if (!$this->passwords()->accepts($plainPassword)) {
             return false;
         }
 
@@ -196,7 +217,7 @@ class UserRepository extends AbstractRepository
 
     public function updatePassword(int $userId, string $currentPassword, string $newPassword): bool
     {
-        if ($userId <= 0 || $currentPassword === '' || !PasswordPolicy::accepts($newPassword)) {
+        if ($userId <= 0 || $currentPassword === '' || !$this->passwords()->accepts($newPassword)) {
             return false;
         }
 
@@ -276,7 +297,7 @@ class UserRepository extends AbstractRepository
         array $roleNames,
         ?string $email = null,
     ): ?User {
-        (new UserPrivilegePolicy($this->pdo))->assertRoleAssignment(
+        $this->privileges()->assertRoleAssignment(
             $actorId,
             null,
             $roleNames,
@@ -324,7 +345,7 @@ class UserRepository extends AbstractRepository
         $firstname = $firstname !== null ? trim($firstname) : null;
         $lastname = $lastname !== null ? trim($lastname) : null;
 
-        if ($username === '' || !PasswordPolicy::accepts($password)) {
+        if ($username === '' || !$this->passwords()->accepts($password)) {
             return null;
         }
 
@@ -384,7 +405,8 @@ class UserRepository extends AbstractRepository
             /** @var User|null $user */
             $user = $this->findOneBy('id', $userId);
             return $user;
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('UserRepository.insertWithRoles failed: %s', $e->getMessage()), ['exception' => $e]);
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
@@ -445,7 +467,7 @@ class UserRepository extends AbstractRepository
 
     public function deleteById(int $actorId, int $userId): bool
     {
-        (new UserPrivilegePolicy($this->pdo))->assertDeletion($actorId, $userId);
+        $this->privileges()->assertDeletion($actorId, $userId);
 
         if ($userId <= 0) {
             return false;
@@ -460,7 +482,8 @@ class UserRepository extends AbstractRepository
 
             $this->pdo->commit();
             return $stmt->rowCount() > 0;
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('UserRepository.deleteById failed: %s', $e->getMessage()), ['exception' => $e]);
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
@@ -478,7 +501,7 @@ class UserRepository extends AbstractRepository
         int $createdByUserId,
         int $expiresInDays = 7,
     ): ?array {
-        (new UserPrivilegePolicy($this->pdo))->assertRoleAssignment(
+        $this->privileges()->assertRoleAssignment(
             $createdByUserId,
             null,
             $roles,
@@ -583,7 +606,7 @@ class UserRepository extends AbstractRepository
         if ($token === '' || $email === '' || $username === '') {
             return ['user' => null, 'reason' => 'invalid_input'];
         }
-        if (!PasswordPolicy::accepts($password)) {
+        if (!$this->passwords()->accepts($password)) {
             return ['user' => null, 'reason' => 'invalid_password'];
         }
 
@@ -680,7 +703,8 @@ class UserRepository extends AbstractRepository
             /** @var User|null $user */
             $user = $this->findOneBy('id', $userId);
             return ['user' => $user, 'reason' => null];
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('UserRepository.registerUserWithInvite failed: %s', $e->getMessage()), ['exception' => $e]);
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }

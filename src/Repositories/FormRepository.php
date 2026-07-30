@@ -6,6 +6,7 @@ namespace NixPHP\CMS\Repositories;
 
 use PDO;
 use function NixPHP\Database\database;
+use function NixPHP\log;
 
 final class FormRepository
 {
@@ -30,7 +31,8 @@ final class FormRepository
                 GROUP BY f.id, f.identifier, f.title, f.status, f.fields_json, f.updated_at, f.created_at
                 ORDER BY f.updated_at DESC, f.created_at DESC, f.title ASC
             SQL)->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('FormRepository.summaries failed: %s', $e->getMessage()), ['exception' => $e]);
             return [];
         }
 
@@ -60,7 +62,8 @@ final class FormRepository
             }
             $sql .= ' ORDER BY title ASC';
             $rows = $connection->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('FormRepository.choices failed: %s', $e->getMessage()), ['exception' => $e]);
             return [];
         }
 
@@ -82,7 +85,8 @@ final class FormRepository
             $statement = $connection->prepare('SELECT * FROM forms WHERE id = :id LIMIT 1');
             $statement->execute(['id' => $id]);
             $row = $statement->fetch(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('FormRepository.find failed: %s', $e->getMessage()), ['exception' => $e]);
             return null;
         }
 
@@ -106,7 +110,8 @@ final class FormRepository
             $statement = $connection->prepare($sql);
             $statement->execute(['identifier' => $this->normalizeIdentifier($identifier)]);
             $row = $statement->fetch(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('FormRepository.findByIdentifier failed: %s', $e->getMessage()), ['exception' => $e]);
             return null;
         }
 
@@ -222,7 +227,8 @@ final class FormRepository
             $statement->bindValue('limit', max(1, min(200, $limit)), PDO::PARAM_INT);
             $statement->execute();
             $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('FormRepository.submissions failed: %s', $e->getMessage()), ['exception' => $e]);
             return [];
         }
 
@@ -419,7 +425,8 @@ final class FormRepository
     {
         try {
             $decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->warning(sprintf('FormRepository.decodeJson failed: %s', $e->getMessage()), ['exception' => $e]);
             return [];
         }
 
@@ -434,7 +441,8 @@ final class FormRepository
 
         try {
             $connection = database();
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('FormRepository.connection failed: %s', $e->getMessage()), ['exception' => $e]);
             return null;
         }
 

@@ -17,11 +17,15 @@ final class UpdateUser
 {
     use ReadsJsonBody;
 
+    public function __construct(
+        private readonly UserPayloadValidator $validator = new UserPayloadValidator(),
+    ) {}
+
     public function __invoke(): ResponseInterface
     {
         $data = $this->jsonBody();
         $userId = (int) ($data['user_id'] ?? 0);
-        $errors = UserPayloadValidator::validate($data, false, false);
+        $errors = $this->validator->validate($data, false, false);
         if ($userId <= 0) {
             $errors['user_id'][] = 'Invalid user id.';
         }

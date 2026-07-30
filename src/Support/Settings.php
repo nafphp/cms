@@ -8,7 +8,7 @@ use NixPHP\CMS\Repositories\SettingRepository;
 use NixPHP\CMS\Settings\SettingField;
 use NixPHP\CMS\Settings\SettingSection;
 use NixPHP\CMS\Settings\SettingsRegistry;
-use NixPHP\CMS\Services\Settings\TranslationFileService;
+use NixPHP\CMS\Contracts\TranslationServiceInterface;
 use NixPHP\I18n\Core\Translator;
 use function NixPHP\app;
 use function NixPHP\config;
@@ -143,11 +143,19 @@ final class Settings
         return cms()->languages()->enabled($configured);
     }
 
+    /**
+     * The language the current visitor should be served in.
+     *
+     * Single source of truth: query parameter, then the translator, then the
+     * configured site language. Everything that needs "which language are we
+     * in" must go through here instead of resolving it again, which is how
+     * page lookup and article lookup drifted apart.
+     */
     public function currentLanguage(): string
     {
-        $queryLang = strtolower(trim((string) (request()->getQueryParams()['lang'] ?? '')));
-        if ($queryLang !== '' && in_array($queryLang, $this->languages(), true)) {
-            return $queryLang;
+        $requested = $this->requestedLanguage();
+        if ($requested !== null) {
+            return $requested;
         }
 
         try {
@@ -161,6 +169,24 @@ final class Settings
         }
 
         return $this->language();
+    }
+
+    /**
+     * The ?lang= override, when there is an HTTP request and the value is a
+     * language this installation actually serves.
+     *
+     * Outside a request (CLI, queue worker) there is nothing to read, which
+     * must not be an error: callers fall back to the translator.
+     */
+    private function requestedLanguage(): ?string
+    {
+        try {
+            $requested = strtolower(trim((string) (request()->getQueryParams()['lang'] ?? '')));
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return $requested !== '' && in_array($requested, $this->languages(), true) ? $requested : null;
     }
 
     public function language(): string
@@ -196,7 +222,7 @@ final class Settings
             return false;
         }
 
-        return (new TranslationFileService())->hasLanguage($language);
+        return app()->container()->get(TranslationServiceInterface::class)->hasLanguage($language);
     }
 
     public function value(string $key, mixed $default = null): mixed

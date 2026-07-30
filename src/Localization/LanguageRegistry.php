@@ -107,10 +107,18 @@ final class LanguageRegistry
         return $language !== null && in_array($language, $this->available(), true);
     }
 
+    /**
+     * Shape of an accepted language code, without delimiters.
+     *
+     * The admin UI validates the same shape before posting, so it reads this
+     * instead of carrying its own copy of the expression.
+     */
+    public const string CODE_PATTERN = '^[a-z]{2,3}(?:-[a-z0-9]{2,4})?$';
+
     public function normalize(string $language): ?string
     {
         $language = strtolower(trim($language));
-        if (preg_match('/^[a-z]{2,3}(?:-[a-z0-9]{2,4})?$/', $language) !== 1) {
+        if (preg_match('/' . self::CODE_PATTERN . '/', $language) !== 1) {
             return null;
         }
 

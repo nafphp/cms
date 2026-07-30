@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Mcp\Tools;
 
+use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
+use NixPHP\CMS\Enums\ToolRisk;
+
 use NixPHP\CMS\Enums\ArticleStatus;
 use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
@@ -12,8 +15,12 @@ use PDO;
 use Throwable;
 use function NixPHP\Database\database;
 
-final class ArticleStatusCountsTool implements ToolInterface, ScopedToolInterface
+final class ArticleStatusCountsTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
+    use DeclaresLocalAiToolRisk;
+
+    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const bool AI_DESTRUCTIVE = false;
     public function __construct(private ?PDO $connection = null) {}
 
     public function name(): string

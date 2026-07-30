@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NixPHP\CMS\Services\Settings;
 
 use Closure;
+use NixPHP\CMS\Contracts\SettingsServiceInterface;
 use NixPHP\CMS\Enums\Permission;
 use NixPHP\CMS\Repositories\SettingRepository;
 use NixPHP\CMS\Settings\SettingField;
@@ -12,10 +13,10 @@ use NixPHP\CMS\Settings\SettingSection;
 use function NixPHP\config;
 use function NixPHP\I18n\t;
 use function NixPHP\CMS\cms;
-use function NixPHP\CMS\audit;
+use function NixPHP\CMS\audit_log;
 use function NixPHP\CMS\user;
 
-final class SettingsService
+final class SettingsService implements SettingsServiceInterface
 {
     public function __construct(
         private readonly ?SettingRepository $repository = null,
@@ -220,7 +221,7 @@ final class SettingsService
                 continue;
             }
 
-            audit(
+            audit_log(
                 'setting.updated',
                 'setting',
                 $key,

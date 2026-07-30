@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Handlers\Api\User;
 
+use NixPHP\CMS\Contracts\PasswordPolicyInterface;
 use NixPHP\CMS\Exceptions\PrivilegedActionDenied;
 use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
 use NixPHP\CMS\Handlers\Support\RejectsPrivilegedAction;
@@ -20,6 +21,10 @@ final class UpdateUserPassword
     use ReadsJsonBody;
     use RejectsPrivilegedAction;
 
+    public function __construct(
+        private readonly PasswordPolicyInterface $passwords = new PasswordPolicy(),
+    ) {}
+
     public function __invoke(): ResponseInterface
     {
         $data = $this->jsonBody();
@@ -32,8 +37,8 @@ final class UpdateUserPassword
             $errors['user_id'][] = 'Invalid user id.';
         }
 
-        if (!PasswordPolicy::accepts($password)) {
-            $errors['password'][] = PasswordPolicy::message();
+        if (!$this->passwords->accepts($password)) {
+            $errors['password'][] = $this->passwords->message();
         }
 
         if ($password !== $confirmation) {

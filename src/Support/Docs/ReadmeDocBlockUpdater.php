@@ -81,7 +81,7 @@ final class ReadmeDocBlockUpdater
 
     private function renderBody(DocBlockRenderer $renderer): string
     {
-        return "<!-- Automatically generated via `bin/nix docs:sync`; do not edit manually. -->\n\n"
+        return "<!-- Automatically generated via `vendor/bin/nix docs:sync`; do not edit manually. -->\n\n"
             . trim($renderer->render());
     }
 

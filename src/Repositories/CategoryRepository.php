@@ -8,6 +8,7 @@ use NixPHP\CMS\Models\Category;
 use NixPHP\CMS\Support\Slug;
 use NixPHP\ORM\Repository\AbstractRepository;
 use function NixPHP\ORM\em;
+use function NixPHP\log;
 
 class CategoryRepository extends AbstractRepository
 {
@@ -122,7 +123,8 @@ class CategoryRepository extends AbstractRepository
             $this->pdo->commit();
 
             return $deleteStmt->rowCount() > 0;
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('CategoryRepository.deleteByIdWithArticleDetach failed: %s', $e->getMessage()), ['exception' => $e]);
             $this->pdo->rollBack();
             return false;
         }

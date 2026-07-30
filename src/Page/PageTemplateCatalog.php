@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NixPHP\CMS\Page;
 
 use NixPHP\CMS\Page\Layout;
+use NixPHP\CMS\Support\RuntimePaths;
 use function NixPHP\app;
 
 final class PageTemplateCatalog
@@ -16,7 +17,7 @@ final class PageTemplateCatalog
         $hostRoot = app()->getBasePath();
 
         if (is_string($hostRoot) && $hostRoot !== '') {
-            $hostFile = rtrim($hostRoot, '/\\') . '/app/Resources/pages/page_templates.php';
+            $hostFile = RuntimePaths::hostResource('pages/page_templates.php');
             if (realpath($hostFile) !== realpath($files[0])) {
                 $files[] = $hostFile;
             }

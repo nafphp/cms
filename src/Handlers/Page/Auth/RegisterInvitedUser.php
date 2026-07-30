@@ -6,6 +6,7 @@ namespace NixPHP\CMS\Handlers\Page\Auth;
 
 use NixPHP\CMS\Models\User;
 use NixPHP\CMS\Repositories\UserRepository;
+use NixPHP\CMS\Contracts\PasswordPolicyInterface;
 use NixPHP\CMS\Services\Security\PasswordPolicy;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\Form\validator;
@@ -16,6 +17,10 @@ use function NixPHP\View\render;
 
 final class RegisterInvitedUser
 {
+    public function __construct(
+        private readonly PasswordPolicyInterface $passwords = new PasswordPolicy(),
+    ) {}
+
     public function __invoke(string $token): ResponseInterface
     {
         $repository = repo(UserRepository::class);
@@ -41,8 +46,8 @@ final class RegisterInvitedUser
         if (!$validation->isValid()) {
             return $this->registerView($token, $invite, implode(' ', validator()->getErrorMessages()));
         }
-        if (!PasswordPolicy::accepts((string) ($data['password'] ?? ''))) {
-            return $this->registerView($token, $invite, PasswordPolicy::message());
+        if (!$this->passwords->accepts((string) ($data['password'] ?? ''))) {
+            return $this->registerView($token, $invite, $this->passwords->message());
         }
 
         $result = $repository->registerUserWithInvite(
@@ -92,7 +97,7 @@ final class RegisterInvitedUser
             'username_exists' => 'Username already exists.',
             'email_exists' => 'Email already exists.',
             'invalid_roles' => 'This invite is not configured with valid roles.',
-            'invalid_password' => PasswordPolicy::message(),
+            'invalid_password' => $this->passwords->message(),
             default => 'Could not complete registration. Please try again.',
         };
     }

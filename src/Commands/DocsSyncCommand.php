@@ -26,7 +26,7 @@ final class DocsSyncCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine('    php bin/nix docs:sync');
+            $output->writeLine('    vendor/bin/nix docs:sync');
             $output->writeLine('  Rewrites README.md sections between <!-- nix:auto:* --> markers.');
             return self::SUCCESS;
         }

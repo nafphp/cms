@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 use NixPHP\CMS\Enums\Permission;
 use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Repositories\AuditLogRepository;
+use NixPHP\CMS\Contracts\AuditSinkInterface;
+use function NixPHP\app;
 use function NixPHP\I18n\t;
 use function NixPHP\View\render;
 
@@ -19,6 +20,6 @@ return [
             'title' => t('Audit log'),
             'pageTitle' => t('Audit log'),
             'pageSubtitle' => t('Review settings and translation changes.'),
-            'entries' => (new AuditLogRepository())->latest(120),
+            'entries' => app()->container()->get(AuditSinkInterface::class)->latest(120),
         ])),
 ];

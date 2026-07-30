@@ -2,7 +2,13 @@
 
 NixCMS is a lightweight, extensible CMS built on top of NixPHP. It is bare-metal first: PHP 8.3+, Composer, server-rendered `.phtml` templates, Tailwind v4, and optional MCP/AI integration without a separate documentation-site toolchain.
 
-PHP 8.3 and 8.4 are the supported v0.0.1 release targets and are required CI gates. PHP 8.5 is exercised by an allowed-failure compatibility job while the current `nixphp/orm` release still emits PHP 8.5 deprecations; it is not a release-blocking support target yet.
+> **This repository is a NixPHP plugin, not an application.** It ships no front
+> controller and cannot be served or booted on its own. You install it into a
+> host application, which owns `BASE_PATH`, the configuration, the webroot and
+> the request lifecycle — see [Quickstart](#quickstart). Your own code belongs
+> in that host, not in this package.
+
+PHP 8.3 and 8.4 are the supported release targets and are required CI gates. Development and verification happen on PHP 8.3, the version the reference container runs. The package requires `>=8.3` without an upper bound, so newer PHP versions install; they are exercised by a compatibility job rather than a release-blocking gate.
 
 ## Quickstart
 
@@ -13,10 +19,10 @@ Create a regular NixPHP host application, then install NixCMS as a plugin:
 ```bash
 composer create-project nixphp/app my-cms
 cd my-cms
-composer require fkde/nixcms
+composer require nixphp/cms
 ```
 
-NixPHP discovers `fkde/nixcms` from its Composer package type and loads its configuration, routes, views, migrations, commands, and MCP tools. Because those registrations consume the other NixPHP plugins, list NixCMS last in the host's `app/plugins.php`:
+NixPHP discovers `nixphp/cms` from its Composer package type and loads its configuration, routes, views, migrations, commands, and MCP tools. Because those registrations consume the other NixPHP plugins, list NixCMS last in the host's `app/plugins.php`:
 
 ```php
 return [
@@ -31,7 +37,7 @@ return [
     'nixphp/schedule',
     'nixphp/mail',
     'nixphp/mcp',
-    'fkde/nixcms',
+    'nixphp/cms',
 ];
 ```
 
@@ -68,13 +74,15 @@ php -S 127.0.0.1:8080 -t public
 
 In production, terminate TLS, keep auth enabled, restrict writable paths to host runtime/public asset targets, and keep `.env`, database credentials, MCP tokens, logs, and `storage/nixcms` outside the public webroot. Run `nixcms:assets:check` after Composer deployment, back up the database and installation-owned runtime files, and supervise `queue:consume` plus `schedule:ticker` only when those workflows are used. The PHP built-in server is for local development, not production.
 
-For development of NixCMS itself, clone this repository and use its small demo host:
+For development of NixCMS itself, work through a host application — this package cannot be served on its own. [NixPHP Studio](https://github.com/nixphp/studio) is the reference environment: it ships a Docker setup and mounts this repository as the `nixphp/cms` dependency, so edits take effect immediately and every CLI command runs from the host:
 
 ```bash
-composer install
-bin/nix db:migrate
-bin/nix user:create admin admin@example.com admin
-composer serve
+composer install                       # in this repository, for the test suite
+vendor/bin/phpunit                     # unit tests, no host required
+
+# everything else runs in the host, e.g. NixPHP Studio:
+vendor/bin/nix db:migrate up
+vendor/bin/nix user:create admin admin@example.com admin
 ```
 
 The asset publisher copies only the package's `css`, `js`, `fonts`, and `images` trees into the configured host public directory. `.nixcms-assets.json` records ownership and hashes: repeat publishes update unchanged owned files, while host-modified collisions stop with an error. Use `vendor/bin/nix nixcms:assets:check` in deployments and `vendor/bin/nix nixcms:assets:remove` before uninstalling; removal never deletes a modified host file.
@@ -90,7 +98,7 @@ Use `npm run dev` while working on Tailwind or admin UI assets.
 
 ## Release Gates
 
-Every change is checked on PHP 8.3 and 8.4 with Composer validation, PHPUnit, generated-documentation drift detection, and the repository integrity check. Separate jobs rebuild the Tailwind asset, audit the locked Composer dependencies, apply all migrations to MariaDB, inspect the Composer archive, and install the mirrored package into a freshly generated NixPHP host. The host smoke test verifies plugin boot idempotence, views and admin routing, commands, SQLite migrations, published assets, authenticated admin boundaries, scoped MCP execution, and that normal host writes never modify `vendor/fkde/nixcms`.
+Every change is checked on PHP 8.3 and 8.4 with Composer validation, PHPUnit, generated-documentation drift detection, and the repository integrity check. Separate jobs rebuild the Tailwind asset, audit the locked Composer dependencies, apply all migrations to MariaDB, inspect the Composer archive, and install the mirrored package into a freshly generated NixPHP host. The host smoke test verifies plugin boot idempotence, views and admin routing, commands, SQLite migrations, published assets, authenticated admin boundaries, scoped MCP execution, and that normal host writes never modify `vendor/nixphp/cms`.
 
 Run the same package-level checks locally with:
 
@@ -117,7 +125,7 @@ That flow adds and configures a block, creates a nested layout, saves and reload
 
 ## Runtime State and Package Updates
 
-Package defaults remain read-only under `vendor/fkde/nixcms`. Installation-specific prompts, AI memory, mistake logs, translation overrides, rate-limit counters, and embedding caches live below the host-relative `storage/nixcms` directory by default. Override the root in the host's `app/config.php` when needed:
+Package defaults remain read-only under `vendor/nixphp/cms`. Installation-specific prompts, AI memory, mistake logs, translation overrides, rate-limit counters, and embedding caches live below the host-relative `storage/nixcms` directory by default. Override the root in the host's `app/config.php` when needed:
 
 ```php
 return [
@@ -134,6 +142,11 @@ The v0.0.1 local Ollama assistant has no persisted API-key field. A future remot
 Normal AI tool-routing fallbacks record a SHA-256 query fingerprint, character count, requested mode/capabilities, and UI area—not the user text. A host may deliberately set `ai.routing_debug=true` while diagnosing routing; debug text is capped at 500 characters and should not be enabled in routine production operation. MCP tools may implement `NixPHP\CMS\Contracts\LocalAiToolMetadataInterface` to provide their title, routing text, examples, capabilities, mode, risk, and auto-run policy. These tool-owned values take precedence; the catalog only derives missing metadata.
 
 AI and MCP features are permission-, scope-, and tool-driven. The executable tool registry and plugin metadata define what an assistant can do; NixCMS does not promise or maintain a separate static capability catalog. Browser-local Ollama support selects a small relevant tool set, concrete write tools use the same CMS domain APIs and permissions as other callers, and MCP Bearer tokens should receive only the scopes their client needs.
+
+The local assistant's confirmation dialog is user guidance, not a security
+boundary. Tool-declared `risk` and `destructive` metadata decide when it is
+shown; server-side API permissions and the MCP scopes derived by
+`LocalAiToolBridge` remain authoritative even if a client omits that dialog.
 
 Removing the Composer package intentionally leaves `storage/nixcms` and generated theme CSS in place because they are installation data. Back up or remove those paths explicitly after running `nixcms:assets:remove` if the installation is being permanently deleted.
 
@@ -208,14 +221,35 @@ cms()->scope(Scope::ADMIN)->navigation()->add(
 
 Run `composer test` after changing examples; the smoke test loads them against the CMS registries so stale docs fail like stale code.
 
+## Services überschreiben
+
+NixCMS bindet austauschbares Verhalten an kleine Interfaces. Ein Host lädt
+`app/src/services.php` am Anfang seiner `app/src/routes.php`; dieser Schritt
+läuft nach den Plugin-Bootstraps, sodass die Host-Bindings die Defaults
+ersetzen. Closures halten die Auflösung lazy:
+
+```php
+use NixPHP\CMS\Contracts\MediaStorageInterface;
+use App\Media\S3MediaStorage;
+use function NixPHP\app;
+
+app()->container()->set(
+    MediaStorageInterface::class,
+    static fn(): MediaStorageInterface => new S3MediaStorage(),
+);
+```
+
+Die vollständige Struktur steht in
+[examples/06-service-override](examples/06-service-override/).
+
 ## Auto Reference
 
-These sections are generated from registries and enums. Edit the source code, then run `bin/nix docs:sync`.
+These sections are generated from registries and enums. Edit the source code, then run `vendor/bin/nix docs:sync` from a host that has this package installed.
 
 ### Public `cms()` Entry Points
 
 <!-- nix:auto:cms -->
-<!-- Automatically generated via `bin/nix docs:sync`; do not edit manually. -->
+<!-- Automatically generated via `vendor/bin/nix docs:sync`; do not edit manually. -->
 
 | Entry point | Purpose |
 | --- | --- |
@@ -240,7 +274,7 @@ These sections are generated from registries and enums. Edit the source code, th
 ### Pages
 
 <!-- nix:auto:pages -->
-<!-- Automatically generated via `bin/nix docs:sync`; do not edit manually. -->
+<!-- Automatically generated via `vendor/bin/nix docs:sync`; do not edit manually. -->
 
 | ID | Path | Layout | Permissions | Data handler |
 | --- | --- | --- | --- | --- |
@@ -284,7 +318,7 @@ These sections are generated from registries and enums. Edit the source code, th
 ### API Endpoints
 
 <!-- nix:auto:api -->
-<!-- Automatically generated via `bin/nix docs:sync`; do not edit manually. -->
+<!-- Automatically generated via `vendor/bin/nix docs:sync`; do not edit manually. -->
 
 | ID | Method | Path | Permissions |
 | --- | --- | --- | --- |
@@ -345,7 +379,7 @@ These sections are generated from registries and enums. Edit the source code, th
 ### Content Types
 
 <!-- nix:auto:contenttypes -->
-<!-- Automatically generated via `bin/nix docs:sync`; do not edit manually. -->
+<!-- Automatically generated via `vendor/bin/nix docs:sync`; do not edit manually. -->
 
 | ID | Label | Model class |
 | --- | --- | --- |
@@ -358,7 +392,7 @@ These sections are generated from registries and enums. Edit the source code, th
 ### Permissions
 
 <!-- nix:auto:permissions -->
-<!-- Automatically generated via `bin/nix docs:sync`; do not edit manually. -->
+<!-- Automatically generated via `vendor/bin/nix docs:sync`; do not edit manually. -->
 
 | Permission | Description |
 | --- | --- |
@@ -408,11 +442,11 @@ These sections are generated from registries and enums. Edit the source code, th
 ### MCP Tools
 
 <!-- nix:auto:mcp -->
-<!-- Automatically generated via `bin/nix docs:sync`; do not edit manually. -->
+<!-- Automatically generated via `vendor/bin/nix docs:sync`; do not edit manually. -->
 
 | Tool | Description |
 | --- | --- |
-| `cms_admin_navigate` | Navigates the current admin UI to a safe registered NixCMS admin area such as PageBuilder, articles, forms, themes, media, or settings. |
+| `cms_admin_navigate` | Navigates the current admin UI to a safe registered NixCMS admin area such as PageBuilder, articles, forms, themes, media, users, roles, navigation, or settings. |
 | `cms_article_draft_append` | Appends plain text as paragraphs to an existing article draft, resolving the article by id, title, or slug. |
 | `cms_article_draft_create` | Creates a new article draft with Editor.js-style content blocks. |
 | `cms_article_lookup` | Finds latest article versions by title, slug, language, or status so later MCP actions can target an article id. |
@@ -425,7 +459,7 @@ These sections are generated from registries and enums. Edit the source code, th
 | `cms_plugin_overview` | Returns loaded NixPHP plugins and registry counts relevant to NixCMS extensions. |
 | `cms_queue_status` | Returns file-backed queue counts for pending, locked, and deadletter jobs. |
 | `cms_system_health` | Returns current NixCMS system health data. The result includes php.version, php.memory_limit, database.available, database.driver, database.server_version, session storage settings, MCP auth token-file status, host runtime directories, published asset status, and loaded NixPHP plugins. When summarizing this tool result for a user, use the exact returned values and present all returned sections as compact Markdown tables. Use tables for PHP, database, session, MCP auth, storage, and plugins when those sections are present; do not render scalar diagnostics only as label-colon text when they can be represented as table rows. Do not say that PHP version, database version, modules, storage, or plugin data are missing when the returned JSON contains those fields. Do not invent modules or health checks that are not present in the result. |
-| `cms_tools_search` | Searches the registered CMS tools for the current request and UI context. Use this when the currently visible tools do not clearly cover the user request. The result returns candidate tool definitions that can be used in the next tool-call step. |
+| `cms_tools_search` | Searches the registered CMS tools for the current request and UI context. Use this when the currently visible tools do not clearly cover the user request. The result returns candidate tool definitions. It never answers the user request itself: always call one of the returned tools afterwards instead of describing them. |
 | `cms_user_role_summary` | Returns user, role, permission, and assignment counts for the NixCMS RBAC model. |
 | `external_air_quality` | Returns current air quality, UV index, and pollen context for a location so local businesses can plan outdoor, health, sport, and seasonal campaigns. |
 | `external_exchange_rates` | Returns latest exchange rates and optional converted amounts for international shop pricing, ads, purchasing, and campaign planning. |
@@ -437,7 +471,7 @@ These sections are generated from registries and enums. Edit the source code, th
 ### Examples
 
 <!-- nix:auto:examples -->
-<!-- Automatically generated via `bin/nix docs:sync`; do not edit manually. -->
+<!-- Automatically generated via `vendor/bin/nix docs:sync`; do not edit manually. -->
 
 | Example | Shows |
 | --- | --- |
@@ -446,6 +480,7 @@ These sections are generated from registries and enums. Edit the source code, th
 | [03-block-type](examples/03-block-type/) | Shows how to register page-builder block metadata through `cms()->blockTypes()`. |
 | [04-mcp-tool](examples/04-mcp-tool/) | Shows the small class pattern used by NixCMS MCP tools. |
 | [05-complete-plugin](examples/05-complete-plugin/) | This compact example shows the explicit registration path for a Composer package of type `nixphp-plugin`: `bootstrap.php` registers a protected Page, API endpoint, migration path, and scoped MCP tool. NixPHP discovers the package's `src/views` directory by convention; the Page references that view explicitly. |
+| [06-service-override](examples/06-service-override/) | NixCMS binds replaceable behavior to contracts during the plugin bootstrap. |
 <!-- /nix:auto:examples -->
 
 ## Conventions And Security

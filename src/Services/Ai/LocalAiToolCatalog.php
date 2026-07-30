@@ -35,19 +35,42 @@ final class LocalAiToolCatalog
             }
         }
 
+        $risk = $this->resolveRisk($provided, $description, $name);
+
         return [
             'title' => $this->title($name),
-            'category' => $this->category($text, $name),
+            'category' => $this->category($text, $name, $risk),
             'source' => str_starts_with($name, 'external_') ? 'external' : 'cms',
-            'risk' => $this->risk($text, $name),
-            'destructive' => $this->destructive($text, $name),
-            'mode' => $this->mode($text, $name),
-            'capabilities' => $this->capabilities($text, $name),
+            'risk' => $risk,
+            'destructive' => $this->resolveDestructive($provided, $description, $name),
+            'mode' => $this->mode($text, $name, $risk),
+            'capabilities' => $this->capabilities($text, $name, $risk),
             'routingText' => trim($this->routingText($definition)),
             'examples' => $this->examples($definition, $name),
             'tags' => $this->tags($name, $description),
             ...$provided,
         ];
+    }
+
+    /** @param array<string, mixed> $metadata */
+    private function resolveRisk(array $metadata, string $description, string $name): string
+    {
+        $declared = $metadata['risk'] ?? null;
+        if (in_array($declared, ['read', 'write'], true)) {
+            return $declared;
+        }
+
+        return $this->risk($description, $name);
+    }
+
+    /** @param array<string, mixed> $metadata */
+    private function resolveDestructive(array $metadata, string $description, string $name): bool
+    {
+        if (array_key_exists('destructive', $metadata) && is_bool($metadata['destructive'])) {
+            return $metadata['destructive'];
+        }
+
+        return $this->destructive($description, $name);
     }
 
     private function title(string $name): string
@@ -56,7 +79,7 @@ final class LocalAiToolCatalog
         return ucwords(str_replace('_', ' ', $name));
     }
 
-    private function category(string $text, string $name): string
+    private function category(string $text, string $name, string $risk): string
     {
         if ($name === 'cms_tools_search') {
             return 'cms_tools';
@@ -82,7 +105,7 @@ final class LocalAiToolCatalog
             return 'cms_navigation';
         }
 
-        if ($this->contains($text, ['draft_create', 'draft_append', 'create', 'append', 'write', 'update', 'delete', 'publish'])) {
+        if ($risk === 'write') {
             return 'cms_write';
         }
 
@@ -97,37 +120,79 @@ final class LocalAiToolCatalog
         return str_starts_with($name, 'external_') ? 'external_other' : 'plugin';
     }
 
-    private function risk(string $text, string $name): string
+    /**
+     * Write detection deliberately ignores free prose in the description.
+     * Substring matching there classified read-only tools as writes — "published
+     * asset status" or "publishing schedules" both contain "publish" — and the
+     * hard filter then hid those tools from every non-write request.
+     */
+    private function risk(string $description, string $name): string
     {
-        if ($this->contains($text, ['create', 'append', 'write', 'update', 'delete', 'publish', 'archive', 'schedule', 'draft_create', 'draft_append'])) {
-            return 'write';
+        $verbs = [
+            'create', 'append', 'write', 'update', 'delete', 'publish', 'archive', 'schedule', 'store', 'save',
+            'remove', 'discard', 'rollback', 'purge',
+        ];
+
+        return $this->hasVerb($name, $verbs) || $this->hasLeadingVerb($description, $verbs) ? 'write' : 'read';
+    }
+
+    private function destructive(string $description, string $name): bool
+    {
+        $verbs = ['delete', 'discard', 'rollback', 'archive', 'remove', 'purge'];
+
+        return $this->hasVerb($name, $verbs) || $this->hasLeadingVerb($description, $verbs);
+    }
+
+    /**
+     * Matches a verb against the underscore-separated tool name.
+     *
+     * @param array<int, string> $verbs
+     */
+    private function hasVerb(string $name, array $verbs): bool
+    {
+        $parts = preg_split('/[^a-z0-9]+/', $name) ?: [];
+
+        foreach ($parts as $part) {
+            if (in_array($part, $verbs, true)) {
+                return true;
+            }
         }
 
-        return 'read';
+        return false;
     }
 
-    private function destructive(string $text, string $name): bool
+    /**
+     * Tool descriptions open with a third-person verb ("Creates ...", "Returns ...").
+     * That first word is the only prose signal specific enough to trust.
+     *
+     * @param array<int, string> $verbs
+     */
+    private function hasLeadingVerb(string $text, array $verbs): bool
     {
-        return $this->contains($text . ' ' . $name, ['delete', 'discard', 'rollback', 'archive', 'remove']);
+        $first = strtolower(trim((string) (strtok(ltrim($text), " \t\n") ?: ''), ".,:;!?()[]{}"));
+
+        foreach ($verbs as $verb) {
+            if (in_array($first, [$verb, $verb . 's', $verb . 'es'], true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    private function mode(string $text, string $name): string
+    private function mode(string $text, string $name, string $risk): string
     {
         if ($this->contains($text, ['draft_create', 'draft_append', 'create draft', 'append to an existing draft'])) {
             return 'write';
         }
 
-        if ($this->risk($text, $name) === 'write') {
-            return 'write';
-        }
-
-        return 'read';
+        return $risk === 'write' ? 'write' : 'read';
     }
 
     /**
      * @return array<int, string>
      */
-    private function capabilities(string $text, string $name): array
+    private function capabilities(string $text, string $name, string $risk): array
     {
         $capabilities = [];
 
@@ -150,7 +215,7 @@ final class LocalAiToolCatalog
         if ($this->contains($text, ['theme', 'color', 'css'])) {
             $capabilities[] = 'theme.read';
         }
-        if ($this->contains($text, ['theme', 'color', 'css']) && $this->risk($text, $name) === 'write') {
+        if ($this->contains($text, ['theme', 'color', 'css']) && $risk === 'write') {
             $capabilities[] = 'theme.write';
         }
         if ($this->contains($text, ['health', 'system', 'queue', 'plugin', 'status'])) {

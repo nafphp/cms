@@ -8,7 +8,7 @@ NixCMS v0.0.1 is the first preview of a lightweight CMS distributed as a NixPHP 
 - Articles with localized versions and workflow states; pages, forms, media, navigation, themes, users/RBAC, audit, queue, and health administration.
 - Explicit Page/API/content/block registries and a complete example plugin covering a view, migration, and self-describing scoped MCP tool.
 - Local Ollama assistant whose available actions come from executable tool/plugin metadata rather than a duplicated capability list.
-- Host runtime overrides and published assets that never require normal writes below `vendor/fkde/nixcms`.
+- Host runtime overrides and published assets that never require normal writes below `vendor/nixphp/cms`.
 
 ## Security Baseline
 
@@ -27,8 +27,8 @@ composer audit --locked
 npm ci
 npm run test:builder
 npm run build
-php bin/nix docs:check
-php bin/nix integrity:check
+vendor/bin/nix docs:check
+vendor/bin/nix integrity:check
 scripts/check-package.sh
 scripts/package-smoke.sh
 ```

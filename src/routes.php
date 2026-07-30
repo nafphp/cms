@@ -16,10 +16,10 @@ cms()->navigation()->addMany(require $packageRoot . '/src/navigation.php');
 cms()->pages()->addMany(require __DIR__ . '/pages.php');
 cms()->api()->addMany(require __DIR__ . '/api.php');
 
-$cliCommand = PHP_SAPI === 'cli' ? (string) ($_SERVER['argv'][1] ?? '') : '';
-$shouldRegisterHttpRoutes = PHP_SAPI !== 'cli' || $cliCommand === 'route:debug';
-
-if ($shouldRegisterHttpRoutes) {
-    cms()->pages()->registerRoutes();
-    cms()->api()->registerRoutes();
-}
+// Registered unconditionally, CLI included. This used to be skipped outside
+// HTTP except for one hard-coded command name, because registration built every
+// stored page. It now only reads lightweight route descriptors, and returns
+// nothing at all while the schema is missing, so commands that need routes
+// (route:debug, sitemap generation, anything added later) simply have them.
+cms()->pages()->registerRoutes();
+cms()->api()->registerRoutes();

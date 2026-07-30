@@ -85,6 +85,22 @@ return [
             'storage_path' => BASE_PATH . '/storage/media',
             'public_url' => '/media',
             'max_upload_size' => 25 * 1024 * 1024,
+            // Extension and MIME type must both match. SVG is intentionally
+            // excluded because browsers can execute active content in it.
+            'allowed_extensions' => [
+                'jpg' => ['image/jpeg'],
+                'jpeg' => ['image/jpeg'],
+                'png' => ['image/png'],
+                'webp' => ['image/webp'],
+                'gif' => ['image/gif'],
+                'pdf' => ['application/pdf'],
+                'txt' => ['text/plain'],
+                'csv' => ['text/csv', 'text/plain', 'application/vnd.ms-excel'],
+                'zip' => ['application/zip', 'application/x-zip-compressed'],
+                'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'],
+                'xlsx' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip'],
+                'pptx' => ['application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/zip'],
+            ],
         ],
     ],
 ];

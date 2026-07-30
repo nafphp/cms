@@ -15,7 +15,7 @@ Layout model:
 - Custom layout mode is page-level layout. It arranges the slots themselves.
 - Both layers intentionally coexist. Users choose custom layout for coarse page structure and use container blocks for complex slot content.
 
-`php bin/nix integrity:check` is the source of truth for drift between BlockTypes, block views, and page template definitions. Run it after adding or renaming a BlockType, block view, or page template.
+`vendor/bin/nix integrity:check` is the source of truth for drift between BlockTypes, block views, and page template definitions. Run it after adding or renaming a BlockType, block view, or page template.
 
 Layout system locations:
 
@@ -28,7 +28,7 @@ The layout system has three concrete locations, not three competing systems:
   physical view and parent; the `Layout` declares the page slots/blocks
   (id, region, accepts, defaultContentType). Required because `.phtml` files do
   not self-declare their slots. Slot ids here must match the `$block('id')`
-  calls in the matching `.phtml` — `php bin/nix integrity:check` enforces this.
+  calls in the matching `.phtml` — `vendor/bin/nix integrity:check` enforces this.
 - `page_layouts` table — property-driven layouts (region/size/position/
   surface/maxHeight/overflow) rendered by the generic
   `src/views/page/templates/custom.phtml`. The user's tool inside the page

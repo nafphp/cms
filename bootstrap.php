@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+if (!defined('BASE_PATH')) {
+    define('BASE_PATH', __DIR__);
+}
+
 use NixPHP\CMS\Commands\CheckAssetsCommand;
 use NixPHP\CMS\Commands\CreateUserCommand;
 use NixPHP\CMS\Commands\DebugAiToolRoutingCommand;
@@ -40,6 +44,15 @@ use NixPHP\CMS\Content\Page\Block\Types\SectionBlockType;
 use NixPHP\CMS\Content\Page\Block\Types\StackBlockType;
 use NixPHP\CMS\Content\Page\Block\Types\StatsBlockType;
 use NixPHP\CMS\Content\Page\Block\Types\TextBlockType;
+use NixPHP\CMS\Contracts\AuditSinkInterface;
+use NixPHP\CMS\Contracts\MediaStorageInterface;
+use NixPHP\CMS\Contracts\OutboundHttpClientInterface;
+use NixPHP\CMS\Contracts\PasswordPolicyInterface;
+use NixPHP\CMS\Contracts\RateLimiterInterface;
+use NixPHP\CMS\Contracts\SettingsServiceInterface;
+use NixPHP\CMS\Contracts\ThemeSourceInterface;
+use NixPHP\CMS\Contracts\TranslationServiceInterface;
+use NixPHP\CMS\Contracts\UserPrivilegePolicyInterface;
 use NixPHP\CMS\Events\AdminGuardEvent;
 use NixPHP\CMS\Events\AuthRedirectEvent;
 use NixPHP\CMS\Events\FormPayloadLimitEvent;
@@ -66,10 +79,20 @@ use NixPHP\CMS\Mcp\Tools\ToolSearchTool;
 use NixPHP\CMS\Mcp\Tools\TrendingTopicsTool;
 use NixPHP\CMS\Mcp\Tools\UserRoleSummaryTool;
 use NixPHP\CMS\Mcp\Tools\WeatherForecastTool;
+use NixPHP\CMS\Repositories\ThemeRepository;
+use NixPHP\CMS\Repositories\AuditLogRepository;
+use NixPHP\CMS\Models\Media;
+use NixPHP\CMS\Services\Http\OutboundHttpClient;
+use NixPHP\CMS\Services\Media\MediaStorageService;
+use NixPHP\CMS\Services\Security\LoginRateLimiter;
+use NixPHP\CMS\Services\Security\PasswordPolicy;
+use NixPHP\CMS\Services\Security\UserPrivilegePolicy;
+use NixPHP\CMS\Services\Settings\SettingsService;
+use NixPHP\CMS\Services\Settings\TranslationFileService;
+use NixPHP\CMS\Storage\EntityStorage;
 use NixPHP\Core\Event;
 use NixPHP\Database\Support\MigrationRegistry;
 use NixPHP\I18n\Core\Translator;
-use NixPHP\MCP\Support\ToolRegistry;
 use function NixPHP\CMS\cms;
 use function NixPHP\app;
 use function NixPHP\CLI\command;
@@ -78,12 +101,16 @@ use function NixPHP\MCP\tool;
 
 $packageRoot = __DIR__;
 
-if (!defined('BASE_PATH')) {
-    define('BASE_PATH', dirname(__DIR__));
-}
-
 app()->container()->set(Translator::class, static fn() => new RuntimeTranslator());
-app()->container()->set(ToolRegistry::class, static fn() => new ToolRegistry());
+app()->container()->set(ThemeSourceInterface::class, static fn() => new ThemeRepository());
+app()->container()->set(MediaStorageInterface::class, static fn() => new MediaStorageService(new EntityStorage(Media::class)));
+app()->container()->set(SettingsServiceInterface::class, static fn() => new SettingsService());
+app()->container()->set(TranslationServiceInterface::class, static fn() => new TranslationFileService());
+app()->container()->set(RateLimiterInterface::class, static fn() => new LoginRateLimiter());
+app()->container()->set(AuditSinkInterface::class, static fn() => new AuditLogRepository());
+app()->container()->set(OutboundHttpClientInterface::class, static fn() => new OutboundHttpClient());
+app()->container()->set(PasswordPolicyInterface::class, static fn() => new PasswordPolicy());
+app()->container()->set(UserPrivilegePolicyInterface::class, static fn() => new UserPrivilegePolicy());
 
 
 MigrationRegistry::addPath($packageRoot . '/src/Migrations');

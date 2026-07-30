@@ -12,6 +12,7 @@ use NixPHP\CMS\Api\NavigationApi;
 use NixPHP\CMS\Content\BlockViewRegistry;
 use NixPHP\CMS\Content\ContentRegistry;
 use NixPHP\CMS\Content\Page\Block\BlockTypeRegistry;
+use NixPHP\CMS\Contracts\ThemeSourceInterface;
 use NixPHP\CMS\Enums\Scope;
 use NixPHP\CMS\Localization\LanguageRegistry;
 use NixPHP\CMS\Models\Article;
@@ -19,12 +20,12 @@ use NixPHP\CMS\Models\Form;
 use NixPHP\CMS\Models\Media;
 use NixPHP\CMS\Models\SiteNavigation;
 use NixPHP\CMS\Page\PageRegistry;
-use NixPHP\CMS\Repositories\ThemeRepository;
 use NixPHP\CMS\Storage\EntityStorage;
 use NixPHP\CMS\Theme\ThemeRegistry;
 use NixPHP\CMS\Visualization\VisualizationRegistry;
 use NixPHP\CMS\Support\ScopedCms;
 use NixPHP\CMS\Support\Settings;
+use function NixPHP\app;
 
 final class Cms
 {
@@ -96,12 +97,18 @@ final class Cms
 
     public function themes(): ThemeRegistry
     {
-        if ($this->themeRegistry === null) {
-            $this->themeRegistry = new ThemeRegistry();
-            $this->themeRegistry->addMany((new ThemeRepository())->themes(), true);
+        if ($this->themeRegistry !== null) {
+            return $this->themeRegistry;
         }
 
-        return $this->themeRegistry;
+        $registry = new ThemeRegistry();
+        /** @var ThemeSourceInterface $source */
+        $source = app()->container()->get(ThemeSourceInterface::class);
+        // Persisted themes intentionally replace the built-in default so users
+        // can customize it without making the registry itself database-aware.
+        $registry->addMany($source->themes(), true);
+
+        return $this->themeRegistry = $registry;
     }
 
     public function articles(): ArticleApi

@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Events;
 
+use NixPHP\CMS\Security\CspNonce;
 use Psr\Http\Message\ResponseInterface;
+use function NixPHP\config;
 use function NixPHP\request;
 
 final class SecurityHeadersEvent
 {
-    private const string CONTENT_SECURITY_POLICY = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' https:; font-src 'self' data:; frame-src https:; connect-src 'self' http://localhost:* http://127.0.0.1:* http://[::1]:*";
-
     public function handle(ResponseInterface $response): ResponseInterface
     {
         $response = $response
-            ->withHeader('Content-Security-Policy', self::CONTENT_SECURITY_POLICY)
+            ->withHeader('Content-Security-Policy', $this->policy())
             ->withHeader('X-Content-Type-Options', 'nosniff')
             ->withHeader('X-Frame-Options', 'DENY')
             ->withHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
@@ -28,5 +28,35 @@ final class SecurityHeadersEvent
         }
 
         return $response;
+    }
+
+    private function policy(): string
+    {
+        return implode('; ', [
+            "default-src 'self'",
+            "base-uri 'self'",
+            "object-src 'none'",
+            "frame-ancestors 'none'",
+            "form-action 'self'",
+            sprintf("script-src 'self' 'nonce-%s'", CspNonce::value()),
+            // Theme previews still rely on inline style attributes. Script
+            // nonces remove the executable-inline risk independently.
+            "style-src 'self' 'unsafe-inline'",
+            "img-src 'self' data: blob: https:",
+            "media-src 'self' https:",
+            "font-src 'self' data:",
+            "frame-src https:",
+            $this->connectSrc(),
+        ]);
+    }
+
+    private function connectSrc(): string
+    {
+        $enabled = filter_var(config('ai:enabled', false), FILTER_VALIDATE_BOOL);
+        $local = (string) config('ai:type', 'local') === 'local';
+
+        return $enabled && $local
+            ? "connect-src 'self' http://localhost:* http://127.0.0.1:* http://[::1]:*"
+            : "connect-src 'self'";
     }
 }

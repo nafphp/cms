@@ -15,21 +15,36 @@ use function NixPHP\View\view;
 final class PageBuilderRenderer
 {
     /**
+     * Render a page for the current visitor.
+     *
+     * The page's own language is deliberately not forced onto the translator.
+     * A stored page exists in one language, but it is served to every visitor,
+     * so pinning the render to it made labels and content blocks ignore the
+     * requested language: an English visitor got a German article list even
+     * where English translations existed. The visitor's language wins; blocks
+     * fall back per item when a translation is missing.
+     *
+     * Pass $language to pin the render anyway, e.g. to preview a specific
+     * translation independently of who is looking at it.
+     *
      * @param array<string, mixed> $context
      */
-    public function render(Page $page, array $context = []): string
+    public function render(Page $page, array $context = [], ?string $language = null): string
     {
         $translator = $this->translator();
-        $previousLanguage = $translator?->getLanguage();
-        $pageLanguage = strtolower(trim((string) ($page->language() ?? '')));
-        if ($translator instanceof Translator && $pageLanguage !== '') {
-            $translator->setLanguage($pageLanguage);
+        $language = strtolower(trim((string) $language));
+
+        if (!$translator instanceof Translator || $language === '') {
+            return $this->renderWithCurrentLanguage($page, $context);
         }
+
+        $previousLanguage = $translator->getLanguage();
+        $translator->setLanguage($language);
 
         try {
             return $this->renderWithCurrentLanguage($page, $context);
         } finally {
-            if ($translator instanceof Translator && $previousLanguage !== null) {
+            if ($previousLanguage !== null) {
                 $translator->setLanguage($previousLanguage);
             }
         }

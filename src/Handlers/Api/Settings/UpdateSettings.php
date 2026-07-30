@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Handlers\Api\Settings;
 
+use NixPHP\CMS\Contracts\SettingsServiceInterface;
 use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
-use NixPHP\CMS\Services\Settings\SettingsService;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\json;
 
@@ -13,9 +13,11 @@ final class UpdateSettings
 {
     use ReadsJsonBody;
 
+    public function __construct(private readonly SettingsServiceInterface $settings) {}
+
     public function __invoke(): ResponseInterface
     {
-        $result = (new SettingsService())->save($this->jsonBody());
+        $result = $this->settings->save($this->jsonBody());
 
         if (!$result['success']) {
             return json([

@@ -13,8 +13,7 @@ use NixPHP\ORM\Repository\AbstractRepository;
 use NixPHP\CMS\Repositories\ArticleVersionRepository;
 use NixPHP\CMS\Repositories\CategoryRepository;
 use NixPHP\CMS\Repositories\TagRepository;
-use function NixPHP\config;
-use function NixPHP\I18n\lang;
+use function NixPHP\log;
 use function NixPHP\ORM\em;
 use function NixPHP\ORM\repo;
 use function NixPHP\CMS\cms;
@@ -269,22 +268,51 @@ class ArticleRepository extends AbstractRepository
 
         usort($articles, static fn(Article $a, Article $b): int => $b->getId() <=> $a->getId());
 
+        $fallbackLanguage = cms()->settings()->fallbackLanguage();
+
         foreach ($articles as $article) {
-            foreach ($article->getVersions() as $version) {
-                if ($version->getLanguageCode() !== $language) {
-                    continue;
-                }
-
-                if (!$this->isFrontendVisiblePublishedVersion($version)) {
-                    continue;
-                }
-
+            $version = $this->preferredVisibleVersion($article, $language, $fallbackLanguage);
+            if ($version instanceof ArticleVersion) {
                 $article->setCurrentVersion($version);
-                break;
             }
         }
 
         return $articles;
+    }
+
+    /**
+     * Pick the version of an article a visitor should see in a listing.
+     *
+     * Mirrors the detail page: the requested language wins, then the configured
+     * fallback, then any published translation. An article that exists only in
+     * another language stays listed instead of silently disappearing.
+     */
+    private function preferredVisibleVersion(
+        Article $article,
+        string $language,
+        string $fallbackLanguage,
+    ): ?ArticleVersion {
+        $fallbackVersion = null;
+        $anyVersion = null;
+
+        foreach ($article->getVersions() as $version) {
+            if (!$this->isFrontendVisiblePublishedVersion($version)) {
+                continue;
+            }
+
+            $versionLanguage = $version->getLanguageCode();
+            if ($versionLanguage === $language) {
+                return $version;
+            }
+
+            if ($versionLanguage === $fallbackLanguage && $fallbackVersion === null) {
+                $fallbackVersion = $version;
+            }
+
+            $anyVersion ??= $version;
+        }
+
+        return $fallbackVersion ?? $anyVersion;
     }
 
     private function isFrontendVisiblePublishedVersion(ArticleVersion $version, ?\DateTimeInterface $now = null): bool
@@ -361,6 +389,15 @@ class ArticleRepository extends AbstractRepository
         return null;
     }
 
+    /**
+     * Resolve an article URL to the version the visitor should read.
+     *
+     * A slug belongs to one language version, but the URL is the article's, not
+     * the language's. So the slug only identifies the article; which version is
+     * served is decided by the active language, falling back to the configured
+     * fallback language. That keeps one canonical URL per article instead of a
+     * language-suffixed variant per translation.
+     */
     public function findPublishedVisibleBySlug(string $slug, ?string $language = null): ?Article
     {
         $slug = trim($slug);
@@ -372,16 +409,26 @@ class ArticleRepository extends AbstractRepository
             ? strtolower(trim($language))
             : $this->resolveActiveLanguage();
 
-        /** @var ArticleVersion|null $version */
-        $version = repo(ArticleVersionRepository::class)->findOneBy(
-            [
-                'slug' => $slug,
-                'language' => $language,
-            ],
-            orderBy: ['version' => 'DESC']
-        );
+        $version = $this->visibleVersionBySlugAndLanguage($slug, $language);
 
-        if (!$version instanceof ArticleVersion || !$this->isFrontendVisiblePublishedVersion($version)) {
+        if (!$version instanceof ArticleVersion) {
+            // The slug belongs to a different translation. Keep the URL and
+            // serve the active language, then the fallback language, and only
+            // then the translation that owns the slug.
+            $owner = $this->visibleVersionBySlug($slug);
+            if ($owner instanceof ArticleVersion) {
+                $articleId = (int) $owner->getArticleId();
+                $fallbackLanguage = cms()->settings()->fallbackLanguage();
+
+                $version = $this->visibleVersionByArticleAndLanguage($articleId, $language)
+                    ?? ($fallbackLanguage !== $language
+                        ? $this->visibleVersionByArticleAndLanguage($articleId, $fallbackLanguage)
+                        : null)
+                    ?? $owner;
+            }
+        }
+
+        if (!$version instanceof ArticleVersion) {
             return null;
         }
 
@@ -393,6 +440,41 @@ class ArticleRepository extends AbstractRepository
 
         $article->setCurrentVersion($version);
         return $article;
+    }
+
+    private function visibleVersionBySlugAndLanguage(string $slug, string $language): ?ArticleVersion
+    {
+        return $this->visibleVersion(['slug' => $slug, 'language' => $language]);
+    }
+
+    private function visibleVersionBySlug(string $slug): ?ArticleVersion
+    {
+        return $this->visibleVersion(['slug' => $slug]);
+    }
+
+    private function visibleVersionByArticleAndLanguage(int $articleId, string $language): ?ArticleVersion
+    {
+        if ($articleId <= 0 || trim($language) === '') {
+            return null;
+        }
+
+        return $this->visibleVersion(['article_id' => $articleId, 'language' => $language]);
+    }
+
+    /**
+     * @param array<string, mixed> $criteria
+     */
+    private function visibleVersion(array $criteria): ?ArticleVersion
+    {
+        /** @var ArticleVersion|null $version */
+        $version = repo(ArticleVersionRepository::class)->findOneBy(
+            $criteria,
+            orderBy: ['version' => 'DESC']
+        );
+
+        return $version instanceof ArticleVersion && $this->isFrontendVisiblePublishedVersion($version)
+            ? $version
+            : null;
     }
 
     public function findWithSpecificVersion(int $id, string $language, int $versionNumber): ?Article
@@ -775,7 +857,8 @@ class ArticleRepository extends AbstractRepository
 
             $this->pdo->commit();
             return true;
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('ArticleRepository.deleteLanguageVersions failed: %s', $e->getMessage()), ['exception' => $e]);
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
@@ -849,7 +932,8 @@ class ArticleRepository extends AbstractRepository
 
         try {
             return new \DateTime($trimmed);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->warning(sprintf('ArticleRepository.normalizeDate failed: %s', $e->getMessage()), ['exception' => $e]);
             return null;
         }
     }
@@ -889,7 +973,8 @@ class ArticleRepository extends AbstractRepository
 
             $this->pdo->commit();
             return true;
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('ArticleRepository.deleteSpecificVersion failed: %s', $e->getMessage()), ['exception' => $e]);
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
@@ -899,7 +984,6 @@ class ArticleRepository extends AbstractRepository
 
     private function resolveActiveLanguage(): string
     {
-        return cms()->languages()->normalize((string) lang())
-            ?? (string) config('language', 'en');
+        return cms()->settings()->currentLanguage();
     }
 }

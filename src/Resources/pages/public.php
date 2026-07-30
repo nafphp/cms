@@ -64,9 +64,12 @@ $articleDetailPage->setContent(static function (string $slug) use ($articleDetai
 });
 
 return [
+    // Placeholder so "/" is never empty. An editor's published start page
+    // replaces it.
     Page::create('home')
         ->setPath('/')
         ->setTitle(cms()->settings()->name())
-        ->setLayout($publicLayout),
+        ->setLayout($publicLayout)
+        ->allowStoredOverride(),
     $articleDetailPage,
 ];

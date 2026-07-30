@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Mcp\Tools;
 
+use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
+use NixPHP\CMS\Enums\ToolRisk;
+
 use Closure;
 use NixPHP\CMS\Enums\ArticleStatus;
 use NixPHP\CMS\Models\Article;
@@ -14,8 +17,12 @@ use NixPHP\MCP\Tools\ToolInterface;
 use NixPHP\CMS\Mcp\Tools\ArticleLookupTool;
 use function NixPHP\CMS\cms;
 
-final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface
+final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
+    use DeclaresLocalAiToolRisk;
+
+    private const ToolRisk AI_RISK = ToolRisk::WRITE;
+    private const bool AI_DESTRUCTIVE = false;
     /**
      * @param Closure(int, string): ?Article|null $findArticle
      * @param Closure(int, array<string, mixed>, ?int): array{articleId:int,articleVersionId:int}|null $saveDraft

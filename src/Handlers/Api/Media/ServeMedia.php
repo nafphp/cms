@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Handlers\Api\Media;
 
+use NixPHP\CMS\Enums\Permission;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\I18n\t;
@@ -63,10 +64,30 @@ final class ServeMedia
         }
 
         if ($visibility === 'private') {
-            return false;
+            $helper = user();
+            if ($helper?->isLoggedIn() !== true) {
+                return false;
+            }
+
+            return $this->canAccessPrivate(
+                $media,
+                $helper->get()?->getId(),
+                $helper->can(Permission::MEDIA_VIEW) === true,
+            );
         }
 
         return false;
+    }
+
+    /**
+     * @param array<string, mixed> $media
+     */
+    private function canAccessPrivate(array $media, ?int $currentUserId, bool $canViewMedia): bool
+    {
+        $uploadedBy = (int) ($media['uploaded_by'] ?? 0);
+
+        return $canViewMedia
+            || ($currentUserId !== null && $currentUserId > 0 && $uploadedBy === $currentUserId);
     }
 
     /**

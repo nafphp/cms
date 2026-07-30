@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Mcp\Tools;
 
+use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
+use NixPHP\CMS\Enums\ToolRisk;
+
 use NixPHP\CMS\Api\MediaApi;
 use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
@@ -11,8 +14,12 @@ use NixPHP\MCP\Tools\ToolInterface;
 use Throwable;
 use function NixPHP\CMS\cms;
 
-final class MediaSummaryTool implements ToolInterface, ScopedToolInterface
+final class MediaSummaryTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
+    use DeclaresLocalAiToolRisk;
+
+    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const bool AI_DESTRUCTIVE = false;
     public function __construct(private ?MediaApi $media = null) {}
 
     public function name(): string

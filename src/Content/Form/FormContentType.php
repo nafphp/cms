@@ -30,6 +30,11 @@ final class FormContentType implements ContentTypeInterface
 
     public function api(): FormApi
     {
-        return $this->api ??= new FormApi(new FormRepository());
+        if ($this->api === null) {
+            $repository = new FormRepository();
+            $this->api = new FormApi($repository);
+        }
+
+        return $this->api;
     }
 }

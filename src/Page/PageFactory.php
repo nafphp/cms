@@ -11,6 +11,7 @@ use NixPHP\CMS\Page\Layout;
 use NixPHP\CMS\Page\Page;
 use NixPHP\CMS\Page\PageBuilderPayloadNormalizer;
 use NixPHP\CMS\Page\Template;
+use function NixPHP\log;
 use function NixPHP\CMS\cms;
 
 final class PageFactory
@@ -35,8 +36,8 @@ final class PageFactory
         $storedBlocks = is_array($row['blocks'] ?? null) ? $row['blocks'] : [];
         $meta = is_array($row['meta'] ?? null) ? $row['meta'] : [];
         $definitionBlocks = is_array($definition['blocks'] ?? null) ? $definition['blocks'] : [];
+        $layoutErrors = [];
         if (array_key_exists('custom_layout', $meta)) {
-            $layoutErrors = [];
             $definitionBlocks = (new CustomLayoutNormalizer())->normalize(
                 is_array($meta['custom_layout'] ?? null) ? $meta['custom_layout'] : [],
                 $layoutErrors,
@@ -45,6 +46,10 @@ final class PageFactory
 
         $blockErrors = [];
         $storedBlocks = (new PageBuilderPayloadNormalizer())->normalize($storedBlocks, $definitionBlocks, $blockErrors);
+
+        // Rejected blocks are dropped from the page, so the page renders as an
+        // empty region instead of failing. Without this the loss is invisible.
+        $this->reportNormalizationErrors($row, [...$layoutErrors, ...$blockErrors]);
 
         foreach ($definitionBlocks as $block) {
             if (!is_array($block)) {
@@ -88,6 +93,43 @@ final class PageFactory
     }
 
     /**
+     * @param array<string, mixed> $row
+     * @param array<int, string> $errors
+     */
+    private function reportNormalizationErrors(array $row, array $errors): void
+    {
+        if ($errors === []) {
+            return;
+        }
+
+        $errors = array_values(array_map('strval', $errors));
+
+        // The reasons go into the message, not only the context: loggers that
+        // render the message alone would otherwise report a loss without
+        // saying what was lost.
+        $reasons = implode('; ', array_slice($errors, 0, 5));
+        if (count($errors) > 5) {
+            $reasons .= sprintf(' (+%d more)', count($errors) - 5);
+        }
+
+        log()->warning(
+            sprintf(
+                'PageFactory dropped stored page content for page %d (%s, template "%s"): %s',
+                (int) ($row['id'] ?? 0),
+                (string) ($row['path'] ?? ''),
+                (string) ($row['template_id'] ?? ''),
+                $reasons,
+            ),
+            [
+                'page_id' => (int) ($row['id'] ?? 0),
+                'path' => (string) ($row['path'] ?? ''),
+                'template_id' => (string) ($row['template_id'] ?? ''),
+                'errors' => $errors,
+            ],
+        );
+    }
+
+    /**
      * @param array<string, mixed> $block
      * @param array<string, mixed> $data
      * @return array<string, mixed>
@@ -116,6 +158,12 @@ final class PageFactory
     }
 
     /**
+     * The block type an empty slot falls back to.
+     *
+     * Shipped templates declare this on the block itself. The id-based match
+     * below only covers custom layouts stored before that field existed, where
+     * dropping it would turn a saved page's chrome into empty regions.
+     *
      * @param array<string, mixed> $block
      */
     private function defaultContentType(string $id, array $block): string

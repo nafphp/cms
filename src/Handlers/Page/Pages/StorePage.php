@@ -56,6 +56,11 @@ final class StorePage
             ]);
 
             return json(['success' => true, 'id' => $id]);
+        } catch (\DomainException $exception) {
+            return json([
+                'success' => false,
+                'errors' => ['path' => [$exception->getMessage()]],
+            ], 409);
         } catch (Throwable $exception) {
             return json(['success' => false, 'reason' => $exception->getMessage()], 500);
         }
@@ -104,8 +109,18 @@ final class StorePage
 
         if (trim((string) ($data['path'] ?? '')) === '') {
             $errors['path'][] = 'Please enter a path.';
-        } elseif ($this->collidesWithCodePage((string) ($data['path'] ?? ''))) {
-            $errors['path'][] = 'This path is already used by a code-defined page.';
+        } else {
+            if ($this->collidesWithCodePage((string) ($data['path'] ?? ''))) {
+                $errors['path'][] = 'This path is already used by a code-defined page.';
+            }
+
+            $ownerId = cms()->pages()->storedPathOwnerId(
+                (string) ($data['path'] ?? ''),
+                (string) ($data['language'] ?? ''),
+            );
+            if ($ownerId !== null && $ownerId !== (int) ($data['id'] ?? 0)) {
+                $errors['path'][] = 'This path is already used by another page in the selected language.';
+            }
         }
 
         $canonicalUrl = trim((string) ($data['meta']['seo']['canonicalUrl'] ?? ''));
@@ -223,6 +238,17 @@ final class StorePage
         return trim(str_replace('/', '.', trim($path, '/')), '.');
     }
 
+    /**
+     * Would the router hand this path to a code-defined page?
+     *
+     * Matches the way the router actually resolves, placeholders included: a
+     * code page at "/articles/{slug}" also claims "/articles/foo". Comparing
+     * the raw strings let such a page save cleanly and then stay invisible,
+     * because the code route is registered first and wins.
+     *
+     * "/" is exempt: a published page there is meant to replace the built-in
+     * home page.
+     */
     private function collidesWithCodePage(string $path): bool
     {
         $path = $this->normalizePath($path);
@@ -235,7 +261,17 @@ final class StorePage
                 continue;
             }
 
-            if ($page->path() === $path) {
+            $codePath = $page->path();
+            if ($codePath === $path) {
+                return true;
+            }
+
+            if (!str_contains($codePath, '{')) {
+                continue;
+            }
+
+            $pattern = '#^' . preg_replace('#\\\{[^}]+\\\}#', '([^/]+)', preg_quote($codePath, '#')) . '$#';
+            if (preg_match($pattern, $path) === 1) {
                 return true;
             }
         }

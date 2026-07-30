@@ -41,9 +41,9 @@ final class DebugAiToolRoutingCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine('    php bin/nix ai:tools:debug "Wie ist die Systemgesundheit?"');
-            $output->writeLine('    php bin/nix ai:tools:debug "Wie wird das Wetter morgen in München?" --limit=5');
-            $output->writeLine('    php bin/nix ai:tools:debug "Füge einen Block hinzu" --area=pageBuilder --mode=write --capability=pages.write');
+            $output->writeLine('    vendor/bin/nix ai:tools:debug "Wie ist die Systemgesundheit?"');
+            $output->writeLine('    vendor/bin/nix ai:tools:debug "Wie wird das Wetter morgen in München?" --limit=5');
+            $output->writeLine('    vendor/bin/nix ai:tools:debug "Füge einen Block hinzu" --area=pageBuilder --mode=write --capability=pages.write');
             $output->writeEmptyLine();
             $output->writeLine('  Options:');
             $output->writeLine('    --keyword          Force keyword routing instead of the configured embedding router.');

@@ -4,14 +4,21 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Mcp\Tools;
 
+use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
+use NixPHP\CMS\Enums\ToolRisk;
+
 use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;
 use function NixPHP\app;
 use function NixPHP\CMS\cms;
 
-final class PluginOverviewTool implements ToolInterface, ScopedToolInterface
+final class PluginOverviewTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
+    use DeclaresLocalAiToolRisk;
+
+    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const bool AI_DESTRUCTIVE = false;
     public function name(): string
     {
         return 'cms_plugin_overview';

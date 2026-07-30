@@ -12,7 +12,7 @@ use NixPHP\CMS\Support\AuditEntry;
 use NixPHP\CMS\Page\Page;
 use NixPHP\CMS\Page\PageDataHandler;
 use NixPHP\CMS\Page\PageTemplateCatalog;
-use function NixPHP\I18n\lang;
+use function NixPHP\log;
 use function NixPHP\route;
 use function NixPHP\CMS\cms;
 use function NixPHP\CMS\user;
@@ -25,6 +25,9 @@ final class PageRegistry
     private array $routeAliases = [];
     private ?PageRepository $repository = null;
     private bool $storedPagesLoaded = false;
+    private bool $storedRoutesResolved = false;
+    /** @var array<int, array{id: string, path: string, published: bool}>|null */
+    private ?array $storedRouteDescriptors = null;
 
     public function add(Page $page, bool $replace = false): self
     {
@@ -58,7 +61,10 @@ final class PageRegistry
 
     public function findByPath(string $path, string $method = 'GET'): ?Page
     {
-        $this->loadStoredPages();
+        // Only the shadowing bookkeeping, not the stored pages themselves: a
+        // stored page is built from the database further down, at the moment it
+        // is actually needed.
+        $this->resolveStoredRoutes();
 
         $normalizedPath = $this->normalizePath($path);
         $normalizedMethod = strtoupper($method);
@@ -87,18 +93,34 @@ final class PageRegistry
             $templates,
             $this->activeLanguage(),
             publishedOnly: user()?->can(Permission::PAGES_VIEW) !== true,
+            fallbackLanguage: cms()->settings()->fallbackLanguage(),
         );
     }
 
-    /** @return array<string, Page> */
+    /**
+     * Every registered page, stored pages included.
+     *
+     * Callers that enumerate pages (navigation targets, docs, dashboards) need
+     * the stored ones too, so this materializes them. Rendering a single page
+     * does not go through here.
+     *
+     * @return array<string, Page>
+     */
     public function all(): array
     {
+        $this->loadStoredPages();
+
         return $this->pages;
     }
 
     public function registerRoutes(): void
     {
-        $this->loadStoredPages();
+        // Deliberately does not build stored pages. Route registration happens
+        // while plugin route files are loaded, which is before this package's
+        // bootstrap has registered block types and content types. Constructing
+        // page content that early silently drops every block, so routing works
+        // from lightweight descriptors and the page itself is built per request.
+        $this->resolveStoredRoutes();
 
         foreach ($this->pages as $page) {
             route()->add($page->method(), $page->path(), [PageController::class, 'show'], $page->id());
@@ -116,6 +138,39 @@ final class PageRegistry
                 );
             }
         }
+
+        foreach ($this->storedRouteDescriptors() as $descriptor) {
+            if (isset($this->pages[$descriptor['id']])) {
+                continue;
+            }
+
+            // A code page still owns this path, so it was not replaced above.
+            // Registering anyway would leave a named route that resolves to
+            // someone else's page, and the editor would never learn why their
+            // page stays invisible.
+            $blocking = $this->findCodePageByPath($descriptor['path']);
+            if ($blocking instanceof Page) {
+                // Only worth reporting for a page that is meant to be live. A
+                // draft losing the path to a code page is the expected state,
+                // not a problem the editor has to act on.
+                if ($descriptor['published']) {
+                    log()->warning(sprintf(
+                        'Stored page "%s" is unreachable: path "%s" is already served by the registered page "%s".',
+                        $descriptor['id'],
+                        $descriptor['path'],
+                        $blocking->id(),
+                    ));
+                }
+
+                continue;
+            }
+
+            route()->add('GET', $descriptor['path'], [PageController::class, 'show'], $descriptor['id']);
+
+            foreach ($this->routeAliasesForId($descriptor['id']) as $routeName) {
+                route()->add('GET', $descriptor['path'], [PageController::class, 'show'], $routeName);
+            }
+        }
     }
 
     /**
@@ -130,6 +185,11 @@ final class PageRegistry
     public function find(int $id): ?array
     {
         return $this->repository()->find($id);
+    }
+
+    public function storedPathOwnerId(string $path, string $language): ?int
+    {
+        return $this->repository()->pathLanguageOwnerId($path, $language);
     }
 
     /**
@@ -242,6 +302,48 @@ final class PageRegistry
         ];
     }
 
+    /**
+     * Work out which code pages a stored page takes over, without touching page
+     * content. Cheap enough to run while routes are being registered.
+     */
+    private function resolveStoredRoutes(): void
+    {
+        if ($this->storedRoutesResolved) {
+            return;
+        }
+
+        $this->storedRoutesResolved = true;
+
+        foreach ($this->storedRouteDescriptors() as $descriptor) {
+            $collision = $this->findCodePageByPath($descriptor['path']);
+            if (!$collision instanceof Page || str_starts_with($collision->id(), 'db.page.')) {
+                continue;
+            }
+
+            if (!$this->storedRouteMayReplaceCodePage($descriptor, $collision)) {
+                continue;
+            }
+
+            $this->routeAliases[$collision->id()] = $descriptor['id'];
+            unset($this->pages[$collision->id()]);
+        }
+    }
+
+    /**
+     * @return array<int, array{id: string, path: string, published: bool}>
+     */
+    private function storedRouteDescriptors(): array
+    {
+        return $this->storedRouteDescriptors ??= $this->repository()->routeDescriptors(
+            array_column($this->pageTemplates(), 'id'),
+        );
+    }
+
+    /**
+     * Materialize stored pages as full Page objects.
+     *
+     * Never call this while routes are being registered; see registerRoutes().
+     */
     private function loadStoredPages(): void
     {
         if ($this->storedPagesLoaded) {
@@ -249,6 +351,7 @@ final class PageRegistry
         }
 
         $this->storedPagesLoaded = true;
+        $this->resolveStoredRoutes();
         $templates = $this->pageTemplates();
 
         foreach ($this->repository()->pagesForRouting($templates) as $page) {
@@ -268,23 +371,46 @@ final class PageRegistry
 
     private function storedPageMayReplaceCodePage(Page $storedPage, Page $codePage): bool
     {
-        if ($storedPage->path() !== '/' || $storedPage->method() !== 'GET') {
-            return false;
-        }
+        return $this->storedRouteMayReplaceCodePage(
+            [
+                'id' => $storedPage->id(),
+                'path' => $storedPage->path(),
+                'published' => !in_array(Permission::PAGES_VIEW, $storedPage->requiredPermissions(), true),
+            ],
+            $codePage,
+        );
+    }
 
-        if ($codePage->id() !== 'home') {
-            return false;
-        }
-
-        return !in_array(Permission::PAGES_VIEW, $storedPage->requiredPermissions(), true);
+    /**
+     * A stored page takes over a code page's path when that code page opted in
+     * and the stored page is actually published.
+     *
+     * The opt-in replaces a hard-coded "only / may replace only the page called
+     * home" rule, which silently dropped every other stored page that landed on
+     * a registered path.
+     *
+     * @param array{id: string, path: string, published: bool} $descriptor
+     */
+    private function storedRouteMayReplaceCodePage(array $descriptor, Page $codePage): bool
+    {
+        return $codePage->isStoredOverridable()
+            && $codePage->method() === 'GET'
+            && $this->normalizePath($codePage->path()) === $this->normalizePath($descriptor['path'])
+            && $descriptor['published'];
     }
 
     /** @return array<int, string> */
     private function routeAliasesFor(Page $page): array
     {
+        return $this->routeAliasesForId($page->id());
+    }
+
+    /** @return array<int, string> */
+    private function routeAliasesForId(string $pageId): array
+    {
         $aliases = [];
-        foreach ($this->routeAliases as $routeName => $pageId) {
-            if ($pageId === $page->id()) {
+        foreach ($this->routeAliases as $routeName => $id) {
+            if ($id === $pageId) {
                 $aliases[] = $routeName;
             }
         }
@@ -299,12 +425,7 @@ final class PageRegistry
 
     private function activeLanguage(): string
     {
-        $language = strtolower(trim((string) lang()));
-        if ($language !== '') {
-            return $language;
-        }
-
-        return cms()->settings()->language();
+        return cms()->settings()->currentLanguage();
     }
 
     private function findCodePageByPath(string $path, string $method = 'GET'): ?Page

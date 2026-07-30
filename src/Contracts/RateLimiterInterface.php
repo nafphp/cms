@@ -1,0 +1,14 @@
+<?php
+
+declare(strict_types=1);
+
+namespace NixPHP\CMS\Contracts;
+
+use NixPHP\CMS\Services\Security\RateLimitDecision;
+
+interface RateLimiterInterface
+{
+    public function inspect(string $username, string $ipAddress): RateLimitDecision;
+    public function recordFailure(string $username, string $ipAddress): RateLimitDecision;
+    public function clearSuccessfulPair(string $username, string $ipAddress): void;
+}

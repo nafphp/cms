@@ -19,6 +19,40 @@ class FakeDataCommand extends AbstractCommand
 {
     public const string NAME = 'seed:fake-data';
 
+    /**
+     * Demo article, one entry per language.
+     *
+     * Each slug is derived from its own localized title, which is what real
+     * content looks like: translations get their own URL rather than sharing
+     * one with a language suffix bolted on.
+     *
+     * @var array<string, array{slug: string, title: string, teaser: string, body: string}>
+     */
+    private const array DEMO_ARTICLE_VERSIONS = [
+        'de' => [
+            'slug' => 'nixcms-demo-geschichte',
+            'title' => 'NixCMS Demo-Geschichte',
+            'teaser' => 'Ein kurzer Beispielbeitrag fuer lokale Entwicklung und Tests.',
+            'body' => 'Dies ist ein automatisch erzeugter Demo-Artikel. Du kannst ihn im Adminbereich bearbeiten.',
+        ],
+        'en' => [
+            'slug' => 'nixcms-demo-story',
+            'title' => 'NixCMS Demo Story',
+            'teaser' => 'A short sample story used for local development and testing.',
+            'body' => 'This is an auto-generated demo article. You can edit it in the admin area.',
+        ],
+    ];
+
+    /**
+     * Slugs earlier versions of this command seeded. Only used to recognise an
+     * already seeded demo article.
+     *
+     * @var list<string>
+     */
+    private const array LEGACY_DEMO_ARTICLE_SLUGS = [
+        'nixcms-demo-story-en',
+    ];
+
     protected function configure(): void
     {
         $this
@@ -31,7 +65,7 @@ class FakeDataCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine('    php bin/nix seed:fake-data');
+            $output->writeLine('    vendor/bin/nix seed:fake-data');
             $output->writeLine('  Idempotent: re-running updates demo content rather than duplicating.');
             return self::SUCCESS;
         }
@@ -238,16 +272,22 @@ class FakeDataCommand extends AbstractCommand
 
     private function upsertDemoArticle(PDO $pdo, int $authorId, int $categoryId): int
     {
-        $slug = 'nixcms-demo-story';
+        // Any slug this demo article ever used, so re-running the command
+        // updates the existing article instead of seeding a second one.
+        $slugs = [
+            ...array_column(self::DEMO_ARTICLE_VERSIONS, 'slug'),
+            ...self::LEGACY_DEMO_ARTICLE_SLUGS,
+        ];
+        $placeholders = implode(', ', array_fill(0, count($slugs), '?'));
 
         $stmt = $pdo->prepare(
             'SELECT article_id
              FROM article_versions
-             WHERE slug = :slug AND language = :language
+             WHERE slug IN (' . $placeholders . ')
              ORDER BY version DESC
              LIMIT 1'
         );
-        $stmt->execute(['slug' => $slug, 'language' => 'de']);
+        $stmt->execute(array_values($slugs));
         $articleId = (int) $stmt->fetchColumn();
 
         if ($articleId <= 0) {
@@ -281,27 +321,18 @@ class FakeDataCommand extends AbstractCommand
     {
         $now = (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s');
 
-        $this->upsertArticleVersion(
-            $pdo,
-            $articleId,
-            'de',
-            'nixcms-demo-story',
-            'NixCMS Demo-Geschichte',
-            'Ein kurzer Beispielbeitrag fuer lokale Entwicklung und Tests.',
-            $this->buildContentJson('Dies ist ein automatisch erzeugter Demo-Artikel. Du kannst ihn im Adminbereich bearbeiten.'),
-            $now
-        );
-
-        $this->upsertArticleVersion(
-            $pdo,
-            $articleId,
-            'en',
-            'nixcms-demo-story-en',
-            'NixCMS Demo Story (EN)',
-            'A short sample story used for local development and testing.',
-            $this->buildContentJson('This is an auto-generated demo article. You can edit it in the admin area.'),
-            $now
-        );
+        foreach (self::DEMO_ARTICLE_VERSIONS as $language => $version) {
+            $this->upsertArticleVersion(
+                $pdo,
+                $articleId,
+                $language,
+                $version['slug'],
+                $version['title'],
+                $version['teaser'],
+                $this->buildContentJson($version['body']),
+                $now
+            );
+        }
     }
 
     private function upsertArticleVersion(

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Mcp\Tools;
 
+use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
+use NixPHP\CMS\Enums\ToolRisk;
+
 use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;
@@ -11,8 +14,12 @@ use PDO;
 use Throwable;
 use function NixPHP\Database\database;
 
-final class ArticleLookupTool implements ToolInterface, ScopedToolInterface
+final class ArticleLookupTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
+    use DeclaresLocalAiToolRisk;
+
+    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const bool AI_DESTRUCTIVE = false;
     public function __construct(private ?PDO $connection = null) {}
 
     public function name(): string

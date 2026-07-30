@@ -7,6 +7,7 @@ namespace NixPHP\CMS\Repositories;
 use NixPHP\CMS\Page\CustomLayoutNormalizer;
 use PDO;
 use function NixPHP\Database\database;
+use function NixPHP\log;
 
 final class PageLayoutRepository
 {
@@ -29,7 +30,8 @@ final class PageLayoutRepository
         try {
             $statement = $connection->query('SELECT * FROM page_layouts ORDER BY updated_at DESC, created_at DESC, name ASC');
             $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('PageLayoutRepository.all failed: %s', $e->getMessage()), ['exception' => $e]);
             return [];
         }
 
@@ -47,7 +49,8 @@ final class PageLayoutRepository
             $statement = $connection->prepare('SELECT * FROM page_layouts WHERE id = :id LIMIT 1');
             $statement->execute(['id' => $id]);
             $row = $statement->fetch(PDO::FETCH_ASSOC);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('PageLayoutRepository.find failed: %s', $e->getMessage()), ['exception' => $e]);
             return null;
         }
 
@@ -160,7 +163,8 @@ final class PageLayoutRepository
             $statement->execute(['id' => $id]);
 
             return $statement->rowCount() > 0;
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('PageLayoutRepository.delete failed: %s', $e->getMessage()), ['exception' => $e]);
             $this->lastError = 'Layout could not be deleted.';
             return false;
         }
@@ -200,9 +204,13 @@ final class PageLayoutRepository
         }
 
         try {
-            /** @var PDO|null $connection */
-            $connection = database()?->connect();
-        } catch (\Throwable) {
+            // database() already returns the shared PDO. Calling connect() on it
+            // hit PDO's static factory, which does not exist before PHP 8.4 and
+            // would open a second, DSN-less connection after it, so this
+            // repository never had a connection at all.
+            $connection = database();
+        } catch (\Throwable $e) {
+            log()->error(sprintf('PageLayoutRepository.connection failed: %s', $e->getMessage()), ['exception' => $e]);
             $connection = null;
         }
 
@@ -329,7 +337,8 @@ final class PageLayoutRepository
     {
         try {
             $data = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->warning(sprintf('PageLayoutRepository.decodeJson failed: %s', $e->getMessage()), ['exception' => $e]);
             return [];
         }
 

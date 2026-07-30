@@ -7,6 +7,7 @@ namespace NixPHP\CMS\Support\Docs;
 use NixPHP\CMS\Content\BlockViewRegistry;
 use NixPHP\CMS\Content\Page\Block\BlockTypeInterface;
 use NixPHP\CMS\Page\Layout;
+use NixPHP\CMS\Support\RuntimePaths;
 use function NixPHP\CMS\cms;
 
 final class IntegrityChecker
@@ -35,7 +36,7 @@ final class IntegrityChecker
         $issues = [];
         $blockTypes = $this->blockTypes();
         $blockViews = new BlockViewRegistry();
-        $templateFile = $this->basePath . '/app/Resources/pages/page_templates.php';
+        $templateFile = RuntimePaths::resource($this->basePath, 'pages/page_templates.php');
         $templates = $this->pageTemplates($templateFile);
 
         $issues = [
@@ -98,7 +99,8 @@ final class IntegrityChecker
             $referencedViews[$viewFile] = true;
 
             if (!is_file($viewFile)) {
-                $issues[] = $this->issue($this->basePath . '/app/Content/BlockViewRegistry.php', $this->lineOf($this->basePath . '/app/Content/BlockViewRegistry.php', $id), sprintf(
+                $registryFile = $this->basePath . '/src/Content/BlockViewRegistry.php';
+                $issues[] = $this->issue($registryFile, $this->lineOf($registryFile, $id), sprintf(
                     'BlockType "%s" maps to missing view "%s" (%s).',
                     $id,
                     $view,
@@ -154,8 +156,9 @@ final class IntegrityChecker
         foreach ($this->templateViewFiles() as $viewFile) {
             if (!isset($registeredViews[$viewFile])) {
                 $issues[] = $this->issue($viewFile, 1, sprintf(
-                    'Page template view "%s" is not registered in app/Resources/pages/page_templates.php.',
+                    'Page template view "%s" is not registered in %s.',
                     $this->relative($viewFile),
+                    $this->relative($templateFile),
                 ));
             }
         }
@@ -228,7 +231,7 @@ final class IntegrityChecker
      */
     private function blockViewFiles(): array
     {
-        $files = glob($this->basePath . '/src/views/page/blocks/*.phtml') ?: [];
+        $files = glob(RuntimePaths::views($this->basePath, 'page/blocks') . '/*.phtml') ?: [];
 
         return array_values(array_filter($files, static function (string $file): bool {
             return !isset(self::IGNORED_BLOCK_VIEWS[basename($file)]);
@@ -240,13 +243,13 @@ final class IntegrityChecker
      */
     private function templateViewFiles(): array
     {
-        return glob($this->basePath . '/src/views/page/templates/*.phtml') ?: [];
+        return glob(RuntimePaths::views($this->basePath, 'page/templates') . '/*.phtml') ?: [];
     }
 
     private function viewFile(string $view): string
     {
         $path = str_replace('.', '/', trim($view, '/'));
-        return $this->basePath . '/src/views/' . $path . '.phtml';
+        return RuntimePaths::views($this->basePath, $path . '.phtml');
     }
 
     /**

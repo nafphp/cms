@@ -4,13 +4,35 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Repositories;
 
+use NixPHP\CMS\Contracts\UserPrivilegePolicyInterface;
 use NixPHP\CMS\Models\Role;
 use NixPHP\CMS\Services\Security\UserPrivilegePolicy;
+use NixPHP\ORM\Core\EntityManager;
 use NixPHP\ORM\Repository\AbstractRepository;
+use PDO;
+use function NixPHP\log;
 
 class RoleRepository extends AbstractRepository
 {
     private const string ROLE_PERMISSION_TABLE = 'role_permissions';
+
+    public function __construct(
+        protected PDO $pdo,
+        protected EntityManager $entityManager,
+        private ?UserPrivilegePolicyInterface $privilegePolicy = null,
+    ) {
+        parent::__construct($pdo, $entityManager);
+    }
+
+    /**
+     * The container binding wins when the repository is autowired. The fallback
+     * keeps this repository's own connection, which matters for tests that build
+     * it with a dedicated PDO instead of the application database.
+     */
+    private function privileges(): UserPrivilegePolicyInterface
+    {
+        return $this->privilegePolicy ??= new UserPrivilegePolicy($this->pdo);
+    }
 
     protected function getEntityClass(): string
     {
@@ -68,7 +90,7 @@ class RoleRepository extends AbstractRepository
 
     public function createByName(int $actorId, string $name): ?Role
     {
-        (new UserPrivilegePolicy($this->pdo))->assertRoleDefinitionCreate($actorId);
+        $this->privileges()->assertRoleDefinitionCreate($actorId);
 
         $normalized = $this->normalizeName($name);
         if ($normalized === null) {
@@ -92,7 +114,7 @@ class RoleRepository extends AbstractRepository
 
     public function renameById(int $actorId, int $roleId, string $name): bool
     {
-        (new UserPrivilegePolicy($this->pdo))->assertRoleDefinitionChange($actorId, $roleId);
+        $this->privileges()->assertRoleDefinitionChange($actorId, $roleId);
 
         $normalized = $this->normalizeName($name);
         if ($roleId <= 0 || $normalized === null) {
@@ -117,7 +139,7 @@ class RoleRepository extends AbstractRepository
 
     public function deleteById(int $actorId, int $roleId): bool
     {
-        (new UserPrivilegePolicy($this->pdo))->assertRoleDefinitionChange($actorId, $roleId);
+        $this->privileges()->assertRoleDefinitionChange($actorId, $roleId);
 
         if ($roleId <= 0) {
             return false;
@@ -138,7 +160,8 @@ class RoleRepository extends AbstractRepository
 
             $this->pdo->commit();
             return $deleteRoleStmt->rowCount() > 0;
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('RoleRepository.deleteById failed: %s', $e->getMessage()), ['exception' => $e]);
             $this->pdo->rollBack();
             return false;
         }
@@ -150,7 +173,7 @@ class RoleRepository extends AbstractRepository
      */
     public function updatePermissionsByRoleId(int $actorId, int $roleId, array $permissionIds): array
     {
-        (new UserPrivilegePolicy($this->pdo))->assertRolePermissionChange($actorId, $roleId, $permissionIds);
+        $this->privileges()->assertRolePermissionChange($actorId, $roleId, $permissionIds);
 
         if ($roleId <= 0) {
             return [];
@@ -182,7 +205,8 @@ class RoleRepository extends AbstractRepository
             }
 
             $this->pdo->commit();
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log()->error(sprintf('RoleRepository.updatePermissionsByRoleId failed: %s', $e->getMessage()), ['exception' => $e]);
             $this->pdo->rollBack();
             return [];
         }

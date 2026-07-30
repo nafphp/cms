@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Mcp\Tools;
 
+use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
+use NixPHP\CMS\Enums\ToolRisk;
+
 use NixPHP\MCP\Support\Schema;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;
 
-final class AdminNavigateTool implements ToolInterface, ScopedToolInterface
+final class AdminNavigateTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
+    use DeclaresLocalAiToolRisk;
+
+    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const bool AI_DESTRUCTIVE = false;
     public function name(): string
     {
         return 'cms_admin_navigate';
@@ -17,7 +24,7 @@ final class AdminNavigateTool implements ToolInterface, ScopedToolInterface
 
     public function description(): string
     {
-        return 'Navigates the current admin UI to a safe registered NixCMS admin area such as PageBuilder, articles, forms, themes, media, or settings.';
+        return 'Navigates the current admin UI to a safe registered NixCMS admin area such as PageBuilder, articles, forms, themes, media, users, roles, navigation, or settings.';
     }
 
     public function inputSchema(): array
@@ -36,6 +43,11 @@ final class AdminNavigateTool implements ToolInterface, ScopedToolInterface
                 'themes',
                 'themeEditor',
                 'media',
+                'users',
+                'userEditor',
+                'roles',
+                'navigation',
+                'navigationEditor',
                 'settings',
                 'aiSettings',
             ]))
@@ -90,6 +102,11 @@ final class AdminNavigateTool implements ToolInterface, ScopedToolInterface
             'themes' => '/admin/themes',
             'themeEditor' => $id > 0 ? '/admin/themes/' . $id . '/edit' : '/admin/themes',
             'media' => '/admin/media',
+            'users' => '/admin/users',
+            'userEditor' => $id > 0 ? '/admin/users/' . $id . '/edit' : '/admin/users/create',
+            'roles' => '/admin/roles',
+            'navigation' => '/admin/navigation',
+            'navigationEditor' => $id > 0 ? '/admin/navigation/' . $id . '/edit' : '/admin/navigation/create',
             'settings' => '/admin/settings',
             'aiSettings' => '/admin/settings/ai',
             default => throw new \InvalidArgumentException(sprintf('Unknown admin navigation target "%s".', $target)),

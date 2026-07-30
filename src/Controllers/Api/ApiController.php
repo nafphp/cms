@@ -14,10 +14,14 @@ use function NixPHP\CMS\cms;
 
 final class ApiController
 {
+    public function __construct(
+        private readonly ApiAuthorization $authorization = new ApiAuthorization(),
+    ) {}
+
     public function handle(mixed ...$params): ResponseInterface
     {
         $endpoint = $this->resolveEndpoint();
-        (new ApiAuthorization())->authorize($endpoint);
+        $this->authorization->authorize($endpoint);
 
         $response = HandlerInvoker::call($endpoint->handler(), $params);
         if ($response instanceof ResponseInterface) {

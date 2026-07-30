@@ -1,7 +1,7 @@
-<!-- managed-by: fkde/nixcms agent-guide -->
+<!-- managed-by: nixphp/cms agent-guide -->
 # NixCMS Project Guide
 
-This is an installed NixPHP host with NixCMS plugins. The host owns configuration, application code, public assets, and runtime data; Composer packages below `vendor/` are read-only dependencies. Put shared CMS behavior in a focused plugin or host module instead of editing `vendor/fkde/nixcms`.
+This is an installed NixPHP host with NixCMS plugins. The host owns configuration, application code, public assets, and runtime data; Composer packages below `vendor/` are read-only dependencies. Put shared CMS behavior in a focused plugin or host module instead of editing `vendor/nixphp/cms`.
 
 ## Inspect First
 
@@ -19,7 +19,7 @@ Read these in order: `composer.json`, `app/config.php`, `app/plugins.php`, `app/
 
 ## Commands
 
-From the host root, use `vendor/bin/nix` (or the host's `bin/nix` wrapper):
+From the host root, use the CLI plugin's `vendor/bin/nix` executable:
 
 ```bash
 composer install

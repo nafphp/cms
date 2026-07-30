@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Localization;
 
-use NixPHP\CMS\Services\Settings\TranslationFileService;
+use NixPHP\CMS\Contracts\TranslationServiceInterface;
 use NixPHP\I18n\Core\Translator;
 use NixPHP\I18n\Support\Language;
 use Stringable;
 use function NixPHP\config;
+use function NixPHP\app;
 
 final class RuntimeTranslator extends Translator
 {
@@ -18,7 +19,7 @@ final class RuntimeTranslator extends Translator
 
     public function __construct(
         ?string $language = null,
-        private readonly ?TranslationFileService $translations = null,
+        private readonly ?TranslationServiceInterface $translations = null,
     ) {
         $this->runtimeLanguage = $language !== null ? Language::normalize($language) : null;
         $this->reload();
@@ -29,7 +30,8 @@ final class RuntimeTranslator extends Translator
         $this->runtimeLanguage ??= Language::normalize(
             (string) (config('language') ?? config('fallback_language', Language::EN)),
         );
-        $this->runtimeData = ($this->translations ?? new TranslationFileService())->entries($this->runtimeLanguage);
+        $translations = $this->translations ?? app()->container()->get(TranslationServiceInterface::class);
+        $this->runtimeData = $translations->entries($this->runtimeLanguage);
     }
 
     public function translate(string $key, array $params = []): string

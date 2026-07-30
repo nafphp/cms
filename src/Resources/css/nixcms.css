@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @source "../../../views/**/*.phtml";
-@source "../../../app/**/*.php";
+@source "../../../src/**/*.php";
 @source "../../../public/js/**/*.js";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -134,17 +134,82 @@ body.is-admin-navigation-dragging .admin-navigation-placeholder {
     will-change: transform;
 }
 
+/*
+ * Indeterminate progress sweep for the assistant.
+ *
+ * The bar is 25% of the track, so -100% of its own width parks it exactly off
+ * the left edge and 400% parks it exactly off the right edge. Start and end are
+ * therefore visually identical, which makes the loop seamless. The previous
+ * keyframes had a midpoint stop, and since the easing applies between each pair
+ * of keyframes the bar decelerated in the middle of the visible track and
+ * jumped on restart.
+ */
 @keyframes local-ai-thinking {
     0% {
-        transform: translateX(-120%);
-    }
-
-    50% {
-        transform: translateX(110%);
+        transform: translateX(-100%);
     }
 
     100% {
-        transform: translateX(320%);
+        transform: translateX(400%);
+    }
+}
+
+@keyframes local-ai-thinking-label {
+    0%, 100% {
+        opacity: .58;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+.local-ai-thinking-track {
+    display: block;
+    overflow: hidden;
+    height: 5px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--admin-page-accent) 11%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--admin-page-accent) 8%, transparent);
+}
+
+.local-ai-thinking-bar {
+    display: block;
+    height: 100%;
+    width: 25%;
+    border-radius: 999px;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        color-mix(in srgb, var(--admin-page-accent) 55%, transparent) 38%,
+        var(--admin-page-accent) 62%,
+        color-mix(in srgb, var(--admin-page-accent) 55%, transparent) 82%,
+        transparent 100%
+    );
+    /* Keep the sweep on the compositor so it does not fight layout work. */
+    will-change: transform;
+    transform: translateX(-100%);
+}
+
+.local-ai-thinking-label {
+    display: block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .local-ai-thinking-bar {
+        animation: local-ai-thinking 1.4s cubic-bezier(.42, 0, .38, 1) infinite;
+    }
+
+    .local-ai-thinking-label {
+        animation: local-ai-thinking-label 2.1s ease-in-out infinite;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .local-ai-thinking-bar {
+        width: 100%;
+        opacity: .5;
+        transform: none;
     }
 }
 
@@ -702,10 +767,17 @@ body:not(.page-theme--bounded-footer-background) .page-site-footer,
     padding: 0;
 }
 
+/*
+ * Content starts at the top, in every template.
+ *
+ * The shell fills the viewport so the footer stays at the bottom, which means
+ * the main row absorbs all leftover height. Centering inside it turned that
+ * leftover into a gap under the header that grew with the viewport and shrank
+ * with the content — and never matched the page builder, whose shell is capped
+ * at 520px and therefore had almost no leftover to distribute.
+ */
 .page-template-main--landing {
     --page-template-default-width: 1120px;
-    align-content: center;
-    padding-top: .25rem;
 }
 
 .page-template-main--editorial {
@@ -714,7 +786,6 @@ body:not(.page-theme--bounded-footer-background) .page-site-footer,
 
 .page-template-main--feature-grid {
     --page-template-default-width: 1120px;
-    align-content: center;
 }
 
 .page-template-main--article-detail {
@@ -1744,18 +1815,15 @@ body.page-builder-live-preview .page-template-shell {
     min-height: 520px;
 }
 
-body.page-builder-live-preview .page-template-main {
-    padding: 1.75rem 0;
-}
-
 .page-builder .page-template-shell {
     min-height: 520px;
 }
 
-.page-builder .page-template-main {
-    max-width: min(100%, var(--page-content-max-width, var(--page-template-default-width, 1120px)));
-    padding: 2rem 0;
-}
+/*
+ * The capped shell height above is the only thing the preview may change.
+ * Width and padding come from the shared .page-template-main rules, so the
+ * builder shows the spacing the frontend will actually render.
+ */
 
 .page-builder [data-template-preview] {
     --page-builder-preview-width: 100%;
@@ -3302,10 +3370,6 @@ body.admin-app .page-builder-layout-panel {
 
 body.page-builder-live-preview main.min-h-screen {
     min-height: 520px;
-}
-
-body.page-builder-live-preview main.content-center {
-    align-content: start;
 }
 
 body.admin-app .notify:has(.translation-key-prompt) {

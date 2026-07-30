@@ -82,7 +82,12 @@ final class PageRepository
         return is_array($row) ? $this->hydrateRow($row) : null;
     }
 
-    public function findByPath(string $path, ?string $language = null, bool $publishedOnly = true): ?array
+    public function findByPath(
+        string $path,
+        ?string $language = null,
+        bool $publishedOnly = true,
+        ?string $fallbackLanguage = null,
+    ): ?array
     {
         $connection = $this->connection();
         if (!$connection instanceof PDO) {
@@ -91,6 +96,7 @@ final class PageRepository
 
         $path = $this->normalizePath($path);
         $language = $language === null ? null : strtolower(trim($language));
+        $fallbackLanguage = $fallbackLanguage === null ? null : strtolower(trim($fallbackLanguage));
 
         try {
             $sql = 'SELECT * FROM pages WHERE path = :path';
@@ -106,6 +112,25 @@ final class PageRepository
             $statement = $connection->prepare($sql);
             $statement->execute($parameters);
             $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+            if (
+                !is_array($row)
+                && $language !== null
+                && $language !== ''
+                && $fallbackLanguage !== null
+                && $fallbackLanguage !== ''
+                && $fallbackLanguage !== $language
+            ) {
+                $fallbackSql = 'SELECT * FROM pages WHERE path = :path AND language = :language';
+                if ($publishedOnly) {
+                    $fallbackSql .= " AND status = 'published'";
+                }
+                $fallbackSql .= ' LIMIT 1';
+                $statement = $connection->prepare($fallbackSql);
+                $statement->execute(['path' => $path, 'language' => $fallbackLanguage]);
+                $row = $statement->fetch(PDO::FETCH_ASSOC);
+            }
+
             if (!is_array($row) && $language !== null && $language !== '') {
                 $fallbackSql = 'SELECT * FROM pages WHERE path = :path AND language = :language';
                 if ($publishedOnly) {
@@ -114,6 +139,19 @@ final class PageRepository
                 $fallbackSql .= ' LIMIT 1';
                 $statement = $connection->prepare($fallbackSql);
                 $statement->execute(['path' => $path, 'language' => '']);
+                $row = $statement->fetch(PDO::FETCH_ASSOC);
+            }
+
+            if (!is_array($row) && $language !== null && $language !== '') {
+                // Last resort: serve the path in whatever language exists rather
+                // than 404. Routing matched this path, so a page is expected.
+                $anySql = 'SELECT * FROM pages WHERE path = :path';
+                if ($publishedOnly) {
+                    $anySql .= " AND status = 'published'";
+                }
+                $anySql .= ' ORDER BY language ASC LIMIT 1';
+                $statement = $connection->prepare($anySql);
+                $statement->execute(['path' => $path]);
                 $row = $statement->fetch(PDO::FETCH_ASSOC);
             }
         } catch (\Throwable $e) {
@@ -127,6 +165,80 @@ final class PageRepository
         }
 
         return is_array($row) ? $this->hydrateRow($row) : null;
+    }
+
+    /**
+     * Everything route registration needs from a stored page, and nothing else.
+     *
+     * Deliberately does not build Page objects: this runs before block types are
+     * registered, and constructing block content that early loses it.
+     *
+     * @param array<int, string> $templateIds Templates that can actually render
+     * @return array<int, array{id: string, path: string, published: bool}>
+     */
+    public function routeDescriptors(array $templateIds): array
+    {
+        $connection = $this->connection();
+        if (!$connection instanceof PDO) {
+            return [];
+        }
+
+        $known = [];
+        foreach ($templateIds as $templateId) {
+            $templateId = trim((string) $templateId);
+            if ($templateId !== '') {
+                $known[$templateId] = true;
+            }
+        }
+
+        // Routes are registered on every request, CLI included, so a database
+        // without the schema yet must stay quiet instead of logging an error
+        // before the first migration has run.
+        if ($known === [] || !$this->tableExists()) {
+            return [];
+        }
+
+        try {
+            // Drafts are included on purpose: without a route an editor cannot
+            // preview them at all. They are not readable through it — the page
+            // built for a draft requires PAGES_VIEW, and visitors without that
+            // permission never get the row loaded in the first place.
+            $statement = $connection->query(
+                "SELECT id, path, status, template_id
+                 FROM pages
+                 ORDER BY path ASC, language ASC"
+            );
+            $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            log()->error('PageRepository.routeDescriptors failed', [
+                'exception' => $e,
+                'template_count' => count($templateIds),
+            ]);
+            return [];
+        }
+
+        $descriptors = [];
+        foreach (is_array($rows) ? $rows : [] as $row) {
+            if (!isset($known[(string) ($row['template_id'] ?? '')])) {
+                continue;
+            }
+
+            $path = $this->normalizePath((string) ($row['path'] ?? '/'));
+            $descriptor = [
+                'id' => 'db.page.' . (int) ($row['id'] ?? 0),
+                'path' => $path,
+                'published' => (string) ($row['status'] ?? 'draft') === 'published',
+            ];
+
+            // One route per path. A published translation wins over a draft that
+            // happened to sort first, because it decides whether the path counts
+            // as live for the home-page override and for collision reporting.
+            if (!isset($descriptors[$path]) || ($descriptor['published'] && !$descriptors[$path]['published'])) {
+                $descriptors[$path] = $descriptor;
+            }
+        }
+
+        return array_values($descriptors);
     }
 
     /** @return array<int, Page> */
@@ -181,9 +293,15 @@ final class PageRepository
     /**
      * @param array<int, array<string, mixed>> $templates
      */
-    public function pageByPath(string $path, array $templates, ?string $language = null, bool $publishedOnly = true): ?Page
+    public function pageByPath(
+        string $path,
+        array $templates,
+        ?string $language = null,
+        bool $publishedOnly = true,
+        ?string $fallbackLanguage = null,
+    ): ?Page
     {
-        $row = $this->findByPath($path, $language, $publishedOnly);
+        $row = $this->findByPath($path, $language, $publishedOnly, $fallbackLanguage);
         if (!is_array($row)) {
             return null;
         }
@@ -264,6 +382,15 @@ final class PageRepository
             'layout' => $layout,
         ];
 
+        $pathOwnerId = $this->pathLanguageOwnerId($path, $language);
+        if ($pathOwnerId !== null && $pathOwnerId !== $id) {
+            throw new \DomainException(sprintf(
+                'Page path "%s" is already used for language "%s".',
+                $path,
+                $language,
+            ));
+        }
+
         if ($id > 0) {
             $statement = $connection->prepare(<<<SQL
                 UPDATE pages
@@ -284,13 +411,6 @@ final class PageRepository
             return $id;
         }
 
-        $existing = $connection->prepare('SELECT id FROM pages WHERE path = :path AND language = :language LIMIT 1');
-        $existing->execute(['path' => $path, 'language' => $language]);
-        $existingId = (int) ($existing->fetchColumn() ?: 0);
-        if ($existingId > 0) {
-            return $this->save(array_replace($payload, ['id' => $existingId]));
-        }
-
         $statement = $connection->prepare(<<<SQL
             INSERT INTO pages (identifier, path, title, language, status, template_id, theme_id, blocks_json, meta_json, layout, created_at, updated_at)
             VALUES (:identifier, :path, :title, :language, :status, :template_id, :theme_id, :blocks_json, :meta_json, :layout, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
@@ -298,6 +418,25 @@ final class PageRepository
         $statement->execute($params);
 
         return (int) $connection->lastInsertId();
+    }
+
+    public function pathLanguageOwnerId(string $path, string $language): ?int
+    {
+        $connection = $this->connection();
+        if (!$connection instanceof PDO) {
+            return null;
+        }
+
+        $statement = $connection->prepare(
+            'SELECT id FROM pages WHERE path = :path AND language = :language LIMIT 1'
+        );
+        $statement->execute([
+            'path' => $this->normalizePath($path),
+            'language' => strtolower(trim($language)),
+        ]);
+        $id = (int) ($statement->fetchColumn() ?: 0);
+
+        return $id > 0 ? $id : null;
     }
 
     public function publish(int $id): bool
@@ -388,6 +527,39 @@ final class PageRepository
         }
 
         return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
+     * Is the pages table there yet?
+     *
+     * Route registration runs before the first migration on a fresh install,
+     * where querying a missing table is expected rather than an error.
+     */
+    private function tableExists(): bool
+    {
+        $connection = $this->connection();
+        if (!$connection instanceof PDO) {
+            return false;
+        }
+
+        try {
+            $driver = strtolower((string) $connection->getAttribute(PDO::ATTR_DRIVER_NAME));
+            if ($driver === 'sqlite') {
+                $statement = $connection->prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'pages'");
+                $statement->execute();
+
+                return (bool) $statement->fetchColumn();
+            }
+
+            $statement = $connection->prepare('SHOW TABLES LIKE :table');
+            $statement->execute(['table' => 'pages']);
+
+            return (bool) $statement->fetchColumn();
+        } catch (\Throwable $e) {
+            log()->warning(sprintf('PageRepository.tableExists failed: %s', $e->getMessage()), ['exception' => $e]);
+
+            return false;
+        }
     }
 
     private function connection(): ?PDO
