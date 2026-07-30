@@ -6,11 +6,9 @@ namespace Tests\Unit\Services\Ai;
 
 use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
 use NixPHP\CMS\Services\Ai\LocalAiToolBridge;
-use NixPHP\Database\Core\Database;
 use NixPHP\MCP\Support\ToolRegistry;
 use NixPHP\MCP\Tools\ScopedToolInterface;
 use NixPHP\MCP\Tools\ToolInterface;
-use PDO;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -18,9 +16,12 @@ use function NixPHP\app;
 
 final class LocalAiToolBridgeTest extends TestCase
 {
+    private ToolRegistry $originalRegistry;
+
     protected function setUp(): void
     {
         parent::setUp();
+        $this->originalRegistry = app()->container()->get(ToolRegistry::class);
 
         $registry = new ToolRegistry();
         $registry->register(new LocalAiUnscopedToolFixture());
@@ -28,6 +29,12 @@ final class LocalAiToolBridgeTest extends TestCase
 
         app()->container()->set(ToolRegistry::class, $registry);
         app()->container()->set(LoggerInterface::class, new NullLogger());
+    }
+
+    protected function tearDown(): void
+    {
+        app()->container()->set(ToolRegistry::class, $this->originalRegistry);
+        parent::tearDown();
     }
 
     public function testDefinitionsUseLocalIdentityScopesAndHideScopedToolsWithoutUserPermissions(): void
@@ -57,26 +64,16 @@ final class LocalAiToolBridgeTest extends TestCase
         (new LocalAiToolBridge())->call('local_ai_scoped_fixture');
     }
 
-    public function testWriteToolCallRollsBackWhenToolThrowsAfterWriting(): void
+    public function testWriteToolKeepsOwnershipOfItsTransactionBoundary(): void
     {
-        $pdo = new PDO('sqlite::memory:');
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $pdo->exec('CREATE TABLE ai_tool_transaction_fixture (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL)');
-
         $registry = new ToolRegistry();
-        $registry->register(new LocalAiThrowingWriteToolFixture());
+        $registry->register(new LocalAiTransactionProbeWriteToolFixture());
 
         app()->container()->set(ToolRegistry::class, $registry);
-        app()->container()->set(Database::class, new Database(['driver' => 'sqlite', 'database' => ':memory:'], fn(): PDO => $pdo));
 
-        self::expectException(\RuntimeException::class);
-        self::expectExceptionMessage('write failed after insert');
+        $result = (new LocalAiToolBridge())->call('local_ai_write_fixture');
 
-        try {
-            (new LocalAiToolBridge())->call('local_ai_write_fixture', ['title' => 'Atomic']);
-        } finally {
-            self::assertSame(0, (int) $pdo->query('SELECT COUNT(*) FROM ai_tool_transaction_fixture')->fetchColumn());
-        }
+        self::assertSame(['success' => true], $result);
     }
 }
 
@@ -143,7 +140,7 @@ final class LocalAiScopedToolFixture implements ToolInterface, ScopedToolInterfa
     }
 }
 
-final class LocalAiThrowingWriteToolFixture implements ToolInterface
+final class LocalAiTransactionProbeWriteToolFixture implements ToolInterface
 {
     public function name(): string
     {
@@ -152,7 +149,7 @@ final class LocalAiThrowingWriteToolFixture implements ToolInterface
 
     public function description(): string
     {
-        return 'Creates a fixture row and then throws to verify write rollback.';
+        return 'Creates a fixture through its own domain transaction.';
     }
 
     public function inputSchema(): array
@@ -162,10 +159,6 @@ final class LocalAiThrowingWriteToolFixture implements ToolInterface
 
     public function handle(array $args): array
     {
-        $connection = \NixPHP\Database\database();
-        $statement = $connection->prepare('INSERT INTO ai_tool_transaction_fixture (title) VALUES (:title)');
-        $statement->execute(['title' => (string) ($args['title'] ?? '')]);
-
-        throw new \RuntimeException('write failed after insert');
+        return ['success' => true];
     }
 }

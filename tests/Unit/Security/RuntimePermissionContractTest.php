@@ -11,7 +11,7 @@ final class RuntimePermissionContractTest extends TestCase
 {
     public function testAiInstructionEndpointsUseDedicatedPermission(): void
     {
-        $endpoints = require BASE_PATH . '/app/Resources/api/ai.php';
+        $endpoints = require BASE_PATH . '/src/Resources/api/ai.php';
 
         foreach ($endpoints as $endpoint) {
             if (str_contains($endpoint->id(), '.tools')) {
@@ -24,7 +24,7 @@ final class RuntimePermissionContractTest extends TestCase
 
     public function testThemeCodeEndpointUsesDedicatedPermission(): void
     {
-        $endpoints = require BASE_PATH . '/app/Resources/api/themes.php';
+        $endpoints = require BASE_PATH . '/src/Resources/api/themes.php';
 
         self::assertSame(
             [Permission::THEMES_CODE_MANAGE],
@@ -34,8 +34,8 @@ final class RuntimePermissionContractTest extends TestCase
 
     public function testLocalPreviewHasNoPersistedApiKeySetting(): void
     {
-        $config = require BASE_PATH . '/app/config.php';
-        $sections = require BASE_PATH . '/app/settings.php';
+        $config = require BASE_PATH . '/src/config.php';
+        $sections = require BASE_PATH . '/src/settings.php';
         $keys = [];
         foreach ($sections as $section) {
             $keys = [...$keys, ...array_keys($section->fields())];

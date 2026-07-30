@@ -16,6 +16,8 @@ final class DeveloperExperienceIntegrityTest extends TestCase
         $guide = (string) file_get_contents(BASE_PATH . '/docs/templates/SHIPPED_AGENTS.md');
 
         self::assertStringContainsString(AgentGuideInstaller::MARKER, $guide);
+        // The guide documents the layout of an installed host, which keeps the
+        // app/ spelling; it is not describing this package.
         foreach (['app/pages.php', 'app/Resources/pages', 'app/api.php', 'app/Resources/api', 'app/content.php', 'app/Migrations', 'app/Mcp/Tools', 'views', 'vendor/bin/nix', 'permissions', 'scopes'] as $needle) {
             self::assertStringContainsStringIgnoringCase($needle, $guide);
         }
@@ -36,5 +38,15 @@ final class DeveloperExperienceIntegrityTest extends TestCase
         foreach (['cms()->pages()->add', 'cms()->api()->add', 'MigrationRegistry::addPath', 'tool()->register', "view('example-plugin.report')", 'LocalAiToolMetadataInterface'] as $needle) {
             self::assertStringContainsString($needle, $registration);
         }
+    }
+
+    public function testServiceOverrideExampleDocumentsTheHostBinding(): void
+    {
+        $root = BASE_PATH . '/examples/06-service-override';
+        self::assertFileExists($root . '/README.md');
+        self::assertFileExists($root . '/service.php');
+        $source = (string) file_get_contents($root . '/service.php');
+        self::assertStringContainsString('MediaStorageInterface::class', $source);
+        self::assertStringContainsString("app()->container()->set", $source);
     }
 }

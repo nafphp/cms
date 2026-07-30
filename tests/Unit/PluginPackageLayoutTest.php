@@ -23,18 +23,23 @@ final class PluginPackageLayoutTest extends TestCase
         self::assertArrayNotHasKey('Tests\\', $composer['autoload']['psr-4']);
         self::assertSame('tests/', $composer['autoload-dev']['psr-4']['Tests\\']);
         self::assertStringNotContainsString('dev-', $composer['require']['nixphp/i18n']);
+        self::assertArrayHasKey('nixphp/cli', $composer['require']);
+        self::assertFileDoesNotExist(BASE_PATH . '/bin/nix');
     }
 
     public function testPluginConventionsAndBootstrapAreHostSafe(): void
     {
-        foreach (['src/config.php', 'src/routes.php', 'src/functions.php', 'src/views', 'bootstrap.php'] as $path) {
+        foreach (['src/config.php', 'src/routes.php', 'src/functions.php', 'views', 'bootstrap.php'] as $path) {
             self::assertFileExists(BASE_PATH . '/' . $path);
         }
 
         $bootstrap = (string) file_get_contents(BASE_PATH . '/bootstrap.php');
         self::assertStringNotContainsString('vendor/autoload.php', $bootstrap);
-        self::assertStringNotContainsString('BASE_PATH', $bootstrap);
+        self::assertStringContainsString("if (!defined('BASE_PATH'))", $bootstrap);
+        self::assertStringContainsString("define('BASE_PATH', __DIR__)", $bootstrap);
         self::assertStringNotContainsString('app()->run()', $bootstrap);
+        self::assertStringNotContainsString('set(ToolRegistry::class', $bootstrap);
+        self::assertFileDoesNotExist(BASE_PATH . '/src/blocks.php');
         self::assertStringContainsString('MigrationRegistry::addPath', $bootstrap);
         self::assertStringContainsString('cms()->blockTypes()->add', $bootstrap);
         self::assertStringContainsString('tool()->register', $bootstrap);
@@ -42,10 +47,14 @@ final class PluginPackageLayoutTest extends TestCase
 
     public function testFrameworkDiscoversCorePluginResources(): void
     {
-        $plugin = app()->getPlugin('fkde/nixcms');
+        if (!class_exists(\NixPHP\Support\CoreFileLoader::class)) {
+            self::markTestSkipped('Discovery of a top-level views/ directory needs nixphp/framework >= 0.1.6.');
+        }
 
-        self::assertContains(realpath(BASE_PATH . '/src/views'), array_map('realpath', $plugin->getViewPaths()));
-        self::assertContains(realpath(BASE_PATH . '/app/Migrations'), array_map('realpath', MigrationRegistry::getPaths()));
+        $plugin = app()->getPlugin('nixphp/cms');
+
+        self::assertContains(realpath(BASE_PATH . '/views'), array_map('realpath', $plugin->getViewPaths()));
+        self::assertContains(realpath(BASE_PATH . '/src/Migrations'), array_map('realpath', MigrationRegistry::getPaths()));
         self::assertNotNull(app()->container()->get(CommandRegistry::class)->get('user:create'));
 
         $tools = app()->container()->get(ToolRegistry::class);

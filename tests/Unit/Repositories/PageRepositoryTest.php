@@ -65,7 +65,7 @@ final class PageRepositoryTest extends DatabaseTestCase
         $this->assertSame('brand', $this->repository->find($id)['themeId']);
     }
 
-    public function testSaveUpdatesExistingPathLanguagePair(): void
+    public function testSaveRejectsExistingPathLanguagePairInsteadOfOverwritingIt(): void
     {
         $firstId = $this->repository->save([
             'identifier' => 'news',
@@ -75,16 +75,111 @@ final class PageRepositoryTest extends DatabaseTestCase
             'template_id' => 'editorial',
         ]);
 
-        $secondId = $this->repository->save([
-            'identifier' => 'news-updated',
-            'path' => '/news',
-            'title' => 'Updated News',
+        try {
+            $this->repository->save([
+                'identifier' => 'news-updated',
+                'path' => '/news',
+                'title' => 'Updated News',
+                'language' => 'en',
+                'template_id' => 'landing',
+            ]);
+            self::fail('Expected the duplicate page path to be rejected.');
+        } catch (\DomainException $exception) {
+            self::assertStringContainsString('already used', $exception->getMessage());
+        }
+
+        $this->assertSame('News', $this->repository->find($firstId)['title']);
+        $this->assertSame('editorial', $this->repository->find($firstId)['template_id']);
+    }
+
+    public function testFindByPathUsesConfiguredFallbackBeforeAnotherTranslation(): void
+    {
+        $this->repository->save([
+            'identifier' => 'about',
+            'path' => '/about',
+            'title' => 'Deutsch',
+            'language' => 'de',
+            'status' => 'published',
+            'template_id' => 'default',
+        ]);
+        $this->repository->save([
+            'identifier' => 'about',
+            'path' => '/about',
+            'title' => 'English',
             'language' => 'en',
-            'template_id' => 'landing',
+            'status' => 'published',
+            'template_id' => 'default',
         ]);
 
-        $this->assertSame($firstId, $secondId);
-        $this->assertSame('Updated News', $this->repository->find($firstId)['title']);
+        $page = $this->repository->findByPath('/about', 'fr', true, 'en');
+
+        self::assertSame('English', $page['title']);
+    }
+
+    public function testRouteDescriptorsContainOnlyOnePublishedRoutePerPath(): void
+    {
+        $this->repository->save([
+            'identifier' => 'draft-only',
+            'path' => '/draft-only',
+            'title' => 'Draft only',
+            'language' => 'en',
+            'status' => 'draft',
+            'template_id' => 'default',
+        ]);
+        $this->repository->save([
+            'identifier' => 'about',
+            'path' => '/about',
+            'title' => 'About',
+            'language' => 'en',
+            'status' => 'published',
+            'template_id' => 'default',
+        ]);
+        $this->repository->save([
+            'identifier' => 'about',
+            'path' => '/about',
+            'title' => 'Über uns',
+            'language' => 'de',
+            'status' => 'published',
+            'template_id' => 'default',
+        ]);
+
+        $descriptors = $this->repository->routeDescriptors(['default']);
+        $byPath = array_column($descriptors, null, 'path');
+
+        // One route per path, both translations of /about collapsed into one.
+        self::assertCount(2, $descriptors);
+        self::assertTrue($byPath['/about']['published']);
+
+        // The draft is routed too, otherwise it could not be previewed. It is
+        // flagged unpublished, and the page built for it requires PAGES_VIEW.
+        self::assertArrayHasKey('/draft-only', $byPath);
+        self::assertFalse($byPath['/draft-only']['published']);
+    }
+
+    public function testPublishedTranslationDecidesWhetherAPathCountsAsLive(): void
+    {
+        // The draft sorts first by language, so a naive "first row wins" would
+        // report this path as unpublished and let it lose the home override.
+        $this->repository->save([
+            'identifier' => 'mixed',
+            'path' => '/mixed',
+            'title' => 'Entwurf',
+            'language' => 'de',
+            'status' => 'draft',
+            'template_id' => 'default',
+        ]);
+        $this->repository->save([
+            'identifier' => 'mixed',
+            'path' => '/mixed',
+            'title' => 'Published',
+            'language' => 'en',
+            'status' => 'published',
+            'template_id' => 'default',
+        ]);
+
+        $descriptors = array_column($this->repository->routeDescriptors(['default']), null, 'path');
+
+        self::assertTrue($descriptors['/mixed']['published']);
     }
 
     public function testFindTranslationsReturnsRowsByLanguage(): void

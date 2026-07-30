@@ -4,6 +4,17 @@ import {JSDOM} from 'jsdom';
 
 const contentTypes = [
     {
+        type: 'header', label: 'Header', description: 'Site header', regions: ['header'], previewTitle: 'Site header',
+        defaults: {navigationIdentifier: '', presentation: 'horizontal'},
+        fields: [
+            {name: 'navigationIdentifier', type: 'select', options: [
+                {label: 'No navigation', value: ''},
+                {label: 'Main navigation', value: 'main'},
+            ]},
+            {name: 'presentation', type: 'select', options: ['horizontal', 'compact']},
+        ],
+    },
+    {
         type: 'section', label: 'Section', description: 'Nested section', regions: ['main'], previewTitle: 'Section',
         defaults: {width: 'default', padding: 'medium', tone: 'none', children: []},
         fields: [
@@ -64,10 +75,14 @@ const installDom = (builderConfig) => {
     }
     globalThis.window = dom.window;
     globalThis.document = dom.window.document;
+    globalThis.DOMParser = dom.window.DOMParser;
     globalThis.HTMLElement = dom.window.HTMLElement;
+    globalThis.Element = dom.window.Element;
+    globalThis.HTMLDivElement = dom.window.HTMLDivElement;
     globalThis.HTMLInputElement = dom.window.HTMLInputElement;
     globalThis.HTMLSelectElement = dom.window.HTMLSelectElement;
     globalThis.HTMLTextAreaElement = dom.window.HTMLTextAreaElement;
+    globalThis.getComputedStyle = dom.window.getComputedStyle.bind(dom.window);
     globalThis.CSS = {escape: (value) => String(value).replaceAll('"', '\\"')};
     window.requestAnimationFrame = (callback) => callback();
     window.cancelAnimationFrame = () => {};
@@ -134,4 +149,60 @@ test('custom layout survives add, configure, nested save, reload, preview, publi
     assert.equal(reloaded.blockContent[slotId].props.children[0].props.text, 'Saved nested copy');
     assert.match(document.querySelector('[data-page-preview]').textContent, /Saved nested copy/);
     assert.equal(reloaded.pagePayload().status, 'published');
+});
+
+test('stale navigation identifiers are reconciled before a page is saved', async () => {
+    const builderConfig = config({
+        id: 42,
+        templateId: 'default',
+        blockContent: {
+            site_header: {
+                type: 'header',
+                label: 'Header',
+                previewTitle: 'Site header',
+                props: {navigationIdentifier: 'removed-navigation', presentation: 'horizontal'},
+            },
+        },
+        persistedValues: {
+            title: 'Existing page',
+            path: '/existing',
+            language: 'en',
+            status: 'draft',
+            defaultNavigationIdentifier: 'removed-navigation',
+        },
+    });
+    builderConfig.templates = [{
+        id: 'default',
+        label: 'Default',
+        layout: 'layouts.page',
+        view: 'page.templates.default',
+        blocks: [{id: 'site_header', region: 'header', accepts: ['header']}],
+    }];
+    builderConfig.navigationChoices = [{
+        identifier: 'main',
+        label: 'Main navigation',
+        language: '',
+        items: [],
+    }];
+    builderConfig.defaultNavigationIdentifier = 'main';
+
+    installDom(builderConfig);
+    const {PageBuilder} = await import('../../public/js/admin/page-builder/PageBuilder.js');
+    const builder = new PageBuilder(document.querySelector('[data-page-builder]'));
+    await builder.init();
+
+    assert.equal(builder.persistedValues.defaultNavigationIdentifier, 'main');
+    assert.equal(builder.blockContent.site_header.props.navigationIdentifier, 'main');
+    assert.equal(builder.pagePayload().blocks.site_header.props.navigationIdentifier, 'main');
+});
+
+test('alerts use their default confirmation label', async () => {
+    installDom(config());
+    const {default: alert} = await import('../../public/js/lib/notifyJs/Modules/Alert.js');
+    const closed = alert('Could not save.');
+    const button = document.querySelector('.notify.alert .confirm');
+
+    assert.equal(button?.textContent, 'Okay');
+    button?.click();
+    await closed;
 });

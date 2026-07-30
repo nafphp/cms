@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Services\Ai\ToolRouting;
 
 use NixPHP\CMS\Services\Ai\LocalAiToolCatalog;
+use NixPHP\CMS\Services\Ai\ToolRouting\KeywordToolRouter;
 use NixPHP\CMS\Services\Ai\ToolRouting\SemanticToolRouter;
 use NixPHP\CMS\Services\Ai\ToolRouting\ToolContext;
 use NixPHP\CMS\Services\Ai\ToolRouting\ToolHardFilter;
@@ -152,5 +153,74 @@ final class SemanticToolRouterTest extends TestCase
         );
 
         self::assertSame(['cms_article_status_counts'], array_column($filtered, 'name'));
+    }
+
+    /**
+     * The keyword router matches English tool vocabulary. Without German alias
+     * expansion every German phrase scored zero and the router degraded to
+     * returning cms_tools_search only.
+     */
+    public function testGermanPhrasesRouteToMatchingTools(): void
+    {
+        $tools = (new LocalAiToolCatalog())->enrich([
+            [
+                'name' => 'cms_admin_navigate',
+                'description' => 'Navigates the current admin UI to a safe registered NixCMS admin area such as PageBuilder, articles, forms, themes, media, users, roles, navigation, or settings.',
+                'inputSchema' => ['type' => 'object', 'properties' => ['target' => ['type' => 'string']]],
+            ],
+            [
+                'name' => 'cms_user_role_summary',
+                'description' => 'Returns a summary of users, roles and permissions.',
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ],
+            [
+                'name' => 'cms_system_health',
+                'description' => 'Returns current NixCMS system health data.',
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ],
+            [
+                'name' => 'cms_tools_search',
+                'description' => 'Searches the registered CMS tools for the current request and UI context.',
+                'inputSchema' => ['type' => 'object', 'properties' => ['query' => ['type' => 'string']]],
+            ],
+        ]);
+
+        $expectations = [
+            'Bringe mich zu den Benutzern' => 'cms_admin_navigate',
+            'Bringe mich zu den Rollen' => 'cms_admin_navigate',
+            'Wie ist die Systemgesundheit?' => 'cms_system_health',
+        ];
+
+        foreach ($expectations as $phrase => $expected) {
+            $selected = (new KeywordToolRouter($tools))->select($phrase, ToolContext::fromArray([]), 5);
+            $names = array_column($selected, 'name');
+
+            self::assertSame($expected, $names[0] ?? '', $phrase);
+            self::assertNotSame(['cms_tools_search'], $names, $phrase);
+        }
+    }
+
+    public function testGermanUserPhraseAlsoSurfacesTheUserRoleTool(): void
+    {
+        $tools = (new LocalAiToolCatalog())->enrich([
+            [
+                'name' => 'cms_user_role_summary',
+                'description' => 'Returns a summary of users, roles and permissions.',
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ],
+            [
+                'name' => 'cms_queue_status',
+                'description' => 'Returns the current queue status.',
+                'inputSchema' => ['type' => 'object', 'properties' => []],
+            ],
+        ]);
+
+        $selected = (new KeywordToolRouter($tools))->select(
+            'Zeig mir die Benutzer und ihre Rollen',
+            ToolContext::fromArray([]),
+            5,
+        );
+
+        self::assertSame('cms_user_role_summary', $selected[0]['name'] ?? '');
     }
 }

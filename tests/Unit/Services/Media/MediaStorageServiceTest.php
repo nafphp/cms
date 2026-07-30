@@ -13,6 +13,16 @@ use Tests\Support\DatabaseTestCase;
 
 final class MediaStorageServiceTest extends DatabaseTestCase
 {
+    public function testConfigDefaultsMatchServiceFallback(): void
+    {
+        $config = require dirname(__DIR__, 4) . '/src/config.php';
+
+        self::assertSame(
+            array_keys($config['cms']['media']['allowed_extensions']),
+            array_keys(MediaStorageService::defaultAllowedExtensions()),
+        );
+    }
+
     private string $publicRoot;
     private EntityStorage $storage;
     private MediaStorageService $service;

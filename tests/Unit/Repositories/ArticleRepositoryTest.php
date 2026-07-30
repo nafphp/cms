@@ -145,6 +145,123 @@ final class ArticleRepositoryTest extends DatabaseTestCase
         self::assertSame(0, (int) $this->fetchOne('SELECT COUNT(*) AS total FROM articles WHERE id = :id', ['id' => $articleId])['total']);
     }
 
+    public function testSlugServesTheActiveLanguageOfTheSameArticle(): void
+    {
+        $articleId = $this->insertArticle(3);
+        $this->insertVersion($articleId, 'de', 1, ArticleStatus::PUBLISHED, 'Demo Geschichte');
+        $this->insertVersion($articleId, 'en', 1, ArticleStatus::PUBLISHED, 'Demo Story EN');
+
+        // The German slug is the canonical URL; an English visitor must get the
+        // English translation under that same URL.
+        $article = $this->repository->findPublishedVisibleBySlug('demo-geschichte', 'en');
+
+        self::assertNotNull($article);
+        self::assertSame('Demo Story EN', $article->getVersion()?->getTitle());
+    }
+
+    public function testSlugKeepsServingItsOwnLanguageWhenThatIsActive(): void
+    {
+        $articleId = $this->insertArticle(3);
+        $this->insertVersion($articleId, 'de', 1, ArticleStatus::PUBLISHED, 'Demo Geschichte');
+        $this->insertVersion($articleId, 'en', 1, ArticleStatus::PUBLISHED, 'Demo Story EN');
+
+        $article = $this->repository->findPublishedVisibleBySlug('demo-geschichte', 'de');
+
+        self::assertNotNull($article);
+        self::assertSame('Demo Geschichte', $article->getVersion()?->getTitle());
+    }
+
+    public function testSlugFallsBackToTheFallbackLanguageWhenTheActiveOneIsMissing(): void
+    {
+        $articleId = $this->insertArticle(3);
+        $this->insertVersion($articleId, 'de', 1, ArticleStatus::PUBLISHED, 'Demo Geschichte');
+        $this->insertVersion($articleId, 'en', 1, ArticleStatus::PUBLISHED, 'Demo Story EN');
+
+        // No French translation exists, so the configured fallback (en) wins
+        // over the translation that happens to own the slug.
+        $article = $this->repository->findPublishedVisibleBySlug('demo-geschichte', 'fr');
+
+        self::assertNotNull($article);
+        self::assertSame('Demo Story EN', $article->getVersion()?->getTitle());
+    }
+
+    public function testSlugFallsBackToItsOwnLanguageWhenNoFallbackTranslationExists(): void
+    {
+        $articleId = $this->insertArticle(3);
+        $this->insertVersion($articleId, 'de', 1, ArticleStatus::PUBLISHED, 'Nur Deutsch');
+
+        $article = $this->repository->findPublishedVisibleBySlug('nur-deutsch', 'fr');
+
+        self::assertNotNull($article);
+        self::assertSame('Nur Deutsch', $article->getVersion()?->getTitle());
+    }
+
+    public function testUnpublishedTranslationDoesNotHideThePublishedOne(): void
+    {
+        $articleId = $this->insertArticle(3);
+        $this->insertVersion($articleId, 'de', 1, ArticleStatus::PUBLISHED, 'Demo Geschichte');
+        $this->insertVersion($articleId, 'en', 1, ArticleStatus::DRAFT, 'Draft Story EN');
+
+        // The English draft must not be served, and must not turn the German
+        // article into a 404 either.
+        $article = $this->repository->findPublishedVisibleBySlug('demo-geschichte', 'en');
+
+        self::assertNotNull($article);
+        self::assertSame('Demo Geschichte', $article->getVersion()?->getTitle());
+    }
+
+    public function testListingServesTheRequestedLanguage(): void
+    {
+        $articleId = $this->insertArticle(3);
+        $this->insertVersion($articleId, 'de', 1, ArticleStatus::PUBLISHED, 'Demo Geschichte');
+        $this->insertVersion($articleId, 'en', 1, ArticleStatus::PUBLISHED, 'Demo Story EN');
+
+        $articles = $this->repository->findPublishedWithLatestVersionByCategoryAndLanguage(null, 10, 'en');
+
+        self::assertCount(1, $articles);
+        self::assertSame('Demo Story EN', $articles[0]->getVersion()?->getTitle());
+    }
+
+    public function testListingKeepsArticlesThatLackTheRequestedTranslation(): void
+    {
+        $translated = $this->insertArticle(3);
+        $this->insertVersion($translated, 'de', 1, ArticleStatus::PUBLISHED, 'Zweisprachig');
+        $this->insertVersion($translated, 'en', 1, ArticleStatus::PUBLISHED, 'Bilingual');
+
+        $germanOnly = $this->insertArticle(3);
+        $this->insertVersion($germanOnly, 'de', 1, ArticleStatus::PUBLISHED, 'Nur Deutsch');
+
+        // A monolingual site must not go blank just because the visitor asked
+        // for a language nothing is translated into.
+        $articles = $this->repository->findPublishedWithLatestVersionByCategoryAndLanguage(null, 10, 'fr');
+
+        $titles = array_map(static fn($article): string => (string) $article->getVersion()?->getTitle(), $articles);
+        sort($titles);
+
+        self::assertSame(['Bilingual', 'Nur Deutsch'], $titles);
+    }
+
+    public function testListingIgnoresUnpublishedTranslations(): void
+    {
+        $articleId = $this->insertArticle(3);
+        $this->insertVersion($articleId, 'de', 1, ArticleStatus::PUBLISHED, 'Veroeffentlicht');
+        $this->insertVersion($articleId, 'en', 1, ArticleStatus::DRAFT, 'Draft EN');
+
+        $articles = $this->repository->findPublishedWithLatestVersionByCategoryAndLanguage(null, 10, 'en');
+
+        self::assertCount(1, $articles);
+        self::assertSame('Veroeffentlicht', $articles[0]->getVersion()?->getTitle());
+    }
+
+    public function testUnknownSlugStaysUnresolved(): void
+    {
+        $articleId = $this->insertArticle(3);
+        $this->insertVersion($articleId, 'de', 1, ArticleStatus::PUBLISHED, 'Demo Geschichte');
+
+        self::assertNull($this->repository->findPublishedVisibleBySlug('gibt-es-nicht', 'de'));
+        self::assertNull($this->repository->findPublishedVisibleBySlug('', 'de'));
+    }
+
     private function insertArticle(?int $authorId): int
     {
         return $this->insertRow('articles', [

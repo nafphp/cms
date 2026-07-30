@@ -14,9 +14,20 @@ final class ServeMediaTest extends TestCase
         self::assertTrue($this->canAccess(['visibility' => 'public']));
     }
 
-    public function testPrivateMediaCannotBeDownloaded(): void
+    public function testAnonymousVisitorCannotDownloadPrivateMedia(): void
     {
         self::assertFalse($this->canAccess(['visibility' => 'private']));
+    }
+
+    public function testPrivateMediaIsAvailableToUploaderOrMediaAdministrator(): void
+    {
+        $method = new \ReflectionMethod(ServeMedia::class, 'canAccessPrivate');
+        $handler = new ServeMedia();
+        $media = ['visibility' => 'private', 'uploaded_by' => 17];
+
+        self::assertTrue($method->invoke($handler, $media, 17, false));
+        self::assertTrue($method->invoke($handler, $media, 42, true));
+        self::assertFalse($method->invoke($handler, $media, 42, false));
     }
 
     /**

@@ -39,7 +39,7 @@ final class CoreBlockUrlPolicyTest extends TestCase
 
     public function testStoredNavigationUrlUsesTheSamePolicy(): void
     {
-        require_once BASE_PATH . '/src/views/page/blocks/_helpers/navigation.php';
+        require_once BASE_PATH . '/views/page/blocks/_helpers/navigation.php';
 
         $html = \nixcms_page_block_nav([['href' => 'javascript:alert(1)', 'label' => 'Unsafe']]);
 
@@ -51,7 +51,7 @@ final class CoreBlockUrlPolicyTest extends TestCase
     public function testArticleListingViewsUseTheCentralLinkPolicy(): void
     {
         foreach (['articles.phtml', 'article_related.phtml'] as $view) {
-            $source = file_get_contents(BASE_PATH . '/src/views/page/blocks/' . $view);
+            $source = file_get_contents(BASE_PATH . '/views/page/blocks/' . $view);
             self::assertIsString($source);
             self::assertStringContainsString('UrlPolicy::link', $source);
         }
@@ -62,7 +62,7 @@ final class CoreBlockUrlPolicyTest extends TestCase
     {
         extract($variables, EXTR_SKIP);
         ob_start();
-        require BASE_PATH . '/src/views/page/blocks/' . $view . '.phtml';
+        require BASE_PATH . '/views/page/blocks/' . $view . '.phtml';
         return (string) ob_get_clean();
     }
 }

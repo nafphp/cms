@@ -11,7 +11,7 @@ final class PluginMigrationsSqliteTest extends DatabaseTestCase
 {
     public function testAllPluginMigrationsRunOnFreshSqliteDatabase(): void
     {
-        $files = glob(BASE_PATH . '/app/Migrations/Migration*.php') ?: [];
+        $files = glob(BASE_PATH . '/src/Migrations/Migration*.php') ?: [];
         sort($files);
 
         foreach ($files as $file) {

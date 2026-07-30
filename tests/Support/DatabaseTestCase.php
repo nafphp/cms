@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
+use NixPHP\ORM\Core\EntityManager;
+use NixPHP\ORM\Repository\RepositoryFactory;
+use NixPHP\Database\Core\Database;
 use PDO;
+
+use function NixPHP\app;
 
 abstract class DatabaseTestCase extends NixPHPTestCase
 {
@@ -18,6 +23,20 @@ abstract class DatabaseTestCase extends NixPHPTestCase
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         $this->pdo->exec('PRAGMA foreign_keys = ON');
+        app()->container()->set(Database::class, new Database(
+            ['driver' => 'sqlite', 'database' => ':memory:'],
+            fn(): PDO => $this->pdo,
+        ));
+
+        // Repositories that reach for a sibling through repo() resolve it from
+        // the container. Point that at the same in-memory connection so those
+        // paths are testable at all.
+        $entityManager = new EntityManager($this->pdo);
+        app()->container()->set(EntityManager::class, $entityManager);
+        app()->container()->set(
+            RepositoryFactory::class,
+            new RepositoryFactory($this->pdo, $entityManager),
+        );
     }
 
     protected function createSchema(string ...$statements): void
@@ -25,6 +44,14 @@ abstract class DatabaseTestCase extends NixPHPTestCase
         foreach ($statements as $statement) {
             $this->pdo->exec($statement);
         }
+    }
+
+    protected function tearDown(): void
+    {
+        // Restore the test-suite default: plain unit tests must not inherit the
+        // previous test's in-memory database through the global container.
+        app()->container()->set(Database::class, static fn(): ?Database => null);
+        parent::tearDown();
     }
 
     /**

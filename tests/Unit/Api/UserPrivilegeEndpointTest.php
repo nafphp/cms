@@ -12,7 +12,7 @@ final class UserPrivilegeEndpointTest extends TestCase
 {
     public function testRoleBearingUserEndpointsRequireUserAndRolePermissions(): void
     {
-        $endpoints = require BASE_PATH . '/app/Resources/api/users.php';
+        $endpoints = require BASE_PATH . '/src/Resources/api/users.php';
 
         self::assertSame(
             [Permission::USERS_CREATE, Permission::ROLES_MANAGE],
@@ -30,7 +30,7 @@ final class UserPrivilegeEndpointTest extends TestCase
 
     public function testRolePermissionMutationRequiresBothManagementPermissions(): void
     {
-        $endpoints = require BASE_PATH . '/app/Resources/api/roles.php';
+        $endpoints = require BASE_PATH . '/src/Resources/api/roles.php';
 
         self::assertSame(
             [Permission::ROLES_MANAGE, Permission::PERMISSIONS_MANAGE],

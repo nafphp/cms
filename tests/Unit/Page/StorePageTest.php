@@ -4,12 +4,34 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Page;
 
+use NixPHP\Database\Core\Database;
 use NixPHP\CMS\Handlers\Page\Pages\StorePage;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
+use Tests\Support\JsonRequest;
+use function NixPHP\app;
 
 final class StorePageTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        app()->container()->set(Database::class, static fn(): ?Database => null);
+    }
+
+    public function testInvokeRejectsAnIncompleteBuilderPayloadBeforePersistence(): void
+    {
+        JsonRequest::bind([]);
+        $response = (new StorePage())();
+        $payload = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
+
+        self::assertSame(400, $response->getStatusCode());
+        self::assertFalse($payload['success']);
+        foreach (['builderVersion', 'title', 'path', 'templateId', 'language', 'blocks'] as $field) {
+            self::assertArrayHasKey($field, $payload['errors']);
+        }
+    }
+
     public function testCustomLayoutDefinitionsAreNormalizedForPersistence(): void
     {
         $handler = new StorePage();
@@ -91,5 +113,27 @@ final class StorePageTest extends TestCase
                 'props' => ['text' => 'Hello'],
             ],
         ], $normalized);
+    }
+
+    public function testValidationRejectsUnsafeCanonicalUrl(): void
+    {
+        $handler = new StorePage();
+        $templatesMethod = new ReflectionMethod($handler, 'templates');
+        $templates = $templatesMethod->invoke($handler);
+        self::assertNotSame([], $templates);
+        $templateId = (string) array_key_first($templates);
+
+        $validate = new ReflectionMethod($handler, 'validate');
+        $errors = $validate->invoke($handler, [
+            'builderVersion' => \NixPHP\CMS\Page\PageBuilderPayloadNormalizer::VERSION,
+            'title' => 'Safe page title',
+            'path' => '/canonical-policy-probe',
+            'language' => 'en',
+            'templateId' => $templateId,
+            'blocks' => [],
+            'meta' => ['seo' => ['canonicalUrl' => 'javascript:alert(1)']],
+        ], $templates);
+
+        self::assertArrayHasKey('meta.seo.canonicalUrl', $errors);
     }
 }

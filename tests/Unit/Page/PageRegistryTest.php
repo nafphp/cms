@@ -61,12 +61,12 @@ final class PageRegistryTest extends TestCase
         self::assertSame($page, $registry->findByDataRouteName('auth.login.post'));
     }
 
-    public function testPublishedStoredHomePageMayReplaceCodeHomePage(): void
+    public function testPublishedStoredPageReplacesACodePageThatOptedIn(): void
     {
         $registry = new PageRegistry();
         $method = new \ReflectionMethod($registry, 'storedPageMayReplaceCodePage');
 
-        $codeHome = Page::create('home')->setPath('/');
+        $codeHome = Page::create('home')->setPath('/')->allowStoredOverride();
         $publishedStoredHome = Page::create('db.page.1')->setPath('/');
         $draftStoredHome = Page::create('db.page.2')
             ->setPath('/')
@@ -76,6 +76,32 @@ final class PageRegistryTest extends TestCase
         self::assertTrue($method->invoke($registry, $publishedStoredHome, $codeHome));
         self::assertFalse($method->invoke($registry, $draftStoredHome, $codeHome));
         self::assertFalse($method->invoke($registry, $publishedStoredAbout, $codeHome));
+    }
+
+    public function testCodePageKeepsItsPathUnlessItOptedIn(): void
+    {
+        $registry = new PageRegistry();
+        $method = new \ReflectionMethod($registry, 'storedPageMayReplaceCodePage');
+
+        // A plugin page that never declared itself replaceable must not be
+        // taken over by an editor's page on the same path.
+        $codeShop = Page::create('shop.index')->setPath('/shop');
+        $publishedStoredShop = Page::create('db.page.4')->setPath('/shop');
+
+        self::assertFalse($method->invoke($registry, $publishedStoredShop, $codeShop));
+    }
+
+    public function testBuiltInHomePageDeclaresItselfReplaceable(): void
+    {
+        $home = null;
+        foreach (require BASE_PATH . '/src/Resources/pages/public.php' as $page) {
+            if ($page->id() === 'home') {
+                $home = $page;
+            }
+        }
+
+        self::assertNotNull($home);
+        self::assertTrue($home->isStoredOverridable());
     }
 
     public function testStoredHomePageKeepsHomeRouteAlias(): void

@@ -39,7 +39,7 @@ final class ReleaseDocumentationTest extends TestCase
     public function testPublicDocsDescribeSafeInstallationAndPrivateReporting(): void
     {
         $readme = (string) file_get_contents(BASE_PATH . '/README.md');
-        foreach (['composer require fkde/nixcms', 'nixcms:assets:publish', 'db:migrate up', 'user:create', 'public', 'Sitebuilder Preview', 'AI and MCP features are permission-, scope-, and tool-driven'] as $needle) {
+        foreach (['composer require nixphp/cms', 'nixcms:assets:publish', 'db:migrate up', 'user:create', 'public', 'Sitebuilder Preview', 'AI and MCP features are permission-, scope-, and tool-driven'] as $needle) {
             self::assertStringContainsString($needle, $readme);
         }
         self::assertStringNotContainsString('change-me', $readme);

@@ -14,7 +14,7 @@ final class LogoutRouteSecurityTest extends NixPHPTestCase
 {
     public function testLogoutIsPostOnly(): void
     {
-        $pages = require BASE_PATH . '/app/Resources/pages/auth.php';
+        $pages = require BASE_PATH . '/src/Resources/pages/auth.php';
         $logout = array_values(array_filter($pages, static fn(Page $page): bool => $page->id() === 'auth.logout'))[0] ?? null;
 
         self::assertInstanceOf(Page::class, $logout);

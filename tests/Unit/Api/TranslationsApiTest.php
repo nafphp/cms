@@ -13,7 +13,7 @@ final class TranslationsApiTest extends TestCase
 {
     public function testTranslationReadEndpointIsAvailableToAdminAndPageEditors(): void
     {
-        $endpoints = require dirname(__DIR__, 3) . '/app/Resources/api/settings.php';
+        $endpoints = require dirname(__DIR__, 3) . '/src/Resources/api/settings.php';
         $byId = [];
         foreach ($endpoints as $endpoint) {
             $byId[$endpoint->id()] = $endpoint;

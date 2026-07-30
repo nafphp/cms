@@ -45,7 +45,7 @@ final class CmsTest extends TestCase
     public function testCmsLoadsDefaultFrontendNavigation(): void
     {
         $cms = $this->cmsWithNavigation();
-        $cms->navigation()->addMany(require BASE_PATH . '/app/navigation.php');
+        $cms->navigation()->addMany(require BASE_PATH . '/src/navigation.php');
         $navigation = $cms->navigation()->get('main');
 
         self::assertNotNull($navigation);

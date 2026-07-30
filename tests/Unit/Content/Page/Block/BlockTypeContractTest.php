@@ -92,6 +92,6 @@ final class BlockTypeContractTest extends TestCase
 
     private function viewFile(string $view): string
     {
-        return BASE_PATH . '/src/views/' . str_replace('.', '/', trim($view, '/')) . '.phtml';
+        return BASE_PATH . '/views/' . str_replace('.', '/', trim($view, '/')) . '.phtml';
     }
 }

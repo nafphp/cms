@@ -12,21 +12,23 @@ final class PasswordPolicyTest extends TestCase
 {
     public function testSharedPasswordLengthBoundaries(): void
     {
-        self::assertFalse(PasswordPolicy::accepts(str_repeat('a', PasswordPolicy::MINIMUM_LENGTH - 1)));
-        self::assertTrue(PasswordPolicy::accepts(str_repeat('a', PasswordPolicy::MINIMUM_LENGTH)));
-        self::assertTrue(PasswordPolicy::accepts(str_repeat('a', PasswordPolicy::MAXIMUM_LENGTH)));
-        self::assertFalse(PasswordPolicy::accepts(str_repeat('a', PasswordPolicy::MAXIMUM_LENGTH + 1)));
+        $policy = new PasswordPolicy();
+
+        self::assertFalse($policy->accepts(str_repeat('a', $policy->minimumLength() - 1)));
+        self::assertTrue($policy->accepts(str_repeat('a', $policy->minimumLength())));
+        self::assertTrue($policy->accepts(str_repeat('a', $policy->maximumLength())));
+        self::assertFalse($policy->accepts(str_repeat('a', $policy->maximumLength() + 1)));
     }
 
     public function testAdminUserValidationUsesSharedPolicy(): void
     {
-        $errors = UserPayloadValidator::validate([
+        $errors = (new UserPayloadValidator())->validate([
             'username' => 'admin',
             'password' => 'short',
             'password_confirmation' => 'short',
             'roles' => ['admin'],
         ], true);
 
-        self::assertSame([PasswordPolicy::message()], $errors['password']);
+        self::assertSame([(new PasswordPolicy())->message()], $errors['password']);
     }
 }

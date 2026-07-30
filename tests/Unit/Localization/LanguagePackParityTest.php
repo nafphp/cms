@@ -35,7 +35,7 @@ final class LanguagePackParityTest extends TestCase
      */
     private function loadLanguagePack(string $language): array
     {
-        $file = BASE_PATH . '/app/Resources/lang/' . $language . '.json';
+        $file = BASE_PATH . '/src/Resources/lang/' . $language . '.json';
         $json = file_get_contents($file);
         self::assertIsString($json, sprintf('Language file "%s" must be readable.', $file));
 
