@@ -13,6 +13,7 @@
 /storage/nixcms/
 /.phpunit.cache/
 /.phpunit.result.cache
+.DS_Store
 .claude/
 .idea/
 /prompts/

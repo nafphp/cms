@@ -8,6 +8,19 @@ permissions:
   contents: read
 
 jobs:
+  static-analysis:
+    name: Static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: curl, dom, pdo_sqlite
+          coverage: none
+      - uses: ramsey/composer-install@v3
+      - run: composer analyse
+
   php:
     name: PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
@@ -32,8 +45,8 @@ jobs:
       - uses: ramsey/composer-install@v3
       - run: composer validate --strict
       - run: composer test
-      - run: php bin/nix docs:check
-      - run: php bin/nix integrity:check
+      - run: vendor/bin/nix docs:check
+      - run: vendor/bin/nix integrity:check
 
   assets:
     runs-on: ubuntu-latest
@@ -103,4 +116,4 @@ jobs:
           extensions: curl, dom, pdo_mysql
           coverage: none
       - uses: ramsey/composer-install@v3
-      - run: php bin/nix db:migrate up
+      - run: vendor/bin/nix db:migrate up

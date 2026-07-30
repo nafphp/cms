@@ -10,9 +10,18 @@
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
+        <!--
+            The example plugins ship as documentation and are smoke-tested here.
+            Listing them keeps a bare `vendor/bin/phpunit` (an IDE run, or a run
+            with a custom test order) on the same set as `composer test`, which
+            passes the whole tests/ directory.
+        -->
+        <testsuite name="Examples">
+            <directory>tests/Examples</directory>
+        </testsuite>
     </testsuites>
     <php>
-        <env name="APP_ENV" value="testing" force="true" />
+        <env name="APP_ENV" value="test" force="true" />
         <ini name="error_reporting" value="-1" />
         <ini name="display_errors" value="1" />
         <const name="PHPUNIT_RUNNING" value="true" />

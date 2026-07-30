@@ -20,9 +20,9 @@ trap cleanup EXIT
 
 composer create-project nixphp/app "$FIXTURE_ROOT" --no-interaction --no-progress
 composer config repositories.nixcms path "$PACKAGE_ROOT" --working-dir="$FIXTURE_ROOT"
-COMPOSER_MIRROR_PATH_REPOS=1 composer require fkde/nixcms:@dev --with-all-dependencies --no-interaction --no-progress --working-dir="$FIXTURE_ROOT"
+COMPOSER_MIRROR_PATH_REPOS=1 composer require nixphp/cms:@dev --with-all-dependencies --no-interaction --no-progress --working-dir="$FIXTURE_ROOT"
 
-if [[ -L "$FIXTURE_ROOT/vendor/fkde/nixcms" ]]; then
+if [[ -L "$FIXTURE_ROOT/vendor/nixphp/cms" ]]; then
     echo "Expected a mirrored package install, got a symlink." >&2
     exit 1
 fi
@@ -42,7 +42,7 @@ return [
     'nixphp/schedule',
     'nixphp/mail',
     'nixphp/mcp',
-    'fkde/nixcms',
+    'nixphp/cms',
 ];
 PHP
 
@@ -71,7 +71,7 @@ package_hash() {
         }
         ksort($files);
         echo hash("sha256", json_encode($files, JSON_THROW_ON_ERROR));
-    ' "$FIXTURE_ROOT/vendor/fkde/nixcms"
+    ' "$FIXTURE_ROOT/vendor/nixphp/cms"
 }
 
 BEFORE_HASH="$(package_hash)"
@@ -79,14 +79,14 @@ BEFORE_HASH="$(package_hash)"
 (cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/nix nixcms:assets:publish)
 (cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/nix nixcms:assets:check)
 (cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/nix nixcms:agents:install)
-grep -q 'managed-by: fkde/nixcms agent-guide' "$FIXTURE_ROOT/AGENTS.md"
+grep -q 'managed-by: nixphp/cms agent-guide' "$FIXTURE_ROOT/AGENTS.md"
 (cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/nix db:migrate up)
 
 (cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" -r '
     define("BASE_PATH", getcwd());
     require "vendor/autoload.php";
     $app = NixPHP\app();
-    $plugin = $app->getPlugin("fkde/nixcms");
+    $plugin = $app->getPlugin("nixphp/cms");
     $before = [count(NixPHP\CMS\cms()->pages()->all()), count(NixPHP\CMS\cms()->blockTypes()->all())];
     $plugin->boot();
     $after = [count(NixPHP\CMS\cms()->pages()->all()), count(NixPHP\CMS\cms()->blockTypes()->all())];
@@ -104,7 +104,7 @@ grep -q 'managed-by: fkde/nixcms agent-guide' "$FIXTURE_ROOT/AGENTS.md"
 
 AFTER_HASH="$(package_hash)"
 if [[ "$BEFORE_HASH" != "$AFTER_HASH" ]]; then
-    echo "Normal CMS writes changed files inside vendor/fkde/nixcms." >&2
+    echo "Normal CMS writes changed files inside vendor/nixphp/cms." >&2
     exit 1
 fi
 

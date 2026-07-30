@@ -14,7 +14,7 @@ if grep -E '(^|/)(\.env(\.local)?$|logs/|storage/|\.idea/|\.claude/|node_modules
     exit 1
 fi
 
-for required in composer.json LICENSE README.md SECURITY.md CHANGELOG.md RELEASE_NOTES_0.0.1.md RELEASE_CHECKLIST.md bootstrap.php src/config.php src/routes.php src/functions.php src/views app/Migrations public/css public/js; do
+for required in composer.json LICENSE README.md SECURITY.md CHANGELOG.md RELEASE_NOTES_0.0.1.md RELEASE_CHECKLIST.md bootstrap.php src/config.php src/routes.php src/functions.php views src/Migrations public/css public/js; do
     if ! grep -Eq "(^|/)${required}(/|$)" <<<"$CONTENTS"; then
         echo "Release archive is missing ${required}." >&2
         exit 1
