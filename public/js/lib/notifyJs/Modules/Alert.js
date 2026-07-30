@@ -1,11 +1,14 @@
 import Notify from "../Notify.js";
+import {mergeNotifyOptions} from "../Config.js";
 
 class Alert extends Notify{
 
-    defaultOptions = {
-        role: 'alertdialog',
-        confirmButtonText: 'Okay'
-    };
+    constructor(message, options, promise = null) {
+        super(message, mergeNotifyOptions({
+            role: 'alertdialog',
+            confirmButtonText: 'Okay',
+        }, options || {}), promise);
+    }
 
     bind() {
 

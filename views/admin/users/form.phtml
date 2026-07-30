@@ -110,7 +110,7 @@ if (!$isEdit && $selectedRoles === [] && $roleOptions !== []) {
     </div>
 </form>
 
-<script type="module">
+<script nonce="<?= \NixPHP\CMS\csp_nonce() ?>" type="module">
     import prompt from '/js/lib/notifyJs/Modules/Prompt.js';
     import toast from '/js/lib/notifyJs/Modules/Toast.js';
 

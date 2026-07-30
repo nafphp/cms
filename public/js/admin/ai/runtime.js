@@ -78,13 +78,49 @@ export const registerGlobalAssistantActions = () => {
     });
 };
 
+/**
+ * Editors that have no dedicated assistant module still need to report their
+ * area, otherwise the server-side hard filter treats the turn as "no editor
+ * context" and drops every write tool.
+ */
+export const registerEditorAssistantContexts = () => {
+    const runtime = assistantRuntime();
+    if (window.NixCMS?.__editorAssistantContextsRegistered) {
+        return;
+    }
+
+    window.NixCMS.__editorAssistantContextsRegistered = true;
+
+    const articleForm = document.querySelector('[data-article-editor]');
+    if (articleForm) {
+        runtime.registerContext('articleEditor', () => ({
+            area: 'articleEditor',
+            contentType: 'article',
+            articleId: trimValue(articleForm.dataset.articleId) || '',
+            language: trimValue(articleForm.dataset.articleLanguage) || '',
+        }));
+    }
+
+    const formBuilder = document.querySelector('[data-form-builder]');
+    if (formBuilder) {
+        runtime.registerContext('formBuilder', () => ({
+            area: 'formBuilder',
+            contentType: 'form',
+        }));
+    }
+};
+
 export const collectAssistantContext = () => {
     const runtimeContext = assistantRuntime().context();
-    const firstContext = Object.values(runtimeContext)[0] || {};
+    const values = Object.values(runtimeContext);
+    // Prefer whichever provider actually reports an editor area; falling back to
+    // "the first registered one" silently mislabelled the turn when several
+    // providers were present.
+    const activeContext = values.find((context) => trimValue(context?.area) !== '') || values[0] || {};
     const now = new Date();
 
     return {
-        ...firstContext,
+        ...activeContext,
         url: window.location.pathname,
         today: now.toISOString().slice(0, 10),
         currentDateTime: now.toISOString(),

@@ -154,7 +154,7 @@ foreach ([...$template->scripts(), ...$theme->scripts(), ...$page->scripts()] as
     <?= $this->renderBlock('content', $content ?? '') ?>
     <?= asset()->render('js') ?>
     <?php foreach ($scriptTags as $script): ?>
-        <script src="<?= s($script['src']) ?>"<?= $attributeString($script['attributes']) ?>></script>
+        <script nonce="<?= \NixPHP\CMS\csp_nonce() ?>" src="<?= s($script['src']) ?>"<?= $attributeString($script['attributes']) ?>></script>
     <?php endforeach; ?>
 </body>
 </html>

@@ -16,7 +16,7 @@ $assets->add('/js/editor.js');
 <input type="hidden" name="<?= s($name) ?>" value="">
 
 <?= $assets->render('js') ?>
-<script>
+<script nonce="<?= \NixPHP\CMS\csp_nonce() ?>">
     const editor = new EditorJS({
         holder: 'editorjs',
         placeholder: <?= json_encode($label) ?>,

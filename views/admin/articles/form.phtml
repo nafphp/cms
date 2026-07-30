@@ -51,7 +51,10 @@ $fieldErrorAssets->add('/js/components/formFieldErrors.js');
 
 <?php $this->block('content'); ?>
 <div class="grid gap-6">
-    <form action="<?= s(request()->getUri()->getPath()) ?>" method="post" id="articleForm" class="flex flex-col gap-0">
+    <form action="<?= s(request()->getUri()->getPath()) ?>" method="post" id="articleForm" class="flex flex-col gap-0"
+          data-article-editor
+          data-article-id="<?= $articleId ?>"
+          data-article-language="<?= s($selectedLanguage) ?>">
         <input type="hidden" name="_csrf" value="<?= s(csrf()->generate()) ?>">
         <div class="grid gap-[46px] shell:grid-cols-[minmax(0,1fr)_410px]">
             <div class="min-w-0 px-[22px] pb-0 pt-[22px]">
@@ -188,7 +191,7 @@ $fieldErrorAssets->add('/js/components/formFieldErrors.js');
 </div>
 
 <?= $fieldErrorAssets->render('js') ?>
-<script type="module">
+<script nonce="<?= \NixPHP\CMS\csp_nonce() ?>" type="module">
     const articleId = <?= $articleId > 0 ? $articleId : 'null' ?>;
     const categoryNames = <?= json_encode(array_values($categories), JSON_UNESCAPED_UNICODE) ?>;
     const availableTagSuggestions = <?= json_encode(array_values($tagSuggestions), JSON_UNESCAPED_UNICODE) ?>;

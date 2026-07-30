@@ -167,7 +167,7 @@ $embeddingModelSourceLabel = (string) ($sourceLabels[$embeddingModelSource] ?? $
     </section>
 </div>
 
-<script type="module">
+<script nonce="<?= \NixPHP\CMS\csp_nonce() ?>" type="module">
     import { initLocalAiSettings } from '/js/admin/local-ai-settings.js';
 
     initLocalAiSettings(document.querySelector('[data-local-ai-settings]'));

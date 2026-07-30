@@ -501,9 +501,11 @@ export const translationMethods = {
             return false;
         }
 
+        // Merge, not replace: creating a language that already has overrides
+        // must not wipe them.
         const response = await (window.NixCMS?.json || fetch)(this.translationEndpointFor(language), {
             method: 'POST',
-            body: JSON.stringify({entries: {}}),
+            body: JSON.stringify({entries: {}, mode: 'merge'}),
         });
         const result = await response.json().catch(() => ({}));
         if (!response.ok || !result.success) {
@@ -521,11 +523,11 @@ export const translationMethods = {
     },
 
     async saveTranslation(language, key, value) {
-        const entries = Object.fromEntries(this.currentTranslationSuggestions(language).map((suggestion) => [suggestion.key, suggestion.value]));
-        entries[key] = value;
+        // Only the edited key. Sending every known suggestion turned the whole
+        // default language pack into overrides and clobbered concurrent edits.
         const response = await (window.NixCMS?.json || fetch)(this.translationEndpointFor(language), {
             method: 'POST',
-            body: JSON.stringify({entries}),
+            body: JSON.stringify({entries: {[key]: value}, mode: 'merge'}),
         });
         const result = await response.json().catch(() => ({}));
         if (!response.ok || !result.success) {
@@ -549,7 +551,7 @@ export const translationMethods = {
 
     normalizeLanguageCode(value) {
         const language = String(value || '').trim().toLowerCase();
-        return /^[a-z]{2,3}(?:-[a-z0-9]{2,4})?$/.test(language) && language.length <= 8 ? language : null;
+        return new RegExp(String(window.NixCMS?.languagePattern || '^[a-z]{2,3}(?:-[a-z0-9]{2,4})?$')).test(language) && language.length <= 8 ? language : null;
     },
 
     labelForLanguage(language) {

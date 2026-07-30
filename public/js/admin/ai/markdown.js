@@ -147,10 +147,10 @@ export const renderMessageContent = (node, role, content) => {
 };
 
 export const thinkingHtml = (label = uiText('Thinking...')) => `
-    <div class="grid gap-2" data-ai-thinking>
-        <span class="text-sm font-medium text-slate-500 dark:text-slate-300">${escapeHtml(label)}</span>
-        <span class="block h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800" aria-hidden="true">
-            <span class="block h-full w-1/3 rounded-full bg-[var(--admin-page-accent)] motion-safe:animate-[local-ai-thinking_1.1s_ease-in-out_infinite]"></span>
+    <div class="grid gap-2" data-ai-thinking role="status" aria-live="polite">
+        <span class="local-ai-thinking-label text-sm font-medium text-slate-500 dark:text-slate-300" data-ai-thinking-label>${escapeHtml(label)}</span>
+        <span class="local-ai-thinking-track" aria-hidden="true">
+            <span class="local-ai-thinking-bar"></span>
         </span>
     </div>
 `;

@@ -47,7 +47,7 @@ $activeGroup = (string) ($activeGroup ?? 'general');
     </div>
 </form>
 
-<script type="module">
+<script nonce="<?= \NixPHP\CMS\csp_nonce() ?>" type="module">
     import toast from '/js/lib/notifyJs/Modules/Toast.js';
 
     const form = document.getElementById('settings-form');

@@ -114,6 +114,14 @@ export const sanitizeVisibleToolIdentifiers = (content, tools = []) => {
 
 export const localModelKeepAlive = '15m';
 
+/**
+ * Ollama keys the loaded model runner on num_ctx. Any change evicts the runner
+ * and reloads the weights, which measures ~5-7s on an M4 Pro while a request
+ * against the already-loaded context size takes ~0.3s. Warmup, tool rounds and
+ * the grounding round must therefore all use the exact same value.
+ */
+export const localModelContextSize = 8192;
+
 const normalizeToolArguments = (value) => {
     if (value && typeof value === 'object' && !Array.isArray(value)) {
         return value;
@@ -221,6 +229,48 @@ const toolResultMarkdown = (result) => {
         ...rows.map(([key, value]) => `| ${key} | ${String(value).replace(/\|/g, '\\|')} |`),
     ].join('\n');
 };
+
+export const toolSearchToolName = 'cms_tools_search';
+
+export const isToolSearchResult = (entry) => trimValue(entry?.tool) === toolSearchToolName;
+
+/**
+ * Tool definitions returned by a cms_tools_search call. These are meant to be
+ * called in a following round, never to be reported back to the user.
+ */
+export const discoveredToolsFromResults = (results) => (Array.isArray(results) ? results : [])
+    .filter(isToolSearchResult)
+    .flatMap((entry) => Array.isArray(entry?.result?.tools) ? entry.result.tools : [])
+    .filter((tool) => trimValue(tool?.name) !== '' && trimValue(tool?.name) !== toolSearchToolName);
+
+export const mergeToolDefinitions = (current, discovered, limit = 12) => [...current, ...discovered]
+    .filter((tool) => trimValue(tool?.name) !== '')
+    .filter((tool, index, all) => all.findIndex((candidate) => trimValue(candidate?.name) === trimValue(tool?.name)) === index)
+    .slice(0, limit);
+
+export const toolSearchFollowUpMessage = (discovered) => {
+    const names = discovered
+        .map((tool) => `${toolDisplayName(tool)} (${trimValue(tool.name)}): ${trimValue(tool.description)}`)
+        .filter(Boolean);
+
+    return [
+        'TOOL DISCOVERY MODE.',
+        'The tool search did not answer the user request. It only returned additional tools that are now callable.',
+        'Do not describe, summarize or list these tools to the user.',
+        'Call the single most suitable tool below now with arguments derived from the user request.',
+        'Only if none of them can serve the request, answer the user in plain language without inventing data.',
+        '',
+        'Newly available tools:',
+        ...names,
+    ].join('\n');
+};
+
+export const noToolFoundMessage = () => [
+    'TOOL DISCOVERY MODE.',
+    'The tool search found no tool that covers the user request.',
+    'Tell the user briefly that this action is not available in the current admin context.',
+    'Do not describe the search tool itself and do not invent data.',
+].join('\n');
 
 export const toolResultsGroundingMessage = (results, tools = []) => {
     if (!Array.isArray(results) || results.length === 0) {

@@ -1,0 +1,669 @@
+import prompt from '/js/lib/notifyJs/Modules/Prompt.js';
+import toast from '/js/lib/notifyJs/Modules/Toast.js';
+import {initStyledSelects} from '/js/components/styledSelect.js';
+
+/*
+ * Navigation form behaviour.
+ *
+ * This used to be a 686-line inline <script> in the template. Everything the
+ * server knows now arrives through the config argument, so the file is plain
+ * cacheable JavaScript that no longer has to be re-parsed with the page.
+ *
+ * @param {{languageLabels: Object, languageOptions: Object, labels: Object}} config
+ */
+export function initNavigationForm(config) {
+
+    const form = document.getElementById('navigation-form');
+    const endpoint = form.dataset.endpoint;
+    const state = form.querySelector('[data-save-state]');
+    const itemsRoot = form.querySelector('[data-navigation-items]');
+    const translationSuggestionsByLanguage = normalizeTranslationSuggestionsByLanguage(JSON.parse(form.dataset.translationSuggestions || '{}'));
+    const {languageLabels, languageOptions, labels} = config;
+
+    let data = JSON.parse(form.dataset.navigation || '{}');
+    const pageChoices = JSON.parse(form.dataset.pages || '[]');
+    let translationLanguage = normalizeLanguageCode(data.translationLanguage) || 'de';
+    let identifierTouched = Boolean(data.identifier);
+    let activeTranslationPath = null;
+
+    const blankItem = () => ({
+        key: `item-${Date.now().toString(36)}`,
+        label: '',
+        href: '',
+        type: 'url',
+        target: '',
+        visible: true,
+        children: [],
+    });
+    const inputClass = 'min-h-10 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white';
+    const buttonClass = 'inline-flex min-h-8 items-center rounded-md border border-slate-300 px-2.5 text-xs font-semibold text-slate-600 transition hover:border-[var(--admin-page-accent)] hover:text-slate-950 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white';
+    const escapeHtml = (value) => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+    const labelForLanguage = (language) => languageLabels[language] || String(language).toUpperCase();
+    const navigationItems = () => {
+        data.items = Array.isArray(data.items) ? data.items : [];
+        return data.items;
+    };
+    const getByPath = (path) => path.reduce((items, index) => items[index]?.children || [], navigationItems());
+    const itemByPath = (path) => {
+        let items = navigationItems();
+        let item = null;
+        for (const index of path) {
+            item = items[index];
+            items = item?.children || [];
+        }
+        return item;
+    };
+    const suggestBox = document.createElement('div');
+    suggestBox.className = 'fixed z-50 hidden max-h-72 overflow-auto rounded-md border border-slate-300 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-950';
+    document.body.appendChild(suggestBox);
+    let activeSuggestInput = null;
+
+    const renderItems = (items, path = []) => {
+        if (!Array.isArray(items) || items.length === 0) {
+            return path.length === 0 ? `<div class="rounded-md border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">${labels.empty}</div>` : '';
+        }
+        return items.map((item, index) => {
+            const currentPath = [...path, index];
+            const encodedPath = currentPath.join('.');
+            const depthClass = path.length > 0 ? 'mt-3 border-l border-slate-300/80 pl-4 dark:border-slate-700/80' : '';
+            const type = item.type || 'url';
+            const targetControl = type === 'page'
+                ? `<select class="${inputClass}" data-styled-select data-field="target">
+                    <option value="">${escapeHtml(labels.selectPage)}</option>
+                    ${pageChoices.map((page) => `<option value="${escapeHtml(page.id)}" data-path="${escapeHtml(page.path)}" ${String(item.target || '') === String(page.id) ? 'selected' : ''}>${escapeHtml(page.title)} (${escapeHtml(page.path)})</option>`).join('')}
+                </select>`
+                : `<input class="${inputClass}" data-field="href" value="${escapeHtml(item.href || '')}" placeholder="${escapeHtml(labels.path)}">`;
+
+            return `<div class="grid gap-4 rounded-lg border border-slate-300/70 bg-slate-50/80 p-4 shadow-[0_10px_26px_rgba(15,23,42,.05)] dark:border-slate-700 dark:bg-slate-900/55 dark:shadow-none" data-item-path="${encodedPath}">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800">
+                    <div class="min-w-0">
+                        <div class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">${labels.navigationItem} ${currentPath.map((position) => position + 1).join('.')}</div>
+                        <div class="mt-0.5 truncate text-sm font-semibold text-slate-900 dark:text-slate-100">${escapeHtml(item.label || item.href || labels.empty)}</div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <label class="inline-flex min-h-8 items-center gap-2 rounded-md border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300">
+                            <input class="h-4 w-4 rounded border-slate-300 text-[var(--admin-page-accent)]" type="checkbox" data-field="visible" ${item.visible !== false ? 'checked' : ''}>
+                            ${labels.visible}
+                        </label>
+                        <button class="${buttonClass}" type="button" data-add-child="${encodedPath}">${labels.addChild}</button>
+                        <button class="${buttonClass}" type="button" data-remove-item="${encodedPath}">${labels.remove}</button>
+                    </div>
+                </div>
+                <div class="grid gap-3 xl:grid-cols-[minmax(260px,1fr)_150px_minmax(320px,1.45fr)]">
+                    <label class="grid min-w-0 gap-1.5">
+                        <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">${labels.labelField}</span>
+                        <span class="flex min-w-0 overflow-hidden rounded-md border border-slate-300 bg-white transition focus-within:border-[var(--admin-page-accent)] focus-within:ring-2 focus-within:ring-[color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)] dark:border-slate-700 dark:bg-slate-900">
+                            <input class="min-h-10 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm font-medium text-slate-950 outline-none dark:text-white" data-field="label" value="${escapeHtml(item.label || '')}" placeholder="navigation.home">
+                            <button class="inline-flex min-h-10 w-16 shrink-0 items-center justify-center border-l border-slate-300 bg-slate-50/70 px-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300" type="button" data-open-translation-modal="${encodedPath}" title="${labels.translationKey}" aria-label="${labels.translationKey}">
+                                <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path>
+                                </svg>
+                            </button>
+                        </span>
+                    </label>
+                    <label class="grid min-w-0 gap-1.5">
+                        <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">${labels.typeField}</span>
+                        <select class="${inputClass}" data-styled-select data-field="type">
+                            ${[['url', 'URL'], ['page', labels.page]].map(([value, label]) => `<option value="${value}" ${value === type ? 'selected' : ''}>${escapeHtml(label)}</option>`).join('')}
+                        </select>
+                    </label>
+                    <label class="grid min-w-0 gap-1.5">
+                        <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">${type === 'page' ? escapeHtml(labels.page) : escapeHtml(labels.path)}</span>
+                        ${targetControl}
+                    </label>
+                </div>
+                <div class="grid gap-3 ${depthClass}">${renderItems(Array.isArray(item.children) ? item.children : [], currentPath)}</div>
+            </div>`;
+        }).join('');
+    };
+
+    const render = () => {
+        itemsRoot.innerHTML = renderItems(navigationItems());
+        initStyledSelects(itemsRoot.querySelectorAll('select[data-styled-select]'));
+        updateState();
+    };
+    const payload = () => ({
+        id: Number(data.id || 0),
+        title: form.elements.title.value,
+        identifier: form.elements.identifier.value,
+        originalIdentifier: data.originalIdentifier || data.identifier || '',
+        status: data.status || 'draft',
+        ids: data.ids || {},
+        items: data.items || [],
+    });
+    const stableJson = (value) => JSON.stringify(value);
+    let initialPayload = stableJson(payload());
+    const updateState = () => {
+        state.textContent = stableJson(payload()) === initialPayload ? labels.clean : labels.dirty;
+    };
+    const clearErrors = () => {
+        form.querySelectorAll('[data-error-for]').forEach((node) => {
+            node.textContent = '';
+            node.classList.add('hidden');
+        });
+    };
+    const showErrors = (errors) => {
+        Object.entries(errors || {}).forEach(([key, messages]) => {
+            const target = form.querySelector(`[data-error-for="${CSS.escape(key)}"]`);
+            if (!target) return;
+            target.textContent = Array.isArray(messages) ? messages.join(' ') : String(messages || '');
+            target.classList.remove('hidden');
+        });
+    };
+
+    itemsRoot.addEventListener('input', (event) => {
+        const field = event.target.closest('[data-field]');
+        const wrapper = event.target.closest('[data-item-path]');
+        if (!field || !wrapper) return;
+        const item = itemByPath(wrapper.dataset.itemPath.split('.').map(Number));
+        if (!item) return;
+        item[field.dataset.field] = field.type === 'checkbox' ? field.checked : field.value;
+        if (field.dataset.field === 'type') {
+            item.href = '';
+            item.target = '';
+            render();
+            return;
+        }
+        if (field.dataset.field === 'target' && item.type === 'page') {
+            item.href = field.selectedOptions[0]?.dataset.path || '';
+        }
+        item.key = String(item.label || item.href || item.key || 'item').toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^[-._]+|[-._]+$/g, '') || item.key;
+        updateState();
+    });
+    itemsRoot.addEventListener('change', (event) => {
+        const field = event.target.closest('[data-field]');
+        if (field) field.dispatchEvent(new Event('input', {bubbles: true}));
+    });
+    itemsRoot.addEventListener('click', (event) => {
+        const translationButton = event.target.closest('[data-open-translation-modal]');
+        const addChild = event.target.closest('[data-add-child]');
+        const remove = event.target.closest('[data-remove-item]');
+        if (translationButton) {
+            openTranslationModal(translationButton.dataset.openTranslationModal);
+            return;
+        }
+        if (addChild) {
+            const item = itemByPath(addChild.dataset.addChild.split('.').map(Number));
+            if (item) {
+                item.children = Array.isArray(item.children) ? item.children : [];
+                item.children.push(blankItem());
+                render();
+            }
+        }
+        if (remove) {
+            const path = remove.dataset.removeItem.split('.').map(Number);
+            const index = path.pop();
+            const siblings = path.length === 0 ? navigationItems() : getByPath(path);
+            siblings.splice(index, 1);
+            render();
+        }
+    });
+    form.querySelector('[data-add-root]').addEventListener('click', () => {
+        navigationItems().push(blankItem());
+        render();
+    });
+    const slugifyIdentifier = (value) => String(value || '')
+        .replace(/ä/g, 'ae')
+        .replace(/ö/g, 'oe')
+        .replace(/ü/g, 'ue')
+        .replace(/ß/g, 'ss')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9._-]+/g, '-')
+        .replace(/^[-._]+|[-._]+$/g, '');
+    form.elements.title.addEventListener('input', () => {
+        if (identifierTouched) {
+            return;
+        }
+
+        form.elements.identifier.value = slugifyIdentifier(form.elements.title.value);
+        updateState();
+    });
+    form.elements.identifier.addEventListener('input', () => {
+        identifierTouched = form.elements.identifier.value !== slugifyIdentifier(form.elements.title.value);
+    });
+    form.addEventListener('input', updateState);
+    document.addEventListener('click', (event) => {
+        const option = event.target.closest('[data-translation-suggestion-key]');
+        if (option && activeSuggestInput) {
+            const promptContainer = activeSuggestInput.closest('.notify');
+            const language = promptContainer?.querySelector('[data-navigation-translation-language]')?.value || translationLanguage;
+            const key = option.dataset.translationSuggestionKey || '';
+            const suggestion = findTranslationSuggestion(language, key);
+            const keyInput = promptContainer?.querySelector('[data-navigation-translation-key]');
+            const valueInput = promptContainer?.querySelector('[data-navigation-translation-value]');
+
+            if (keyInput instanceof HTMLInputElement) {
+                keyInput.value = key;
+                keyInput.dispatchEvent(new Event('input', {bubbles: true}));
+            }
+            if (suggestion && valueInput instanceof HTMLInputElement) {
+                valueInput.value = suggestion.value;
+                valueInput.dispatchEvent(new Event('input', {bubbles: true}));
+            }
+            hideTranslationSuggestions();
+            return;
+        }
+
+        if (!event.target.closest('[data-navigation-translation-key]') && !event.target.closest('[data-navigation-translation-value]') && !event.target.closest('[data-translation-suggest-box]')) {
+            hideTranslationSuggestions();
+        }
+    });
+    window.addEventListener('resize', hideTranslationSuggestions);
+    window.addEventListener('scroll', hideTranslationSuggestions, true);
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        clearErrors();
+        const response = await (window.NixCMS?.json || fetch)(endpoint, {
+            method: 'POST',
+            body: JSON.stringify(payload()),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.success) {
+            showErrors(result.errors || {});
+            toast(result.reason || labels.couldNotSave);
+            return;
+        }
+        toast(labels.saved);
+        data.ids = result.ids || data.ids || {};
+        data.id = Number(result.id || data.id || 0);
+        initialPayload = stableJson(payload());
+        updateState();
+        window.location.href = `/admin/navigation/${result.id}/edit`;
+    });
+
+    render();
+
+    function normalizeTranslationSuggestionsByLanguage(suggestions) {
+        if (Array.isArray(suggestions)) {
+            return {
+                '': normalizeTranslationSuggestions(suggestions),
+            };
+        }
+
+        if (!suggestions || typeof suggestions !== 'object') {
+            return {};
+        }
+
+        return Object.fromEntries(Object.entries(suggestions).map(([language, entries]) => [
+            normalizeLanguageCode(language) || language,
+            normalizeTranslationSuggestions(entries),
+        ]));
+    }
+
+    function normalizeTranslationSuggestions(suggestions) {
+        return (Array.isArray(suggestions) ? suggestions : [])
+            .map((suggestion) => ({
+                key: String(suggestion?.key || ''),
+                value: String(suggestion?.value || ''),
+            }))
+            .filter((suggestion) => suggestion.key !== '');
+    }
+
+    function showTranslationSuggestions(input) {
+        const promptContainer = input?.closest('.notify');
+        const language = promptContainer?.querySelector('[data-navigation-translation-language]')?.value || translationLanguage;
+        const matches = matchingTranslationSuggestions(language, input?.value || '');
+        if (matches.length === 0) {
+            hideTranslationSuggestions();
+            return;
+        }
+
+        activeSuggestInput = input;
+        const rect = input.getBoundingClientRect();
+        suggestBox.dataset.translationSuggestBox = 'true';
+        suggestBox.style.left = `${rect.left}px`;
+        suggestBox.style.top = `${rect.bottom + 6}px`;
+        suggestBox.style.width = `${Math.max(rect.width, 320)}px`;
+        suggestBox.innerHTML = matches.map((suggestion) => `
+            <button type="button" class="grid w-full gap-0.5 rounded px-2.5 py-2 text-left transition hover:bg-slate-100 dark:hover:bg-slate-900" data-translation-suggestion-key="${escapeHtml(suggestion.key)}">
+                <span class="font-mono text-xs font-semibold text-slate-900 dark:text-slate-100">${highlight(suggestion.key, input.value)}</span>
+                <span class="truncate text-xs text-slate-500 dark:text-slate-400">${escapeHtml(suggestion.value)}</span>
+            </button>
+        `).join('');
+        suggestBox.classList.remove('hidden');
+    }
+
+    function hideTranslationSuggestions() {
+        activeSuggestInput = null;
+        suggestBox.classList.add('hidden');
+        suggestBox.innerHTML = '';
+    }
+
+    function matchingTranslationSuggestions(language, value) {
+        const query = String(value || '').trim().toLowerCase();
+        if (query === '') {
+            return currentTranslationSuggestions(language).slice(0, 8);
+        }
+
+        const parts = query.split(/\s+/).filter(Boolean);
+        return currentTranslationSuggestions(language)
+            .map((suggestion) => ({
+                ...suggestion,
+                score: translationSuggestionScore(suggestion, parts),
+            }))
+            .filter((suggestion) => suggestion.score > 0)
+            .sort((a, b) => b.score - a.score || a.key.localeCompare(b.key))
+            .slice(0, 8);
+    }
+
+    function translationSuggestionScore(suggestion, parts) {
+        const key = suggestion.key.toLowerCase();
+        const value = suggestion.value.toLowerCase();
+        let score = key.startsWith('navigation.') ? 12 : 0;
+
+        for (const part of parts) {
+            if (key === part) {
+                score += 120;
+            } else if (key.startsWith(part)) {
+                score += 80;
+            } else if (key.includes(part)) {
+                score += 45;
+            }
+
+            if (value === part) {
+                score += 100;
+            } else if (value.startsWith(part)) {
+                score += 70;
+            } else if (value.includes(part)) {
+                score += 55;
+            }
+        }
+
+        return score;
+    }
+
+    function currentTranslationSuggestions(language = translationLanguage) {
+        const normalized = normalizeLanguageCode(language) || language || translationLanguage;
+        if (!translationSuggestionsByLanguage[normalized] && Array.isArray(translationSuggestionsByLanguage[''])) {
+            return translationSuggestionsByLanguage[''];
+        }
+        translationSuggestionsByLanguage[normalized] = Array.isArray(translationSuggestionsByLanguage[normalized])
+            ? translationSuggestionsByLanguage[normalized]
+            : [];
+
+        return translationSuggestionsByLanguage[normalized];
+    }
+
+    function findTranslationSuggestion(language, key) {
+        const normalizedKey = String(key || '').trim();
+        if (normalizedKey === '') {
+            return null;
+        }
+
+        return currentTranslationSuggestions(language).find((suggestion) => suggestion.key === normalizedKey) || null;
+    }
+
+    function setTranslationSuggestion(language, key, value) {
+        const suggestions = currentTranslationSuggestions(language);
+        const existing = suggestions.find((suggestion) => suggestion.key === key);
+        if (existing) {
+            existing.value = value;
+            return;
+        }
+
+        suggestions.push({key, value});
+        suggestions.sort((a, b) => a.key.localeCompare(b.key));
+    }
+
+    async function openTranslationModal(path) {
+        activeTranslationPath = String(path || '');
+        const item = itemByPath(activeTranslationPath.split('.').map(Number));
+        if (!item) {
+            return;
+        }
+
+        const initialKey = String(item.label || '');
+        const initialValue = findTranslationSuggestion(translationLanguage, initialKey)?.value || '';
+        const promptResult = prompt(translationPromptHtml(translationLanguage, initialKey, initialValue), {
+            confirmButtonText: labels.apply,
+            cancelButtonText: labels.cancel,
+            showCancelButton: true,
+            style: {width: 'min(980px, calc(100vw - 32px))', maxWidth: 'min(980px, calc(100vw - 32px))'},
+            confirmCallback: (promptInstance) => {
+                applyTranslationPrompt(promptInstance);
+                return true;
+            },
+        });
+
+        window.setTimeout(() => bindTranslationPrompt(document.querySelector('.navigation-translation-prompt')), 0);
+        await promptResult;
+        activeTranslationPath = null;
+        hideTranslationSuggestions();
+    }
+
+    async function applyTranslationPrompt(promptInstance) {
+        const container = promptInstance.container;
+        const language = normalizeLanguageCode(container.querySelector('[data-navigation-translation-language]')?.value) || translationLanguage;
+        const keyInput = container.querySelector('[data-navigation-translation-key]');
+        const key = String(keyInput?.value || '').trim();
+        const value = String(container.querySelector('[data-navigation-translation-value]')?.value || '');
+        if (key === '') {
+            toast(labels.emptyTranslationKey);
+            keyInput?.focus();
+            return;
+        }
+
+        if (value.trim() !== '' || !findTranslationSuggestion(language, key)) {
+            const saved = await saveTranslation(language, key, value);
+            if (!saved) {
+                return;
+            }
+            toast(labels.translationSaved);
+        }
+
+        const item = activeTranslationPath ? itemByPath(activeTranslationPath.split('.').map(Number)) : null;
+        if (item) {
+            item.label = key;
+            item.key = slugifyIdentifier(key) || item.key;
+            render();
+        }
+
+        promptInstance.promise.resolve(true);
+        promptInstance.remove();
+    }
+
+    async function openLanguagePrompt() {
+        let createdLanguage = null;
+        const promptResult = prompt(`
+            <div>${escapeHtml(labels.newLanguage)}</div>
+            <div class="navigation-language-prompt notify-form">
+                <p class="notify-form-intro">${escapeHtml(labels.chooseLanguageCode)}</p>
+                <label class="notify-field">
+                    <span class="notify-field-label">${escapeHtml(labels.language)}</span>
+                    <select id="navigation-language-code-input" data-styled-select>
+                        ${languageCreationOptions()}
+                    </select>
+                </label>
+            </div>
+        `, {
+            confirmButtonText: labels.createLanguage,
+            cancelButtonText: labels.cancel,
+            showCancelButton: true,
+            confirmCallback: async (promptInstance) => {
+                const select = promptInstance.container.querySelector('#navigation-language-code-input');
+                const language = normalizeLanguageCode(select?.value);
+                if (language === null) {
+                    toast(labels.invalidLanguage);
+                    select?.focus();
+                    return true;
+                }
+
+                const created = await createLanguage(language);
+                if (!created) {
+                    return true;
+                }
+
+                createdLanguage = language;
+                promptInstance.promise.resolve(true);
+                promptInstance.remove();
+                return true;
+            },
+        });
+
+        window.setTimeout(() => initStyledSelects(document.querySelectorAll('.navigation-language-prompt select[data-styled-select]')), 0);
+        const confirmed = await promptResult;
+
+        return confirmed === true ? createdLanguage : null;
+    }
+
+    function languageCreationOptions(selectedLanguage = '') {
+        return [
+            `<option value="" ${selectedLanguage === '' ? 'selected' : ''} disabled>${escapeHtml(labels.language)}</option>`,
+            ...Object.entries(languageOptions).map(([language, label]) => `
+                <option value="${escapeHtml(language)}" ${language === selectedLanguage ? 'selected' : ''}>${escapeHtml(label)} (${escapeHtml(language)})</option>
+            `),
+        ].join('');
+    }
+
+    async function createLanguage(language) {
+        language = normalizeLanguageCode(language);
+        if (language === null) {
+            toast(labels.invalidLanguage);
+            return false;
+        }
+
+        const response = await (window.NixCMS?.json || fetch)(`/api/admin/translations/${encodeURIComponent(language)}`, {
+            method: 'POST',
+            body: JSON.stringify({entries: {}, mode: 'merge'}),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.success) {
+            toast(result.reason || labels.couldNotSave);
+            return false;
+        }
+
+        translationSuggestionsByLanguage[language] = translationSuggestionsByLanguage[language] || [];
+        translationLanguage = language;
+        toast(labels.languageCreated);
+        return true;
+    }
+
+    function translationPromptHtml(language, key, value) {
+        return `
+            <div>${escapeHtml(labels.translationKey)}</div>
+            <div class="navigation-translation-prompt translation-key-prompt notify-form">
+                <p class="notify-form-intro">${escapeHtml(labels.searchCreateTranslationKey)}</p>
+                <div class="translation-key-grid">
+                    <label class="notify-field">
+                        <span class="notify-field-label">${escapeHtml(labels.language)}</span>
+                        <div class="translation-key-language-row">
+                            <select data-styled-select data-navigation-translation-language>
+                                ${translationLanguageOptions(language)}
+                            </select>
+                            <button class="translation-key-language-button" type="button" data-navigation-translation-new-language>
+                                ${escapeHtml(labels.newLanguage)}
+                            </button>
+                        </div>
+                    </label>
+                    <label class="notify-field">
+                        <span class="notify-field-label">${escapeHtml(labels.key)}</span>
+                        <input class="font-mono" type="text" value="${escapeHtml(key)}" placeholder="navigation.home" autocomplete="off" data-navigation-translation-key>
+                    </label>
+                </div>
+                <label class="notify-field">
+                    <span class="notify-field-label">${escapeHtml(labels.value)}</span>
+                    <input type="text" value="${escapeHtml(value)}" placeholder="${escapeHtml(labels.home)}" data-navigation-translation-value>
+                </label>
+                <p class="notify-form-intro">${escapeHtml(labels.storesOnlyTranslationKey)}</p>
+            </div>
+        `;
+    }
+
+    function translationLanguageOptions(selectedLanguage = translationLanguage) {
+        const languages = [
+            ...Object.keys(translationSuggestionsByLanguage),
+            ...Object.keys(languageOptions),
+        ].filter((language) => normalizeLanguageCode(language) !== null);
+        if (!languages.includes(selectedLanguage) && selectedLanguage !== '') {
+            languages.unshift(selectedLanguage);
+        }
+
+        return [...new Set(languages)].map((language) => `
+            <option value="${escapeHtml(language)}" ${language === selectedLanguage ? 'selected' : ''}>${escapeHtml(labelForLanguage(language))}</option>
+        `).join('');
+    }
+
+    function bindTranslationPrompt(modal) {
+        if (!(modal instanceof HTMLElement)) {
+            return;
+        }
+
+        const notify = modal.closest('.notify');
+        if (notify instanceof HTMLElement) {
+            notify.classList.add('navigation-translation-notify');
+        }
+
+        const languageSelect = modal.querySelector('[data-navigation-translation-language]');
+        const keyInput = modal.querySelector('[data-navigation-translation-key]');
+        const valueInput = modal.querySelector('[data-navigation-translation-value]');
+        initStyledSelects(modal.querySelectorAll('select[data-styled-select]'));
+        keyInput?.focus({preventScroll: true});
+
+        languageSelect?.addEventListener('change', () => {
+            const existing = findTranslationSuggestion(languageSelect.value, keyInput?.value);
+            if (existing && valueInput instanceof HTMLInputElement && valueInput.value.trim() === '') {
+                valueInput.value = existing.value;
+            }
+            showTranslationSuggestions(activeSuggestInput || keyInput);
+        });
+        keyInput?.addEventListener('focus', () => showTranslationSuggestions(keyInput));
+        keyInput?.addEventListener('input', () => {
+            const existing = findTranslationSuggestion(languageSelect?.value || translationLanguage, keyInput.value);
+            if (existing && valueInput instanceof HTMLInputElement && valueInput.value.trim() === '') {
+                valueInput.value = existing.value;
+            }
+            showTranslationSuggestions(keyInput);
+        });
+        valueInput?.addEventListener('focus', () => showTranslationSuggestions(valueInput));
+        valueInput?.addEventListener('input', () => showTranslationSuggestions(valueInput));
+        modal.querySelector('[data-navigation-translation-new-language]')?.addEventListener('click', async () => {
+            const language = await openLanguagePrompt(false);
+            if (!language || !(languageSelect instanceof HTMLSelectElement)) {
+                return;
+            }
+
+            languageSelect.innerHTML = translationLanguageOptions(language);
+            languageSelect.value = language;
+            translationLanguage = language;
+            languageSelect.dispatchEvent(new Event('change', {bubbles: true}));
+            keyInput?.focus({preventScroll: true});
+        });
+    }
+
+    async function saveTranslation(language, key, value) {
+        const response = await (window.NixCMS?.json || fetch)(`/api/admin/translations/${encodeURIComponent(language)}`, {
+            method: 'POST',
+            body: JSON.stringify({entries: {[key]: value}, mode: 'merge'}),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.success) {
+            toast(result.reason || labels.couldNotSave);
+            return false;
+        }
+
+        setTranslationSuggestion(language, key, value);
+        return true;
+    }
+
+    function normalizeLanguageCode(value) {
+        const language = String(value || '').trim().toLowerCase();
+        return new RegExp(String(window.NixCMS?.languagePattern || '^[a-z]{2,3}(?:-[a-z0-9]{2,4})?$')).test(language) && language.length <= 8 ? language : null;
+    }
+
+    function highlight(value, query) {
+        const safe = escapeHtml(value);
+        const term = String(query || '').trim().split(/\s+/).find(Boolean);
+        if (!term) {
+            return safe;
+        }
+
+        const index = value.toLowerCase().indexOf(term.toLowerCase());
+        if (index < 0) {
+            return safe;
+        }
+
+        return `${escapeHtml(value.slice(0, index))}<mark class="rounded bg-yellow-200 px-0.5 text-slate-950">${escapeHtml(value.slice(index, index + term.length))}</mark>${escapeHtml(value.slice(index + term.length))}`;
+    }
+}

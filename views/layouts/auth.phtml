@@ -18,7 +18,7 @@ asset()->add('/css/nixcms.css');
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= s($settings->pageTitle((string) ($title ?? t('Login')))) ?></title>
-    <script>
+    <script nonce="<?= \NixPHP\CMS\csp_nonce() ?>">
         (function () {
             const root = document.documentElement;
             let storedTheme = null;

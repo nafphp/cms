@@ -14,7 +14,7 @@ asset()->add('/js/lib/codemirror/closebrackets.min.js');
 asset()->add('/js/lib/codemirror/matchbrackets.min.js');
 asset()->add('/js/lib/codemirror/show-hint.min.js');
 asset()->add('/js/lib/codemirror/css-hint.min.js');
-asset()->add('/js/admin/theme-editor.js');
+asset()->add('/js/admin/theme-editor.js', 'module');
 
 $theme = is_array($theme ?? null) ? $theme : null;
 $isEdit = $theme !== null;

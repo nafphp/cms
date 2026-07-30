@@ -48,6 +48,7 @@ export const stateMethods = {
             this.syncCustomTemplateBlocks();
         }
         this.applyDefaultPersistedValues();
+        this.normalizeNavigationSelections();
         this.ensureTemplateDefaults();
         this.syncPageTheme();
         await this.loadPageBuilderLabels(this.uiLanguage);

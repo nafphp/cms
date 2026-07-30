@@ -495,11 +495,9 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
     }
 
     async function saveTranslation(key, value) {
-        const entries = Object.fromEntries(translationSuggestions.map((suggestion) => [suggestion.key, suggestion.value]));
-        entries[key] = value;
         const response = await (window.NixCMS?.json || fetch)(translationEndpoint.replace('{language}', encodeURIComponent(translationLanguage)), {
             method: 'POST',
-            body: JSON.stringify({entries}),
+            body: JSON.stringify({entries: {[key]: value}, mode: 'merge'}),
         });
         const result = await response.json().catch(() => ({}));
         if (!response.ok || !result.success) {

@@ -3,10 +3,10 @@ import { anonymousGreetingTemplates, greetingTemplates, loadCmsTranslations, ran
 import { apiJson, autosize, createElement, isNearBottom, normalizeEnabled, normalizeStoredMessages, persistJson, scrollToEnd, storedJson, storedText } from './dom.js';
 import { messageClass, modeButtonClass, renderMessageContent, thinkingHtml } from './markdown.js';
 import { chatMessages, defaultSystemPrompt, userSoundsDissatisfied } from './prompting.js';
-import { collectAssistantContext, registerGlobalAssistantActions } from './runtime.js';
+import { collectAssistantContext, registerEditorAssistantContexts, registerGlobalAssistantActions } from './runtime.js';
 import { registerPageBuilderAssistantActions } from './pagebuilder.js';
 import { executeUiActions, registerThemeEditorAssistantActions } from './ui-actions.js';
-import { canAutoRunToolCall, localModelKeepAlive, normalizeToolCalls, ollamaTools, sanitizeVisibleToolIdentifiers, toolActivityLine, toolArgumentsLabel, toolByName, toolDisplayName, toolResultsGroundingMessage } from './tools.js';
+import { canAutoRunToolCall, discoveredToolsFromResults, isToolSearchResult, localModelContextSize, localModelKeepAlive, mergeToolDefinitions, noToolFoundMessage, normalizeToolCalls, ollamaTools, sanitizeVisibleToolIdentifiers, toolActivityLine, toolArgumentsLabel, toolByName, toolDisplayName, toolResultsGroundingMessage, toolSearchFollowUpMessage, toolSearchToolName } from './tools.js';
 
 const storageKeys = {
     open: 'nixcms:local-ai-chat:open',
@@ -84,9 +84,6 @@ export const initChat = (root) => {
         const data = await apiJson('/api/admin/ai/tools/select', {
             method: 'POST',
             body: JSON.stringify({
-                _csrf: typeof window.NixCMS?.csrfToken === 'function'
-                    ? String(window.NixCMS.csrfToken() || '')
-                    : '',
                 message,
                 context,
                 limit,
@@ -106,9 +103,6 @@ export const initChat = (root) => {
         const data = await apiJson('/api/admin/ai/tools/call', {
             method: 'POST',
             body: JSON.stringify({
-                _csrf: typeof window.NixCMS?.csrfToken === 'function'
-                    ? String(window.NixCMS.csrfToken() || '')
-                    : '',
                 name: request.name,
                 arguments: request.arguments || {},
             }),
@@ -122,17 +116,10 @@ export const initChat = (root) => {
         };
     };
 
-    const csrfPayload = () => ({
-        _csrf: typeof window.NixCMS?.csrfToken === 'function'
-            ? String(window.NixCMS.csrfToken() || '')
-            : '',
-    });
-
     const postMistake = (payload) => apiJson('/api/admin/ai/mistakes', {
         method: 'POST',
         keepalive: true,
         body: JSON.stringify({
-            ...csrfPayload(),
             ...payload,
         }),
     });
@@ -356,7 +343,9 @@ export const initChat = (root) => {
                     think: false,
                     options: {
                         temperature: 0,
-                        num_ctx: 512,
+                        // Must match the chat rounds, otherwise the warmup loads
+                        // a runner that the first real message immediately evicts.
+                        num_ctx: localModelContextSize,
                         num_predict: 1,
                     },
                     messages: [
@@ -634,10 +623,23 @@ export const initChat = (root) => {
     };
 
     const setAssistantThinking = (node, label = uiText('Thinking...')) => {
-        if (node instanceof HTMLElement) {
-            node.innerHTML = thinkingHtml(label);
-            lockToBottom();
+        if (!(node instanceof HTMLElement)) {
+            return;
         }
+
+        // Only swap the label when the bar is already mounted. Re-rendering the
+        // markup restarted the CSS animation on every status change, which read
+        // as stuttering while tools were running.
+        const existingLabel = node.querySelector('[data-ai-thinking-label]');
+        if (existingLabel) {
+            if (existingLabel.textContent !== label) {
+                existingLabel.textContent = label;
+            }
+        } else {
+            node.innerHTML = thinkingHtml(label);
+        }
+
+        lockToBottom();
     };
 
     const pauseAssistantAutoScroll = () => {
@@ -761,6 +763,7 @@ export const initChat = (root) => {
         registerGlobalAssistantActions();
         registerPageBuilderAssistantActions();
         registerThemeEditorAssistantActions();
+        registerEditorAssistantContexts();
 
         if (!isWarmupFresh()) {
             setStatus(uiText('Warming up...'));
@@ -770,14 +773,18 @@ export const initChat = (root) => {
         const selectedModel = currentModel();
         const uiContext = collectAssistantContext();
         setStatus(uiText('Selecting tools...'));
-        const selectedByServer = await selectTools(content, uiContext, 12).catch(() => []);
-        const availableTools = await loadTools().catch(() => []);
+        // Independent requests: routing hits the CMS, loadTools is cached after
+        // the first call. Awaiting them in sequence added a needless roundtrip.
+        const [selectedByServer, availableTools] = await Promise.all([
+            selectTools(content, uiContext, 12).catch(() => []),
+            loadTools().catch(() => []),
+        ]);
         const searchTool = toolByName(availableTools, 'cms_tools_search');
         let activeTools = [...selectedByServer]
             .filter((tool, index, tools) => trimValue(tool?.name) !== ''
                 && tools.findIndex((candidate) => trimValue(candidate?.name) === trimValue(tool?.name)) === index)
             .slice(0, 12);
-        if (searchTool && !activeTools.some((tool) => trimValue(tool?.name) === 'cms_tools_search')) {
+        if (searchTool && !activeTools.some((tool) => trimValue(tool?.name) === toolSearchToolName)) {
             activeTools = activeTools.length === 0
                 ? [searchTool]
                 : [...activeTools, searchTool].slice(0, 12);
@@ -800,7 +807,7 @@ export const initChat = (root) => {
             think: false,
             options: {
                 temperature: 0.2,
-                num_ctx: 4096,
+                num_ctx: localModelContextSize,
                 num_predict: 700,
             },
         };
@@ -827,7 +834,9 @@ export const initChat = (root) => {
                 }
             };
 
-            for (let round = 0; round < 5; round += 1) {
+            // One extra round compared to a plain tool call, because a
+            // cms_tools_search hop consumes a round before the real tool runs.
+            for (let round = 0; round < 6; round += 1) {
                 responseText = '';
 
                 let response = null;
@@ -892,6 +901,7 @@ export const initChat = (root) => {
                     persistMessages();
                 }
 
+                const roundResults = [];
                 for (const toolCall of toolCalls) {
                     const toolLabel = toolDisplayName(toolByName(activeTools, toolCall.name) || toolCall.name);
                     setStatus(uiText('Running :tool...', {tool: toolLabel}));
@@ -922,33 +932,69 @@ export const initChat = (root) => {
                     } catch (error) {
                         uiActionError = `UI action failed: ${error.message || error}`;
                     }
-                    toolResults.push(result);
+                    roundResults.push(result);
                 }
 
-                payload = {
-                    model: selectedModel,
-                    messages: [
-                        ...chatMessages(
-                            messages.filter((message) => message.role === 'user'),
-                            currentSystemPrompt(),
-                            currentInstructions(),
-                            uiContext,
-                            currentToolConfirmationEnabled(),
-                            [],
-                            uiLanguage()
-                        ),
-                        {role: 'user', content: toolResultsGroundingMessage(toolResults, activeTools)},
-                    ],
-                    keep_alive: localModelKeepAlive,
-                    think: false,
-                    options: {
-                        temperature: 0,
-                        num_ctx: 8192,
-                        num_predict: 900,
-                    },
-                };
+                // cms_tools_search only yields further tool definitions. Feeding its
+                // result into the grounding answer mode would make the assistant
+                // describe the tools instead of using them.
+                const searched = roundResults.some(isToolSearchResult);
+                const discovered = discoveredToolsFromResults(roundResults);
+                toolResults.push(...roundResults.filter((entry) => !isToolSearchResult(entry)));
 
-                if (round === 4) {
+                if (searched && discovered.length > 0) {
+                    activeTools = mergeToolDefinitions(
+                        activeTools.filter((tool) => trimValue(tool?.name) !== toolSearchToolName),
+                        discovered
+                    );
+                    payload = {
+                        ...basePayload,
+                        messages: [
+                            ...chatMessages(
+                                messages,
+                                currentSystemPrompt(),
+                                currentInstructions(),
+                                uiContext,
+                                currentToolConfirmationEnabled(),
+                                activeTools,
+                                uiLanguage()
+                            ),
+                            {role: 'user', content: toolSearchFollowUpMessage(discovered)},
+                        ],
+                        tools: ollamaTools(activeTools),
+                    };
+                } else {
+                    // Answer mode: the data is in, so tools stay detached to keep
+                    // weaker local models from re-running the same call forever.
+                    const groundingMessage = toolResults.length > 0
+                        ? toolResultsGroundingMessage(toolResults, activeTools)
+                        : noToolFoundMessage();
+
+                    payload = {
+                        model: selectedModel,
+                        messages: [
+                            ...chatMessages(
+                                messages.filter((message) => message.role === 'user'),
+                                currentSystemPrompt(),
+                                currentInstructions(),
+                                uiContext,
+                                currentToolConfirmationEnabled(),
+                                [],
+                                uiLanguage()
+                            ),
+                            {role: 'user', content: groundingMessage},
+                        ],
+                        keep_alive: localModelKeepAlive,
+                        think: false,
+                        options: {
+                            temperature: 0,
+                            num_ctx: localModelContextSize,
+                            num_predict: 900,
+                        },
+                    };
+                }
+
+                if (round === 5) {
                     throw new Error(uiText('The model did not finish the tool-call loop.'));
                 }
 

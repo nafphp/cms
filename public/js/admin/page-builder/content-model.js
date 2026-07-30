@@ -219,6 +219,53 @@ export const contentModelMethods = {
         return String(this.persistedValues.defaultFooterNavigationIdentifier || this.selectedDefaultNavigationIdentifier());
     },
 
+    normalizeNavigationSelections() {
+        const identifiers = new Set(this.navigationChoices
+            .map((navigation) => String(navigation?.identifier || '').trim())
+            .filter(Boolean));
+        const configuredDefault = String(this.defaultNavigationIdentifier || '').trim();
+        const fallback = identifiers.has(configuredDefault)
+            ? configuredDefault
+            : String(this.navigationChoices[0]?.identifier || 'main');
+
+        if (!identifiers.has(String(this.persistedValues.defaultNavigationIdentifier || '').trim())) {
+            this.persistedValues.defaultNavigationIdentifier = fallback;
+        }
+        if (!identifiers.has(String(this.persistedValues.defaultFooterNavigationIdentifier || '').trim())) {
+            this.persistedValues.defaultFooterNavigationIdentifier = this.selectedDefaultNavigationIdentifier();
+        }
+
+        const normalizeContent = (content) => {
+            if (!content || typeof content !== 'object' || Array.isArray(content)) {
+                return;
+            }
+
+            const props = content.props;
+            if (!props || typeof props !== 'object' || Array.isArray(props)) {
+                return;
+            }
+
+            if ('navigationIdentifier' in props) {
+                const identifier = String(props.navigationIdentifier || '').trim();
+                const permitsEmpty = content.type === 'header';
+                if ((!permitsEmpty || identifier !== '') && !identifiers.has(identifier)) {
+                    props.navigationIdentifier = content.type === 'footer'
+                        ? this.selectedFooterNavigationIdentifier()
+                        : this.selectedDefaultNavigationIdentifier();
+                }
+            }
+            if (content.type === 'navigation' && !identifiers.has(String(props.identifier || '').trim())) {
+                props.identifier = this.selectedDefaultNavigationIdentifier();
+            }
+
+            if (Array.isArray(props.children)) {
+                props.children.forEach(normalizeContent);
+            }
+        };
+
+        Object.values(this.blockContent).forEach(normalizeContent);
+    },
+
     defaultContentForBlock(block) {
         const acceptedTypes = Array.isArray(block?.accepts) ? block.accepts : [];
         const type = block.defaultContentType || acceptedTypes[0] || (block.id === 'site_header'
