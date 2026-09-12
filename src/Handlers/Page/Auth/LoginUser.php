@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace NixPHP\CMS\Handlers\Page\Auth;
 
 use NixPHP\CMS\Contracts\RateLimiterInterface;
-use NixPHP\CMS\Models\User;
-use NixPHP\CMS\Repositories\UserRepository;
-use NixPHP\CMS\Services\Security\CredentialService;
+use NixPHP\Auth\Credentials\PasswordCredentials;
+use function NixPHP\Auth\auth;
 use NixPHP\CMS\Services\Security\RateLimitDecision;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\Form\validator;
-use function NixPHP\ORM\repo;
 use function NixPHP\redirect;
 use function NixPHP\request;
 use function NixPHP\Session\session;
@@ -20,7 +18,6 @@ use function NixPHP\View\render;
 final class LoginUser
 {
     public function __construct(
-        private readonly CredentialService $credentialService,
         private readonly RateLimiterInterface $rateLimiter,
     ) {
     }
@@ -46,11 +43,7 @@ final class LoginUser
             return $this->limitedLoginView($data, $username, $limit);
         }
 
-        /** @var User|null $user */
-        $user = repo(UserRepository::class)->findOneBy('username', $username);
-        $verification = $this->credentialService->verifyPassword($password, $user?->getPassword());
-
-        if (!$user instanceof User || !$verification->isVerified()) {
+        if (!auth()->authenticate(new PasswordCredentials($username, $password), 'database')) {
             $limit = $this->rateLimiter->recordFailure($username, $ipAddress);
             if (!$limit->allowed) {
                 return $this->limitedLoginView($data, $username, $limit);
@@ -59,13 +52,6 @@ final class LoginUser
         }
 
         $this->rateLimiter->clearSuccessfulPair($username, $ipAddress);
-
-        if ($verification->requiresUpgrade()) {
-            repo(UserRepository::class)->rehashAuthenticatedPassword((int) $user->getId(), $password);
-        }
-
-        session_regenerate_id(true);
-        session()->set('userId', $user->getId());
 
         return redirect($this->resolveRedirectUri($data));
     }

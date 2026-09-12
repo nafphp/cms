@@ -4,15 +4,11 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS;
 
-use NixPHP\CMS\Models\User;
-use NixPHP\CMS\Repositories\UserRepository;
 use NixPHP\CMS\Security\CspNonce;
 use NixPHP\CMS\Support\Audit;
 use NixPHP\CMS\Support\AuditEntry;
 use NixPHP\CMS\Support\Cms;
 use NixPHP\CMS\Support\UserHelper;
-use function NixPHP\ORM\repo;
-use function NixPHP\Session\session;
 
 /**
  * Reset request-scoped helper state between tests.
@@ -55,52 +51,20 @@ function cms(bool $reset = false, ?Cms $override = null): Cms
  */
 function user(?UserHelper $override = null, bool $reset = false): ?UserHelper
 {
-    static $cache = null;
-    static $cachedUserId = null;
     static $forced = null;
-
     if ($reset) {
-        $cache = null;
-        $cachedUserId = null;
         $forced = null;
+        \NixPHP\Auth\auth()->reset();
         return null;
     }
+    if ($override !== null) { return $forced = $override; }
+    if ($forced !== null) { return $forced; }
 
-    if ($override !== null) {
-        $forced = $override;
-        return $forced;
-    }
-
-    if ($forced !== null) {
-        return $forced;
-    }
-
-    if (!function_exists('NixPHP\Session\session')) {
+    $identity = \NixPHP\Auth\auth()->user();
+    if (!$identity instanceof \NixPHP\CMS\Services\Security\UserIdentity || $identity->user === null) {
         return null;
     }
-
-    $userId = session()->get('userId');
-    if ($userId === null) {
-        $cache = null;
-        $cachedUserId = null;
-        return null;
-    }
-
-    if ($cache !== null && $cachedUserId === $userId) {
-        return $cache;
-    }
-
-    /** @var User|null $user */
-    $user = repo(UserRepository::class)->findOneBy('id', (int) $userId);
-    if (!$user instanceof User) {
-        $cache = null;
-        $cachedUserId = null;
-        return null;
-    }
-
-    $cachedUserId = $userId;
-    $cache = new UserHelper($user);
-    return $cache;
+    return new UserHelper($identity->user);
 }
 
 function audit(bool $reset = false): Audit

@@ -488,3 +488,7 @@ These sections are generated from registries and enums. Edit the source code, th
 Public extension points are listed in the Auto Reference above. Auth is enabled by default; permissions and MCP scopes should be named clearly, and tokens or API secrets must not be stored in plaintext.
 
 For architecture principles, audit rules, testing expectations, and contributor AI-agent editing guidance, read [AGENTS.md](AGENTS.md). Release users should also review [the changelog](CHANGELOG.md), [v0.0.1 release notes](RELEASE_NOTES_0.0.1.md), and [the security policy](SECURITY.md); suspected vulnerabilities belong on the private path described there, not in a public issue.
+
+## Authentication migration
+
+Generic identity, provider and permission mechanics use `nixphp/auth`. See [the migration guide](docs/auth-migration.md) for the local pre-release Composer setup, existing-session compatibility and application boundaries.

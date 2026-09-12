@@ -28,12 +28,13 @@ class AdminGuardEvent
         }
 
         $helper = user();
-        if ($helper === null || !$helper->isLoggedIn()) {
-            throw new AuthException();
-        }
-
-        if (!$helper->can(Permission::ADMIN_ACCESS)) {
-            throw new AuthException();
+        try {
+            (new \NixPHP\CMS\Services\Security\ResourceAuthorization())->authorize(
+                $helper?->isLoggedIn() === true ? $helper : null,
+                permissions: [Permission::ADMIN_ACCESS],
+            );
+        } catch (\NixPHP\Auth\Exceptions\UnauthenticatedException|\NixPHP\Auth\Exceptions\ForbiddenException $exception) {
+            throw new AuthException($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 }

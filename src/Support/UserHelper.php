@@ -4,41 +4,48 @@ declare(strict_types=1);
 
 namespace NixPHP\CMS\Support;
 
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Enums\Role;
+use NixPHP\Auth\Auth;
+use NixPHP\CMS\Enums\{Permission, Role};
 use NixPHP\CMS\Models\User;
+use NixPHP\CMS\Services\Security\UserIdentity;
 
+/** Compatibility facade for CMS views and handlers; auth evaluates grants. */
 class UserHelper
 {
+    private readonly Auth $authorization;
+
     /**
      * @param array<int, Permission>|null $permissions
      * @param array<int, Role>|null $roles
      */
     public function __construct(
         private ?User $user,
-        private ?array $permissions = null,
-        private ?array $roles = null,
+        ?array $permissions = null,
+        ?array $roles = null,
         private bool $loggedIn = false,
     ) {
+        // This evaluator has no session store and cannot change the login.
+        $this->authorization = new Auth();
+        if ($this->isLoggedIn()) {
+            $this->authorization->setIdentity(new UserIdentity($user, $permissions, $roles));
+        }
     }
 
-    public function can(Permission $permission): bool
+    public function can(Permission ...$permissions): bool
     {
-        return in_array($permission, $this->permissions ?? $this->user?->getPermissions() ?? [], true);
+        return $this->authorization->can(...$permissions);
     }
 
-    public function hasRole(Role $role): bool
+    public function canAny(Permission ...$permissions): bool
     {
-        return in_array($role, $this->roles ?? $this->user?->getRoles() ?? [], true);
+        return $this->authorization->canAny(...$permissions);
     }
 
-    public function isLoggedIn(): bool
+    public function hasRole(Role ...$roles): bool
     {
-        return $this->loggedIn || $this->user instanceof User;
+        return $this->authorization->hasRole(...$roles);
     }
 
-    public function get(): ?User
-    {
-        return $this->user;
-    }
+    public function isLoggedIn(): bool { return $this->loggedIn || $this->user instanceof User; }
+    public function get(): ?User { return $this->user; }
 }

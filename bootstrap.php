@@ -101,6 +101,14 @@ use function NixPHP\MCP\tool;
 
 $packageRoot = __DIR__;
 
+// Boot the dependency before registration even when a host lists CMS first.
+app()->getPlugin('nixphp/auth')->boot();
+app()->container()->set(\NixPHP\Auth\Session\StateStoreInterface::class, static fn() =>
+    new \NixPHP\CMS\Services\Security\CmsSessionStateStore(\NixPHP\Session\session()));
+app()->container()->set(\NixPHP\CMS\Services\Security\DatabaseProvider::class, static fn() =>
+    app()->container()->make(\NixPHP\CMS\Services\Security\DatabaseProvider::class));
+\NixPHP\Auth\auth()->addProvider('database', \NixPHP\CMS\Services\Security\DatabaseProvider::class);
+
 app()->container()->set(Translator::class, static fn() => new RuntimeTranslator());
 app()->container()->set(ThemeSourceInterface::class, static fn() => new ThemeRepository());
 app()->container()->set(MediaStorageInterface::class, static fn() => new MediaStorageService(new EntityStorage(Media::class)));

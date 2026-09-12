@@ -11,6 +11,7 @@ return [
     'nixphp/cli',
     'nixphp/database',
     'nixphp/session',
+    'nixphp/auth',
     'nixphp/form',
     'nixphp/view',
     'nixphp/i18n',

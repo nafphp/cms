@@ -14,7 +14,6 @@ use Psr\Http\Message\ResponseInterface;
 use Throwable;
 use function NixPHP\Database\database;
 use function NixPHP\json;
-use function NixPHP\Session\session;
 use function NixPHP\CMS\user;
 
 final class ReviewArticle
@@ -31,6 +30,11 @@ final class ReviewArticle
             throw new AuthException();
         }
 
+        $reviewerId = (int) $helper->get()?->getId();
+        if ($reviewerId <= 0) {
+            throw new AuthException('Authentication required.', 401);
+        }
+
         $payload = $this->jsonBody();
         $action = strtolower(trim((string) ($payload['action'] ?? '')));
         $comment = isset($payload['comment']) ? trim((string) $payload['comment']) : null;
@@ -44,7 +48,7 @@ final class ReviewArticle
             return json(['success' => false, 'reason' => 'Not allowed to publish directly.'], 403);
         }
 
-        return $this->withDatabase(function (PDO $connection) use ($articleId, $language, $action, $comment, $publishArticle): array {
+        return $this->withDatabase(function (PDO $connection) use ($articleId, $language, $action, $comment, $publishArticle, $reviewerId): array {
             $articleIdValue = (int) $articleId;
             $languageValue = strtolower(trim($language));
 
@@ -97,7 +101,7 @@ final class ReviewArticle
                     'language' => $languageValue,
                     'action' => $action,
                     'comment' => $comment !== '' ? $comment : null,
-                    'reviewed_by' => $this->resolveReviewerId($connection),
+                    'reviewed_by' => $reviewerId,
                 ]);
 
                 $connection->commit();
@@ -127,18 +131,6 @@ final class ReviewArticle
 
             return ['success' => true, 'action' => $action, 'newStatus' => $newStatus];
         });
-    }
-
-    private function resolveReviewerId(PDO $connection): int
-    {
-        $userId = (int) (session()->get('userId') ?? 0);
-        if ($userId > 0) {
-            return $userId;
-        }
-
-        return (int) $connection
-            ->query('SELECT id FROM users ORDER BY id ASC LIMIT 1')
-            ->fetchColumn();
     }
 
     /**

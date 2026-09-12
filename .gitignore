@@ -17,3 +17,4 @@
 .claude/
 .idea/
 /prompts/
+/composer.local.*

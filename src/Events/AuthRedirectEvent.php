@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace NixPHP\CMS\Events;
 
 use NixPHP\CMS\Exceptions\AuthException;
-use NixPHP\CMS\Models\User;
 use Psr\Http\Message\ResponseInterface;
 use function NixPHP\redirect;
 use function NixPHP\request;
@@ -22,9 +21,15 @@ class AuthRedirectEvent
             return null;
         }
 
-        if (session()->get('userId') !== null && user()?->get() instanceof User) {
-            $response = render('errors.403');
-            return $response->withStatus(403);
+        $status = in_array($t->getCode(), [401, 403], true)
+            ? $t->getCode()
+            : (user()?->isLoggedIn() === true ? 403 : 401);
+        $path = (string) (parse_url($this->redirectUri(), PHP_URL_PATH) ?? '');
+        if (str_starts_with($path, '/api/')) {
+            return \NixPHP\json(['success' => false, 'reason' => $status === 401 ? 'Authentication required.' : 'Permission denied.'], $status);
+        }
+        if ($status === 403) {
+            return render('errors.403')->withStatus(403);
         }
 
         session()->flash('redirectUri', $this->redirectUri());

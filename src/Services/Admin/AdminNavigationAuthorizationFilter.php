@@ -78,39 +78,16 @@ final class AdminNavigationAuthorizationFilter
     private function isPageAuthorized(Page $page): bool
     {
         $user = $this->currentUser();
-
-        if ($page->requiresAuthentication() && ($user === null || !$user->isLoggedIn())) {
-            return false;
-        }
-
-        foreach ($page->requiredRoles() as $role) {
-            if ($user?->hasRole($role) !== true) {
-                return false;
-            }
-        }
-
-        $permissions = $page->requiredPermissions();
-        if ($permissions === []) {
+        try {
+            (new \NixPHP\CMS\Services\Security\ResourceAuthorization())->authorize(
+                $user?->isLoggedIn() === true ? $user : null,
+                $page->requiresAuthentication(), $page->requiredRoles(),
+                $page->requiredPermissions(), $page->requiresAnyPermission(),
+            );
             return true;
-        }
-
-        if ($page->requiresAnyPermission()) {
-            foreach ($permissions as $permission) {
-                if ($user?->can($permission) === true) {
-                    return true;
-                }
-            }
-
+        } catch (\NixPHP\Auth\Exceptions\UnauthenticatedException|\NixPHP\Auth\Exceptions\ForbiddenException) {
             return false;
         }
-
-        foreach ($permissions as $permission) {
-            if ($user?->can($permission) !== true) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     private function currentUser(): ?UserHelper

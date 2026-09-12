@@ -28,7 +28,8 @@
         "nixphp/queue": "^0.1",
         "nixphp/schedule": "^0.1",
         "nixphp/mail": "^0.1",
-        "nixphp/mcp": "^0.1"
+        "nixphp/mcp": "^0.1",
+        "nixphp/auth": "^0.1"
     },
     "autoload": {
         "files": [

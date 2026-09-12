@@ -7,7 +7,6 @@ namespace Tests\Unit\Handlers\Page\Auth;
 use NixPHP\CMS\Contracts\RateLimiterInterface;
 use NixPHP\CMS\Handlers\Page\Auth\LoginUser;
 use NixPHP\CMS\Handlers\Page\Auth\RegisterInvitedUser;
-use NixPHP\CMS\Services\Security\CredentialService;
 use NixPHP\CMS\Services\Security\RateLimitDecision;
 use Tests\Support\DatabaseTestCase;
 use Tests\Support\JsonRequest;
@@ -19,7 +18,7 @@ final class AuthHandlersTest extends DatabaseTestCase
         JsonRequest::bind([]);
         $limiter = new AuthRateLimiterSpy();
 
-        $response = (new LoginUser(new CredentialService(), $limiter))();
+        $response = (new LoginUser($limiter))();
 
         self::assertSame(200, $response->getStatusCode());
         self::assertStringContainsString('Please enter username and password.', (string) $response->getBody());

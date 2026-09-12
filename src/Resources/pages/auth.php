@@ -49,6 +49,7 @@ return [
         ->setTitle('Logout')
         ->requireAuthentication()
         ->setContent(static function () {
+            \NixPHP\Auth\auth()->logout();
             session()->clear();
             return redirect('/admin/login');
         }),
