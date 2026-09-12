@@ -22,7 +22,7 @@ const loadECharts = () => {
         return Promise.resolve(window.echarts);
     }
 
-    echartsLoader ??= import('https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.esm.min.js')
+    echartsLoader ??= import('../lib/echarts/echarts.esm.min.js')
         .then((module) => module.default || module);
 
     return echartsLoader;
