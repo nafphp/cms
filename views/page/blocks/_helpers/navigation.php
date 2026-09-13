@@ -1,13 +1,13 @@
 <?php
 
-use NixPHP\CMS\Security\UrlPolicy;
-use function NixPHP\View\s;
-use function NixPHP\I18n\lang;
-use function NixPHP\I18n\t;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Security\UrlPolicy;
+use function Naf\View\s;
+use function Naf\I18n\lang;
+use function Naf\I18n\t;
+use function Naf\CMS\cms;
 
-if (!function_exists('nixcms_page_block_nav_items')) {
-    function nixcms_page_block_nav_items(?string $identifier, ?string $language = null, ?string $fallbackIdentifier = 'main'): array
+if (!function_exists('nafcms_page_block_nav_items')) {
+    function nafcms_page_block_nav_items(?string $identifier, ?string $language = null, ?string $fallbackIdentifier = 'main'): array
     {
         $identifier = trim((string) $identifier);
         if ($identifier === '') {
@@ -31,8 +31,8 @@ if (!function_exists('nixcms_page_block_nav_items')) {
     }
 }
 
-if (!function_exists('nixcms_page_block_nav')) {
-    function nixcms_page_block_nav(array $items, string $presentation = 'horizontal', string $linkStyle = 'blank', string $linkTheme = 'default'): string
+if (!function_exists('nafcms_page_block_nav')) {
+    function nafcms_page_block_nav(array $items, string $presentation = 'horizontal', string $linkStyle = 'blank', string $linkTheme = 'default'): string
     {
         $linkStyle = in_array($linkStyle, ['blank', 'underline', 'pill', 'rounded-pill', 'filled', 'filled-rounded'], true) ? $linkStyle : 'blank';
         $linkTheme = in_array($linkTheme, ['default', 'accent', 'surface'], true) ? $linkTheme : 'default';

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Security;
 
-use NixPHP\CMS\Events\SecurityHeadersEvent;
-use NixPHP\CMS\Security\CspNonce;
-use NixPHP\Core\Config;
+use Naf\CMS\Events\SecurityHeadersEvent;
+use Naf\CMS\Security\CspNonce;
+use Naf\Core\Config;
 use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
-use function NixPHP\app;
+use function Naf\app;
 
 final class SecurityHeadersEventTest extends TestCase
 {

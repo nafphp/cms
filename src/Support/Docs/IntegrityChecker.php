@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Support\Docs;
+namespace Naf\CMS\Support\Docs;
 
-use NixPHP\CMS\Content\BlockViewRegistry;
-use NixPHP\CMS\Content\Page\Block\BlockTypeInterface;
-use NixPHP\CMS\Page\Layout;
-use NixPHP\CMS\Support\RuntimePaths;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Content\BlockViewRegistry;
+use Naf\CMS\Content\Page\Block\BlockTypeInterface;
+use Naf\CMS\Page\Layout;
+use Naf\CMS\Support\RuntimePaths;
+use function Naf\CMS\cms;
 
 final class IntegrityChecker
 {

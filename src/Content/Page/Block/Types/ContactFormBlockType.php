@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Content\Page\Block\Types;
+namespace Naf\CMS\Content\Page\Block\Types;
 
-use NixPHP\CMS\Content\Page\Block\AbstractBlockType;
-use NixPHP\CMS\Content\Page\Block\PageBuilderBlockOptions;
+use Naf\CMS\Content\Page\Block\AbstractBlockType;
+use Naf\CMS\Content\Page\Block\PageBuilderBlockOptions;
 
 final class ContactFormBlockType extends AbstractBlockType
 {

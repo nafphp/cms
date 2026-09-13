@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Page\Article;
+namespace Naf\CMS\Handlers\Page\Article;
 
-use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
-use NixPHP\CMS\Models\Article;
+use Naf\CMS\Handlers\Support\ReadsJsonBody;
+use Naf\CMS\Models\Article;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use function NixPHP\json;
-use function NixPHP\CMS\cms;
-use function NixPHP\CMS\user;
+use function Naf\json;
+use function Naf\CMS\cms;
+use function Naf\CMS\user;
 
 final class StoreArticleDraft
 {

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Contracts;
+namespace Naf\CMS\Contracts;
 
-use NixPHP\CMS\Enums\Scope;
+use Naf\CMS\Enums\Scope;
 
 interface ScopeAwareInterface
 {

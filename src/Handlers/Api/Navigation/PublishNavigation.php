@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\Navigation;
+namespace Naf\CMS\Handlers\Api\Navigation;
 
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use function NixPHP\json;
-use function NixPHP\CMS\cms;
+use function Naf\json;
+use function Naf\CMS\cms;
 
 final class PublishNavigation
 {

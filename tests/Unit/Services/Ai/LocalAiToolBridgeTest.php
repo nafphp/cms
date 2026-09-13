@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Ai;
 
-use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
-use NixPHP\CMS\Services\Ai\LocalAiToolBridge;
-use NixPHP\MCP\Support\ToolRegistry;
-use NixPHP\MCP\Tools\ScopedToolInterface;
-use NixPHP\MCP\Tools\ToolInterface;
+use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
+use Naf\CMS\Services\Ai\LocalAiToolBridge;
+use Naf\MCP\Support\ToolRegistry;
+use Naf\MCP\Tools\ScopedToolInterface;
+use Naf\MCP\Tools\ToolInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use function NixPHP\app;
+use function Naf\app;
 
 final class LocalAiToolBridgeTest extends TestCase
 {

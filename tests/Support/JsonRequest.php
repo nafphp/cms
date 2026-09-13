@@ -8,7 +8,7 @@ use Nyholm\Psr7\ServerRequest;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use function NixPHP\app;
+use function Naf\app;
 
 final class JsonRequest
 {

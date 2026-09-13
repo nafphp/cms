@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Models;
+namespace Naf\CMS\Models;
 
-use NixPHP\ORM\Model\AbstractModel;
+use Naf\ORM\Model\AbstractModel;
 
 class Form extends AbstractModel
 {

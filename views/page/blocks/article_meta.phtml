@@ -1,8 +1,8 @@
 <?php
 
-use NixPHP\CMS\Services\Content\ArticleRenderer;
-use function NixPHP\I18n\t;
-use function NixPHP\View\s;
+use Naf\CMS\Services\Content\ArticleRenderer;
+use function Naf\I18n\t;
+use function Naf\View\s;
 
 /** @var ArticleRenderer|null $article */
 $content = is_array($content ?? null) ? $content : [];
@@ -10,7 +10,7 @@ $props = is_array($content['props'] ?? null) ? $content['props'] : [];
 $showStatus = (bool) ($showStatus ?? $props['showStatus'] ?? false);
 $showAuthor = (bool) ($showAuthor ?? $props['showAuthor'] ?? true);
 $showTags = (bool) ($showTags ?? $props['showTags'] ?? true);
-$surface = \NixPHP\CMS\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
+$surface = \Naf\CMS\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
 $surfaceClass = [
     'none' => 'grid gap-3 text-sm',
     'soft' => 'grid gap-3 rounded-lg bg-[var(--page-panel-soft)] p-4 text-sm',

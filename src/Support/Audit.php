@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Support;
+namespace Naf\CMS\Support;
 
-use NixPHP\CMS\Contracts\AuditSinkInterface;
-use NixPHP\CMS\Support\AuditActorResolver;
-use NixPHP\CMS\Support\AuditEntry;
-use NixPHP\CMS\Support\AuditRedactor;
-use function NixPHP\request;
+use Naf\CMS\Contracts\AuditSinkInterface;
+use Naf\CMS\Support\AuditActorResolver;
+use Naf\CMS\Support\AuditEntry;
+use Naf\CMS\Support\AuditRedactor;
+use function Naf\request;
 
 final class Audit
 {
@@ -83,7 +83,7 @@ final class Audit
         }
 
         /** @var AuditSinkInterface $repository */
-        $repository = \NixPHP\app()->container()->get(AuditSinkInterface::class);
+        $repository = \Naf\app()->container()->get(AuditSinkInterface::class);
         return $repository;
     }
 

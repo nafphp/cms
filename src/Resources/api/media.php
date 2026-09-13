@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use NixPHP\CMS\Api\ApiEndpoint;
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Handlers\Api\Media\DeleteMedia;
-use NixPHP\CMS\Handlers\Api\Media\ListMedia;
-use NixPHP\CMS\Handlers\Api\Media\ServeMedia;
-use NixPHP\CMS\Handlers\Api\Media\UpdateMedia;
-use NixPHP\CMS\Handlers\Api\Media\UploadMedia;
+use Naf\CMS\Api\ApiEndpoint;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Handlers\Api\Media\DeleteMedia;
+use Naf\CMS\Handlers\Api\Media\ListMedia;
+use Naf\CMS\Handlers\Api\Media\ServeMedia;
+use Naf\CMS\Handlers\Api\Media\UpdateMedia;
+use Naf\CMS\Handlers\Api\Media\UploadMedia;
 
 return [
     ApiEndpoint::get('media.serve', '/media/{publicId}/{filename}')

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Services\Admin\AdminDashboardService;
-use function NixPHP\I18n\t;
-use function NixPHP\View\render;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Page\Page;
+use Naf\CMS\Services\Admin\AdminDashboardService;
+use function Naf\I18n\t;
+use function Naf\View\render;
 
 return [
     Page::create('admin.dashboard')

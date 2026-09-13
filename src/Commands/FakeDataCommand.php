@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Commands;
+namespace Naf\CMS\Commands;
 
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Enums\Role;
-use NixPHP\CMS\Services\Security\CredentialService;
-use NixPHP\CMS\Support\Slug;
-use NixPHP\CLI\Core\AbstractCommand;
-use NixPHP\CLI\Core\Input;
-use NixPHP\CLI\Core\Output;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Enums\Role;
+use Naf\CMS\Services\Security\CredentialService;
+use Naf\CMS\Support\Slug;
+use Naf\CLI\Core\AbstractCommand;
+use Naf\CLI\Core\Input;
+use Naf\CLI\Core\Output;
 use PDO;
 use RuntimeException;
-use function NixPHP\Database\database;
+use function Naf\Database\database;
 
 class FakeDataCommand extends AbstractCommand
 {
@@ -30,14 +30,14 @@ class FakeDataCommand extends AbstractCommand
      */
     private const array DEMO_ARTICLE_VERSIONS = [
         'de' => [
-            'slug' => 'nixcms-demo-geschichte',
-            'title' => 'NixCMS Demo-Geschichte',
+            'slug' => 'nafcms-demo-geschichte',
+            'title' => 'NafCMS Demo-Geschichte',
             'teaser' => 'Ein kurzer Beispielbeitrag fuer lokale Entwicklung und Tests.',
             'body' => 'Dies ist ein automatisch erzeugter Demo-Artikel. Du kannst ihn im Adminbereich bearbeiten.',
         ],
         'en' => [
-            'slug' => 'nixcms-demo-story',
-            'title' => 'NixCMS Demo Story',
+            'slug' => 'nafcms-demo-story',
+            'title' => 'NafCMS Demo Story',
             'teaser' => 'A short sample story used for local development and testing.',
             'body' => 'This is an auto-generated demo article. You can edit it in the admin area.',
         ],
@@ -50,7 +50,7 @@ class FakeDataCommand extends AbstractCommand
      * @var list<string>
      */
     private const array LEGACY_DEMO_ARTICLE_SLUGS = [
-        'nixcms-demo-story-en',
+        'nafcms-demo-story-en',
     ];
 
     protected function configure(): void
@@ -65,7 +65,7 @@ class FakeDataCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine('    vendor/bin/nix seed:fake-data');
+            $output->writeLine('    vendor/bin/naf seed:fake-data');
             $output->writeLine('  Idempotent: re-running updates demo content rather than duplicating.');
             return self::SUCCESS;
         }

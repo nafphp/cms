@@ -1,15 +1,15 @@
 import { trimValue } from '../ollama-client.js';
 
 export const assistantRuntime = () => {
-    window.NixCMS = window.NixCMS || {};
-    if (window.NixCMS.assistantActions) {
-        return window.NixCMS.assistantActions;
+    window.NafCMS = window.NafCMS || {};
+    if (window.NafCMS.assistantActions) {
+        return window.NafCMS.assistantActions;
     }
 
     const actions = new Map();
     const contextProviders = new Map();
 
-    window.NixCMS.assistantActions = {
+    window.NafCMS.assistantActions = {
         register(name, definition) {
             const key = trimValue(name);
             if (key === '' || !definition || typeof definition.handler !== 'function') {
@@ -51,25 +51,25 @@ export const assistantRuntime = () => {
         },
     };
 
-    return window.NixCMS.assistantActions;
+    return window.NafCMS.assistantActions;
 };
 
 export const registerGlobalAssistantActions = () => {
     const runtime = assistantRuntime();
-    if (window.NixCMS?.__globalAssistantActionsRegistered) {
+    if (window.NafCMS?.__globalAssistantActionsRegistered) {
         return;
     }
 
-    window.NixCMS.__globalAssistantActionsRegistered = true;
+    window.NafCMS.__globalAssistantActionsRegistered = true;
     runtime.register('admin.navigate', {
-        description: 'Navigates within the NixCMS admin UI',
+        description: 'Navigates within the NafCMS admin UI',
         parameters: {
             url: 'string',
         },
         handler: ({url}) => {
             const target = trimValue(url);
             if (!/^\/admin(?:\/|$|\?)/.test(target)) {
-                throw new Error('Assistant navigation is limited to NixCMS admin URLs.');
+                throw new Error('Assistant navigation is limited to NafCMS admin URLs.');
             }
 
             window.location.assign(target);
@@ -85,11 +85,11 @@ export const registerGlobalAssistantActions = () => {
  */
 export const registerEditorAssistantContexts = () => {
     const runtime = assistantRuntime();
-    if (window.NixCMS?.__editorAssistantContextsRegistered) {
+    if (window.NafCMS?.__editorAssistantContextsRegistered) {
         return;
     }
 
-    window.NixCMS.__editorAssistantContextsRegistered = true;
+    window.NafCMS.__editorAssistantContextsRegistered = true;
 
     const articleForm = document.querySelector('[data-article-editor]');
     if (articleForm) {

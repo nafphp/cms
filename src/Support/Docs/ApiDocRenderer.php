@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Support\Docs;
+namespace Naf\CMS\Support\Docs;
 
-use NixPHP\CMS\Api\ApiEndpoint;
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Support\Docs\DocBlockRenderer;
-use NixPHP\CMS\Support\Docs\MarkdownTable;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Api\ApiEndpoint;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Support\Docs\DocBlockRenderer;
+use Naf\CMS\Support\Docs\MarkdownTable;
+use function Naf\CMS\cms;
 
 final class ApiDocRenderer implements DocBlockRenderer
 {

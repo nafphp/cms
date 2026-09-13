@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use function NixPHP\CMS\cms;
-use function NixPHP\app;
+use function Naf\CMS\cms;
+use function Naf\app;
 
 $packageRoot = dirname(__DIR__);
 
-// NixPHP loads plugin routes before its bootstrap. These registries must exist
+// NAF loads plugin routes before its bootstrap. These registries must exist
 // before the page and API definitions below are constructed.
 cms()->contentTypes()->addMany(require $packageRoot . '/src/content.php');
 cms()->settings()->addMany(require $packageRoot . '/src/settings.php');

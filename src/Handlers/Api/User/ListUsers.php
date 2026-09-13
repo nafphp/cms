@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\User;
+namespace Naf\CMS\Handlers\Api\User;
 
-use NixPHP\CMS\Repositories\UserRepository;
+use Naf\CMS\Repositories\UserRepository;
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\json;
-use function NixPHP\ORM\repo;
+use function Naf\json;
+use function Naf\ORM\repo;
 
 final class ListUsers
 {

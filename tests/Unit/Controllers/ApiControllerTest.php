@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Controllers;
 
-use NixPHP\CMS\Controllers\Api\ApiController;
+use Naf\CMS\Controllers\Api\ApiController;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
@@ -13,9 +13,9 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use ReflectionMethod;
 use ReflectionProperty;
-use function NixPHP\app;
-use function NixPHP\CMS\cms;
-use function NixPHP\route;
+use function Naf\app;
+use function Naf\CMS\cms;
+use function Naf\route;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
@@ -47,7 +47,7 @@ final class ApiControllerTest extends TestCase
         $this->resolve();
     }
 
-    private function resolve(): \NixPHP\CMS\Api\ApiEndpoint
+    private function resolve(): \Naf\CMS\Api\ApiEndpoint
     {
         self::assertNotNull(cms()->api()->get('api.admin.translations.show'));
         $method = new ReflectionMethod(ApiController::class, 'resolveEndpoint');

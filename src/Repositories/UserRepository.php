@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Repositories;
+namespace Naf\CMS\Repositories;
 
-use NixPHP\CMS\Contracts\PasswordPolicyInterface;
-use NixPHP\CMS\Contracts\UserPrivilegePolicyInterface;
-use NixPHP\CMS\Enums\Permission as PermissionEnum;
-use NixPHP\CMS\Models\User;
-use NixPHP\CMS\Services\Security\CredentialService;
-use NixPHP\CMS\Services\Security\PasswordPolicy;
-use NixPHP\CMS\Services\Security\UserPrivilegePolicy;
+use Naf\CMS\Contracts\PasswordPolicyInterface;
+use Naf\CMS\Contracts\UserPrivilegePolicyInterface;
+use Naf\CMS\Enums\Permission as PermissionEnum;
+use Naf\CMS\Models\User;
+use Naf\CMS\Services\Security\CredentialService;
+use Naf\CMS\Services\Security\PasswordPolicy;
+use Naf\CMS\Services\Security\UserPrivilegePolicy;
 use DateInterval;
 use DateTimeImmutable;
-use NixPHP\ORM\Core\EntityManager;
-use NixPHP\ORM\Repository\AbstractRepository;
+use Naf\ORM\Core\EntityManager;
+use Naf\ORM\Repository\AbstractRepository;
 use PDO;
-use function NixPHP\log;
+use function Naf\log;
 
 class UserRepository extends AbstractRepository
 {

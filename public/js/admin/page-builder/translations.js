@@ -17,7 +17,7 @@ export const translationMethods = {
 
         this.loadingLabelLanguage = language;
         try {
-            const response = await (window.NixCMS?.json || fetch)(this.translationReadEndpointFor(language), {
+            const response = await (window.NafCMS?.json || fetch)(this.translationReadEndpointFor(language), {
                 method: 'GET',
             });
             const result = await response.json().catch(() => ({}));
@@ -53,7 +53,7 @@ export const translationMethods = {
         }
 
         try {
-            const response = await (window.NixCMS?.json || fetch)(this.translationReadEndpointFor(language), {
+            const response = await (window.NafCMS?.json || fetch)(this.translationReadEndpointFor(language), {
                 method: 'GET',
             });
             const result = await response.json().catch(() => ({}));
@@ -503,7 +503,7 @@ export const translationMethods = {
 
         // Merge, not replace: creating a language that already has overrides
         // must not wipe them.
-        const response = await (window.NixCMS?.json || fetch)(this.translationEndpointFor(language), {
+        const response = await (window.NafCMS?.json || fetch)(this.translationEndpointFor(language), {
             method: 'POST',
             body: JSON.stringify({entries: {}, mode: 'merge'}),
         });
@@ -525,7 +525,7 @@ export const translationMethods = {
     async saveTranslation(language, key, value) {
         // Only the edited key. Sending every known suggestion turned the whole
         // default language pack into overrides and clobbered concurrent edits.
-        const response = await (window.NixCMS?.json || fetch)(this.translationEndpointFor(language), {
+        const response = await (window.NafCMS?.json || fetch)(this.translationEndpointFor(language), {
             method: 'POST',
             body: JSON.stringify({entries: {[key]: value}, mode: 'merge'}),
         });
@@ -551,7 +551,7 @@ export const translationMethods = {
 
     normalizeLanguageCode(value) {
         const language = String(value || '').trim().toLowerCase();
-        return new RegExp(String(window.NixCMS?.languagePattern || '^[a-z]{2,3}(?:-[a-z0-9]{2,4})?$')).test(language) && language.length <= 8 ? language : null;
+        return new RegExp(String(window.NafCMS?.languagePattern || '^[a-z]{2,3}(?:-[a-z0-9]{2,4})?$')).test(language) && language.length <= 8 ? language : null;
     },
 
     labelForLanguage(language) {

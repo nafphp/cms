@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Repositories;
+namespace Naf\CMS\Repositories;
 
-use NixPHP\CMS\Contracts\UserPrivilegePolicyInterface;
-use NixPHP\CMS\Models\Role;
-use NixPHP\CMS\Services\Security\UserPrivilegePolicy;
-use NixPHP\ORM\Core\EntityManager;
-use NixPHP\ORM\Repository\AbstractRepository;
+use Naf\CMS\Contracts\UserPrivilegePolicyInterface;
+use Naf\CMS\Models\Role;
+use Naf\CMS\Services\Security\UserPrivilegePolicy;
+use Naf\ORM\Core\EntityManager;
+use Naf\ORM\Repository\AbstractRepository;
 use PDO;
-use function NixPHP\log;
+use function Naf\log;
 
 class RoleRepository extends AbstractRepository
 {

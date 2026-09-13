@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Commands;
+namespace Naf\CMS\Commands;
 
-use NixPHP\CMS\Support\Docs\IntegrityChecker;
-use NixPHP\CLI\Core\AbstractCommand;
-use NixPHP\CLI\Core\Input;
-use NixPHP\CLI\Core\Output;
+use Naf\CMS\Support\Docs\IntegrityChecker;
+use Naf\CLI\Core\AbstractCommand;
+use Naf\CLI\Core\Input;
+use Naf\CLI\Core\Output;
 
 final class IntegrityCheckCommand extends AbstractCommand
 {
@@ -16,7 +16,7 @@ final class IntegrityCheckCommand extends AbstractCommand
     protected function configure(): void
     {
         $this
-            ->setTitle('Check NixCMS Integrity')
+            ->setTitle('Check NafCMS Integrity')
             ->setDescription('Check block type, block view, and page template registry invariants.')
             ->addOption('help');
     }
@@ -25,18 +25,18 @@ final class IntegrityCheckCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine('    vendor/bin/nix integrity:check');
+            $output->writeLine('    vendor/bin/naf integrity:check');
             $output->writeLine('  Exits with code 1 when block/template registries drift from filesystem views.');
             return self::SUCCESS;
         }
 
         $issues = (new IntegrityChecker(BASE_PATH))->check();
         if ($issues === []) {
-            $output->writeLine('NixCMS integrity checks passed.', 'ok');
+            $output->writeLine('NafCMS integrity checks passed.', 'ok');
             return self::SUCCESS;
         }
 
-        $output->writeLine('NixCMS integrity checks found drift:', 'error');
+        $output->writeLine('NafCMS integrity checks found drift:', 'error');
         foreach ($issues as $issue) {
             $output->writeLine(sprintf(
                 '  - %s:%d %s',

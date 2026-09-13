@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Examples\CustomContentType;
+namespace Naf\CMS\Examples\CustomContentType;
 
-use NixPHP\Database\Core\AbstractMigration;
+use Naf\Database\Core\AbstractMigration;
 use PDO;
 
 final class ExampleCreateProductsTable extends AbstractMigration

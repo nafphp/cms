@@ -1,18 +1,18 @@
 <?php
 
-use NixPHP\CMS\Security\UrlPolicy;
-use function NixPHP\View\s;
-use function NixPHP\I18n\t;
+use Naf\CMS\Security\UrlPolicy;
+use function Naf\View\s;
+use function Naf\I18n\t;
 
 $content = is_array($content ?? null) ? $content : [];
 $props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$title = t((string) ($props['title'] ?? 'Build with NixCMS'));
+$title = t((string) ($props['title'] ?? 'Build with NafCMS'));
 $eyebrow = trim(t((string) ($props['eyebrow'] ?? '')));
 $text = trim(t((string) ($props['text'] ?? '')));
 $image = UrlPolicy::media((string) ($props['image'] ?? ''));
 $buttonLabel = trim(t((string) ($props['buttonLabel'] ?? '')));
 $buttonUrl = UrlPolicy::link((string) ($props['buttonUrl'] ?? '#')) ?? '#';
-$surface = \NixPHP\CMS\Theme\Theme::slug((string) ($props['surface'] ?? 'card')) ?: 'card';
+$surface = \Naf\CMS\Theme\Theme::slug((string) ($props['surface'] ?? 'card')) ?: 'card';
 $surfaceClass = [
     'none' => 'px-1 py-2',
     'soft' => 'rounded-lg bg-[var(--page-panel-soft)] p-8',

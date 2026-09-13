@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Page;
+namespace Naf\CMS\Page;
 
-use NixPHP\CMS\Page\Template;
+use Naf\CMS\Page\Template;
 
 /**
  * Block context inside a page layout. Rendering is delegated to its template.

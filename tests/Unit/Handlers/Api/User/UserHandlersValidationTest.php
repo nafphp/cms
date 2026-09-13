@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Handlers\Api\User;
 
-use NixPHP\CMS\Handlers\Api\User\StoreUser;
-use NixPHP\CMS\Handlers\Api\User\UserPayloadValidator;
+use Naf\CMS\Handlers\Api\User\StoreUser;
+use Naf\CMS\Handlers\Api\User\UserPayloadValidator;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\JsonRequest;
 

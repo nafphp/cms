@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use NixPHP\CMS\Navigation\NavigationItem;
-use NixPHP\CMS\Navigation\Navigation;
+use Naf\CMS\Navigation\NavigationItem;
+use Naf\CMS\Navigation\Navigation;
 
 return [
     Navigation::create('main', 'Main navigation')

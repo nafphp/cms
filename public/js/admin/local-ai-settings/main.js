@@ -9,7 +9,7 @@ import {
 import { labelsForLanguage, uiLanguage } from './labels.js';
 import { createMistakeReviewModal, createPromptEditorModal, createResearchModal } from './modals.js';
 
-const storagePrefix = 'nixcms:local-ai-settings:';
+const storagePrefix = 'nafcms:local-ai-settings:';
 const storageKeys = {
     enabled: `${storagePrefix}enabled`,
     type: `${storagePrefix}type`,
@@ -132,7 +132,7 @@ export function initLocalAiSettings(root) {
             localStorage.setItem(storageKeys.enabled, normalizeEnabled(enabledInput.value));
         } catch (error) {}
 
-        window.dispatchEvent(new CustomEvent('nixcms:local-ai-settings-changed', {
+        window.dispatchEvent(new CustomEvent('nafcms:local-ai-settings-changed', {
             detail: {
                 key: storageKeys.enabled,
                 value: normalizeEnabled(enabledInput.value),
@@ -331,7 +331,7 @@ export function initLocalAiSettings(root) {
         let streamed = '';
         const extraInstructions = trimValue(instructionsInput instanceof HTMLTextAreaElement ? instructionsInput.value : '');
         const prompt = [
-            'You are the local NixCMS assistant.',
+            'You are the local NafCMS assistant.',
             'Reply in one concise sentence that confirms local AI is ready.',
             extraInstructions !== '' ? `Additional project instructions:\n${extraInstructions}` : '',
         ].filter(Boolean).join('\n\n');
@@ -516,7 +516,7 @@ export function initLocalAiSettings(root) {
                 {
                     role: 'system',
                     content: [
-                        'You review Nixorious assistant mistake logs for durable product guidance.',
+                        'You review Nafarious assistant mistake logs for durable product guidance.',
                         'Return JSON only: {"items":[{"title":"...","problem":"...","question":"...","solution":"...","proposed_memory":"...","source_ids":["..."]}]}.',
                         'Find at most 5 open points. Prefer concrete, stable behavior lessons over one-off bugs.',
                         'For each item, include all source_ids of mistake entries that would be resolved by the proposed memory.',
@@ -920,7 +920,7 @@ export function initLocalAiSettings(root) {
 
     if (reviewMistakesButton instanceof HTMLButtonElement) {
         reviewMistakesButton.addEventListener('click', reviewMistakes);
-        window.addEventListener('nixcms:ai-mistake-recorded', refreshMistakeCount);
+        window.addEventListener('nafcms:ai-mistake-recorded', refreshMistakeCount);
     }
 
     if (editPromptsButton instanceof HTMLButtonElement) {

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Settings;
 
-use NixPHP\CMS\Localization\RuntimeTranslator;
-use NixPHP\CMS\Services\Settings\TranslationFileService;
+use Naf\CMS\Localization\RuntimeTranslator;
+use Naf\CMS\Services\Settings\TranslationFileService;
 use PHPUnit\Framework\TestCase;
 
 final class TranslationFileRuntimeTest extends TestCase
 {
     public function testOverridesMergeOverImmutableDefaultsAndSaveAtomically(): void
     {
-        $root = sys_get_temp_dir() . '/nixcms-translations-' . bin2hex(random_bytes(6));
+        $root = sys_get_temp_dir() . '/nafcms-translations-' . bin2hex(random_bytes(6));
         $defaults = $root . '/defaults';
         $overrides = $root . '/runtime';
         mkdir($defaults, 0777, true);
@@ -99,7 +99,7 @@ final class TranslationFileRuntimeTest extends TestCase
      */
     private function service(array $defaults, ?array $overrides): array
     {
-        $root = sys_get_temp_dir() . '/nixcms-translations-' . bin2hex(random_bytes(6));
+        $root = sys_get_temp_dir() . '/nafcms-translations-' . bin2hex(random_bytes(6));
         $defaultDirectory = $root . '/defaults';
         $overrideDirectory = $root . '/runtime';
         mkdir($defaultDirectory, 0777, true);

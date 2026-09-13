@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Storage;
+namespace Naf\CMS\Storage;
 
 use InvalidArgumentException;
-use NixPHP\CMS\Storage\Filter\ContainsFilter;
-use NixPHP\CMS\Storage\Filter\EqualsFilter;
-use NixPHP\CMS\Storage\Filter\FilterInterface;
-use NixPHP\CMS\Storage\Filter\InFilter;
-use NixPHP\CMS\Storage\Filter\NotEqualsFilter;
-use NixPHP\CMS\Storage\Filter\RangeFilter;
-use NixPHP\ORM\Core\EntityManager;
-use NixPHP\ORM\Core\EntityInterface;
+use Naf\CMS\Storage\Filter\ContainsFilter;
+use Naf\CMS\Storage\Filter\EqualsFilter;
+use Naf\CMS\Storage\Filter\FilterInterface;
+use Naf\CMS\Storage\Filter\InFilter;
+use Naf\CMS\Storage\Filter\NotEqualsFilter;
+use Naf\CMS\Storage\Filter\RangeFilter;
+use Naf\ORM\Core\EntityManager;
+use Naf\ORM\Core\EntityInterface;
 use PDO;
-use NixPHP\CMS\Api\ContentApi;
-use NixPHP\CMS\Storage\Criteria;
-use NixPHP\CMS\Storage\StorageQuery;
-use function NixPHP\Database\database;
-use function NixPHP\ORM\em;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Api\ContentApi;
+use Naf\CMS\Storage\Criteria;
+use Naf\CMS\Storage\StorageQuery;
+use function Naf\Database\database;
+use function Naf\ORM\em;
+use function Naf\CMS\cms;
 
 /**
  * Generic typed CRUD over a single entity.

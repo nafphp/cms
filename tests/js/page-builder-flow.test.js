@@ -95,7 +95,7 @@ test('custom layout survives add, configure, nested save, reload, preview, publi
     const {PageBuilder} = await import('../../public/js/admin/page-builder/PageBuilder.js');
     const builder = new PageBuilder(document.querySelector('[data-page-builder]'));
     let savedPayload = null;
-    window.NixCMS = {
+    window.NafCMS = {
         json: async (_url, options) => {
             savedPayload = JSON.parse(options.body);
             return {ok: true, json: async () => ({success: true, id: 41})};
@@ -122,7 +122,7 @@ test('custom layout survives add, configure, nested save, reload, preview, publi
     assert.equal(savedPayload.blocks[slotId].props.children[0].props.text, 'Saved nested copy');
 
     const beforeRejectedSave = structuredClone(builder.blockContent);
-    window.NixCMS.json = async () => ({
+    window.NafCMS.json = async () => ({
         ok: false,
         json: async () => ({success: false, errors: {blocks: ['Invalid select value.']}}),
     });
@@ -142,7 +142,7 @@ test('custom layout survives add, configure, nested save, reload, preview, publi
             themeId: savedPayload.themeId,
         },
     }));
-    window.NixCMS = {json: async () => ({ok: true, json: async () => ({success: true, id: 41})})};
+    window.NafCMS = {json: async () => ({ok: true, json: async () => ({success: true, id: 41})})};
     const reloaded = new PageBuilder(document.querySelector('[data-page-builder]'));
     await reloaded.init();
 

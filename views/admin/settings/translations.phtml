@@ -1,10 +1,10 @@
 <?php
 
-use function NixPHP\I18n\t;
-use function NixPHP\route;
-use function NixPHP\View\s;
-use function NixPHP\View\view;
-use function NixPHP\CMS\cms;
+use function Naf\I18n\t;
+use function Naf\route;
+use function Naf\View\s;
+use function Naf\View\view;
+use function Naf\CMS\cms;
 
 $language = strtolower(trim((string) ($language ?? 'en')));
 $languages = is_array($languages ?? null) ? $languages : [];
@@ -131,7 +131,7 @@ $languageOptions = cms()->languages()->knownOptions();
     </div>
 </div>
 
-<script nonce="<?= \NixPHP\CMS\csp_nonce() ?>" type="module">
+<script nonce="<?= \Naf\CMS\csp_nonce() ?>" type="module">
     import toast from '/js/lib/notifyJs/Modules/Toast.js';
     import prompt from '/js/lib/notifyJs/Modules/Prompt.js';
     import {initStyledSelects} from '/js/components/styledSelect.js';
@@ -307,7 +307,7 @@ $languageOptions = cms()->languages()->knownOptions();
             confirmCallback: (promptInstance) => {
                 const select = promptInstance.container.querySelector('#settings-language-code-input');
                 const selected = String(select?.value || '').trim().toLowerCase();
-                if (!new RegExp(String(window.NixCMS?.languagePattern || '^[a-z]{2,3}(?:-[a-z0-9]{2,4})?$')).test(selected) || selected.length > 8) {
+                if (!new RegExp(String(window.NafCMS?.languagePattern || '^[a-z]{2,3}(?:-[a-z0-9]{2,4})?$')).test(selected) || selected.length > 8) {
                     toast(labels.invalidLanguage);
                     select?.focus();
                     return true;
@@ -324,7 +324,7 @@ $languageOptions = cms()->languages()->knownOptions();
         const confirmed = await promptResult;
         if (confirmed !== true || !newLanguage) return;
 
-        const response = await (window.NixCMS?.json || fetch)(<?= json_encode('/api/admin/translations/{language}') ?>.replace('{language}', encodeURIComponent(newLanguage)), {
+        const response = await (window.NafCMS?.json || fetch)(<?= json_encode('/api/admin/translations/{language}') ?>.replace('{language}', encodeURIComponent(newLanguage)), {
             method: 'POST',
             body: JSON.stringify({entries: {}, mode: 'merge'}),
         });
@@ -423,7 +423,7 @@ $languageOptions = cms()->languages()->knownOptions();
         event.preventDefault();
         clearSettingErrors();
 
-        const response = await (window.NixCMS?.json || fetch)(settingsEndpoint, {
+        const response = await (window.NafCMS?.json || fetch)(settingsEndpoint, {
             method: 'POST',
             body: JSON.stringify(payloadFromSettingsForm(settingsForm)),
         });
@@ -468,7 +468,7 @@ $languageOptions = cms()->languages()->knownOptions();
             entries[key] = value;
         }
 
-        const response = await (window.NixCMS?.json || fetch)(endpoint, {
+        const response = await (window.NafCMS?.json || fetch)(endpoint, {
             method: 'POST',
             body: JSON.stringify({entries}),
         });

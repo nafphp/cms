@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Localization;
+namespace Naf\CMS\Localization;
 
-use NixPHP\CMS\Enums\Language;
-use NixPHP\CMS\Support\RuntimePaths;
-use function NixPHP\config;
-use function NixPHP\I18n\t;
+use Naf\CMS\Enums\Language;
+use Naf\CMS\Support\RuntimePaths;
+use function Naf\config;
+use function Naf\I18n\t;
 
 final class LanguageRegistry
 {
@@ -49,7 +49,7 @@ final class LanguageRegistry
     public function known(): array
     {
         $languages = [
-            ...$this->normalizeList(\NixPHP\I18n\Support\Language::all()),
+            ...$this->normalizeList(\Naf\I18n\Support\Language::all()),
             ...$this->available(),
         ];
 
@@ -97,7 +97,7 @@ final class LanguageRegistry
             return $translated;
         }
 
-        $label = (new \NixPHP\I18n\Support\Language())->label($language, '');
+        $label = (new \Naf\I18n\Support\Language())->label($language, '');
         return $label !== '' ? $label : strtoupper($language);
     }
 

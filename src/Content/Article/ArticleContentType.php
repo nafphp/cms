@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Content\Article;
+namespace Naf\CMS\Content\Article;
 
-use NixPHP\CMS\Api\ArticleApi;
-use NixPHP\CMS\Content\Article\BlockRegistry;
-use NixPHP\CMS\Content\ContentTypeInterface;
-use NixPHP\CMS\Models\Article;
-use NixPHP\CMS\Repositories\ArticleRepository;
-use NixPHP\CMS\Services\Content\ArticleCatalogService;
-use NixPHP\CMS\Services\Content\ArticleFormService;
-use NixPHP\CMS\Services\Content\ArticleRenderer;
-use function NixPHP\ORM\repo;
+use Naf\CMS\Api\ArticleApi;
+use Naf\CMS\Content\Article\BlockRegistry;
+use Naf\CMS\Content\ContentTypeInterface;
+use Naf\CMS\Models\Article;
+use Naf\CMS\Repositories\ArticleRepository;
+use Naf\CMS\Services\Content\ArticleCatalogService;
+use Naf\CMS\Services\Content\ArticleFormService;
+use Naf\CMS\Services\Content\ArticleRenderer;
+use function Naf\ORM\repo;
 
 final class ArticleContentType implements ContentTypeInterface
 {

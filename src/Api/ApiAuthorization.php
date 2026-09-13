@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Api;
+namespace Naf\CMS\Api;
 
-use NixPHP\CMS\Services\Security\ResourceAuthorization;
-use NixPHP\Auth\Exceptions\{ForbiddenException, UnauthenticatedException};
-use NixPHP\CMS\Exceptions\AuthException;
-use function NixPHP\CMS\user;
+use Naf\CMS\Services\Security\ResourceAuthorization;
+use Naf\Auth\Exceptions\{ForbiddenException, UnauthenticatedException};
+use Naf\CMS\Exceptions\AuthException;
+use function Naf\CMS\user;
 
 final class ApiAuthorization
 {

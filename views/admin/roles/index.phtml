@@ -1,9 +1,9 @@
 <?php
 
-use function NixPHP\route;
-use function NixPHP\Form\csrf;
-use function NixPHP\I18n\t;
-use function NixPHP\View\s;
+use function Naf\route;
+use function Naf\Form\csrf;
+use function Naf\I18n\t;
+use function Naf\View\s;
 
 $roles = is_array($roles ?? null) ? $roles : [];
 $permissions = is_array($permissions ?? null) ? $permissions : [];
@@ -75,7 +75,7 @@ $permissions = is_array($permissions ?? null) ? $permissions : [];
     </div>
 </div>
 
-<script nonce="<?= \NixPHP\CMS\csp_nonce() ?>" type="module">
+<script nonce="<?= \Naf\CMS\csp_nonce() ?>" type="module">
     import prompt from "/js/lib/notifyJs/Modules/Prompt.js";
     import toast from "/js/lib/notifyJs/Modules/Toast.js";
 
@@ -147,7 +147,7 @@ $permissions = is_array($permissions ?? null) ? $permissions : [];
     }
 
     async function postJson(url, payload) {
-        const response = await (window.NixCMS?.fetch || fetch)(url, {
+        const response = await (window.NafCMS?.fetch || fetch)(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

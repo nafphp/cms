@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Admin;
+namespace Naf\CMS\Services\Admin;
 
-use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Page\PageRegistry;
-use NixPHP\CMS\Support\UserHelper;
-use NixPHP\CMS\Services\Admin\AdminNavigationItemCollector;
-use NixPHP\CMS\Services\Admin\AdminNavigationTreeBuilder;
-use function NixPHP\CMS\cms;
-use function NixPHP\CMS\user;
+use Naf\CMS\Page\Page;
+use Naf\CMS\Page\PageRegistry;
+use Naf\CMS\Support\UserHelper;
+use Naf\CMS\Services\Admin\AdminNavigationItemCollector;
+use Naf\CMS\Services\Admin\AdminNavigationTreeBuilder;
+use function Naf\CMS\cms;
+use function Naf\CMS\user;
 
 final class AdminNavigationAuthorizationFilter
 {
@@ -79,13 +79,13 @@ final class AdminNavigationAuthorizationFilter
     {
         $user = $this->currentUser();
         try {
-            (new \NixPHP\CMS\Services\Security\ResourceAuthorization())->authorize(
+            (new \Naf\CMS\Services\Security\ResourceAuthorization())->authorize(
                 $user?->isLoggedIn() === true ? $user : null,
                 $page->requiresAuthentication(), $page->requiredRoles(),
                 $page->requiredPermissions(), $page->requiresAnyPermission(),
             );
             return true;
-        } catch (\NixPHP\Auth\Exceptions\UnauthenticatedException|\NixPHP\Auth\Exceptions\ForbiddenException) {
+        } catch (\Naf\Auth\Exceptions\UnauthenticatedException|\Naf\Auth\Exceptions\ForbiddenException) {
             return false;
         }
     }

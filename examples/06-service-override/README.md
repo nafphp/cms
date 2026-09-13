@@ -1,6 +1,6 @@
 # Service Override
 
-NixCMS binds replaceable behavior to contracts during the plugin bootstrap.
+NafCMS binds replaceable behavior to contracts during the plugin bootstrap.
 The host loads `app/src/services.php` from its routes file after plugin
 bootstraps, so its binding wins.
 

@@ -2,30 +2,30 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Support;
+namespace Naf\CMS\Support;
 
-use NixPHP\CMS\Api\ArticleApi;
-use NixPHP\CMS\Api\ApiRegistry;
-use NixPHP\CMS\Api\FormApi;
-use NixPHP\CMS\Api\MediaApi;
-use NixPHP\CMS\Api\NavigationApi;
-use NixPHP\CMS\Content\BlockViewRegistry;
-use NixPHP\CMS\Content\ContentRegistry;
-use NixPHP\CMS\Content\Page\Block\BlockTypeRegistry;
-use NixPHP\CMS\Contracts\ThemeSourceInterface;
-use NixPHP\CMS\Enums\Scope;
-use NixPHP\CMS\Localization\LanguageRegistry;
-use NixPHP\CMS\Models\Article;
-use NixPHP\CMS\Models\Form;
-use NixPHP\CMS\Models\Media;
-use NixPHP\CMS\Models\SiteNavigation;
-use NixPHP\CMS\Page\PageRegistry;
-use NixPHP\CMS\Storage\EntityStorage;
-use NixPHP\CMS\Theme\ThemeRegistry;
-use NixPHP\CMS\Visualization\VisualizationRegistry;
-use NixPHP\CMS\Support\ScopedCms;
-use NixPHP\CMS\Support\Settings;
-use function NixPHP\app;
+use Naf\CMS\Api\ArticleApi;
+use Naf\CMS\Api\ApiRegistry;
+use Naf\CMS\Api\FormApi;
+use Naf\CMS\Api\MediaApi;
+use Naf\CMS\Api\NavigationApi;
+use Naf\CMS\Content\BlockViewRegistry;
+use Naf\CMS\Content\ContentRegistry;
+use Naf\CMS\Content\Page\Block\BlockTypeRegistry;
+use Naf\CMS\Contracts\ThemeSourceInterface;
+use Naf\CMS\Enums\Scope;
+use Naf\CMS\Localization\LanguageRegistry;
+use Naf\CMS\Models\Article;
+use Naf\CMS\Models\Form;
+use Naf\CMS\Models\Media;
+use Naf\CMS\Models\SiteNavigation;
+use Naf\CMS\Page\PageRegistry;
+use Naf\CMS\Storage\EntityStorage;
+use Naf\CMS\Theme\ThemeRegistry;
+use Naf\CMS\Visualization\VisualizationRegistry;
+use Naf\CMS\Support\ScopedCms;
+use Naf\CMS\Support\Settings;
+use function Naf\app;
 
 final class Cms
 {
@@ -133,7 +133,7 @@ final class Cms
     }
 
     /**
-     * @template T of \NixPHP\ORM\Core\EntityInterface
+     * @template T of \Naf\ORM\Core\EntityInterface
      * @param class-string<T> $class
      * @return EntityStorage<T>
      */

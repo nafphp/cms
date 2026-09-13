@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Contracts;
+namespace Naf\CMS\Contracts;
 
-use NixPHP\CMS\Services\Security\RateLimitDecision;
+use Naf\CMS\Services\Security\RateLimitDecision;
 
 interface RateLimiterInterface
 {

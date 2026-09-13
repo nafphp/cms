@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Migrations;
 
-use NixPHP\Database\Core\MigrationInterface;
+use Naf\Database\Core\MigrationInterface;
 use Tests\Support\DatabaseTestCase;
 
 final class PluginMigrationsSqliteTest extends DatabaseTestCase
@@ -16,7 +16,7 @@ final class PluginMigrationsSqliteTest extends DatabaseTestCase
 
         foreach ($files as $file) {
             require_once $file;
-            $class = 'NixPHP\\CMS\\Migrations\\' . basename($file, '.php');
+            $class = 'Naf\\CMS\\Migrations\\' . basename($file, '.php');
             $migration = new $class();
 
             self::assertInstanceOf(MigrationInterface::class, $migration);

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Examples\ServiceOverride;
+namespace Naf\CMS\Examples\ServiceOverride;
 
-use NixPHP\CMS\Contracts\MediaStorageInterface;
+use Naf\CMS\Contracts\MediaStorageInterface;
 use Psr\Http\Message\UploadedFileInterface;
-use function NixPHP\app;
+use function Naf\app;
 
 final class ExampleMediaStorage implements MediaStorageInterface
 {

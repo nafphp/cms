@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Developer;
+namespace Naf\CMS\Services\Developer;
 
-use NixPHP\CMS\Support\AtomicFileWriter;
+use Naf\CMS\Support\AtomicFileWriter;
 
 final class AgentGuideInstaller
 {
-    public const MARKER = '<!-- managed-by: nixphp/cms agent-guide -->';
+    public const MARKER = '<!-- managed-by: naf/cms agent-guide -->';
 
     public function __construct(
         private readonly string $source,
@@ -21,7 +21,7 @@ final class AgentGuideInstaller
     {
         $template = file_get_contents($this->source);
         if (!is_string($template) || !str_contains($template, self::MARKER)) {
-            throw new \RuntimeException('The shipped NixCMS agent guide template is missing or unmanaged.');
+            throw new \RuntimeException('The shipped NafCMS agent guide template is missing or unmanaged.');
         }
 
         $existed = is_file($this->destination);

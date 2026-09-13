@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Content\Page\Block\Types;
+namespace Naf\CMS\Content\Page\Block\Types;
 
-use NixPHP\CMS\Content\Page\Block\AbstractBlockType;
+use Naf\CMS\Content\Page\Block\AbstractBlockType;
 
 final class HeroBlockType extends AbstractBlockType
 {
@@ -36,7 +36,7 @@ final class HeroBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'eyebrow' => 'NixCMS',
+            'eyebrow' => 'NafCMS',
             'title' => 'A clear page hero',
             'text' => 'Use this area for the main promise of the page.',
             'buttonLabel' => 'Get started',

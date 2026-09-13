@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Page;
+namespace Naf\CMS\Page;
 
-use NixPHP\I18n\Core\Translator;
-use NixPHP\CMS\Page\Layout;
-use NixPHP\CMS\Page\Page;
-use function NixPHP\app;
-use function NixPHP\I18n\t;
-use function NixPHP\log;
-use function NixPHP\View\view;
+use Naf\I18n\Core\Translator;
+use Naf\CMS\Page\Layout;
+use Naf\CMS\Page\Page;
+use function Naf\app;
+use function Naf\I18n\t;
+use function Naf\log;
+use function Naf\View\view;
 
 final class PageBuilderRenderer
 {

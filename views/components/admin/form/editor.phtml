@@ -1,7 +1,7 @@
 <?php
 
-use NixPHP\View\Core\Asset;
-use function NixPHP\View\s;
+use Naf\View\Core\Asset;
+use function Naf\View\s;
 
 $name = (string) ($name ?? 'content');
 $label = (string) ($label ?? 'Content');
@@ -16,7 +16,7 @@ $assets->add('/js/editor.js');
 <input type="hidden" name="<?= s($name) ?>" value="">
 
 <?= $assets->render('js') ?>
-<script nonce="<?= \NixPHP\CMS\csp_nonce() ?>">
+<script nonce="<?= \Naf\CMS\csp_nonce() ?>">
     const editor = new EditorJS({
         holder: 'editorjs',
         placeholder: <?= json_encode($label) ?>,
@@ -36,10 +36,10 @@ $assets->add('/js/editor.js');
                         byUrl: '/editor/fetch/image'
                     },
                     additionalRequestHeaders: {
-                        'X-CSRF-Token': String(window.NixCMS?.csrfToken?.() || document.querySelector('input[name="_csrf"]')?.value || '')
+                        'X-CSRF-Token': String(window.NafCMS?.csrfToken?.() || document.querySelector('input[name="_csrf"]')?.value || '')
                     },
                     additionalRequestData: {
-                        _csrf: String(window.NixCMS?.csrfToken?.() || document.querySelector('input[name="_csrf"]')?.value || '')
+                        _csrf: String(window.NafCMS?.csrfToken?.() || document.querySelector('input[name="_csrf"]')?.value || '')
                     }
                 }
             }

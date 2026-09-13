@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support;
 
-use NixPHP\CMS\Enums\ArticleStatus;
-use NixPHP\CMS\Enums\Language;
-use Tests\Support\NixPHPTestCase;
+use Naf\CMS\Enums\ArticleStatus;
+use Naf\CMS\Enums\Language;
+use Tests\Support\NafTestCase;
 
-final class NixPHPTestCaseTest extends NixPHPTestCase
+final class NafTestCaseTest extends NafTestCase
 {
     public function testMockArticleCreatesArticleWithCurrentVersion(): void
     {

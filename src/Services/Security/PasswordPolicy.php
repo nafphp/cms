@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Security;
+namespace Naf\CMS\Services\Security;
 
-use NixPHP\CMS\Contracts\PasswordPolicyInterface;
+use Naf\CMS\Contracts\PasswordPolicyInterface;
 
 final class PasswordPolicy implements PasswordPolicyInterface
 {

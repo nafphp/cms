@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Page\Form;
+namespace Naf\CMS\Handlers\Page\Form;
 
-use NixPHP\CMS\Exceptions\OutboundHttpDenied;
-use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
-use NixPHP\CMS\Services\Http\OutboundHttpPolicy;
-use NixPHP\CMS\Services\Http\OutboundHttpProfile;
+use Naf\CMS\Exceptions\OutboundHttpDenied;
+use Naf\CMS\Handlers\Support\ReadsJsonBody;
+use Naf\CMS\Services\Http\OutboundHttpPolicy;
+use Naf\CMS\Services\Http\OutboundHttpProfile;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use function NixPHP\config;
-use function NixPHP\json;
-use function NixPHP\CMS\cms;
+use function Naf\config;
+use function Naf\json;
+use function Naf\CMS\cms;
 
 final class StoreForm
 {

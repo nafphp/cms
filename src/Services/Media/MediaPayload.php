@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Media;
+namespace Naf\CMS\Services\Media;
 
-use NixPHP\CMS\Models\Media;
+use Naf\CMS\Models\Media;
 
 final class MediaPayload
 {

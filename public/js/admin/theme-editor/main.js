@@ -39,7 +39,7 @@ import {
             this.colorPicker = root.querySelector('[data-theme-color-picker]');
             this.cssMirror = null;
             this.jsMirror = null;
-            this.storageKey = `nixcms:theme-editor:draft:${window.location.pathname}${window.location.search || ''}`;
+            this.storageKey = `nafcms:theme-editor:draft:${window.location.pathname}${window.location.search || ''}`;
             this.restoring = false;
             this.persistTimer = null;
             this.lastThemeId = '';
@@ -307,11 +307,11 @@ import {
                 return;
             }
 
-            if (!window.CodeMirror.helpers?.hint?.nixcmsThemeCss) {
-                window.CodeMirror.registerHelper('hint', 'nixcmsThemeCss', this.cssHint.bind(this));
+            if (!window.CodeMirror.helpers?.hint?.nafcmsThemeCss) {
+                window.CodeMirror.registerHelper('hint', 'nafcmsThemeCss', this.cssHint.bind(this));
             }
-            if (!window.CodeMirror.helpers?.hint?.nixcmsThemeJs) {
-                window.CodeMirror.registerHelper('hint', 'nixcmsThemeJs', this.jsHint.bind(this));
+            if (!window.CodeMirror.helpers?.hint?.nafcmsThemeJs) {
+                window.CodeMirror.registerHelper('hint', 'nafcmsThemeJs', this.jsHint.bind(this));
             }
         }
 
@@ -325,8 +325,8 @@ import {
                 return;
             }
 
-            window.clearTimeout(editor._nixcmsCompletionTimer);
-            editor._nixcmsCompletionTimer = window.setTimeout(() => this.showCompletion(editor, mode, false), 80);
+            window.clearTimeout(editor._nafcmsCompletionTimer);
+            editor._nafcmsCompletionTimer = window.setTimeout(() => this.showCompletion(editor, mode, false), 80);
         }
 
         showCompletion(editor, mode, forced = false) {
@@ -406,7 +406,7 @@ import {
                 .map((word) => ({
                     text: word,
                     displayText: word,
-                    className: 'nixcms-cm-hint-tailwind',
+                    className: 'nafcms-cm-hint-tailwind',
                 }));
 
             return {list, from, to};
@@ -443,7 +443,7 @@ import {
                 .map((word) => ({
                     text: word,
                     displayText: word.includes('\n') ? word.split('\n')[0].replace(/\s*\{$/, ' {...}') : word,
-                    className: word.includes('\n') ? 'nixcms-cm-hint-snippet' : '',
+                    className: word.includes('\n') ? 'nafcms-cm-hint-snippet' : '',
                 }));
 
             return {list, from, to};
@@ -506,7 +506,7 @@ import {
                     .map((word) => ({
                         text: word,
                         displayText: word,
-                        className: word.includes(' ') ? 'nixcms-cm-hint-snippet' : '',
+                        className: word.includes(' ') ? 'nafcms-cm-hint-snippet' : '',
                     })),
                 from: window.CodeMirror.Pos(cursor.line, start),
                 to: window.CodeMirror.Pos(cursor.line, token.end),
@@ -1176,8 +1176,8 @@ import {
 
     document.querySelectorAll('[data-theme-editor]').forEach((root) => {
         const editor = new ThemeEditor(root);
-        window.NixCMS = window.NixCMS || {};
-        window.NixCMS.themeEditor = editor;
+        window.NafCMS = window.NafCMS || {};
+        window.NafCMS.themeEditor = editor;
         editor.init();
     });
 })();

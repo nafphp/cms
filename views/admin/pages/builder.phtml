@@ -1,13 +1,13 @@
 <?php
 
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Repositories\ThemeRepository;
-use NixPHP\CMS\Services\Settings\TranslationFileService;
-use function NixPHP\View\s;
-use function NixPHP\I18n\t;
-use function NixPHP\route;
-use function NixPHP\CMS\cms;
-use function NixPHP\CMS\user;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Repositories\ThemeRepository;
+use Naf\CMS\Services\Settings\TranslationFileService;
+use function Naf\View\s;
+use function Naf\I18n\t;
+use function Naf\route;
+use function Naf\CMS\cms;
+use function Naf\CMS\user;
 
 $templates = is_array($templates ?? null) ? $templates : [];
 $contentTypes = is_array($contentTypes ?? null) ? $contentTypes : [];
@@ -126,7 +126,7 @@ $config = [
 >
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-amber-400/20 bg-amber-400/10 px-5 py-3 text-xs text-amber-100">
         <span><strong class="mr-2 rounded bg-amber-300 px-2 py-1 text-[10px] uppercase tracking-wide text-amber-950">Preview</strong> Sitebuilder payloads are experimental before v0.1.</span>
-        <a class="font-semibold text-amber-200 underline decoration-amber-300/50 underline-offset-4 hover:text-white" href="https://github.com/nixphp/cms#sitebuilder-preview" target="_blank" rel="noopener noreferrer">Supported scope and known limits</a>
+        <a class="font-semibold text-amber-200 underline decoration-amber-300/50 underline-offset-4 hover:text-white" href="https://github.com/nafphp/cms#sitebuilder-preview" target="_blank" rel="noopener noreferrer">Supported scope and known limits</a>
     </div>
     <section class="page-builder-template-step grid overflow-hidden" data-step="template">
         <aside class="page-builder-layout-panel grid grid-rows-[auto_minmax(0,1fr)_auto] border-r border-slate-700/80 bg-[#141a22]">
@@ -210,7 +210,7 @@ $config = [
 
     <section class="hidden min-h-[760px] bg-[#0b1017]" data-step="layout">
         <header class="flex min-h-[74px] flex-wrap items-center gap-3 border-b border-slate-800 bg-[#141a22] px-6 py-3">
-            <strong class="text-lg font-black tracking-wide text-[var(--admin-page-accent)]">NIXCMS</strong>
+            <strong class="text-lg font-black tracking-wide text-[var(--admin-page-accent)]">NAFCMS</strong>
             <span class="text-xl font-semibold text-white" data-editor-title>Layout bearbeiten</span>
             <div class="ml-auto flex flex-wrap items-center justify-end gap-3">
                 <span class="grid h-9 w-9 place-items-center rounded-full bg-[var(--admin-page-accent)] font-bold text-white">✓</span>
@@ -292,7 +292,7 @@ $config = [
 
     <section class="hidden min-h-[760px] bg-[#0b1017]" data-step="meta">
         <header class="flex min-h-[74px] items-center gap-5 border-b border-slate-800 bg-[#141a22] px-6">
-            <strong class="text-lg font-black tracking-wide text-[var(--admin-page-accent)]">NIXCMS</strong>
+            <strong class="text-lg font-black tracking-wide text-[var(--admin-page-accent)]">NAFCMS</strong>
             <span class="text-xl font-semibold text-white">Metadaten pflegen</span>
             <div class="ml-auto flex items-center gap-3">
                 <span class="grid h-9 w-9 place-items-center rounded-full bg-[var(--admin-page-accent)] font-bold text-white">✓</span>

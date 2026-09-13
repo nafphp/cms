@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Mcp\Tools;
+namespace Naf\CMS\Mcp\Tools;
 
-use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
-use NixPHP\CMS\Enums\ToolRisk;
+use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
+use Naf\CMS\Enums\ToolRisk;
 
-use NixPHP\MCP\Support\Schema;
-use NixPHP\MCP\Tools\ScopedToolInterface;
-use NixPHP\MCP\Tools\ToolInterface;
+use Naf\MCP\Support\Schema;
+use Naf\MCP\Tools\ScopedToolInterface;
+use Naf\MCP\Tools\ToolInterface;
 use PDO;
 use Throwable;
-use function NixPHP\Database\database;
+use function Naf\Database\database;
 
 final class UserRoleSummaryTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
@@ -29,7 +29,7 @@ final class UserRoleSummaryTool implements ToolInterface, ScopedToolInterface, L
 
     public function description(): string
     {
-        return 'Returns user, role, permission, and assignment counts for the NixCMS RBAC model.';
+        return 'Returns user, role, permission, and assignment counts for the NafCMS RBAC model.';
     }
 
     public function inputSchema(): array

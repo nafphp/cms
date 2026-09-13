@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Migrations;
+namespace Naf\CMS\Migrations;
 
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Enums\Role;
-use NixPHP\Database\Core\AbstractMigration;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Enums\Role;
+use Naf\Database\Core\AbstractMigration;
 use PDO;
 
 final class Migration202604300001 extends AbstractMigration

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Security;
+namespace Naf\CMS\Services\Security;
 
-use NixPHP\Auth\Exceptions\{ForbiddenException, UnauthenticatedException};
-use NixPHP\CMS\Enums\{Permission, Role};
-use NixPHP\CMS\Support\UserHelper;
+use Naf\Auth\Exceptions\{ForbiddenException, UnauthenticatedException};
+use Naf\CMS\Enums\{Permission, Role};
+use Naf\CMS\Support\UserHelper;
 
 /** Apply page/API requirements with the same rules in guards and navigation. */
 final class ResourceAuthorization

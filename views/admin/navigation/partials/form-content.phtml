@@ -1,9 +1,9 @@
 <?php
 
-use function NixPHP\I18n\t;
-use function NixPHP\route;
-use function NixPHP\View\s;
-use function NixPHP\CMS\cms;
+use function Naf\I18n\t;
+use function Naf\route;
+use function Naf\View\s;
+use function Naf\CMS\cms;
 
 $navigation = is_array($navigation ?? null) ? $navigation : null;
 $translations = is_array($translations ?? null) ? $translations : [];
@@ -96,7 +96,7 @@ foreach ($languages as $language) {
     </div>
 </form>
 
-<script nonce="<?= \NixPHP\CMS\csp_nonce() ?>" type="module">
+<script nonce="<?= \Naf\CMS\csp_nonce() ?>" type="module">
     import {initNavigationForm} from '/js/admin/navigation-form.js';
 
     initNavigationForm({

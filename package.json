@@ -1,13 +1,13 @@
 {
-  "name": "nixcms",
+  "name": "nafcms",
   "private": true,
   "version": "0.0.1",
-  "description": "Lightweight extensible CMS built on NixPHP.",
+  "description": "Lightweight extensible CMS built on NAF.",
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "tailwindcss -i ./src/Resources/css/nixcms.css -o ./public/css/nixcms.css --watch --verbose",
-    "build": "tailwindcss -i ./src/Resources/css/nixcms.css -o ./public/css/nixcms.css --minify --verbose",
+    "dev": "tailwindcss -i ./src/Resources/css/nafcms.css -o ./public/css/nafcms.css --watch --verbose",
+    "build": "tailwindcss -i ./src/Resources/css/nafcms.css -o ./public/css/nafcms.css --minify --verbose",
     "test:builder": "node --test \"tests/js/*.test.js\""
   },
   "devDependencies": {

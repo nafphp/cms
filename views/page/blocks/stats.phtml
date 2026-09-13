@@ -1,7 +1,7 @@
 <?php
 
-use function NixPHP\View\s;
-use function NixPHP\I18n\t;
+use function Naf\View\s;
+use function Naf\I18n\t;
 
 $content = is_array($content ?? null) ? $content : [];
 $props = is_array($content['props'] ?? null) ? $content['props'] : [];
@@ -18,7 +18,7 @@ if ($items === []) {
         ['value' => (string) ($props['valueC'] ?? '24/7'), 'label' => (string) ($props['labelC'] ?? 'Access')],
     ];
 }
-$surface = \NixPHP\CMS\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
+$surface = \Naf\CMS\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
 $itemClass = [
     'none' => 'py-1',
     'soft' => 'rounded-lg bg-[var(--page-panel-soft)] p-5',

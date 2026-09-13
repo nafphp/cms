@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
-use NixPHP\CMS\Exceptions\PrivilegedActionDenied;
-use NixPHP\CMS\Repositories\PermissionRepository;
-use NixPHP\CMS\Repositories\RoleRepository;
-use NixPHP\CMS\Repositories\UserRepository;
-use NixPHP\CMS\Services\Security\CredentialService;
-use NixPHP\ORM\Core\EntityManager;
+use Naf\CMS\Exceptions\PrivilegedActionDenied;
+use Naf\CMS\Repositories\PermissionRepository;
+use Naf\CMS\Repositories\RoleRepository;
+use Naf\CMS\Repositories\UserRepository;
+use Naf\CMS\Services\Security\CredentialService;
+use Naf\ORM\Core\EntityManager;
 use Tests\Support\DatabaseTestCase;
 
 final class PrivilegedMutationBoundaryTest extends DatabaseTestCase

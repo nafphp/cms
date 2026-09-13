@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Contracts;
+namespace Naf\CMS\Contracts;
 
-use NixPHP\CMS\Enums\Permission;
+use Naf\CMS\Enums\Permission;
 
 /**
  * Authorization boundary for user, role, credential, and deletion mutations.

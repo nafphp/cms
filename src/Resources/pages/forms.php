@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Contracts\TranslationServiceInterface;
-use NixPHP\CMS\Handlers\Page\Form\StoreForm;
-use NixPHP\CMS\Page\Page;
-use function NixPHP\app;
-use function NixPHP\I18n\t;
-use function NixPHP\redirect;
-use function NixPHP\route;
-use function NixPHP\View\render;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Contracts\TranslationServiceInterface;
+use Naf\CMS\Handlers\Page\Form\StoreForm;
+use Naf\CMS\Page\Page;
+use function Naf\app;
+use function Naf\I18n\t;
+use function Naf\redirect;
+use function Naf\route;
+use function Naf\View\render;
+use function Naf\CMS\cms;
 
 $translationSuggestions = static function (): array {
     $language = cms()->settings()->currentLanguage();

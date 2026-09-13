@@ -354,7 +354,7 @@ body.is-admin-navigation-dragging .admin-navigation-placeholder {
     white-space: nowrap;
 }
 
-.nixcms-chart {
+.nafcms-chart {
     margin: 0;
     overflow: hidden;
     border: 1px solid var(--admin-line);
@@ -363,12 +363,12 @@ body.is-admin-navigation-dragging .admin-navigation-placeholder {
     box-shadow: 0 18px 48px rgba(15, 23, 42, .08);
 }
 
-.dark .nixcms-chart {
+.dark .nafcms-chart {
     background: color-mix(in srgb, var(--admin-panel) 88%, black 12%);
     box-shadow: 0 22px 54px rgba(0, 0, 0, .32);
 }
 
-.nixcms-chart--surface-none {
+.nafcms-chart--surface-none {
     overflow: visible;
     border: 0;
     border-radius: 0;
@@ -376,18 +376,18 @@ body.is-admin-navigation-dragging .admin-navigation-placeholder {
     box-shadow: none;
 }
 
-.dark .nixcms-chart--surface-none {
+.dark .nafcms-chart--surface-none {
     background: transparent;
     box-shadow: none;
 }
 
-.nixcms-chart--surface-soft {
+.nafcms-chart--surface-soft {
     border-color: transparent;
     background: var(--page-panel-soft, var(--surface-soft));
     box-shadow: none;
 }
 
-.nixcms-chart--surface-accent {
+.nafcms-chart--surface-accent {
     border-color: color-mix(in srgb, var(--page-accent, var(--admin-page-accent)) 36%, var(--admin-line));
     background: color-mix(in srgb, var(--page-accent, var(--admin-page-accent)) 12%, var(--admin-panel));
     box-shadow: none;
@@ -409,15 +409,15 @@ body.is-admin-navigation-dragging .admin-navigation-placeholder {
     --page-block-surface: color-mix(in srgb, var(--page-accent) 12%, var(--page-card-bg));
 }
 
-.nixcms-chart--surface-none .nixcms-chart__header {
+.nafcms-chart--surface-none .nafcms-chart__header {
     padding: 0 0 .5rem;
 }
 
-.nixcms-chart--surface-none .nixcms-chart__surface {
+.nafcms-chart--surface-none .nafcms-chart__surface {
     padding: 0;
 }
 
-.nixcms-chart__header {
+.nafcms-chart__header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -425,7 +425,7 @@ body.is-admin-navigation-dragging .admin-navigation-placeholder {
     padding: 1rem 1.25rem 0;
 }
 
-.nixcms-chart__title {
+.nafcms-chart__title {
     margin: 0;
     color: var(--admin-text);
     font-size: 1rem;
@@ -433,22 +433,22 @@ body.is-admin-navigation-dragging .admin-navigation-placeholder {
     line-height: 1.35;
 }
 
-.nixcms-chart__subtitle {
+.nafcms-chart__subtitle {
     margin: .2rem 0 0;
     color: var(--admin-muted);
     font-size: .875rem;
 }
 
-.nixcms-chart__surface {
+.nafcms-chart__surface {
     position: relative;
     padding: .75rem 1rem 1rem;
 }
 
-.nixcms-chart__canvas {
+.nafcms-chart__canvas {
     width: 100%;
 }
 
-.nixcms-chart__empty {
+.nafcms-chart__empty {
     position: absolute;
     inset: 1rem;
     display: none;
@@ -461,13 +461,13 @@ body.is-admin-navigation-dragging .admin-navigation-placeholder {
     background: color-mix(in srgb, var(--surface-soft) 64%, transparent);
 }
 
-.nixcms-chart.is-empty .nixcms-chart__canvas,
-.nixcms-chart.has-render-error .nixcms-chart__canvas {
+.nafcms-chart.is-empty .nafcms-chart__canvas,
+.nafcms-chart.has-render-error .nafcms-chart__canvas {
     display: none;
 }
 
-.nixcms-chart.is-empty .nixcms-chart__empty,
-.nixcms-chart.has-render-error .nixcms-chart__empty {
+.nafcms-chart.is-empty .nafcms-chart__empty,
+.nafcms-chart.has-render-error .nafcms-chart__empty {
     display: grid;
 }
 
@@ -3612,7 +3612,7 @@ body.admin-app .CodeMirror-hint {
     white-space: nowrap;
 }
 
-body.admin-app .CodeMirror-hint.nixcms-cm-hint-snippet {
+body.admin-app .CodeMirror-hint.nafcms-cm-hint-snippet {
     color: #bae6fd;
 }
 

@@ -1,11 +1,11 @@
 <?php
 
-use NixPHP\CMS\Services\Form\FormTextTranslator;
-use function NixPHP\Form\csrf;
-use function NixPHP\I18n\t;
-use function NixPHP\Session\session;
-use function NixPHP\View\s;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Services\Form\FormTextTranslator;
+use function Naf\Form\csrf;
+use function Naf\I18n\t;
+use function Naf\Session\session;
+use function Naf\View\s;
+use function Naf\CMS\cms;
 
 $content = is_array($content ?? null) ? $content : [];
 $props = is_array($content['props'] ?? null) ? $content['props'] : [];
@@ -20,7 +20,7 @@ $title = trim(t((string) ($props['title'] ?? $translator->translate(
 ))));
 $intro = trim(t((string) ($props['intro'] ?? '')));
 $submitLabel = t((string) ($props['submitLabel'] ?? $translator->setting($settings, 'submitLabel', t('Send'))));
-$surface = \NixPHP\CMS\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
+$surface = \Naf\CMS\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
 $surfaceClass = [
     'none' => 'grid gap-5',
     'soft' => 'grid gap-5 rounded-lg bg-[var(--page-panel-soft)] p-6',
@@ -43,10 +43,10 @@ if (!is_string($csrfToken) || $csrfToken === '') {
     <?php if (is_array($form) && $fields !== []): ?>
         <form class="grid gap-4" method="post" data-public-form action="/api/forms/<?= s((string) ($form['identifier'] ?? '')) ?>/submit">
             <input type="hidden" name="_csrf" value="<?= s($csrfToken) ?>">
-            <input type="hidden" name="_nixcms_started_at" value="<?= time() ?>">
+            <input type="hidden" name="_nafcms_started_at" value="<?= time() ?>">
             <label class="absolute -left-[10000px] h-px w-px overflow-hidden" aria-hidden="true">
                 Website
-                <input type="text" name="_nixcms_hp" value="" tabindex="-1" autocomplete="off">
+                <input type="text" name="_nafcms_hp" value="" tabindex="-1" autocomplete="off">
             </label>
             <?php foreach ($fields as $field): ?>
                 <?php

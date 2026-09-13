@@ -1,11 +1,11 @@
 <?php
 
-use NixPHP\CMS\Services\Content\ArticleRenderer;
-use function NixPHP\Form\csrf;
-use function NixPHP\I18n\t;
-use function NixPHP\route;
-use function NixPHP\View\s;
-use function NixPHP\View\view;
+use Naf\CMS\Services\Content\ArticleRenderer;
+use function Naf\Form\csrf;
+use function Naf\I18n\t;
+use function Naf\route;
+use function Naf\View\s;
+use function Naf\View\view;
 
 /** @var ArticleRenderer $article */
 $reviewActions = is_array($reviewActions ?? null) ? $reviewActions : [];
@@ -104,7 +104,7 @@ $csrfToken = csrf()->generate();
     </aside>
 </div>
 
-<script nonce="<?= \NixPHP\CMS\csp_nonce() ?>" type="module">
+<script nonce="<?= \Naf\CMS\csp_nonce() ?>" type="module">
     import toast from '/js/lib/notifyJs/Modules/Toast.js';
 
     const form = document.getElementById('articleReviewForm');
@@ -114,7 +114,7 @@ $csrfToken = csrf()->generate();
             return;
         }
 
-        const response = await (window.NixCMS?.fetch || fetch)(<?= json_encode(route('api.admin.articles.review', [
+        const response = await (window.NafCMS?.fetch || fetch)(<?= json_encode(route('api.admin.articles.review', [
             'articleId' => $article->articleId(),
             'language' => $article->language(),
         ])) ?>, {
@@ -122,7 +122,7 @@ $csrfToken = csrf()->generate();
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRF-Token': String(window.NixCMS?.csrfToken?.() || form.querySelector('input[name="_csrf"]')?.value || ''),
+                'X-CSRF-Token': String(window.NafCMS?.csrfToken?.() || form.querySelector('input[name="_csrf"]')?.value || ''),
             },
             body: JSON.stringify({
                 action: button.dataset.reviewAction,

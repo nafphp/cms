@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Models;
+namespace Naf\CMS\Models;
 
-use NixPHP\CMS\Repositories\RoleRepository;
-use NixPHP\ORM\Model\AbstractModel;
-use NixPHP\CMS\Models\Role;
-use function NixPHP\ORM\repo;
+use Naf\CMS\Repositories\RoleRepository;
+use Naf\ORM\Model\AbstractModel;
+use Naf\CMS\Models\Role;
+use function Naf\ORM\repo;
 
 class Permission extends AbstractModel
 {

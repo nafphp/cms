@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Content;
+namespace Naf\CMS\Services\Content;
 
-use NixPHP\CMS\Enums\ArticleStatus;
-use NixPHP\CMS\Localization\LanguageRegistry;
+use Naf\CMS\Enums\ArticleStatus;
+use Naf\CMS\Localization\LanguageRegistry;
 use PDO;
 use Throwable;
-use function NixPHP\Database\database;
+use function Naf\Database\database;
 
 final class ArticleCatalogService
 {

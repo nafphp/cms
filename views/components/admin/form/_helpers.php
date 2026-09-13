@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\View\Admin\Form;
+namespace Naf\CMS\View\Admin\Form;
 
-use function NixPHP\Form\memory;
-use function NixPHP\param;
-use function NixPHP\request;
-use function NixPHP\View\s;
+use function Naf\Form\memory;
+use function Naf\param;
+use function Naf\request;
+use function Naf\View\s;
 
 function attributes(array $attributes): string
 {

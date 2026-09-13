@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Commands;
+namespace Naf\CMS\Commands;
 
-use NixPHP\CMS\Services\Ai\LocalAiToolCatalog;
-use NixPHP\CMS\Services\Ai\ToolRouting\KeywordToolRouter;
-use NixPHP\CMS\Services\Ai\ToolRouting\SemanticToolRouter;
-use NixPHP\CMS\Services\Ai\ToolRouting\ToolContext;
-use NixPHP\CLI\Core\AbstractCommand;
-use NixPHP\CLI\Core\Input;
-use NixPHP\CLI\Core\Output;
-use function NixPHP\CMS\cms;
-use function NixPHP\MCP\tool;
+use Naf\CMS\Services\Ai\LocalAiToolCatalog;
+use Naf\CMS\Services\Ai\ToolRouting\KeywordToolRouter;
+use Naf\CMS\Services\Ai\ToolRouting\SemanticToolRouter;
+use Naf\CMS\Services\Ai\ToolRouting\ToolContext;
+use Naf\CLI\Core\AbstractCommand;
+use Naf\CLI\Core\Input;
+use Naf\CLI\Core\Output;
+use function Naf\CMS\cms;
+use function Naf\MCP\tool;
 
 final class DebugAiToolRoutingCommand extends AbstractCommand
 {
@@ -41,9 +41,9 @@ final class DebugAiToolRoutingCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine('    vendor/bin/nix ai:tools:debug "Wie ist die Systemgesundheit?"');
-            $output->writeLine('    vendor/bin/nix ai:tools:debug "Wie wird das Wetter morgen in München?" --limit=5');
-            $output->writeLine('    vendor/bin/nix ai:tools:debug "Füge einen Block hinzu" --area=pageBuilder --mode=write --capability=pages.write');
+            $output->writeLine('    vendor/bin/naf ai:tools:debug "Wie ist die Systemgesundheit?"');
+            $output->writeLine('    vendor/bin/naf ai:tools:debug "Wie wird das Wetter morgen in München?" --limit=5');
+            $output->writeLine('    vendor/bin/naf ai:tools:debug "Füge einen Block hinzu" --area=pageBuilder --mode=write --capability=pages.write');
             $output->writeEmptyLine();
             $output->writeLine('  Options:');
             $output->writeLine('    --keyword          Force keyword routing instead of the configured embedding router.');

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Ai\ToolRouting;
 
-use NixPHP\CMS\Services\Ai\LocalAiToolCatalog;
-use NixPHP\CMS\Services\Ai\ToolRouting\KeywordToolRouter;
-use NixPHP\CMS\Services\Ai\ToolRouting\SemanticToolRouter;
-use NixPHP\CMS\Services\Ai\ToolRouting\ToolContext;
-use NixPHP\CMS\Services\Ai\ToolRouting\ToolHardFilter;
+use Naf\CMS\Services\Ai\LocalAiToolCatalog;
+use Naf\CMS\Services\Ai\ToolRouting\KeywordToolRouter;
+use Naf\CMS\Services\Ai\ToolRouting\SemanticToolRouter;
+use Naf\CMS\Services\Ai\ToolRouting\ToolContext;
+use Naf\CMS\Services\Ai\ToolRouting\ToolHardFilter;
 use PHPUnit\Framework\TestCase;
 
 final class SemanticToolRouterTest extends TestCase
@@ -165,7 +165,7 @@ final class SemanticToolRouterTest extends TestCase
         $tools = (new LocalAiToolCatalog())->enrich([
             [
                 'name' => 'cms_admin_navigate',
-                'description' => 'Navigates the current admin UI to a safe registered NixCMS admin area such as PageBuilder, articles, forms, themes, media, users, roles, navigation, or settings.',
+                'description' => 'Navigates the current admin UI to a safe registered NafCMS admin area such as PageBuilder, articles, forms, themes, media, users, roles, navigation, or settings.',
                 'inputSchema' => ['type' => 'object', 'properties' => ['target' => ['type' => 'string']]],
             ],
             [
@@ -175,7 +175,7 @@ final class SemanticToolRouterTest extends TestCase
             ],
             [
                 'name' => 'cms_system_health',
-                'description' => 'Returns current NixCMS system health data.',
+                'description' => 'Returns current NafCMS system health data.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [

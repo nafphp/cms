@@ -1,9 +1,9 @@
 <?php
 
-use function NixPHP\I18n\t;
-use function NixPHP\route;
-use function NixPHP\View\s;
-use function NixPHP\View\view;
+use function Naf\I18n\t;
+use function Naf\route;
+use function Naf\View\s;
+use function Naf\View\view;
 
 $sections = is_array($sections ?? null) ? $sections : [];
 $activeGroup = (string) ($activeGroup ?? 'general');
@@ -47,7 +47,7 @@ $activeGroup = (string) ($activeGroup ?? 'general');
     </div>
 </form>
 
-<script nonce="<?= \NixPHP\CMS\csp_nonce() ?>" type="module">
+<script nonce="<?= \Naf\CMS\csp_nonce() ?>" type="module">
     import toast from '/js/lib/notifyJs/Modules/Toast.js';
 
     const form = document.getElementById('settings-form');
@@ -120,7 +120,7 @@ $activeGroup = (string) ($activeGroup ?? 'general');
 
         const payload = payloadFromForm();
 
-        const response = await (window.NixCMS?.json || fetch)(endpoint, {
+        const response = await (window.NafCMS?.json || fetch)(endpoint, {
             method: 'POST',
             body: JSON.stringify(payload),
         });

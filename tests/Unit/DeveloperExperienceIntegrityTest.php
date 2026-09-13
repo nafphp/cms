@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use NixPHP\CMS\Services\Developer\AgentGuideInstaller;
-use NixPHP\CLI\Support\CommandRegistry;
+use Naf\CMS\Services\Developer\AgentGuideInstaller;
+use Naf\CLI\Support\CommandRegistry;
 use PHPUnit\Framework\TestCase;
-use function NixPHP\app;
+use function Naf\app;
 
 final class DeveloperExperienceIntegrityTest extends TestCase
 {
@@ -18,13 +18,13 @@ final class DeveloperExperienceIntegrityTest extends TestCase
         self::assertStringContainsString(AgentGuideInstaller::MARKER, $guide);
         // The guide documents the layout of an installed host, which keeps the
         // app/ spelling; it is not describing this package.
-        foreach (['app/pages.php', 'app/Resources/pages', 'app/api.php', 'app/Resources/api', 'app/content.php', 'app/Migrations', 'app/Mcp/Tools', 'views', 'vendor/bin/nix', 'permissions', 'scopes'] as $needle) {
+        foreach (['app/pages.php', 'app/Resources/pages', 'app/api.php', 'app/Resources/api', 'app/content.php', 'app/Migrations', 'app/Mcp/Tools', 'views', 'vendor/bin/naf', 'permissions', 'scopes'] as $needle) {
             self::assertStringContainsStringIgnoringCase($needle, $guide);
         }
         self::assertStringNotContainsString('/Users/', $guide);
         self::assertStringNotContainsString('prompts/', $guide);
         self::assertStringNotContainsString('Task 0', $guide);
-        self::assertNotNull(app()->container()->get(CommandRegistry::class)->get('nixcms:agents:install'));
+        self::assertNotNull(app()->container()->get(CommandRegistry::class)->get('nafcms:agents:install'));
     }
 
     public function testCompletePluginExampleKeepsAllExplicitExtensionPointsVisible(): void

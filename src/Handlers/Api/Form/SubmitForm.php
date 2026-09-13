@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\Form;
+namespace Naf\CMS\Handlers\Api\Form;
 
-use NixPHP\CMS\Services\Form\FormSubmissionActionRunner;
-use NixPHP\CMS\Services\Form\FormSubmissionGuard;
-use NixPHP\CMS\Services\Form\FormTextTranslator;
-use NixPHP\CMS\Services\Form\FormSubmissionValidator;
+use Naf\CMS\Services\Form\FormSubmissionActionRunner;
+use Naf\CMS\Services\Form\FormSubmissionGuard;
+use Naf\CMS\Services\Form\FormTextTranslator;
+use Naf\CMS\Services\Form\FormSubmissionValidator;
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\I18n\t;
-use function NixPHP\json;
-use function NixPHP\request;
-use function NixPHP\CMS\cms;
+use function Naf\I18n\t;
+use function Naf\json;
+use function Naf\request;
+use function Naf\CMS\cms;
 
 final class SubmitForm
 {

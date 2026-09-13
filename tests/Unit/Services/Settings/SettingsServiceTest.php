@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Settings;
 
-use NixPHP\CMS\Repositories\SettingRepository;
-use NixPHP\CMS\Services\Settings\SettingsService;
+use Naf\CMS\Repositories\SettingRepository;
+use Naf\CMS\Services\Settings\SettingsService;
 use Tests\Support\DatabaseTestCase;
 
 final class SettingsServiceTest extends DatabaseTestCase
@@ -65,10 +65,10 @@ final class SettingsServiceTest extends DatabaseTestCase
 
     public function testSectionsExposeStoredConfigAndDefaultSources(): void
     {
-        if (!class_exists(\NixPHP\Support\CoreFileLoader::class)) {
+        if (!class_exists(\Naf\Support\CoreFileLoader::class)) {
             // Distinguishing 'config' from 'default' requires the framework to
             // merge this package's src/config.php, added in 0.1.6.
-            self::markTestSkipped('Reading src/config.php needs nixphp/framework >= 0.1.6.');
+            self::markTestSkipped('Reading src/config.php needs naf/framework >= 0.1.6.');
         }
 
 

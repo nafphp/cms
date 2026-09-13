@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
-use NixPHP\CMS\Repositories\UserRepository;
-use NixPHP\CMS\Services\Security\CredentialService;
-use NixPHP\ORM\Core\EntityManager;
+use Naf\CMS\Repositories\UserRepository;
+use Naf\CMS\Services\Security\CredentialService;
+use Naf\ORM\Core\EntityManager;
 use Tests\Support\DatabaseTestCase;
 
 final class UserProfileUpdateTest extends DatabaseTestCase

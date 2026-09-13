@@ -1,9 +1,9 @@
 <?php
 
-use function NixPHP\I18n\t;
-use function NixPHP\View\s;
-use function NixPHP\View\view;
-use function NixPHP\CMS\cms;
+use function Naf\I18n\t;
+use function Naf\View\s;
+use function Naf\View\view;
+use function Naf\CMS\cms;
 
 ?>
 <?php $this->setLayout('layouts.admin') ?>
@@ -22,7 +22,7 @@ use function NixPHP\CMS\cms;
 
     <?php $charts = array_filter(
         is_array($summary['charts'] ?? null) ? $summary['charts'] : [],
-        static fn(mixed $chart): bool => $chart instanceof \NixPHP\CMS\Visualization\ChartDefinition,
+        static fn(mixed $chart): bool => $chart instanceof \Naf\CMS\Visualization\ChartDefinition,
     ); ?>
     <?php if ($charts !== []): ?>
         <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">

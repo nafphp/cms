@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Ai\ToolRouting;
+namespace Naf\CMS\Services\Ai\ToolRouting;
 
-use NixPHP\CMS\Services\Ai\ToolRouting\ToolContext;
+use Naf\CMS\Services\Ai\ToolRouting\ToolContext;
 
 final class ToolHardFilter
 {

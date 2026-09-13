@@ -79,9 +79,9 @@ export const storedText = (key, fallback = '') => {
 };
 
 export const apiJson = async (url, options = {}) => {
-    const csrfHeader = String(window.NixCMS?.csrfHeader || 'X-CSRF-Token');
-    const csrfToken = typeof window.NixCMS?.csrfToken === 'function'
-        ? String(window.NixCMS.csrfToken() || '')
+    const csrfHeader = String(window.NafCMS?.csrfHeader || 'X-CSRF-Token');
+    const csrfToken = typeof window.NafCMS?.csrfToken === 'function'
+        ? String(window.NafCMS.csrfToken() || '')
         : '';
     const headers = {
         'Accept': 'application/json',
@@ -92,11 +92,11 @@ export const apiJson = async (url, options = {}) => {
         headers[csrfHeader] = csrfToken;
     }
 
-    if (typeof window.NixCMS?.json !== 'function') {
-        throw new Error('NixCMS admin JSON client is not available yet.');
+    if (typeof window.NafCMS?.json !== 'function') {
+        throw new Error('NafCMS admin JSON client is not available yet.');
     }
 
-    const response = await window.NixCMS.json(url, {
+    const response = await window.NafCMS.json(url, {
         ...options,
         headers,
     });

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Repositories;
+namespace Naf\CMS\Repositories;
 
-use NixPHP\CMS\Enums\ArticleStatus;
-use NixPHP\CMS\Models\ArticleVersion;
-use NixPHP\ORM\Repository\AbstractRepository;
-use function NixPHP\ORM\em;
+use Naf\CMS\Enums\ArticleStatus;
+use Naf\CMS\Models\ArticleVersion;
+use Naf\ORM\Repository\AbstractRepository;
+use function Naf\ORM\em;
 
 class ArticleVersionRepository extends AbstractRepository
 {

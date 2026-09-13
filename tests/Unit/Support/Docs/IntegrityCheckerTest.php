@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support\Docs;
 
-use NixPHP\CMS\Support\Docs\IntegrityChecker;
+use Naf\CMS\Support\Docs\IntegrityChecker;
 use PHPUnit\Framework\TestCase;
 
 final class IntegrityCheckerTest extends TestCase
@@ -13,7 +13,7 @@ final class IntegrityCheckerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->basePath = sys_get_temp_dir() . '/nixcms-integrity-' . bin2hex(random_bytes(6));
+        $this->basePath = sys_get_temp_dir() . '/nafcms-integrity-' . bin2hex(random_bytes(6));
         $this->mkdir('src/Resources/pages');
         $this->mkdir('views/page/blocks');
         $this->mkdir('views/page/templates');
@@ -27,7 +27,7 @@ final class IntegrityCheckerTest extends TestCase
     public function testCheckReportsAndSortsDriftIssues(): void
     {
         $blockTypes = [
-            new class implements \NixPHP\CMS\Content\Page\Block\BlockTypeInterface {
+            new class implements \Naf\CMS\Content\Page\Block\BlockTypeInterface {
         public function id(): string { return 'hero'; }
         public function label(): string { return 'Hero'; }
         public function description(): string { return ''; }

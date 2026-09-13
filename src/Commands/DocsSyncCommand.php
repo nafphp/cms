@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Commands;
+namespace Naf\CMS\Commands;
 
-use NixPHP\CMS\Support\Docs\DefaultDocRenderers;
-use NixPHP\CMS\Support\Docs\ReadmeDocBlockUpdater;
-use NixPHP\CLI\Core\AbstractCommand;
-use NixPHP\CLI\Core\Input;
-use NixPHP\CLI\Core\Output;
+use Naf\CMS\Support\Docs\DefaultDocRenderers;
+use Naf\CMS\Support\Docs\ReadmeDocBlockUpdater;
+use Naf\CLI\Core\AbstractCommand;
+use Naf\CLI\Core\Input;
+use Naf\CLI\Core\Output;
 
 final class DocsSyncCommand extends AbstractCommand
 {
@@ -18,7 +18,7 @@ final class DocsSyncCommand extends AbstractCommand
     {
         $this
             ->setTitle('Sync Documentation')
-            ->setDescription('Regenerate README.md auto documentation blocks from NixCMS registries.')
+            ->setDescription('Regenerate README.md auto documentation blocks from NafCMS registries.')
             ->addOption('help');
     }
 
@@ -26,8 +26,8 @@ final class DocsSyncCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine('    vendor/bin/nix docs:sync');
-            $output->writeLine('  Rewrites README.md sections between <!-- nix:auto:* --> markers.');
+            $output->writeLine('    vendor/bin/naf docs:sync');
+            $output->writeLine('  Rewrites README.md sections between <!-- naf:auto:* --> markers.');
             return self::SUCCESS;
         }
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Api;
 
-use NixPHP\CMS\Api\ApiEndpoint;
-use NixPHP\CMS\Enums\Permission;
+use Naf\CMS\Api\ApiEndpoint;
+use Naf\CMS\Enums\Permission;
 use PHPUnit\Framework\TestCase;
 
 final class UserPrivilegeEndpointTest extends TestCase

@@ -1,4 +1,4 @@
-# NixCMS Examples
+# NafCMS Examples
 
 - Keep examples idempotent; registry calls should use `replace: true`.
 - Do not perform real storage, filesystem, network, or database side effects.

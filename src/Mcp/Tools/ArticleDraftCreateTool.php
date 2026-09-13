@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Mcp\Tools;
+namespace Naf\CMS\Mcp\Tools;
 
-use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
-use NixPHP\CMS\Enums\ToolRisk;
+use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
+use Naf\CMS\Enums\ToolRisk;
 
 use Closure;
-use NixPHP\CMS\Localization\LanguageRegistry;
-use NixPHP\CMS\Support\Slug;
-use NixPHP\MCP\Support\Schema;
-use NixPHP\MCP\Tools\ScopedToolInterface;
-use NixPHP\MCP\Tools\ToolInterface;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Localization\LanguageRegistry;
+use Naf\CMS\Support\Slug;
+use Naf\MCP\Support\Schema;
+use Naf\MCP\Tools\ScopedToolInterface;
+use Naf\MCP\Tools\ToolInterface;
+use function Naf\CMS\cms;
 
 final class ArticleDraftCreateTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\Ai;
+namespace Naf\CMS\Handlers\Api\Ai;
 
-use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
-use NixPHP\CMS\Services\Ai\LocalAiPromptLibrary;
+use Naf\CMS\Handlers\Support\ReadsJsonBody;
+use Naf\CMS\Services\Ai\LocalAiPromptLibrary;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use function NixPHP\json;
+use function Naf\json;
 
 final class DeleteAiMistakes
 {

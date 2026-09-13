@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use NixPHP\Database\Core\Database;
-use function NixPHP\app;
-use function NixPHP\guard;
+use Naf\Database\Core\Database;
+use function Naf\app;
+use function Naf\guard;
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
@@ -16,7 +16,7 @@ if (!defined('PHPUNIT_RUNNING')) {
     define('PHPUNIT_RUNNING', true);
 }
 
-require_once dirname(__DIR__) . '/vendor/nixphp/view/src/view_helpers.php';
+require_once dirname(__DIR__) . '/vendor/naf/view/src/view_helpers.php';
 
 /*
  * Unit tests must never reach a developer's database.

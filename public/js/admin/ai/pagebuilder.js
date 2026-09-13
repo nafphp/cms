@@ -152,22 +152,22 @@ export const pageBuilderInspectResultText = (result) => {
 };
 
 const ensurePageBuilderInspectStyles = () => {
-    if (document.getElementById('nixcms-ai-pagebuilder-inspect-style')) {
+    if (document.getElementById('nafcms-ai-pagebuilder-inspect-style')) {
         return;
     }
 
     const style = document.createElement('style');
-    style.id = 'nixcms-ai-pagebuilder-inspect-style';
+    style.id = 'nafcms-ai-pagebuilder-inspect-style';
     style.textContent = `
-        body.nixcms-ai-pagebuilder-inspecting {
+        body.nafcms-ai-pagebuilder-inspecting {
             cursor: crosshair;
         }
-        body.nixcms-ai-pagebuilder-inspecting *,
-        body.nixcms-ai-pagebuilder-inspecting *::before,
-        body.nixcms-ai-pagebuilder-inspecting *::after {
+        body.nafcms-ai-pagebuilder-inspecting *,
+        body.nafcms-ai-pagebuilder-inspecting *::before,
+        body.nafcms-ai-pagebuilder-inspecting *::after {
             cursor: crosshair !important;
         }
-        .nixcms-ai-pagebuilder-inspect-dim {
+        .nafcms-ai-pagebuilder-inspect-dim {
             position: fixed;
             z-index: 9989;
             pointer-events: none;
@@ -175,7 +175,7 @@ const ensurePageBuilderInspectStyles = () => {
             backdrop-filter: blur(5px) saturate(.78);
             -webkit-backdrop-filter: blur(5px) saturate(.78);
         }
-        .nixcms-ai-pagebuilder-inspect-focus {
+        .nafcms-ai-pagebuilder-inspect-focus {
             position: fixed;
             z-index: 9990;
             pointer-events: none;
@@ -183,7 +183,7 @@ const ensurePageBuilderInspectStyles = () => {
             border-radius: 16px;
             box-shadow: 0 0 0 1px rgba(15, 23, 42, .52), 0 0 0 999px rgba(2, 6, 23, .08), 0 24px 90px rgba(59, 130, 246, .28);
         }
-        .nixcms-ai-pagebuilder-inspect-cursor {
+        .nafcms-ai-pagebuilder-inspect-cursor {
             position: fixed;
             left: 0;
             top: 0;
@@ -205,7 +205,7 @@ const ensurePageBuilderInspectStyles = () => {
             transition: opacity .08s ease;
             will-change: transform, opacity;
         }
-        .nixcms-ai-pagebuilder-inspect-cursor::after {
+        .nafcms-ai-pagebuilder-inspect-cursor::after {
             content: "";
             position: absolute;
             left: 50%;
@@ -217,7 +217,7 @@ const ensurePageBuilderInspectStyles = () => {
             background: #f8fafc;
             box-shadow: 0 0 0 3px rgba(56, 189, 248, .28), 0 0 18px rgba(186, 230, 253, .98);
         }
-        .nixcms-ai-pagebuilder-inspect-hint {
+        .nafcms-ai-pagebuilder-inspect-hint {
             position: fixed;
             left: 50%;
             top: 18px;
@@ -232,7 +232,7 @@ const ensurePageBuilderInspectStyles = () => {
             font: 600 13px/1.35 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             box-shadow: 0 18px 44px rgba(2, 6, 23, .42);
         }
-        .nixcms-ai-pagebuilder-inspect-outline {
+        .nafcms-ai-pagebuilder-inspect-outline {
             position: fixed;
             z-index: 9993;
             pointer-events: none;
@@ -265,7 +265,7 @@ const paddedViewportBox = (element, padding = 18) => {
 };
 
 export const startPageBuilderInspectMode = ({hint = ''} = {}) => new Promise((resolve) => {
-    const builder = window.NixCMS?.pageBuilder;
+    const builder = window.NafCMS?.pageBuilder;
     const focus = pageBuilderFocusElement(builder);
     const interaction = pageBuilderInteractionElement(builder);
     if (!builder || !(focus instanceof HTMLElement) || !(interaction instanceof HTMLElement)) {
@@ -279,22 +279,22 @@ export const startPageBuilderInspectMode = ({hint = ''} = {}) => new Promise((re
     if (drawerWasOpen && typeof builder.closeSettings === 'function') {
         builder.closeSettings();
     }
-    document.dispatchEvent(new CustomEvent('nixcms:assistant-pick-mode', {detail: {active: true}}));
+    document.dispatchEvent(new CustomEvent('nafcms:assistant-pick-mode', {detail: {active: true}}));
 
     const hintNode = createElement(
         'div',
-        'nixcms-ai-pagebuilder-inspect-hint',
+        'nafcms-ai-pagebuilder-inspect-hint',
         trimValue(hint) || uiText('Show mode active: Click a block or element in the PageBuilder. Escape cancels.')
     );
-    const dimTop = createElement('div', 'nixcms-ai-pagebuilder-inspect-dim');
-    const dimRight = createElement('div', 'nixcms-ai-pagebuilder-inspect-dim');
-    const dimBottom = createElement('div', 'nixcms-ai-pagebuilder-inspect-dim');
-    const dimLeft = createElement('div', 'nixcms-ai-pagebuilder-inspect-dim');
-    const focusFrame = createElement('div', 'nixcms-ai-pagebuilder-inspect-focus');
-    const cursorRing = createElement('div', 'nixcms-ai-pagebuilder-inspect-cursor');
-    const outline = createElement('div', 'nixcms-ai-pagebuilder-inspect-outline');
+    const dimTop = createElement('div', 'nafcms-ai-pagebuilder-inspect-dim');
+    const dimRight = createElement('div', 'nafcms-ai-pagebuilder-inspect-dim');
+    const dimBottom = createElement('div', 'nafcms-ai-pagebuilder-inspect-dim');
+    const dimLeft = createElement('div', 'nafcms-ai-pagebuilder-inspect-dim');
+    const focusFrame = createElement('div', 'nafcms-ai-pagebuilder-inspect-focus');
+    const cursorRing = createElement('div', 'nafcms-ai-pagebuilder-inspect-cursor');
+    const outline = createElement('div', 'nafcms-ai-pagebuilder-inspect-outline');
     outline.style.opacity = '0';
-    document.body.classList.add('nixcms-ai-pagebuilder-inspecting');
+    document.body.classList.add('nafcms-ai-pagebuilder-inspecting');
     document.body.append(dimTop, dimRight, dimBottom, dimLeft, focusFrame, hintNode, cursorRing, outline);
     let cursorX = 0;
     let cursorY = 0;
@@ -348,7 +348,7 @@ export const startPageBuilderInspectMode = ({hint = ''} = {}) => new Promise((re
     };
 
     const cleanup = (result) => {
-        document.body.classList.remove('nixcms-ai-pagebuilder-inspecting');
+        document.body.classList.remove('nafcms-ai-pagebuilder-inspecting');
         if (cursorFrame !== 0) {
             window.cancelAnimationFrame(cursorFrame);
         }
@@ -368,7 +368,7 @@ export const startPageBuilderInspectMode = ({hint = ''} = {}) => new Promise((re
         if (drawerWasOpen && typeof builder.openSettings === 'function') {
             builder.openSettings();
         }
-        document.dispatchEvent(new CustomEvent('nixcms:assistant-pick-mode', {detail: {active: false}}));
+        document.dispatchEvent(new CustomEvent('nafcms:assistant-pick-mode', {detail: {active: false}}));
         resolve(result);
     };
 
@@ -434,7 +434,7 @@ export const startPageBuilderInspectMode = ({hint = ''} = {}) => new Promise((re
 });
 
 export const registerPageBuilderAssistantActions = () => {
-    const builder = window.NixCMS?.pageBuilder;
+    const builder = window.NafCMS?.pageBuilder;
     const runtime = assistantRuntime();
     if (!builder || builder.__assistantActionsRegistered) {
         return;

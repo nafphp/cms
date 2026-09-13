@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-use NixPHP\CMS\Content\Page\Block\PageBuilderBlockOptions;
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Page\Layout;
-use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Page\PageBuilderRenderer;
-use NixPHP\CMS\Handlers\Page\Pages\StorePage;
-use NixPHP\CMS\Page\Template;
-use NixPHP\CMS\Repositories\PageLayoutRepository;
-use function NixPHP\I18n\t;
-use function NixPHP\request;
-use function NixPHP\View\render;
+use Naf\CMS\Content\Page\Block\PageBuilderBlockOptions;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Page\Layout;
+use Naf\CMS\Page\Page;
+use Naf\CMS\Page\PageBuilderRenderer;
+use Naf\CMS\Handlers\Page\Pages\StorePage;
+use Naf\CMS\Page\Template;
+use Naf\CMS\Repositories\PageLayoutRepository;
+use function Naf\I18n\t;
+use function Naf\request;
+use function Naf\View\render;
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\CMS\cms;
+use function Naf\CMS\cms;
 
 $templateDefinitions = Layout::definitions(require __DIR__ . '/page_templates.php');
 
@@ -27,7 +27,7 @@ $renderPreview = static function (array $definition, ?string $layout, bool $thum
 
     $template = Template::create($definition['view'])
         ->setParent('layouts.page_preview')
-        ->addStylesheet('/css/nixcms.css')
+        ->addStylesheet('/css/nafcms.css')
         ->addBodyClass($thumbnail
             ? 'dark h-screen overflow-hidden bg-slate-950 text-slate-100'
             : 'dark bg-slate-950 text-slate-100 page-builder-live-preview'

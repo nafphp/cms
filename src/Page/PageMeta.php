@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Page;
+namespace Naf\CMS\Page;
 
-use NixPHP\CMS\Page\PageNavigationMeta;
-use NixPHP\CMS\Page\PageSeoMeta;
-use NixPHP\CMS\Page\PageThemeMeta;
+use Naf\CMS\Page\PageNavigationMeta;
+use Naf\CMS\Page\PageSeoMeta;
+use Naf\CMS\Page\PageThemeMeta;
 
 final class PageMeta
 {

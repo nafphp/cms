@@ -1,10 +1,10 @@
-# NixCMS Vision
+# NafCMS Vision
 
-NixCMS is intended to become a lightweight, extensible CMS built on top of NixPHP. It follows the same philosophy as the framework: pragmatic, low-ceremony, native PHP where possible, and flexible extension through small focused plugins.
+NafCMS is intended to become a lightweight, extensible CMS built on top of NAF. It follows the same philosophy as the framework: pragmatic, low-ceremony, native PHP where possible, and flexible extension through small focused plugins.
 
 ## Core Idea
 
-NixCMS is not meant to be a heavy monolithic CMS. It is a management layer on top of NixPHP. The core provides shared CMS building blocks, while domain-specific functionality can be added through plugins.
+NafCMS is not meant to be a heavy monolithic CMS. It is a management layer on top of NAF. The core provides shared CMS building blocks, while domain-specific functionality can be added through plugins.
 
 The system should start small but be able to grow cleanly:
 
@@ -19,8 +19,8 @@ The system should start small but be able to grow cleanly:
 
 ## Architecture Principles
 
-- NixPHP remains the foundation.
-- NixCMS adds CMS conventions and administration features without making the framework heavy.
+- NAF remains the foundation.
+- NafCMS adds CMS conventions and administration features without making the framework heavy.
 - Features should preferably be implemented as plugins or clearly separated modules.
 - Avoid unnecessary abstractions just because frameworks usually have them.
 - The core should only contain functionality that most CMS installations genuinely share.
@@ -48,13 +48,13 @@ The UI should be functional and dense enough for real work, not feel like a mark
 Admin UI implementation should be Tailwind-first:
 
 - Prefer Tailwind utility classes directly in `.phtml` components and views for layout, spacing, typography, borders, colors, responsive behavior, and common states.
-- Use `app/Resources/css/nixcms.css` primarily as the Tailwind CSS entry point for `@import`, `@source`, `@theme`, dark-mode variants, global tokens, base behavior, and third-party or genuinely complex selectors.
+- Use `app/Resources/css/nafcms.css` primarily as the Tailwind CSS entry point for `@import`, `@source`, `@theme`, dark-mode variants, global tokens, base behavior, and third-party or genuinely complex selectors.
 - Add custom CSS only when Tailwind utility classes would make the markup hard to read or when the behavior needs selectors/pseudo-elements/custom properties that Tailwind utilities cannot express cleanly.
 - Do not add a `tailwind.config.js` by default; keep Tailwind v4 configuration in the CSS entry point unless a real toolchain constraint requires otherwise.
 
 ## Plugin Concept
 
-NixPHP plugins should also be able to extend NixCMS.
+NAF plugins should also be able to extend NafCMS.
 
 A plugin may optionally provide:
 
@@ -72,11 +72,11 @@ A plugin may optionally provide:
 - MCP tools
 - AI features
 
-The goal: anyone who can write NixPHP plugins should be able to extend CMS functionality.
+The goal: anyone who can write NAF plugins should be able to extend CMS functionality.
 
 ## MCP and AI
 
-NixCMS should be designed with AI support from the beginning.
+NafCMS should be designed with AI support from the beginning.
 
 **Important AI output rule: do not add separate code paths that semantically validate, correct, rewrite, or replace model output. Make the model input, tool metadata, routing context, and tool-result prompts robust enough that the model has no reasonable path except producing the correct grounded answer. UI code may format or display output, but it must not act as a second model-output judge.**
 
@@ -96,7 +96,7 @@ Important: MCP tools are concrete executable capabilities. A future capability o
 
 ### Local AI
 
-NixCMS may provide a browser-local AI assistant backed by Ollama before broader provider abstractions exist.
+NafCMS may provide a browser-local AI assistant backed by Ollama before broader provider abstractions exist.
 
 - Keep the first implementation simple and local: the admin browser talks directly to Ollama, usually at `http://localhost:11434`.
 - Store AI settings below the `ai` key only, for example `ai.type`, `ai.url`, `ai.model`, `ai.embedding_model`, and `ai.instructions`. The v0.0.1 local-only assistant has no persisted API-key setting.
@@ -115,7 +115,7 @@ The local assistant must not send the full MCP tool registry to the model once t
 
 - `LocalAiToolBridge::definitions()` enriches MCP tool definitions through `LocalAiToolCatalog`; do not maintain a parallel static capability list.
 - `LocalAiToolBridge::selectDefinitions()` is the stable entry point for the admin assistant and `/api/admin/ai/tools/select`.
-- Tool routing lives under `NixPHP\CMS\Services\Ai\ToolRouting`.
+- Tool routing lives under `Naf\CMS\Services\Ai\ToolRouting`.
 - Always apply deterministic hard filters before ranking: permissions/scopes from MCP identity, write intent, destructive intent, requested mode, requested capabilities, and UI area.
 - `KeywordToolRouter` is the reliable fallback router using routing text, parameters, examples, capabilities, mode, and UI context.
 - `SemanticToolRouter` is the primary orchestration point. When `ai.embedding_model` is configured it uses `CosineToolRouter` with `OllamaEmbeddingClient`; otherwise it falls back to `KeywordToolRouter`.
@@ -136,7 +136,7 @@ The initial local assistant should stay focused on tool-driven CMS assistance, n
 
 ## Capability Concept
 
-If NixCMS later gets a capability registry, the tool or plugin system should remain the source of truth wherever possible.
+If NafCMS later gets a capability registry, the tool or plugin system should remain the source of truth wherever possible.
 
 Not ideal:
 
@@ -151,7 +151,7 @@ Better:
 
 ## Auth and Security
 
-NixCMS should have secure defaults.
+NafCMS should have secure defaults.
 
 - Auth is enabled by default.
 - Internal or open modes may be configurable, but must be explicit.
@@ -168,11 +168,11 @@ Audit entries record domain-relevant changes with redaction and actor metadata.
 - Prefer `audit()->record(AuditEntry::create(...))` when an explicit audit boundary makes the workflow clearer.
 - `AuditEntry::create(...)->record()` is equivalent and remains acceptable for compact domain actions.
 - Use `audit_log('action.name', 'subject', $id, $old, $new, $meta)` only for short direct calls where building the entry inline would add noise.
-- Keep actor resolution inside `NixPHP\CMS\Support\AuditActorResolver`; other code should not reach into global auth helpers just to build audit metadata.
+- Keep actor resolution inside `Naf\CMS\Support\AuditActorResolver`; other code should not reach into global auth helpers just to build audit metadata.
 
 ## Development Style
 
-When building NixCMS:
+When building NafCMS:
 
 - Build simple real workflows first.
 - Abstract only after patterns become visible.
@@ -187,18 +187,18 @@ When building NixCMS:
 - Run `composer test` for the PHPUnit suite.
 - Run `npm run test:builder` for the PageBuilder DOM flow, including nested save/reload, preview, publish payloads, and validation-error state retention.
 - Keep fast unit tests as the default safety net.
-- Extend `Tests\Support\NixPHPTestCase` for unit tests that need common CMS fixtures such as `mockArticle()`, `mockArticleVersion()`, or Editor.js block payload helpers.
+- Extend `Tests\Support\NafTestCase` for unit tests that need common CMS fixtures such as `mockArticle()`, `mockArticleVersion()`, or Editor.js block payload helpers.
 - Use `Tests\Support\DatabaseTestCase` for DB-shaped service or repository tests that can run against an in-memory SQLite database.
-- Prefer injecting a `PDO` into query-oriented services for tests, while production code may continue to resolve the configured NixPHP database connection.
+- Prefer injecting a `PDO` into query-oriented services for tests, while production code may continue to resolve the configured NAF database connection.
 - Do not require Docker or a local MySQL server for the default test path.
 
 ## Development Environment Versus Shipped Project
 
-This repository is the NixCMS development environment. It may contain planning notes, local IDE metadata, exploratory docs, and implementation guidance that help build the product.
+This repository is the NafCMS development environment. It may contain planning notes, local IDE metadata, exploratory docs, and implementation guidance that help build the product.
 
-What gets committed to the actual distributable NixCMS project should be treated as the user-facing product:
+What gets committed to the actual distributable NafCMS project should be treated as the user-facing product:
 
-- Keep committed files useful for people installing, extending, or auditing NixCMS.
+- Keep committed files useful for people installing, extending, or auditing NafCMS.
 - Avoid shipping local-only assumptions from this workstation.
 - Do not require Docker for the primary development path.
 - Prefer a bare-metal-first setup using PHP 8.3+, Composer, the built-in PHP server, and local CLI commands.
@@ -208,14 +208,14 @@ What gets committed to the actual distributable NixCMS project should be treated
 
 There should eventually be two kinds of project guidance:
 
-- Development guidance for contributors building NixCMS itself.
-- Shipped guidance for users and AI agents working inside an installed NixCMS project.
+- Development guidance for contributors building NafCMS itself.
+- Shipped guidance for users and AI agents working inside an installed NafCMS project.
 
-The shipped project should include its own `AGENTS.md` that explains the application structure, extension points, commands, conventions, and safe editing rules from the perspective of someone using NixCMS, not building the NixCMS source distribution.
+The shipped project should include its own `AGENTS.md` that explains the application structure, extension points, commands, conventions, and safe editing rules from the perspective of someone using NafCMS, not building the NafCMS source distribution.
 
 ## CMS API Reference
 
-The public `cms()` entry points and registry-derived reference tables live in the README's Auto Reference section. Keep this file focused on vision, conventions, and safe editing guidance; when public pages, API endpoints, content types, permissions, MCP tools, or examples change, update the source registry and run `vendor/bin/nix docs:sync` from a host that has this package installed.
+The public `cms()` entry points and registry-derived reference tables live in the README's Auto Reference section. Keep this file focused on vision, conventions, and safe editing guidance; when public pages, API endpoints, content types, permissions, MCP tools, or examples change, update the source registry and run `vendor/bin/naf docs:sync` from a host that has this package installed.
 
 ## CMS Registry Conventions
 
@@ -290,7 +290,7 @@ Follow these rules when extending HTTP behavior:
 - Define core content types in `app/content.php`.
 - Put content-type-specific logic under `app/Content/<Type>/`, for example `app/Content/Article/ArticleContentType.php`.
 - A content type should describe its ID, label, model class, API object, and type-specific helpers such as form/catalog/rendering services.
-- Article Editor.js block renderers live under `app/Content/Article/Block` and are registered through `NixPHP\CMS\Content\Article\BlockRegistry`.
+- Article Editor.js block renderers live under `app/Content/Article/Block` and are registered through `Naf\CMS\Content\Article\BlockRegistry`.
 - Do not add global CMS block registries for article-specific rendering; expose block extension through the Article content type.
 - Pages and API endpoints should reach article form/catalog/rendering behavior through the Article content type instead of directly creating scattered article services.
 - Treat articles as the first content type, not as a special HTTP architecture.
@@ -312,7 +312,7 @@ Follow these rules when extending HTTP behavior:
 ### Block View Registry
 
 - Register page-builder block view mappings through `cms()->blocks()`.
-- Core defaults live in `NixPHP\CMS\Content\BlockViewRegistry`; plugins may call `cms()->blocks()->add('mycustom', 'page.blocks.mycustom')` during bootstrap.
+- Core defaults live in `Naf\CMS\Content\BlockViewRegistry`; plugins may call `cms()->blocks()->add('mycustom', 'page.blocks.mycustom')` during bootstrap.
 - Keep aliases explicit in the registry constructor so agents can grep which block types share a view.
 - Unknown block types must fall back to `page.blocks.placeholder`.
 - Block views live under `src/views/page/blocks`; files directly inside that directory should be renderable blocks, while shared helpers belong in `src/views/page/blocks/_helpers`.
@@ -354,7 +354,7 @@ Poor service candidates:
 
 ## AI-Readable Codebase Rules
 
-NixCMS should be easy for AI coding agents to inspect without needing tribal knowledge.
+NafCMS should be easy for AI coding agents to inspect without needing tribal knowledge.
 
 Structure and naming should favor discoverability:
 
@@ -370,7 +370,7 @@ Structure and naming should favor discoverability:
 - If something registers routes, commands, jobs, scheduler entries, permissions, admin navigation, or MCP tools, make that registration grep-friendly.
 - Add short comments only where they explain non-obvious domain intent, operational constraints, or extension behavior.
 
-Every shipped NixCMS app should make the common AI inspection path obvious:
+Every shipped NafCMS app should make the common AI inspection path obvious:
 
 - Read `AGENTS.md` first.
 - Inspect `composer.json` for packages and autoloading.
@@ -386,11 +386,11 @@ Every shipped NixCMS app should make the common AI inspection path obvious:
 
 ## Shipped AGENTS.md Expectations
 
-The `AGENTS.md` shipped with generated or installed NixCMS projects should be concise, practical, and oriented around safe modification.
+The `AGENTS.md` shipped with generated or installed NafCMS projects should be concise, practical, and oriented around safe modification.
 
 It should explain:
 
-- What NixCMS is and which parts are core versus plugins.
+- What NafCMS is and which parts are core versus plugins.
 - The folder structure and where common changes belong.
 - The bare-metal local run path.
 - The Docker run path once available.
@@ -410,9 +410,9 @@ It should not include:
 
 ## Long-Term Goal
 
-NixCMS should become a complete product built on NixPHP and powered by its plugin ecosystem.
+NafCMS should become a complete product built on NAF and powered by its plugin ecosystem.
 
-It is itself a NixPHP plugin and is always installed into a host application; this repository ships no front controller and is never served directly. `nixphp/app` is the starter host for that.
+It is itself a NAF plugin and is always installed into a host application; this repository ships no front controller and is never served directly. `naf/app` is the starter host for that.
 
 It should feel:
 
@@ -421,35 +421,35 @@ It should feel:
 - Productive like a modern CMS
 - AI-ready from day one
 
-Working name: **NixCMS**.
+Working name: **NafCMS**.
 
-## Researched NixPHP Foundation
+## Researched NAF Foundation
 
-NixCMS should start from the official NixPHP package ecosystem instead of copying a full-stack CMS architecture from elsewhere.
+NafCMS should start from the official NAF package ecosystem instead of copying a full-stack CMS architecture from elsewhere.
 
 Current research sources:
 
-- GitHub/Packagist source package: `nixphp/framework` (`https://github.com/nixphp/framework`, `https://packagist.org/packages/nixphp/framework`)
-- NixPHP package overview: `https://packagist.org/packages/nixphp/`
-- Individual package sources use the `https://github.com/nixphp/<package>` pattern where published, for example `nixphp/database`, `nixphp/view`, and `nixphp/i18n`.
+- GitHub/Packagist source package: `naf/framework` (`https://github.com/nafphp/framework`, `https://packagist.org/packages/naf/framework`)
+- NAF package overview: `https://packagist.org/packages/naf/`
+- Individual package sources use the `https://github.com/nafphp/<package>` pattern where published, for example `naf/database`, `naf/view`, and `naf/i18n`.
 
-NixPHP core provides routing, dispatching, PSR-oriented infrastructure, plugin loading, configuration merging, view path registration, and bootstrap hooks. Everything beyond the smallest HTTP core should remain optional through Composer packages or NixCMS modules/plugins.
+NAF core provides routing, dispatching, PSR-oriented infrastructure, plugin loading, configuration merging, view path registration, and bootstrap hooks. Everything beyond the smallest HTTP core should remain optional through Composer packages or NafCMS modules/plugins.
 
-Recommended initial Composer base for NixCMS:
+Recommended initial Composer base for NafCMS:
 
-- `nixphp/framework`: required foundation.
-- `nixphp/view`: required for the admin UI and server-rendered CMS screens.
-- `nixphp/database`: required once content, users, sessions, or workflows are persisted.
-- `nixphp/orm`: useful for the first CMS entities and repositories, especially content, users, roles, and permissions.
-- `nixphp/session`: required for admin authentication and account workflows.
-- `nixphp/form`: useful for form memory, validation-adjacent workflows, and admin forms.
-- `nixphp/i18n`: required early because NixCMS should support localized content and a multilingual admin UI.
-- `nixphp/cli`: required for migrations, user creation, maintenance commands, and operational tooling.
-- `nixphp/queue`: required for translation, AI, media processing, publication tasks, and async maintenance.
-- `nixphp/schedule`: required for scheduled publishing, recurring maintenance, and queue ticker workflows.
-- `nixphp/mail`: useful for invites, password reset, workflow notifications, and publication/review notifications.
-- `nixphp/client`: useful for external APIs, AI providers, webhooks, and integration plugins.
-- `nixphp/mcp`: used successfully in WeOnlyWalk for concrete AI/MCP tools; keep it in scope for NixCMS even if its public package metadata is less visible than the other packages.
+- `naf/framework`: required foundation.
+- `naf/view`: required for the admin UI and server-rendered CMS screens.
+- `naf/database`: required once content, users, sessions, or workflows are persisted.
+- `naf/orm`: useful for the first CMS entities and repositories, especially content, users, roles, and permissions.
+- `naf/session`: required for admin authentication and account workflows.
+- `naf/form`: useful for form memory, validation-adjacent workflows, and admin forms.
+- `naf/i18n`: required early because NafCMS should support localized content and a multilingual admin UI.
+- `naf/cli`: required for migrations, user creation, maintenance commands, and operational tooling.
+- `naf/queue`: required for translation, AI, media processing, publication tasks, and async maintenance.
+- `naf/schedule`: required for scheduled publishing, recurring maintenance, and queue ticker workflows.
+- `naf/mail`: useful for invites, password reset, workflow notifications, and publication/review notifications.
+- `naf/client`: useful for external APIs, AI providers, webhooks, and integration plugins.
+- `naf/mcp`: used successfully in WeOnlyWalk for concrete AI/MCP tools; keep it in scope for NafCMS even if its public package metadata is less visible than the other packages.
 
 Recommended dependency phases:
 
@@ -458,18 +458,18 @@ Recommended dependency phases:
 3. Operational phase: `queue`, `schedule`, `mail`.
 4. AI/integration phase: `client`, `mcp`.
 
-## NixPHP Plugin Rules For NixCMS
+## NAF Plugin Rules For NafCMS
 
-NixPHP plugins are Composer packages with package type `nixphp-plugin`. A plugin can provide a `bootstrap.php`, app configuration, views, page/API registrations, services, commands, tools, and other app-like files.
+NAF plugins are Composer packages with package type `naf-plugin`. A plugin can provide a `bootstrap.php`, app configuration, views, page/API registrations, services, commands, tools, and other app-like files.
 
-For NixCMS, preserve that model:
+For NafCMS, preserve that model:
 
-- A NixCMS feature should be a plugin or clearly isolated module unless it is truly shared CMS core.
+- A NafCMS feature should be a plugin or clearly isolated module unless it is truly shared CMS core.
 - Plugins should register capabilities through executable code, not duplicated static registries.
 - Plugin configuration should merge cleanly into app config.
 - Plugin views should be added to the view search path rather than copied into the app.
 - Plugin bootstrap code may register pages, API endpoints, commands, events, scheduler entries, queue jobs, MCP tools, admin navigation, and permissions.
-- NixCMS-specific plugin metadata may be added later, but executable plugin/tool definitions should remain the source of truth wherever possible.
+- NafCMS-specific plugin metadata may be added later, but executable plugin/tool definitions should remain the source of truth wherever possible.
 - Feature registration should be explicit. Do not activate pages, API endpoints, block types, content types, tools, commands, jobs, migrations, or permissions merely because a file exists in a directory. Filesystem scans are acceptable for resources and diagnostics, such as language packs, queue files, view integrity checks, or example smoke tests, but not as a hidden feature registration mechanism.
 
 ## WeOnlyWalk As Reference Material
@@ -478,7 +478,7 @@ The project `/Users/flo/PhpStormProjects/weonlywalk` is the main reference imple
 
 Useful WeOnlyWalk elements:
 
-- Composer stack: uses `nixphp/framework`, `form`, `database`, `view`, `i18n`, `orm`, `session`, `cli`, `schedule`, `mail`, and `mcp`.
+- Composer stack: uses `naf/framework`, `form`, `database`, `view`, `i18n`, `orm`, `session`, `cli`, `schedule`, `mail`, and `mcp`.
 - Project shape: `app/app` for application classes, `app/views` for `.phtml` templates, `app/public` for webroot/build output, `app/app/Resources` for CSS, JS, language files, HTTP snippets, and prompts.
 - MVC organization: Controllers for Web/Admin/API, Models for ORM entities, Repositories for query logic, Services for orchestration, Commands for CLI, Jobs for queue tasks, Migrations for schema.
 - Admin routing split: `/admin/...` for screens and `/api/...` or POST admin routes for actions.
@@ -490,13 +490,13 @@ Useful WeOnlyWalk elements:
 - Session model: database-backed `sessions` table is useful for admin account management and system health visibility.
 - Invite/account pattern: `user_invites` is useful as a simple file-light onboarding flow for early installations.
 - Admin UI pattern: layout, header, side menu, dashboard, dense tables, forms, settings pages, dark mode, and reusable form components.
-- Frontend build pattern: Tailwind CSS plus semantic CSS in `app/app/Resources/css/nixphp.css`; built output in `app/public/css/nixphp.css`.
+- Frontend build pattern: Tailwind CSS plus semantic CSS in `app/app/Resources/css/naf.css`; built output in `app/public/css/naf.css`.
 - Editor pattern: Editor.js-based content JSON is useful as a starting point for article content blocks.
-- MCP pattern: tools are small PHP classes implementing `ToolInterface`; scope-aware tools implement `ScopedToolInterface`; schemas are defined with `NixPHP\MCP\Support\Schema`.
-- Existing MCP ideas: `article_status_counts`, `system_health`, and `queue_status` are directly relevant to NixCMS.
+- MCP pattern: tools are small PHP classes implementing `ToolInterface`; scope-aware tools implement `ScopedToolInterface`; schemas are defined with `Naf\MCP\Support\Schema`.
+- Existing MCP ideas: `article_status_counts`, `system_health`, and `queue_status` are directly relevant to NafCMS.
 - Operational learning: scheduled jobs may enqueue work while queue workers execute it; health views and MCP tools should expose pending/deadletter job counts.
 
-Avoid carrying over WeOnlyWalk-specific features into NixCMS core:
+Avoid carrying over WeOnlyWalk-specific features into NafCMS core:
 
 - YouTube publishing and channel statistics.
 - WeOnlyWalk-specific prompt files and generated YouTube metadata rules.
@@ -505,20 +505,20 @@ Avoid carrying over WeOnlyWalk-specific features into NixCMS core:
 
 These can later become example plugins or separate integration plugins.
 
-## Suggested NixCMS Core Modules
+## Suggested NafCMS Core Modules
 
 Start with small modules that match real admin needs:
 
-- `NixPHP\CMS\Admin`: dashboard, navigation, layout, health/status panels.
-- `NixPHP\CMS\Auth`: login, logout, sessions, password hashing, invites, explicit auth modes.
-- `NixPHP\CMS\Users`: users, roles, permissions, account management.
-- `NixPHP\CMS\Content`: articles, versions, statuses, preview, publish, schedule, archive.
-- `NixPHP\CMS\Taxonomy`: categories and tags.
-- `NixPHP\CMS\Localization`: languages, translation helpers, language switching.
-- `NixPHP\CMS\Media`: uploads, media metadata, image handling.
-- `NixPHP\CMS\Jobs`: queue and scheduler integration.
-- `NixPHP\CMS\Mcp`: scope-aware tools exposing concrete CMS operations.
-- `NixPHP\CMS\Plugins`: admin navigation, permission, route, migration, command, job, scheduler, asset, and MCP registration points.
+- `Naf\CMS\Admin`: dashboard, navigation, layout, health/status panels.
+- `Naf\CMS\Auth`: login, logout, sessions, password hashing, invites, explicit auth modes.
+- `Naf\CMS\Users`: users, roles, permissions, account management.
+- `Naf\CMS\Content`: articles, versions, statuses, preview, publish, schedule, archive.
+- `Naf\CMS\Taxonomy`: categories and tags.
+- `Naf\CMS\Localization`: languages, translation helpers, language switching.
+- `Naf\CMS\Media`: uploads, media metadata, image handling.
+- `Naf\CMS\Jobs`: queue and scheduler integration.
+- `Naf\CMS\Mcp`: scope-aware tools exposing concrete CMS operations.
+- `Naf\CMS\Plugins`: admin navigation, permission, route, migration, command, job, scheduler, asset, and MCP registration points.
 
 Keep module boundaries plain PHP at first. Extract to Composer plugins when the seams are proven by use.
 
@@ -539,7 +539,7 @@ Use WeOnlyWalk as a schema reference, but make names and columns product-neutral
 - `tags`: title/name, slug, timestamps.
 - `article_tags`: article-tag pivot.
 - `media`: file path, public URL, mime type, size, dimensions, alt text, owner, timestamps.
-- `jobs` or file-backed queue storage, depending on the selected NixPHP queue driver.
+- `jobs` or file-backed queue storage, depending on the selected NAF queue driver.
 
 Prefer migrations over schema dumps. Keep first migrations readable and reversible. Every new migration must implement a real `down()` rollback; legacy migrations may throw `RuntimeException('manual rollback required')` only when reversal would be unsafe.
 
@@ -580,14 +580,14 @@ Build MCP support as concrete capabilities from day one:
 - `cms_system_health`: database, storage, PHP version, loaded plugins, session storage, and writable paths.
 - `cms_queue_status`: pending jobs, deadletter jobs, active workers, channels.
 - `cms_article_status_counts`: status counts by language based on latest article versions.
-- `cms_plugin_overview`: loaded NixPHP/NixCMS plugins and their declared admin/capability metadata.
+- `cms_plugin_overview`: loaded NAF/NafCMS plugins and their declared admin/capability metadata.
 - `cms_user_role_summary`: role and permission counts, optionally scoped to admin-readable users.
 
 Do not maintain a separate static capability list unless it is derived from tool/plugin metadata.
 
 ## Admin UI Direction From WeOnlyWalk
 
-The NixCMS admin should use the dense enterprise direction already proven in WeOnlyWalk:
+The NafCMS admin should use the dense enterprise direction already proven in WeOnlyWalk:
 
 - Server-rendered `.phtml` views first.
 - Calm layout with persistent admin navigation.
@@ -599,7 +599,7 @@ The NixCMS admin should use the dense enterprise direction already proven in WeO
 
 Avoid landing-page or marketing-style admin screens. The first screen should be useful as an operational dashboard.
 
-For this NixCMS repository, browser-consumed assets must exist below `public/css` and `public/js`. `app/Resources` is for source/build inputs only.
+For this NafCMS repository, browser-consumed assets must exist below `public/css` and `public/js`. `app/Resources` is for source/build inputs only.
 
 Admin UI components should be self-contained by default. Prefer Tailwind utility classes and small local class decisions inside `src/views/components/admin/*`; keep global CSS for Tailwind entrypoint concerns, tokens, base behavior, complex selectors, and third-party integration only. A plugin should usually be able to override one component file without also patching global CSS.
 
@@ -614,9 +614,9 @@ Admin UI components should be self-contained by default. Prefer Tailwind utility
 
 ## First Build Target
 
-The first useful NixCMS milestone should be:
+The first useful NafCMS milestone should be:
 
-1. NixPHP app skeleton with admin layout.
+1. NAF app skeleton with admin layout.
 2. Database migrations for users, roles, permissions, sessions, articles, article versions, categories, tags, and pivots.
 3. Login/logout plus a CLI command to create the first admin user.
 4. Admin dashboard with health, content status counts, queue status, and loaded plugin overview.

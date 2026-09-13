@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mcp;
 
-use NixPHP\CMS\Mcp\Tools\QueueStatusTool;
+use Naf\CMS\Mcp\Tools\QueueStatusTool;
 use PHPUnit\Framework\TestCase;
 
 final class QueueStatusToolTest extends TestCase
@@ -15,7 +15,7 @@ final class QueueStatusToolTest extends TestCase
     {
         parent::setUp();
 
-        $this->queuePath = sys_get_temp_dir() . '/nixcms-queue-tool-' . bin2hex(random_bytes(8));
+        $this->queuePath = sys_get_temp_dir() . '/nafcms-queue-tool-' . bin2hex(random_bytes(8));
         mkdir($this->queuePath . '/default', 0775, true);
         mkdir($this->queuePath . '/mail', 0775, true);
         mkdir($this->queuePath . '/deadletter/default', 0775, true);

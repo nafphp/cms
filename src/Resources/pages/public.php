@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-use NixPHP\CMS\Content\Article\ArticleContentType;
-use NixPHP\CMS\Page\Layout;
-use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Page\PageBuilderRenderer;
-use NixPHP\CMS\Page\Template;
-use NixPHP\CMS\Repositories\ArticleRepository;
-use function NixPHP\I18n\lang;
-use function NixPHP\ORM\repo;
-use function NixPHP\response;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Content\Article\ArticleContentType;
+use Naf\CMS\Page\Layout;
+use Naf\CMS\Page\Page;
+use Naf\CMS\Page\PageBuilderRenderer;
+use Naf\CMS\Page\Template;
+use Naf\CMS\Repositories\ArticleRepository;
+use function Naf\I18n\lang;
+use function Naf\ORM\repo;
+use function Naf\response;
+use function Naf\CMS\cms;
 
 $publicLayout = Layout::create(Template::create('default')
     ->setParent('page')
-    ->addStylesheet('/css/nixcms.css')
+    ->addStylesheet('/css/nafcms.css')
     ->addBodyClass('grid min-h-screen place-items-center bg-slate-50 p-8 text-slate-950 dark:bg-slate-950 dark:text-slate-50'))
     ->addBlock('site_header', 'page.blocks.empty', ['label' => 'Site header', 'region' => 'header', 'size' => 'small'])
     ->addBlock('main', 'page.blocks.welcome', [
@@ -25,7 +25,7 @@ $publicLayout = Layout::create(Template::create('default')
 
 $articleLayout = Layout::create(Template::create('article_detail')
     ->setParent('page')
-    ->addStylesheet('/css/nixcms.css')
+    ->addStylesheet('/css/nafcms.css')
     ->addBodyClass('min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50'))
     ->addBlock('site_header', 'page.blocks.placeholder', [
         'label' => 'Site header',

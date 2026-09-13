@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Security;
 
 use PHPUnit\Framework\TestCase;
-use function NixPHP\CMS\cms;
+use function Naf\CMS\cms;
 
 final class AuthorizationWiringTest extends TestCase
 {

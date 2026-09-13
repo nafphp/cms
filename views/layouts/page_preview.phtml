@@ -1,16 +1,16 @@
 <?php
 
-use NixPHP\View\Core\Asset;
-use function NixPHP\View\s;
-use function NixPHP\CMS\cms;
+use Naf\View\Core\Asset;
+use function Naf\View\s;
+use function Naf\CMS\cms;
 
 /** @var string|null $content */
-/** @var \NixPHP\CMS\Page\Page $page */
-/** @var \NixPHP\CMS\Page\Template $template */
+/** @var \Naf\CMS\Page\Page $page */
+/** @var \Naf\CMS\Page\Template $template */
 /** @var string|null $title */
 
 $settings = cms()->settings();
-$template = ($template ?? null) instanceof \NixPHP\CMS\Page\Template ? $template : \NixPHP\CMS\Page\Template::create();
+$template = ($template ?? null) instanceof \Naf\CMS\Page\Template ? $template : \Naf\CMS\Page\Template::create();
 $currentLanguage = $page->language() ?? $settings->currentLanguage();
 $assets = new Asset();
 $stylesheetTags = [];

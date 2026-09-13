@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Theme;
+namespace Naf\CMS\Theme;
 
-use NixPHP\CMS\Theme\Theme;
+use Naf\CMS\Theme\Theme;
 
 final class ThemeRegistry
 {

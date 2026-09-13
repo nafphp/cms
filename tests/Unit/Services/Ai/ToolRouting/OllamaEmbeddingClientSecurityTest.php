@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Ai\ToolRouting;
 
-use NixPHP\CMS\Services\Ai\LocalAiToolCatalog;
-use NixPHP\CMS\Services\Ai\ToolRouting\CosineToolRouter;
-use NixPHP\CMS\Services\Ai\ToolRouting\KeywordToolRouter;
-use NixPHP\CMS\Services\Ai\ToolRouting\OllamaEmbeddingClient;
-use NixPHP\CMS\Services\Ai\ToolRouting\ToolContext;
-use NixPHP\CMS\Services\Http\OutboundHttpClient;
-use NixPHP\CMS\Services\Http\OutboundHttpPolicy;
-use NixPHP\CMS\Services\Http\OutboundHttpProfile;
-use Tests\Support\NixPHPTestCase;
+use Naf\CMS\Services\Ai\LocalAiToolCatalog;
+use Naf\CMS\Services\Ai\ToolRouting\CosineToolRouter;
+use Naf\CMS\Services\Ai\ToolRouting\KeywordToolRouter;
+use Naf\CMS\Services\Ai\ToolRouting\OllamaEmbeddingClient;
+use Naf\CMS\Services\Ai\ToolRouting\ToolContext;
+use Naf\CMS\Services\Http\OutboundHttpClient;
+use Naf\CMS\Services\Http\OutboundHttpPolicy;
+use Naf\CMS\Services\Http\OutboundHttpProfile;
+use Tests\Support\NafTestCase;
 
-final class OllamaEmbeddingClientSecurityTest extends NixPHPTestCase
+final class OllamaEmbeddingClientSecurityTest extends NafTestCase
 {
     public function testLocalOllamaLoopbackRemainsAvailable(): void
     {
@@ -33,7 +33,7 @@ final class OllamaEmbeddingClientSecurityTest extends NixPHPTestCase
         $client = new OllamaEmbeddingClient(
             'http://127.0.0.1:11434',
             'security-test-model',
-            cacheDirectory: sys_get_temp_dir() . '/nixcms-embedding-security-' . bin2hex(random_bytes(6)),
+            cacheDirectory: sys_get_temp_dir() . '/nafcms-embedding-security-' . bin2hex(random_bytes(6)),
             httpClient: $http,
             httpProfile: OutboundHttpProfile::ollama([11434]),
         );
@@ -56,7 +56,7 @@ final class OllamaEmbeddingClientSecurityTest extends NixPHPTestCase
         $embeddings = new OllamaEmbeddingClient(
             'http://169.254.169.254:11434',
             'blocked-model',
-            cacheDirectory: sys_get_temp_dir() . '/nixcms-embedding-blocked-' . bin2hex(random_bytes(6)),
+            cacheDirectory: sys_get_temp_dir() . '/nafcms-embedding-blocked-' . bin2hex(random_bytes(6)),
             httpClient: $http,
             httpProfile: OutboundHttpProfile::ollama([11434]),
         );

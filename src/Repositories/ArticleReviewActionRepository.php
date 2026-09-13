@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Repositories;
+namespace Naf\CMS\Repositories;
 
-use NixPHP\CMS\Models\ArticleReviewAction;
-use NixPHP\ORM\Repository\AbstractRepository;
+use Naf\CMS\Models\ArticleReviewAction;
+use Naf\ORM\Repository\AbstractRepository;
 
 class ArticleReviewActionRepository extends AbstractRepository
 {

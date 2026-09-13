@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Security;
+namespace Naf\CMS\Security;
 
 /**
  * Per-request nonce shared by the CSP header and rendered script tags.

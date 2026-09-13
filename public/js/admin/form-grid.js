@@ -61,12 +61,12 @@ class FormGrid {
             return;
         }
 
-        const response = await (window.NixCMS?.fetch || fetch)(this.url('delete', row), {
+        const response = await (window.NafCMS?.fetch || fetch)(this.url('delete', row), {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'X-CSRF-Token': String(window.NixCMS?.csrfToken?.() || ''),
+                'X-CSRF-Token': String(window.NafCMS?.csrfToken?.() || ''),
             },
         });
         const data = await response.json().catch(() => null);

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Commands;
+namespace Naf\CMS\Commands;
 
-use NixPHP\CMS\Support\Docs\DefaultDocRenderers;
-use NixPHP\CMS\Support\Docs\ReadmeDocBlockUpdater;
-use NixPHP\CLI\Core\AbstractCommand;
-use NixPHP\CLI\Core\Input;
-use NixPHP\CLI\Core\Output;
+use Naf\CMS\Support\Docs\DefaultDocRenderers;
+use Naf\CMS\Support\Docs\ReadmeDocBlockUpdater;
+use Naf\CLI\Core\AbstractCommand;
+use Naf\CLI\Core\Input;
+use Naf\CLI\Core\Output;
 
 final class DocsCheckCommand extends AbstractCommand
 {
@@ -18,7 +18,7 @@ final class DocsCheckCommand extends AbstractCommand
     {
         $this
             ->setTitle('Check Documentation')
-            ->setDescription('Check whether README.md auto documentation blocks match NixCMS registries.')
+            ->setDescription('Check whether README.md auto documentation blocks match NafCMS registries.')
             ->addOption('help');
     }
 
@@ -26,8 +26,8 @@ final class DocsCheckCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine('    vendor/bin/nix docs:check');
-            $output->writeLine('  Exits with code 1 when README.md is out of sync. Run vendor/bin/nix docs:sync to fix it.');
+            $output->writeLine('    vendor/bin/naf docs:check');
+            $output->writeLine('  Exits with code 1 when README.md is out of sync. Run vendor/bin/naf docs:sync to fix it.');
             return self::SUCCESS;
         }
 
@@ -43,7 +43,7 @@ final class DocsCheckCommand extends AbstractCommand
             $synced = $updater->sync($current);
         } catch (\Throwable $e) {
             $output->writeLine($e->getMessage(), 'error');
-            $output->writeLine('Run `vendor/bin/nix docs:sync` after restoring the missing README.md markers.');
+            $output->writeLine('Run `vendor/bin/naf docs:sync` after restoring the missing README.md markers.');
             return $this->fail();
         }
         $normalizedCurrent = str_replace("\r\n", "\n", $current);
@@ -58,7 +58,7 @@ final class DocsCheckCommand extends AbstractCommand
         if ($changedBlocks !== []) {
             $output->writeLine('Changed blocks: ' . implode(', ', $changedBlocks));
         }
-        $output->writeLine('Run `vendor/bin/nix docs:sync` and commit the README.md changes.');
+        $output->writeLine('Run `vendor/bin/naf docs:sync` and commit the README.md changes.');
 
         return $this->fail();
     }

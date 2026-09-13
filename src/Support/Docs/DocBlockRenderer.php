@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Support\Docs;
+namespace Naf\CMS\Support\Docs;
 
 interface DocBlockRenderer
 {

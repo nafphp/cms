@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Form;
 
-use NixPHP\CMS\Services\Form\FormSubmissionValidator;
-use Tests\Support\NixPHPTestCase;
+use Naf\CMS\Services\Form\FormSubmissionValidator;
+use Tests\Support\NafTestCase;
 
-final class FormSubmissionValidatorTest extends NixPHPTestCase
+final class FormSubmissionValidatorTest extends NafTestCase
 {
     public function testValidatesRequiredEmailAndLengthRules(): void
     {

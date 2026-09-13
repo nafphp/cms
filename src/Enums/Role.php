@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Enums;
+namespace Naf\CMS\Enums;
 
 enum Role: string
 {

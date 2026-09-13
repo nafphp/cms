@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\Article;
+namespace Naf\CMS\Handlers\Api\Article;
 
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\json;
+use function Naf\json;
 
 final class EnqueueArticleTranslation
 {

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Mcp\Tools;
+namespace Naf\CMS\Mcp\Tools;
 
-use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
-use NixPHP\CMS\Enums\ToolRisk;
+use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
+use Naf\CMS\Enums\ToolRisk;
 
-use NixPHP\MCP\Support\Schema;
-use NixPHP\MCP\Tools\ScopedToolInterface;
-use NixPHP\MCP\Tools\ToolInterface;
+use Naf\MCP\Support\Schema;
+use Naf\MCP\Tools\ScopedToolInterface;
+use Naf\MCP\Tools\ToolInterface;
 use Throwable;
 
 final class WeatherForecastTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
@@ -132,7 +132,7 @@ final class WeatherForecastTool implements ToolInterface, ScopedToolInterface, L
             'http' => [
                 'method' => 'GET',
                 'timeout' => 6,
-                'header' => "Accept: application/json\r\nUser-Agent: NixCMS Local AI Weather Tool\r\n",
+                'header' => "Accept: application/json\r\nUser-Agent: NafCMS Local AI Weather Tool\r\n",
             ],
         ]);
 

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Repositories;
+namespace Naf\CMS\Repositories;
 
-use NixPHP\CMS\Models\Category;
-use NixPHP\CMS\Support\Slug;
-use NixPHP\ORM\Repository\AbstractRepository;
-use function NixPHP\ORM\em;
-use function NixPHP\log;
+use Naf\CMS\Models\Category;
+use Naf\CMS\Support\Slug;
+use Naf\ORM\Repository\AbstractRepository;
+use function Naf\ORM\em;
+use function Naf\log;
 
 class CategoryRepository extends AbstractRepository
 {

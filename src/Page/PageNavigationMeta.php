@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Page;
+namespace Naf\CMS\Page;
 
 final class PageNavigationMeta
 {

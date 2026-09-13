@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Handlers\Api\Media;
 
-use NixPHP\CMS\Handlers\Api\Media\ServeMedia;
+use Naf\CMS\Handlers\Api\Media\ServeMedia;
 use PHPUnit\Framework\TestCase;
 
 final class ServeMediaTest extends TestCase

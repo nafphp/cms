@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-use NixPHP\CMS\Api\ApiEndpoint;
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Handlers\Api\Ai\AppendAiMemory;
-use NixPHP\CMS\Handlers\Api\Ai\CallAiTool;
-use NixPHP\CMS\Handlers\Api\Ai\DeleteAiMistakes;
-use NixPHP\CMS\Handlers\Api\Ai\ListAiTools;
-use NixPHP\CMS\Handlers\Api\Ai\ListAiPromptFiles;
-use NixPHP\CMS\Handlers\Api\Ai\RecordAiMistake;
-use NixPHP\CMS\Handlers\Api\Ai\ReviewAiMistakes;
-use NixPHP\CMS\Handlers\Api\Ai\SaveAiPromptFile;
-use NixPHP\CMS\Handlers\Api\Ai\SelectAiTools;
+use Naf\CMS\Api\ApiEndpoint;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Handlers\Api\Ai\AppendAiMemory;
+use Naf\CMS\Handlers\Api\Ai\CallAiTool;
+use Naf\CMS\Handlers\Api\Ai\DeleteAiMistakes;
+use Naf\CMS\Handlers\Api\Ai\ListAiTools;
+use Naf\CMS\Handlers\Api\Ai\ListAiPromptFiles;
+use Naf\CMS\Handlers\Api\Ai\RecordAiMistake;
+use Naf\CMS\Handlers\Api\Ai\ReviewAiMistakes;
+use Naf\CMS\Handlers\Api\Ai\SaveAiPromptFile;
+use Naf\CMS\Handlers\Api\Ai\SelectAiTools;
 
 return [
     ApiEndpoint::get('api.admin.ai.tools', '/api/admin/ai/tools')

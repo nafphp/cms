@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Form;
+namespace Naf\CMS\Services\Form;
 
 use Closure;
-use NixPHP\CMS\Exceptions\OutboundHttpDenied;
-use NixPHP\CMS\Services\Http\OutboundHttpClient;
-use NixPHP\CMS\Services\Http\OutboundHttpPolicy;
-use NixPHP\CMS\Services\Http\OutboundHttpProfile;
-use function NixPHP\CMS\cms;
-use function NixPHP\config;
+use Naf\CMS\Exceptions\OutboundHttpDenied;
+use Naf\CMS\Services\Http\OutboundHttpClient;
+use Naf\CMS\Services\Http\OutboundHttpPolicy;
+use Naf\CMS\Services\Http\OutboundHttpProfile;
+use function Naf\CMS\cms;
+use function Naf\config;
 
 final class FormSubmissionActionRunner
 {

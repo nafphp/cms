@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Security;
+namespace Naf\CMS\Security;
 
 /**
  * Central allowlist for URLs rendered from stored CMS content.

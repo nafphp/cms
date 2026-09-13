@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Http;
+namespace Naf\CMS\Services\Http;
 
 use Closure;
-use NixPHP\CMS\Exceptions\OutboundHttpDenied;
-use NixPHP\CMS\Services\Http\OutboundHttpProfile;
-use NixPHP\CMS\Services\Http\OutboundHttpTarget;
+use Naf\CMS\Exceptions\OutboundHttpDenied;
+use Naf\CMS\Services\Http\OutboundHttpProfile;
+use Naf\CMS\Services\Http\OutboundHttpTarget;
 
 final class OutboundHttpPolicy
 {

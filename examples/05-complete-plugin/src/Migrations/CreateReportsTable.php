@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ExampleVendor\ReportPlugin\Migrations;
 
-use NixPHP\Database\Core\AbstractMigration;
+use Naf\Database\Core\AbstractMigration;
 use PDO;
 
 final class CreateReportsTable extends AbstractMigration

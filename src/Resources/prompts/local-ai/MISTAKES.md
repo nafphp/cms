@@ -8,5 +8,5 @@ Format:
 ## YYYY-MM-DD HH:MM:SS TZ
 - Event: What happened.
 - Context: Relevant user request or assistant behavior.
-- Correction: What Nixorious should do differently next time.
+- Correction: What Nafarious should do differently next time.
 ```

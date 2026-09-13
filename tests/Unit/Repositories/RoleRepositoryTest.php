@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
-use NixPHP\CMS\Models\Role;
-use NixPHP\CMS\Repositories\RoleRepository;
-use NixPHP\ORM\Core\EntityManager;
+use Naf\CMS\Models\Role;
+use Naf\CMS\Repositories\RoleRepository;
+use Naf\ORM\Core\EntityManager;
 use Tests\Support\DatabaseTestCase;
 
 final class RoleRepositoryTest extends DatabaseTestCase
@@ -76,7 +76,7 @@ final class RoleRepositoryTest extends DatabaseTestCase
     {
         $viewerId = $this->insertRow('users', ['username' => 'viewer']);
 
-        $this->expectException(\NixPHP\CMS\Exceptions\PrivilegedActionDenied::class);
+        $this->expectException(\Naf\CMS\Exceptions\PrivilegedActionDenied::class);
         $this->repository->createByName($viewerId, 'forbidden');
     }
 }

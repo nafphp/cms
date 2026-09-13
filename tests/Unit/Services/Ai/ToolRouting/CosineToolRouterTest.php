@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Ai\ToolRouting;
 
-use NixPHP\CMS\Services\Ai\LocalAiToolCatalog;
-use NixPHP\CMS\Services\Ai\ToolRouting\CosineToolRouter;
-use NixPHP\CMS\Services\Ai\ToolRouting\EmbeddingClientInterface;
-use NixPHP\CMS\Services\Ai\ToolRouting\ToolContext;
+use Naf\CMS\Services\Ai\LocalAiToolCatalog;
+use Naf\CMS\Services\Ai\ToolRouting\CosineToolRouter;
+use Naf\CMS\Services\Ai\ToolRouting\EmbeddingClientInterface;
+use Naf\CMS\Services\Ai\ToolRouting\ToolContext;
 use PHPUnit\Framework\TestCase;
 
 final class CosineToolRouterTest extends TestCase

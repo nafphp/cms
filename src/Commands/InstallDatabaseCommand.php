@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Commands;
+namespace Naf\CMS\Commands;
 
-use NixPHP\CLI\Core\AbstractCommand;
-use NixPHP\CLI\Core\Input;
-use NixPHP\CLI\Core\Output;
-use NixPHP\Database\Commands\MigrateCommand;
-use NixPHP\CMS\Commands\CreateDatabaseCommand;
-use function NixPHP\app;
+use Naf\CLI\Core\AbstractCommand;
+use Naf\CLI\Core\Input;
+use Naf\CLI\Core\Output;
+use Naf\Database\Commands\MigrateCommand;
+use Naf\CMS\Commands\CreateDatabaseCommand;
+use function Naf\app;
 
 class InstallDatabaseCommand extends AbstractCommand
 {
@@ -28,8 +28,8 @@ class InstallDatabaseCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine(sprintf('    vendor/bin/nix %s', static::NAME));
-            $output->writeLine(sprintf('    vendor/bin/nix %s --force', static::NAME));
+            $output->writeLine(sprintf('    vendor/bin/naf %s', static::NAME));
+            $output->writeLine(sprintf('    vendor/bin/naf %s --force', static::NAME));
             $output->writeLine('  Creates the configured database if needed, then runs db:migrate up.');
             $output->writeLine('  --force drops the configured database before recreating it.');
             return self::SUCCESS;

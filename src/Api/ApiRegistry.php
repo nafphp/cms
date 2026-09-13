@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Api;
+namespace Naf\CMS\Api;
 
-use NixPHP\CMS\Controllers\Api\ApiController;
-use NixPHP\CMS\Api\ApiEndpoint;
-use function NixPHP\route;
+use Naf\CMS\Controllers\Api\ApiController;
+use Naf\CMS\Api\ApiEndpoint;
+use function Naf\route;
 
 final class ApiRegistry
 {

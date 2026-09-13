@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Contracts;
+namespace Naf\CMS\Contracts;
 
-use NixPHP\CMS\Theme\Theme;
+use Naf\CMS\Theme\Theme;
 
 /**
  * Source for persisted themes.

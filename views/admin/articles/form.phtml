@@ -1,13 +1,13 @@
 <?php
 
-use NixPHP\View\Core\Asset;
-use function NixPHP\Form\csrf;
-use function NixPHP\I18n\t;
-use function NixPHP\request;
-use function NixPHP\route;
-use function NixPHP\View\s;
-use function NixPHP\View\view;
-use function NixPHP\CMS\cms;
+use Naf\View\Core\Asset;
+use function Naf\Form\csrf;
+use function Naf\I18n\t;
+use function Naf\request;
+use function Naf\route;
+use function Naf\View\s;
+use function Naf\View\view;
+use function Naf\CMS\cms;
 
 $article = is_array($article ?? null) ? $article : [];
 $categories = is_array($categories ?? null) ? $categories : [];
@@ -191,7 +191,7 @@ $fieldErrorAssets->add('/js/components/formFieldErrors.js');
 </div>
 
 <?= $fieldErrorAssets->render('js') ?>
-<script nonce="<?= \NixPHP\CMS\csp_nonce() ?>" type="module">
+<script nonce="<?= \Naf\CMS\csp_nonce() ?>" type="module">
     const articleId = <?= $articleId > 0 ? $articleId : 'null' ?>;
     const categoryNames = <?= json_encode(array_values($categories), JSON_UNESCAPED_UNICODE) ?>;
     const availableTagSuggestions = <?= json_encode(array_values($tagSuggestions), JSON_UNESCAPED_UNICODE) ?>;
@@ -467,13 +467,13 @@ $fieldErrorAssets->add('/js/components/formFieldErrors.js');
         syncSaveButtons();
         fieldErrors.clearAll();
 
-        const response = await (window.NixCMS?.fetch || fetch)(form.action, {
+        const response = await (window.NafCMS?.fetch || fetch)(form.action, {
             method: 'POST',
             body: JSON.stringify(await getFormData(form)),
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRF-Token': String(window.NixCMS?.csrfToken?.() || form.querySelector('input[name="_csrf"]')?.value || ''),
+                'X-CSRF-Token': String(window.NafCMS?.csrfToken?.() || form.querySelector('input[name="_csrf"]')?.value || ''),
             },
         });
         const payload = await response.json().catch(() => ({}));

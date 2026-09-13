@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Controllers\Page;
+namespace Naf\CMS\Controllers\Page;
 
-use NixPHP\CMS\Page\PageDataHandler;
-use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Page\PageAuthorization;
-use NixPHP\CMS\Page\PageBuilderRenderer;
-use NixPHP\CMS\Support\HandlerInvoker;
-use NixPHP\Exceptions\RouteNotFoundException;
+use Naf\CMS\Page\PageDataHandler;
+use Naf\CMS\Page\Page;
+use Naf\CMS\Page\PageAuthorization;
+use Naf\CMS\Page\PageBuilderRenderer;
+use Naf\CMS\Support\HandlerInvoker;
+use Naf\Exceptions\RouteNotFoundException;
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\I18n\t;
-use function NixPHP\request;
-use function NixPHP\response;
-use function NixPHP\route;
-use function NixPHP\View\view;
-use function NixPHP\CMS\cms;
+use function Naf\I18n\t;
+use function Naf\request;
+use function Naf\response;
+use function Naf\route;
+use function Naf\View\view;
+use function Naf\CMS\cms;
 
 final class PageController
 {

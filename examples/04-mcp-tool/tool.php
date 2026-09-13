@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Examples\McpTool;
+namespace Naf\CMS\Examples\McpTool;
 
-use NixPHP\MCP\Support\Schema;
-use NixPHP\MCP\Tools\ScopedToolInterface;
-use NixPHP\MCP\Tools\ToolInterface;
-use function NixPHP\MCP\tool;
+use Naf\MCP\Support\Schema;
+use Naf\MCP\Tools\ScopedToolInterface;
+use Naf\MCP\Tools\ToolInterface;
+use function Naf\MCP\tool;
 
 final class ExamplePingTool implements ToolInterface, ScopedToolInterface
 {

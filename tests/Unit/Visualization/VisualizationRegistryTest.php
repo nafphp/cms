@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Visualization;
 
-use NixPHP\CMS\Visualization\ChartDefinition;
-use NixPHP\CMS\Visualization\VisualizationRegistry;
+use Naf\CMS\Visualization\ChartDefinition;
+use Naf\CMS\Visualization\VisualizationRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class VisualizationRegistryTest extends TestCase
@@ -15,7 +15,7 @@ final class VisualizationRegistryTest extends TestCase
         $registry = new VisualizationRegistry();
         $registry->add(ChartDefinition::bar('status', ['Draft' => 1]));
 
-        self::assertStringContainsString('data-nixcms-chart="status"', $registry->render('status'));
+        self::assertStringContainsString('data-nafcms-chart="status"', $registry->render('status'));
     }
 
     public function testRegistryRendersChartDefinitionDirectly(): void
@@ -23,7 +23,7 @@ final class VisualizationRegistryTest extends TestCase
         $registry = new VisualizationRegistry();
 
         self::assertStringContainsString(
-            'data-nixcms-chart="inline"',
+            'data-nafcms-chart="inline"',
             $registry->render(ChartDefinition::bar('inline', ['Draft' => 1])),
         );
     }

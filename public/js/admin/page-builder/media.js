@@ -140,7 +140,7 @@ export const mediaMethods = {
                     formData.append('alt_text', String(modal.querySelector('[data-page-media-alt]')?.value || ''));
                     formData.append('collection', 'pages');
 
-                    const response = await (window.NixCMS?.fetch || fetch)(String(this.media.urls?.upload || ''), {
+                    const response = await (window.NafCMS?.fetch || fetch)(String(this.media.urls?.upload || ''), {
                         method: 'POST',
                         headers: {'Accept': 'application/json'},
                         body: formData,
@@ -224,7 +224,7 @@ export const mediaMethods = {
         }
 
         try {
-            const response = await (window.NixCMS?.fetch || fetch)(url);
+            const response = await (window.NafCMS?.fetch || fetch)(url);
             const data = await response.json();
             return Array.isArray(data?.rows) ? data.rows : [];
         } catch (error) {

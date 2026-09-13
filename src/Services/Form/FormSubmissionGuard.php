@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Form;
+namespace Naf\CMS\Services\Form;
 
-use NixPHP\CMS\Services\Security\FileRateLimiter;
-use NixPHP\CMS\Services\Security\RateLimitDecision;
+use Naf\CMS\Services\Security\FileRateLimiter;
+use Naf\CMS\Services\Security\RateLimitDecision;
 
 final class FormSubmissionGuard
 {
@@ -50,11 +50,11 @@ final class FormSubmissionGuard
     /** @param array<string, mixed> $payload */
     public function looksLikeSpam(array $payload, int $now = 0): bool
     {
-        if (trim((string) ($payload['_nixcms_hp'] ?? '')) !== '') {
+        if (trim((string) ($payload['_nafcms_hp'] ?? '')) !== '') {
             return true;
         }
 
-        $startedAt = (int) ($payload['_nixcms_started_at'] ?? 0);
+        $startedAt = (int) ($payload['_nafcms_started_at'] ?? 0);
         $now = $now > 0 ? $now : time();
         return $startedAt <= 0 || $startedAt > $now || ($now - $startedAt) < 2;
     }

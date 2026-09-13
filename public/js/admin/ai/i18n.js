@@ -11,7 +11,7 @@ export const loadCmsTranslations = () => {
     }
 
     const language = uiLanguage();
-    cmsTranslationsPromise = (window.NixCMS?.json || fetch)(`/api/admin/translations/${encodeURIComponent(language)}`, {
+    cmsTranslationsPromise = (window.NafCMS?.json || fetch)(`/api/admin/translations/${encodeURIComponent(language)}`, {
         method: 'GET',
         headers: {'Accept': 'application/json'},
     })
@@ -42,7 +42,7 @@ export const greetingTemplates = [
     () => uiText('Hello, I am ready. What should we look at?'),
     () => uiText('Hi, what can I do for you in the CMS?'),
     () => uiText('Hello, what can I help you with?'),
-    () => uiText('Nixorious here. What is going on?'),
+    () => uiText('Nafarious here. What is going on?'),
     () => uiText('At your service. What shall we sort out?'),
     () => uiText('Ready at the console. What needs attention?'),
     () => uiText('Good to see you. Where shall we begin?'),
@@ -58,7 +58,7 @@ export const anonymousGreetingTemplates = [
     () => uiText('Hello, I am ready. What should we look at?'),
     () => uiText('Hi, what can I do for you in the CMS?'),
     () => uiText('Hello, what can I help you with?'),
-    () => uiText('Nixorious here. What is going on?'),
+    () => uiText('Nafarious here. What is going on?'),
     () => uiText('At your service. What shall we sort out?'),
     () => uiText('Ready at the console. What needs attention?'),
     () => uiText('Good to see you. Where shall we begin?'),

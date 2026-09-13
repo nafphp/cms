@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Ai;
+namespace Naf\CMS\Services\Ai;
 
-use NixPHP\CMS\Services\Ai\ToolRouting\SemanticToolRouter;
-use NixPHP\CMS\Services\Ai\ToolRouting\ToolContext;
+use Naf\CMS\Services\Ai\ToolRouting\SemanticToolRouter;
+use Naf\CMS\Services\Ai\ToolRouting\ToolContext;
 
 /**
  * Backwards-compatible facade for the local assistant.

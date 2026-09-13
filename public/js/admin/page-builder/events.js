@@ -597,7 +597,7 @@ export const eventMethods = {
         }
 
         try {
-            const request = window.NixCMS?.json || fetch;
+            const request = window.NafCMS?.json || fetch;
             const response = await request(this.themeSaveUrl, {
                 method: 'POST',
                 body: JSON.stringify(payload),
@@ -807,7 +807,7 @@ export const eventMethods = {
         }
 
         try {
-            const request = window.NixCMS?.json || fetch;
+            const request = window.NafCMS?.json || fetch;
             const response = await request(this.layoutSaveUrl, {
                 method: 'POST',
                 body: JSON.stringify({

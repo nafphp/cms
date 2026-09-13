@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mcp;
 
-use NixPHP\CMS\Mcp\Tools\AdminNavigateTool;
+use Naf\CMS\Mcp\Tools\AdminNavigateTool;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

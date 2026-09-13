@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Page;
+namespace Naf\CMS\Page;
 
-use NixPHP\CMS\Controllers\Page\PageController;
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Repositories\PageRepository;
-use NixPHP\CMS\Repositories\PageLayoutRepository;
-use NixPHP\CMS\Support\AuditEntry;
-use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Page\PageDataHandler;
-use NixPHP\CMS\Page\PageTemplateCatalog;
-use function NixPHP\log;
-use function NixPHP\route;
-use function NixPHP\CMS\cms;
-use function NixPHP\CMS\user;
+use Naf\CMS\Controllers\Page\PageController;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Repositories\PageRepository;
+use Naf\CMS\Repositories\PageLayoutRepository;
+use Naf\CMS\Support\AuditEntry;
+use Naf\CMS\Page\Page;
+use Naf\CMS\Page\PageDataHandler;
+use Naf\CMS\Page\PageTemplateCatalog;
+use function Naf\log;
+use function Naf\route;
+use function Naf\CMS\cms;
+use function Naf\CMS\user;
 
 final class PageRegistry
 {

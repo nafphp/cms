@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use function NixPHP\View\s;
-use function NixPHP\View\asset;
-use function NixPHP\I18n\t;
-use function NixPHP\CMS\cms;
+use function Naf\View\s;
+use function Naf\View\asset;
+use function Naf\I18n\t;
+use function Naf\CMS\cms;
 
 $settings = cms()->settings();
 $currentLanguage = $settings->currentLanguage();
-asset()->add('/css/nixcms.css');
+asset()->add('/css/nafcms.css');
 
 ?>
 <!doctype html>

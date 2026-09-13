@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Handlers\Api\Settings;
 
-use NixPHP\CMS\Contracts\SettingsServiceInterface;
-use NixPHP\CMS\Contracts\TranslationServiceInterface;
-use NixPHP\CMS\Handlers\Api\Settings\GetTranslations;
-use NixPHP\CMS\Handlers\Api\Settings\UpdateSettings;
-use NixPHP\CMS\Handlers\Api\Settings\UpdateTranslations;
+use Naf\CMS\Contracts\SettingsServiceInterface;
+use Naf\CMS\Contracts\TranslationServiceInterface;
+use Naf\CMS\Handlers\Api\Settings\GetTranslations;
+use Naf\CMS\Handlers\Api\Settings\UpdateSettings;
+use Naf\CMS\Handlers\Api\Settings\UpdateTranslations;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\JsonRequest;
 

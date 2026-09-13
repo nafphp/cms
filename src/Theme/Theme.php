@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Theme;
+namespace Naf\CMS\Theme;
 
 /**
  * Frontend theme definition: body class, optional assets, and builder-visible surfaces.

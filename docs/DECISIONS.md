@@ -12,16 +12,16 @@ Eintrag bekommt einen Nachtrag, keine Streichung.
 ## 2026-07-30 — Kein zweiter CSRF-Listener im CMS
 
 **Entscheidung:** Das CMS verlässt sich vollständig auf den `CsrfListener` aus
-`nixphp/form`. Es gibt keine eigene CSRF-Prüfung, auch nicht ergänzend.
+`naf/form`. Es gibt keine eigene CSRF-Prüfung, auch nicht ergänzend.
 
 **Kontext:** Der Listener im Framework hat zwei bekannte Lücken:
 
-- `vendor/nixphp/form/src/Events/CsrfListener.php:28` prüft nur `POST`, `PUT`
+- `vendor/naf/form/src/Events/CsrfListener.php:28` prüft nur `POST`, `PUT`
   und `DELETE` — `PATCH` fehlt.
 - Zeile 33 überspringt die Prüfung komplett, sobald ein `Authorization`-Header
   vorhanden ist.
 
-Beides ist für NixCMS heute folgenlos: es sind keine `PATCH`-Endpunkte
+Beides ist für NafCMS heute folgenlos: es sind keine `PATCH`-Endpunkte
 registriert, und die Authentifizierung läuft über Session-Cookies, nicht über
 Bearer-Token.
 
@@ -30,22 +30,22 @@ sind schlechter als eine dokumentierte Lücke. Der Fix gehört in das Paket, das
 die Prüfung besitzt.
 
 **Stattdessen:** `tests/Unit/Security/CsrfEndpointContractTest.php` verhindert,
-dass NixCMS einen `PATCH`-Endpunkt registriert, solange das Framework ihn nicht
-schützt. Der eigentliche Fix wird separat in `nixphp/form` gemacht.
+dass NafCMS einen `PATCH`-Endpunkt registriert, solange das Framework ihn nicht
+schützt. Der eigentliche Fix wird separat in `naf/form` gemacht.
 
 **Status:** Framework-Fix steht aus.
 
 ---
 
-## 2026-07-30 — `bin/nix-completion` bleibt entfernt
+## 2026-07-30 — `bin/naf-completion` bleibt entfernt
 
 **Entscheidung:** Die Shell-Completion (276 Zeilen) wird nicht wiederhergestellt.
 
 **Kontext:** Sie war Teil einer `dev/bootstrap.php`-Konstruktion, die es im
-Repository nie gab (`git log --all -- dev/` ist leer). `bin/nix` selbst wurde
-ebenfalls entfernt; die CI ruft jetzt `vendor/bin/nix` auf.
+Repository nie gab (`git log --all -- dev/` ist leer). `bin/naf` selbst wurde
+ebenfalls entfernt; die CI ruft jetzt `vendor/bin/naf` auf.
 
-**Warum:** Shell-Completion für die NixPHP-CLI gehört ins CLI-Plugin, nicht in
+**Warum:** Shell-Completion für die NAF-CLI gehört ins CLI-Plugin, nicht in
 ein CMS-Plugin. Dort wird sie später sauber neu aufgesetzt.
 
 ---
@@ -101,7 +101,7 @@ Liste durchsetzt):
 
 **Warum Closures:** Der Container baut sie erst beim ersten Zugriff. Ein eager
 gebautes Binding würde Dienste instanziieren, die ein Request nie anfasst — und
-`nixphp/cms` bootet bewusst als letztes Plugin, verlässt sich also auf Dienste,
+`naf/cms` bootet bewusst als letztes Plugin, verlässt sich also auf Dienste,
 die zum Zeitpunkt der Registrierung noch nicht fertig sind.
 
 **Warum Repositories einen nullbaren Konstruktor-Parameter haben:**

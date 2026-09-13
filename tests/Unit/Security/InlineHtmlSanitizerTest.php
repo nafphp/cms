@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Security;
 
-use NixPHP\CMS\Security\InlineHtmlSanitizer;
+use Naf\CMS\Security\InlineHtmlSanitizer;
 use PHPUnit\Framework\TestCase;
-use function NixPHP\View\s;
+use function Naf\View\s;
 
 final class InlineHtmlSanitizerTest extends TestCase
 {

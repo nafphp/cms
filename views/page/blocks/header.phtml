@@ -1,10 +1,10 @@
 <?php
 
-use NixPHP\CMS\Security\UrlPolicy;
-use function NixPHP\View\s;
-use function NixPHP\View\asset;
-use function NixPHP\I18n\t;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Security\UrlPolicy;
+use function Naf\View\s;
+use function Naf\View\asset;
+use function Naf\I18n\t;
+use function Naf\CMS\cms;
 
 require_once __DIR__ . '/_helpers/navigation.php';
 
@@ -18,7 +18,7 @@ $logoImage = UrlPolicy::media($logoImage !== '' ? $logoImage : cms()->settings()
 $pageObject = isset($page) && is_object($page) ? $page : null;
 $fallbackIdentifier = (string) ($pageObject?->meta()->extra->defaultNavigationIdentifier ?? 'main');
 $language = $pageObject?->language();
-$items = nixcms_page_block_nav_items((string) ($props['navigationIdentifier'] ?? 'main'), $language, $fallbackIdentifier);
+$items = nafcms_page_block_nav_items((string) ($props['navigationIdentifier'] ?? 'main'), $language, $fallbackIdentifier);
 $hasNavigation = $items !== [];
 $drawerId = 'page-mobile-navigation-' . substr(md5(($pageObject?->id() ?? 'page') . ':' . serialize($items)), 0, 10);
 $showLogoMark = (bool) ($props['showLogoMark'] ?? false);
@@ -41,7 +41,7 @@ if ($hasNavigation) {
             <strong class="text-base font-bold"><?= s($logoText) ?></strong>
         </a>
         <?php if ($hasNavigation): ?>
-            <div class="page-site-header__navigation page-desktop-navigation ml-auto"><?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'horizontal'), (string) ($props['linkStyle'] ?? 'blank'), (string) ($props['linkTheme'] ?? 'default')) ?></div>
+            <div class="page-site-header__navigation page-desktop-navigation ml-auto"><?= nafcms_page_block_nav($items, (string) ($props['presentation'] ?? 'horizontal'), (string) ($props['linkStyle'] ?? 'blank'), (string) ($props['linkTheme'] ?? 'default')) ?></div>
             <div class="page-mobile-navigation ml-auto" data-page-mobile-navigation>
                 <?php require __DIR__ . '/_partials/mobile-navigation-drawer.phtml'; ?>
             </div>

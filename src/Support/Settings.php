@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Support;
+namespace Naf\CMS\Support;
 
-use NixPHP\CMS\Repositories\SettingRepository;
-use NixPHP\CMS\Settings\SettingField;
-use NixPHP\CMS\Settings\SettingSection;
-use NixPHP\CMS\Settings\SettingsRegistry;
-use NixPHP\CMS\Contracts\TranslationServiceInterface;
-use NixPHP\I18n\Core\Translator;
-use function NixPHP\app;
-use function NixPHP\config;
-use function NixPHP\request;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Repositories\SettingRepository;
+use Naf\CMS\Settings\SettingField;
+use Naf\CMS\Settings\SettingSection;
+use Naf\CMS\Settings\SettingsRegistry;
+use Naf\CMS\Contracts\TranslationServiceInterface;
+use Naf\I18n\Core\Translator;
+use function Naf\app;
+use function Naf\config;
+use function Naf\request;
+use function Naf\CMS\cms;
 
 final class Settings
 {
@@ -24,8 +24,8 @@ final class Settings
 
     public function name(): string
     {
-        $configured = trim((string) $this->value('app.name', 'NixCMS'));
-        return $configured !== '' ? $configured : 'NixCMS';
+        $configured = trim((string) $this->value('app.name', 'NafCMS'));
+        return $configured !== '' ? $configured : 'NafCMS';
     }
 
     private function registry(): SettingsRegistry
@@ -100,7 +100,7 @@ final class Settings
             return strtoupper(substr($configured, 0, 3));
         }
 
-        $name = preg_replace('/[^a-z0-9]+/i', ' ', $this->name()) ?: 'NixCMS';
+        $name = preg_replace('/[^a-z0-9]+/i', ' ', $this->name()) ?: 'NafCMS';
         $parts = array_values(array_filter(explode(' ', trim($name))));
         if (count($parts) >= 2) {
             return strtoupper(substr($parts[0], 0, 1) . substr($parts[1], 0, 1));

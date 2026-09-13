@@ -1,7 +1,7 @@
 <?php
 
-use function NixPHP\View\s;
-use function NixPHP\I18n\t;
+use function Naf\View\s;
+use function Naf\I18n\t;
 
 require_once __DIR__ . '/_helpers/navigation.php';
 
@@ -10,8 +10,8 @@ $props = is_array($content['props'] ?? null) ? $content['props'] : [];
 $pageObject = isset($page) && is_object($page) ? $page : null;
 $fallbackIdentifier = (string) ($pageObject?->meta()->extra->defaultNavigationIdentifier ?? 'main');
 $language = $pageObject?->language();
-$items = nixcms_page_block_nav_items((string) ($props['navigationIdentifier'] ?? 'main'), $language, $fallbackIdentifier);
-$footerText = trim(t((string) ($props['text'] ?? 'Powered by NixCMS')));
+$items = nafcms_page_block_nav_items((string) ($props['navigationIdentifier'] ?? 'main'), $language, $fallbackIdentifier);
+$footerText = trim(t((string) ($props['text'] ?? 'Powered by NafCMS')));
 $innerClass = $footerText === ''
     ? 'page-template-chrome-inner flex min-h-16 flex-wrap items-center justify-end gap-3 px-8 py-4'
     : 'page-template-chrome-inner flex min-h-16 flex-wrap items-center justify-between gap-3 px-8 py-4';
@@ -22,6 +22,6 @@ $innerClass = $footerText === ''
         <?php if ($footerText !== ''): ?>
             <span class="page-site-footer__text text-xs font-medium text-[var(--page-footer-text)]"><?= s($footerText) ?></span>
         <?php endif; ?>
-        <?= nixcms_page_block_nav($items, (string) ($props['presentation'] ?? 'compact'), (string) ($props['linkStyle'] ?? 'blank'), (string) ($props['linkTheme'] ?? 'default')) ?>
+        <?= nafcms_page_block_nav($items, (string) ($props['presentation'] ?? 'compact'), (string) ($props['linkStyle'] ?? 'blank'), (string) ($props['linkTheme'] ?? 'default')) ?>
     </div>
 </footer>

@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Page\Auth;
+namespace Naf\CMS\Handlers\Page\Auth;
 
-use NixPHP\CMS\Contracts\RateLimiterInterface;
-use NixPHP\Auth\Credentials\PasswordCredentials;
-use function NixPHP\Auth\auth;
-use NixPHP\CMS\Services\Security\RateLimitDecision;
+use Naf\CMS\Contracts\RateLimiterInterface;
+use Naf\Auth\Credentials\PasswordCredentials;
+use function Naf\Auth\auth;
+use Naf\CMS\Services\Security\RateLimitDecision;
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\Form\validator;
-use function NixPHP\redirect;
-use function NixPHP\request;
-use function NixPHP\Session\session;
-use function NixPHP\View\render;
+use function Naf\Form\validator;
+use function Naf\redirect;
+use function Naf\request;
+use function Naf\Session\session;
+use function Naf\View\render;
 
 final class LoginUser
 {

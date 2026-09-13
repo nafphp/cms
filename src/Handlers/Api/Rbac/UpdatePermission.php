@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\Rbac;
+namespace Naf\CMS\Handlers\Api\Rbac;
 
-use NixPHP\CMS\Exceptions\PrivilegedActionDenied;
-use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
-use NixPHP\CMS\Handlers\Support\RejectsPrivilegedAction;
-use NixPHP\CMS\Models\Permission;
-use NixPHP\CMS\Repositories\PermissionRepository;
-use NixPHP\CMS\Support\AuditEntry;
+use Naf\CMS\Exceptions\PrivilegedActionDenied;
+use Naf\CMS\Handlers\Support\ReadsJsonBody;
+use Naf\CMS\Handlers\Support\RejectsPrivilegedAction;
+use Naf\CMS\Models\Permission;
+use Naf\CMS\Repositories\PermissionRepository;
+use Naf\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\json;
-use function NixPHP\ORM\repo;
-use function NixPHP\CMS\user;
+use function Naf\json;
+use function Naf\ORM\repo;
+use function Naf\CMS\user;
 
 final class UpdatePermission
 {

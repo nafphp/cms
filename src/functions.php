@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS;
+namespace Naf\CMS;
 
-use NixPHP\CMS\Security\CspNonce;
-use NixPHP\CMS\Support\Audit;
-use NixPHP\CMS\Support\AuditEntry;
-use NixPHP\CMS\Support\Cms;
-use NixPHP\CMS\Support\UserHelper;
+use Naf\CMS\Security\CspNonce;
+use Naf\CMS\Support\Audit;
+use Naf\CMS\Support\AuditEntry;
+use Naf\CMS\Support\Cms;
+use Naf\CMS\Support\UserHelper;
 
 /**
  * Reset request-scoped helper state between tests.
@@ -54,14 +54,14 @@ function user(?UserHelper $override = null, bool $reset = false): ?UserHelper
     static $forced = null;
     if ($reset) {
         $forced = null;
-        \NixPHP\Auth\auth()->reset();
+        \Naf\Auth\auth()->reset();
         return null;
     }
     if ($override !== null) { return $forced = $override; }
     if ($forced !== null) { return $forced; }
 
-    $identity = \NixPHP\Auth\auth()->user();
-    if (!$identity instanceof \NixPHP\CMS\Services\Security\UserIdentity || $identity->user === null) {
+    $identity = \Naf\Auth\auth()->user();
+    if (!$identity instanceof \Naf\CMS\Services\Security\UserIdentity || $identity->user === null) {
         return null;
     }
     return new UserHelper($identity->user);

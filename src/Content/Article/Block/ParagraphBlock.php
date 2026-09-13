@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Content\Article\Block;
+namespace Naf\CMS\Content\Article\Block;
 
-use NixPHP\CMS\Content\Article\Block\AbstractBlock;
+use Naf\CMS\Content\Article\Block\AbstractBlock;
 
 final class ParagraphBlock extends AbstractBlock
 {

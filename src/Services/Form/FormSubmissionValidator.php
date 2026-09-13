@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Form;
+namespace Naf\CMS\Services\Form;
 
-use NixPHP\Form\Core\Validator;
+use Naf\Form\Core\Validator;
 
 final class FormSubmissionValidator
 {

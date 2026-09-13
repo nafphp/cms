@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
-use NixPHP\CMS\Repositories\AuditLogRepository;
+use Naf\CMS\Repositories\AuditLogRepository;
 use Tests\Support\DatabaseTestCase;
-use function NixPHP\CMS\audit_log;
+use function Naf\CMS\audit_log;
 
 final class AuditLogRepositoryTest extends DatabaseTestCase
 {
@@ -29,7 +29,7 @@ final class AuditLogRepositoryTest extends DatabaseTestCase
 
         $row = $this->fetchOne('SELECT entry_json FROM audit_log LIMIT 1');
         self::assertIsString($row['entry_json'] ?? null);
-        self::assertStringContainsString('"schema":"nixcms.audit.v1"', (string) $row['entry_json']);
+        self::assertStringContainsString('"schema":"nafcms.audit.v1"', (string) $row['entry_json']);
 
         $record = $repository->latestRecords()[0] ?? null;
         self::assertNotNull($record);

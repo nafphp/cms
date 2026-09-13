@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use NixPHP\CMS\Handlers\Page\Auth\LoginUser;
-use NixPHP\CMS\Handlers\Page\Auth\RegisterInvitedUser;
-use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Repositories\UserRepository;
-use function NixPHP\ORM\repo;
-use function NixPHP\redirect;
-use function NixPHP\Session\session;
-use function NixPHP\View\render;
-use function NixPHP\CMS\user;
+use Naf\CMS\Handlers\Page\Auth\LoginUser;
+use Naf\CMS\Handlers\Page\Auth\RegisterInvitedUser;
+use Naf\CMS\Page\Page;
+use Naf\CMS\Repositories\UserRepository;
+use function Naf\ORM\repo;
+use function Naf\redirect;
+use function Naf\Session\session;
+use function Naf\View\render;
+use function Naf\CMS\user;
 
 $inviteStateError = static function (array $invite): ?string {
     if ($invite['used_at'] !== null) {
@@ -49,7 +49,7 @@ return [
         ->setTitle('Logout')
         ->requireAuthentication()
         ->setContent(static function () {
-            \NixPHP\Auth\auth()->logout();
+            \Naf\Auth\auth()->logout();
             session()->clear();
             return redirect('/admin/login');
         }),

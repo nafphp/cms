@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Page;
+namespace Naf\CMS\Page;
 
-use NixPHP\CMS\Page\PageBlock;
-use NixPHP\CMS\Page\Template;
+use Naf\CMS\Page\PageBlock;
+use Naf\CMS\Page\Template;
 
 /**
  * Page-level composition: one layout template plus the blocks rendered into it.

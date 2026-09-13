@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Security;
+namespace Naf\CMS\Services\Security;
 
-use NixPHP\Auth\Credentials\CredentialsInterface;
-use NixPHP\Auth\Identity\IdentityInterface;
-use NixPHP\Auth\Provider\ProviderInterface;
-use NixPHP\Auth\Credentials\PasswordCredentials;
-use NixPHP\CMS\Models\User;
-use NixPHP\CMS\Repositories\UserRepository;
-use function NixPHP\ORM\repo;
+use Naf\Auth\Credentials\CredentialsInterface;
+use Naf\Auth\Identity\IdentityInterface;
+use Naf\Auth\Provider\ProviderInterface;
+use Naf\Auth\Credentials\PasswordCredentials;
+use Naf\CMS\Models\User;
+use Naf\CMS\Repositories\UserRepository;
+use function Naf\ORM\repo;
 
 final readonly class DatabaseProvider implements ProviderInterface
 {

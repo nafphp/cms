@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
-use NixPHP\CMS\Enums\ArticleStatus;
-use NixPHP\CMS\Enums\Language;
-use NixPHP\CMS\Models\Article;
-use NixPHP\CMS\Models\ArticleVersion;
+use Naf\CMS\Enums\ArticleStatus;
+use Naf\CMS\Enums\Language;
+use Naf\CMS\Models\Article;
+use Naf\CMS\Models\ArticleVersion;
 use PHPUnit\Framework\TestCase;
 
-abstract class NixPHPTestCase extends TestCase
+abstract class NafTestCase extends TestCase
 {
     /**
      * @param array<string, mixed> $overrides
@@ -78,7 +78,7 @@ abstract class NixPHPTestCase extends TestCase
             'title' => 'Test Article',
             'teaser' => 'Short teaser',
             'content' => $this->mockEditorContent([
-                $this->mockParagraphBlock('Hello from NixCMS'),
+                $this->mockParagraphBlock('Hello from NafCMS'),
             ]),
             'publishedAt' => null,
             'scheduledAt' => null,

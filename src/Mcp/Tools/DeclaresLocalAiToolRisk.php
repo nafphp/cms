@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Mcp\Tools;
+namespace Naf\CMS\Mcp\Tools;
 
-use NixPHP\CMS\Enums\ToolRisk;
+use Naf\CMS\Enums\ToolRisk;
 
 /**
  * Shared implementation for tools that only need to declare risk metadata.

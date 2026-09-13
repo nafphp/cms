@@ -1,9 +1,9 @@
-const chartSelector = '[data-nixcms-chart]';
+const chartSelector = '[data-nafcms-chart]';
 let echartsLoader = null;
 let retryFrame = 0;
 
 const pendingElements = () => [...document.querySelectorAll(chartSelector)]
-    .filter((element) => element instanceof HTMLElement && element.dataset.nixcmsChartReady !== 'true');
+    .filter((element) => element instanceof HTMLElement && element.dataset.nafcmsChartReady !== 'true');
 
 const scheduleRetry = () => {
     if (retryFrame !== 0) {
@@ -29,7 +29,7 @@ const loadECharts = () => {
 };
 
 const readPayload = (element) => {
-    const source = element.querySelector('[data-nixcms-chart-options]');
+    const source = element.querySelector('[data-nafcms-chart-options]');
     if (!source) {
         return null;
     }
@@ -77,7 +77,7 @@ export const initDiagrams = () => {
                 }
 
                 const payload = readPayload(element);
-                const canvas = element.querySelector('.nixcms-chart__canvas');
+                const canvas = element.querySelector('.nafcms-chart__canvas');
                 if (!payload || !(canvas instanceof HTMLElement)) {
                     return;
                 }
@@ -85,7 +85,7 @@ export const initDiagrams = () => {
                 element.classList.toggle('is-empty', payload.empty === true);
 
                 if (payload.empty === true) {
-                    element.dataset.nixcmsChartReady = 'true';
+                    element.dataset.nafcmsChartReady = 'true';
                     return;
                 }
 
@@ -97,7 +97,7 @@ export const initDiagrams = () => {
 
                 const instance = echarts.init(canvas, null, {renderer: 'svg'});
                 instance.setOption(applyTheme(payload));
-                element.dataset.nixcmsChartReady = 'true';
+                element.dataset.nafcmsChartReady = 'true';
 
                 const resize = () => {
                     if (canvas.isConnected) {

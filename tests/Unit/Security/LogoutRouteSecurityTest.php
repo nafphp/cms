@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Security;
 
-use NixPHP\CMS\Page\Page;
-use NixPHP\Exceptions\AbortException;
-use NixPHP\Form\Events\CsrfListener;
+use Naf\CMS\Page\Page;
+use Naf\Exceptions\AbortException;
+use Naf\Form\Events\CsrfListener;
 use Nyholm\Psr7\ServerRequest;
-use Tests\Support\NixPHPTestCase;
+use Tests\Support\NafTestCase;
 
-final class LogoutRouteSecurityTest extends NixPHPTestCase
+final class LogoutRouteSecurityTest extends NafTestCase
 {
     public function testLogoutIsPostOnly(): void
     {

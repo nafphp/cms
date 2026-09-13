@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Http;
 
-use NixPHP\CMS\Exceptions\OutboundHttpDenied;
-use NixPHP\CMS\Services\Http\OutboundHttpPolicy;
-use NixPHP\CMS\Services\Http\OutboundHttpProfile;
+use Naf\CMS\Exceptions\OutboundHttpDenied;
+use Naf\CMS\Services\Http\OutboundHttpPolicy;
+use Naf\CMS\Services\Http\OutboundHttpProfile;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\Ai;
+namespace Naf\CMS\Handlers\Api\Ai;
 
-use NixPHP\CMS\Services\Ai\LocalAiToolBridge;
+use Naf\CMS\Services\Ai\LocalAiToolBridge;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use function NixPHP\json;
+use function Naf\json;
 
 final class ListAiTools
 {

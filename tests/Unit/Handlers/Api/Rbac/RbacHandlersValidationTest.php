@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Handlers\Api\Rbac;
 
-use NixPHP\CMS\Handlers\Api\Rbac\CreatePermission;
-use NixPHP\CMS\Handlers\Api\Rbac\CreateRole;
-use NixPHP\CMS\Handlers\Api\Rbac\DeletePermission;
-use NixPHP\CMS\Handlers\Api\Rbac\DeleteRole;
-use NixPHP\CMS\Handlers\Api\Rbac\UpdatePermission;
-use NixPHP\CMS\Handlers\Api\Rbac\UpdateRole;
-use NixPHP\CMS\Handlers\Api\Rbac\UpdateRolePermissions;
+use Naf\CMS\Handlers\Api\Rbac\CreatePermission;
+use Naf\CMS\Handlers\Api\Rbac\CreateRole;
+use Naf\CMS\Handlers\Api\Rbac\DeletePermission;
+use Naf\CMS\Handlers\Api\Rbac\DeleteRole;
+use Naf\CMS\Handlers\Api\Rbac\UpdatePermission;
+use Naf\CMS\Handlers\Api\Rbac\UpdateRole;
+use Naf\CMS\Handlers\Api\Rbac\UpdateRolePermissions;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\DatabaseTestCase;

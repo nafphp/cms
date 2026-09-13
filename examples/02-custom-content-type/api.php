@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Examples\CustomContentType;
+namespace Naf\CMS\Examples\CustomContentType;
 
 final class ExampleProductApi
 {

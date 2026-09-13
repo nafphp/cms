@@ -1,16 +1,16 @@
 <?php
 
-use NixPHP\CMS\Localization\LanguageRegistry;
-use NixPHP\CMS\Services\Admin\AdminNavigationService;
-use function NixPHP\Form\csrf;
-use function NixPHP\I18n\lang;
-use function NixPHP\I18n\t;
-use function NixPHP\request;
-use function NixPHP\Session\session;
-use function NixPHP\View\asset;
-use function NixPHP\View\s;
-use function NixPHP\View\view;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Localization\LanguageRegistry;
+use Naf\CMS\Services\Admin\AdminNavigationService;
+use function Naf\Form\csrf;
+use function Naf\I18n\lang;
+use function Naf\I18n\t;
+use function Naf\request;
+use function Naf\Session\session;
+use function Naf\View\asset;
+use function Naf\View\s;
+use function Naf\View\view;
+use function Naf\CMS\cms;
 
 $navigationService = new AdminNavigationService();
 $path = request()->getUri()->getPath();
@@ -26,7 +26,7 @@ if (!is_string($csrfToken) || $csrfToken === '') {
 
 asset()->add('/css/icomoon.css');
 asset()->add('/css/notify.css');
-asset()->add('/css/nixcms.css');
+asset()->add('/css/nafcms.css');
 asset()->add('/js/admin.js', 'module');
 asset()->add('/js/admin/diagrams.js', 'module');
 asset()->add('/js/admin/ai.js', 'module');
@@ -38,7 +38,7 @@ asset()->add('/js/admin/ai.js', 'module');
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= s($settings->pageTitle((string) ($title ?? t('Admin')))) ?></title>
-	    <script nonce="<?= \NixPHP\CMS\csp_nonce() ?>">
+	    <script nonce="<?= \Naf\CMS\csp_nonce() ?>">
 	        (function () {
 	            const root = document.documentElement;
 	            root.classList.add('admin-menu-prehydrating');
@@ -47,8 +47,8 @@ asset()->add('/js/admin/ai.js', 'module');
 	            let storedAiChatState = null;
             try {
                 storedTheme = localStorage.getItem('theme');
-                storedMenuState = localStorage.getItem('nixcms:admin-menu-state');
-                storedAiChatState = localStorage.getItem('nixcms:local-ai-chat:open');
+                storedMenuState = localStorage.getItem('nafcms:admin-menu-state');
+                storedAiChatState = localStorage.getItem('nafcms:local-ai-chat:open');
             } catch (e) {}
             const useDark = storedTheme !== 'light';
             root.classList.toggle('dark', useDark);
@@ -58,11 +58,11 @@ asset()->add('/js/admin/ai.js', 'module');
         })();
     </script>
     <?= asset()->render('css') ?>
-    <script nonce="<?= \NixPHP\CMS\csp_nonce() ?>">
-        const nixCmsCsrfToken = <?= json_encode($csrfToken) ?>;
-        window.NixCMS = {
-            ...(window.NixCMS || {}),
-            csrfToken: () => nixCmsCsrfToken,
+    <script nonce="<?= \Naf\CMS\csp_nonce() ?>">
+        const nafCmsCsrfToken = <?= json_encode($csrfToken) ?>;
+        window.NafCMS = {
+            ...(window.NafCMS || {}),
+            csrfToken: () => nafCmsCsrfToken,
             csrfHeader: 'X-CSRF-Token',
             adminUserKey: <?= json_encode($currentUserId > 0 ? 'user:' . $currentUserId : 'guest') ?>,
             // Same shape the server accepts, so the admin UI does not keep its
@@ -70,7 +70,7 @@ asset()->add('/js/admin/ai.js', 'module');
             languagePattern: <?= json_encode(LanguageRegistry::CODE_PATTERN) ?>,
         };
     </script>
-    <script nonce="<?= \NixPHP\CMS\csp_nonce() ?>">
+    <script nonce="<?= \Naf\CMS\csp_nonce() ?>">
         window.NotifyJsConfig = {
             ...(window.NotifyJsConfig || {}),
             animation: 'pop',
@@ -90,7 +90,7 @@ asset()->add('/js/admin/ai.js', 'module');
 	<body class="admin-app min-h-screen text-[var(--admin-text)] [background:radial-gradient(circle_at_11%_15%,color-mix(in_srgb,var(--admin-page-accent)_10%,transparent),transparent_30rem),linear-gradient(115deg,#f8fafe_0%,#eef3f9_44%,#f9fbff_100%)] dark:[background:radial-gradient(circle_at_11%_15%,color-mix(in_srgb,var(--admin-page-accent)_17%,transparent),transparent_30rem),linear-gradient(115deg,#070b12_0%,#0b1220_42%,#10182a_100%)]" style="--admin-page-accent: <?= s($accent) ?>;">
 	<div class="admin-layout group grid min-h-screen grid-cols-1 transition-[grid-template-columns] duration-200 admin:grid-cols-[260px_minmax(0,1fr)] admin:[&.is-menu-collapsed]:grid-cols-[86px_minmax(0,1fr)]">
 	        <?= view('components.admin.layout.sidebar', ['items' => $navItems]) ?>
-	    <script nonce="<?= \NixPHP\CMS\csp_nonce() ?>">
+	    <script nonce="<?= \Naf\CMS\csp_nonce() ?>">
 	        (function () {
 	            const root = document.documentElement;
 	            const layout = document.querySelector('.admin-layout');
@@ -104,8 +104,8 @@ asset()->add('/js/admin/ai.js', 'module');
 		            }
 
 		            try {
-		                const userKey = String(window.NixCMS?.adminUserKey || 'guest').replace(/[^a-zA-Z0-9:._-]/g, '_');
-		                const storedOrder = JSON.parse(localStorage.getItem(`nixcms:admin-navigation-order:v1:${userKey}`) || 'null');
+		                const userKey = String(window.NafCMS?.adminUserKey || 'guest').replace(/[^a-zA-Z0-9:._-]/g, '_');
+		                const storedOrder = JSON.parse(localStorage.getItem(`nafcms:admin-navigation-order:v1:${userKey}`) || 'null');
 		                const groups = storedOrder && typeof storedOrder.groups === 'object' && storedOrder.groups !== null
 		                    ? storedOrder.groups
 		                    : {};
@@ -182,7 +182,7 @@ asset()->add('/js/admin/ai.js', 'module');
 	    </div>
 	</div>
     <?= view('components.admin.local-ai-chat') ?>
-	<script nonce="<?= \NixPHP\CMS\csp_nonce() ?>">
+	<script nonce="<?= \Naf\CMS\csp_nonce() ?>">
 	    (function () {
 	        const root = document.documentElement;
 	        const showAdminShell = () => {

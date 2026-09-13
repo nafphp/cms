@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Visualization;
+namespace Naf\CMS\Visualization;
 
-use NixPHP\CMS\Visualization\ChartDataset;
-use NixPHP\CMS\Visualization\ChartDefinition;
+use Naf\CMS\Visualization\ChartDataset;
+use Naf\CMS\Visualization\ChartDefinition;
 
 final class EChartsOptionsFactory
 {

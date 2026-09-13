@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Storage;
 
-use NixPHP\CMS\Enums\ArticleStatus;
-use NixPHP\CMS\Models\Media;
-use NixPHP\CMS\Storage\Criteria;
-use NixPHP\CMS\Storage\EntityStorage;
+use Naf\CMS\Enums\ArticleStatus;
+use Naf\CMS\Models\Media;
+use Naf\CMS\Storage\Criteria;
+use Naf\CMS\Storage\EntityStorage;
 use Tests\Support\DatabaseTestCase;
 
 final class EntityStorageTest extends DatabaseTestCase
@@ -54,7 +54,7 @@ final class EntityStorageTest extends DatabaseTestCase
             'size_bytes' => 900,
             'width' => 1200,
             'height' => 800,
-            'alt_text' => 'NixCMS hero',
+            'alt_text' => 'NafCMS hero',
             'uploaded_by' => 1,
             'metadata_json' => '{}',
             'created_at' => '2026-05-01 10:00:00',

@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Admin;
+namespace Naf\CMS\Services\Admin;
 
-use NixPHP\CMS\Enums\ArticleStatus;
-use NixPHP\CMS\Repositories\ArticleRepository;
-use NixPHP\CMS\Repositories\PermissionRepository;
-use NixPHP\CMS\Repositories\RoleRepository;
-use NixPHP\CMS\Repositories\UserRepository;
-use NixPHP\CMS\Visualization\ChartDataset;
-use NixPHP\CMS\Visualization\ChartDefinition;
-use NixPHP\CMS\Support\RuntimePaths;
-use function NixPHP\app;
-use function NixPHP\config;
-use function NixPHP\I18n\t;
-use function NixPHP\MCP\tool;
-use function NixPHP\ORM\repo;
-use function NixPHP\route;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Enums\ArticleStatus;
+use Naf\CMS\Repositories\ArticleRepository;
+use Naf\CMS\Repositories\PermissionRepository;
+use Naf\CMS\Repositories\RoleRepository;
+use Naf\CMS\Repositories\UserRepository;
+use Naf\CMS\Visualization\ChartDataset;
+use Naf\CMS\Visualization\ChartDefinition;
+use Naf\CMS\Support\RuntimePaths;
+use function Naf\app;
+use function Naf\config;
+use function Naf\I18n\t;
+use function Naf\MCP\tool;
+use function Naf\ORM\repo;
+use function Naf\route;
+use function Naf\CMS\cms;
 
 final class AdminDashboardService
 {
@@ -124,7 +124,7 @@ final class AdminDashboardService
                     'detail' => t('Registered JSON actions'),
                 ],
                 [
-                    'label' => t('NixPHP plugins'),
+                    'label' => t('NAF plugins'),
                     'value' => count($plugins),
                     'detail' => t('Loaded framework plugins'),
                 ],

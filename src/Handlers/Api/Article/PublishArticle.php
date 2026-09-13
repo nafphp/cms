@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\Article;
+namespace Naf\CMS\Handlers\Api\Article;
 
-use NixPHP\CMS\Models\Article;
+use Naf\CMS\Models\Article;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use function NixPHP\json;
-use function NixPHP\CMS\cms;
+use function Naf\json;
+use function Naf\CMS\cms;
 
 final class PublishArticle
 {

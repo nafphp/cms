@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Handlers\Api\Admin;
 
-use NixPHP\CMS\Handlers\Api\Admin\GetSummary;
+use Naf\CMS\Handlers\Api\Admin\GetSummary;
 use Tests\Support\DatabaseTestCase;
 
 final class AdminHandlersTest extends DatabaseTestCase

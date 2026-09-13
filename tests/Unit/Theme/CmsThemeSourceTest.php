@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Theme;
 
-use NixPHP\CMS\Contracts\ThemeSourceInterface;
-use NixPHP\CMS\Support\Cms;
-use NixPHP\CMS\Theme\Theme;
+use Naf\CMS\Contracts\ThemeSourceInterface;
+use Naf\CMS\Support\Cms;
+use Naf\CMS\Theme\Theme;
 use PHPUnit\Framework\TestCase;
-use function NixPHP\app;
+use function Naf\app;
 
 final class CmsThemeSourceTest extends TestCase
 {

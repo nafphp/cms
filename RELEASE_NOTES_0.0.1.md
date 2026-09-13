@@ -1,14 +1,14 @@
-# NixCMS v0.0.1 Release Notes
+# NafCMS v0.0.1 Release Notes
 
-NixCMS v0.0.1 is the first preview of a lightweight CMS distributed as a NixPHP plugin. It provides real content/admin workflows, explicit plugin extension points, server-rendered views, a permission- and scope-aware MCP tool layer, and an experimental Sitebuilder.
+NafCMS v0.0.1 is the first preview of a lightweight CMS distributed as a NAF plugin. It provides real content/admin workflows, explicit plugin extension points, server-rendered views, a permission- and scope-aware MCP tool layer, and an experimental Sitebuilder.
 
 ## Highlights
 
-- Composer package type `nixphp-plugin`, installed into an ordinary `nixphp/app` host.
+- Composer package type `naf-plugin`, installed into an ordinary `naf/app` host.
 - Articles with localized versions and workflow states; pages, forms, media, navigation, themes, users/RBAC, audit, queue, and health administration.
 - Explicit Page/API/content/block registries and a complete example plugin covering a view, migration, and self-describing scoped MCP tool.
 - Local Ollama assistant whose available actions come from executable tool/plugin metadata rather than a duplicated capability list.
-- Host runtime overrides and published assets that never require normal writes below `vendor/nixphp/cms`.
+- Host runtime overrides and published assets that never require normal writes below `vendor/naf/cms`.
 
 ## Security Baseline
 
@@ -16,7 +16,7 @@ Auth is enabled by default. The release includes CSRF and repository-level privi
 
 ## Preview Boundaries and Upgrades
 
-Sitebuilder payloads, extension APIs, and storage shapes may change before v0.1. The builder has explicit size/depth constraints and no compatibility guarantee for old experimental payloads. Local AI is Ollama-only, PHP 8.5 remains experimental, and custom theme JavaScript is disabled. Read `CHANGELOG.md` before every upgrade, back up the database and `storage/nixcms`, run Composer, publish/check assets, apply migrations, and exercise the installation smoke path.
+Sitebuilder payloads, extension APIs, and storage shapes may change before v0.1. The builder has explicit size/depth constraints and no compatibility guarantee for old experimental payloads. Local AI is Ollama-only, PHP 8.5 remains experimental, and custom theme JavaScript is disabled. Read `CHANGELOG.md` before every upgrade, back up the database and `storage/nafcms`, run Composer, publish/check assets, apply migrations, and exercise the installation smoke path.
 
 ## Verified Commands
 
@@ -27,8 +27,8 @@ composer audit --locked
 npm ci
 npm run test:builder
 npm run build
-vendor/bin/nix docs:check
-vendor/bin/nix integrity:check
+vendor/bin/naf docs:check
+vendor/bin/naf integrity:check
 scripts/check-package.sh
 scripts/package-smoke.sh
 ```

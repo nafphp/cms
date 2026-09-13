@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Security;
 
 use PHPUnit\Framework\TestCase;
-use function NixPHP\CMS\cms;
+use function Naf\CMS\cms;
 
 final class CsrfEndpointContractTest extends TestCase
 {
@@ -15,7 +15,7 @@ final class CsrfEndpointContractTest extends TestCase
         foreach (cms()->api()->all() as $id => $endpoint) {
             $checked++;
             self::assertNotSame('PATCH', $endpoint->method(), sprintf(
-                'Endpoint "%s" uses PATCH, which the current nixphp/form CSRF listener does not protect.',
+                'Endpoint "%s" uses PATCH, which the current naf/form CSRF listener does not protect.',
                 $id,
             ));
         }

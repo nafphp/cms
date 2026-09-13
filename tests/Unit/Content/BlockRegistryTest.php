@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Content;
 
-use NixPHP\CMS\Content\Article\Block\BlockInterface;
-use NixPHP\CMS\Content\Article\Block\HeaderBlock;
-use NixPHP\CMS\Content\Article\Block\ImageBlock;
-use NixPHP\CMS\Content\Article\Block\ParagraphBlock;
-use NixPHP\CMS\Content\Article\BlockRegistry;
+use Naf\CMS\Content\Article\Block\BlockInterface;
+use Naf\CMS\Content\Article\Block\HeaderBlock;
+use Naf\CMS\Content\Article\Block\ImageBlock;
+use Naf\CMS\Content\Article\Block\ParagraphBlock;
+use Naf\CMS\Content\Article\BlockRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class BlockRegistryTest extends TestCase

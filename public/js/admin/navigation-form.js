@@ -255,7 +255,7 @@ export function initNavigationForm(config) {
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
         clearErrors();
-        const response = await (window.NixCMS?.json || fetch)(endpoint, {
+        const response = await (window.NafCMS?.json || fetch)(endpoint, {
             method: 'POST',
             body: JSON.stringify(payload()),
         });
@@ -524,7 +524,7 @@ export function initNavigationForm(config) {
             return false;
         }
 
-        const response = await (window.NixCMS?.json || fetch)(`/api/admin/translations/${encodeURIComponent(language)}`, {
+        const response = await (window.NafCMS?.json || fetch)(`/api/admin/translations/${encodeURIComponent(language)}`, {
             method: 'POST',
             body: JSON.stringify({entries: {}, mode: 'merge'}),
         });
@@ -633,7 +633,7 @@ export function initNavigationForm(config) {
     }
 
     async function saveTranslation(language, key, value) {
-        const response = await (window.NixCMS?.json || fetch)(`/api/admin/translations/${encodeURIComponent(language)}`, {
+        const response = await (window.NafCMS?.json || fetch)(`/api/admin/translations/${encodeURIComponent(language)}`, {
             method: 'POST',
             body: JSON.stringify({entries: {[key]: value}, mode: 'merge'}),
         });
@@ -649,7 +649,7 @@ export function initNavigationForm(config) {
 
     function normalizeLanguageCode(value) {
         const language = String(value || '').trim().toLowerCase();
-        return new RegExp(String(window.NixCMS?.languagePattern || '^[a-z]{2,3}(?:-[a-z0-9]{2,4})?$')).test(language) && language.length <= 8 ? language : null;
+        return new RegExp(String(window.NafCMS?.languagePattern || '^[a-z]{2,3}(?:-[a-z0-9]{2,4})?$')).test(language) && language.length <= 8 ? language : null;
     }
 
     function highlight(value, query) {

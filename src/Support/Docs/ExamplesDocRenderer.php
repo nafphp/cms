@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Support\Docs;
+namespace Naf\CMS\Support\Docs;
 
-use NixPHP\CMS\Support\Docs\DocBlockRenderer;
-use NixPHP\CMS\Support\Docs\MarkdownTable;
+use Naf\CMS\Support\Docs\DocBlockRenderer;
+use Naf\CMS\Support\Docs\MarkdownTable;
 
 final class ExamplesDocRenderer implements DocBlockRenderer
 {

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Repositories;
+namespace Naf\CMS\Repositories;
 
-use NixPHP\CMS\Contracts\AuditSinkInterface;
-use NixPHP\CMS\Support\AuditLogRecord;
+use Naf\CMS\Contracts\AuditSinkInterface;
+use Naf\CMS\Support\AuditLogRecord;
 use PDO;
-use function NixPHP\Database\database;
-use function NixPHP\log;
-use function NixPHP\CMS\audit_log;
+use function Naf\Database\database;
+use function Naf\log;
+use function Naf\CMS\audit_log;
 
 final class AuditLogRepository implements AuditSinkInterface
 {
@@ -151,7 +151,7 @@ final class AuditLogRepository implements AuditSinkInterface
     private function entryDocument(array $entry): array
     {
         return [
-            'schema' => 'nixcms.audit.v1',
+            'schema' => 'nafcms.audit.v1',
             'actor' => [
                 'user_id' => $entry['actor_user_id'] ?? null,
                 'label' => (string) ($entry['actor_label'] ?? ''),

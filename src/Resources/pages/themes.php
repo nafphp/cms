@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Handlers\Page\Theme\StoreTheme;
-use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Repositories\ThemeRepository;
-use function NixPHP\I18n\t;
-use function NixPHP\redirect;
-use function NixPHP\request;
-use function NixPHP\route;
-use function NixPHP\View\render;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Handlers\Page\Theme\StoreTheme;
+use Naf\CMS\Page\Page;
+use Naf\CMS\Repositories\ThemeRepository;
+use function Naf\I18n\t;
+use function Naf\redirect;
+use function Naf\request;
+use function Naf\route;
+use function Naf\View\render;
 
 $repository = static fn(): ThemeRepository => new ThemeRepository();
 

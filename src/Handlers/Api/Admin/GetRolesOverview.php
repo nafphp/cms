@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\Admin;
+namespace Naf\CMS\Handlers\Api\Admin;
 
-use NixPHP\CMS\Repositories\PermissionRepository;
-use NixPHP\CMS\Repositories\RoleRepository;
+use Naf\CMS\Repositories\PermissionRepository;
+use Naf\CMS\Repositories\RoleRepository;
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\json;
-use function NixPHP\ORM\repo;
+use function Naf\json;
+use function Naf\ORM\repo;
 
 final class GetRolesOverview
 {

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use NixPHP\CMS\Settings\SettingField;
-use NixPHP\CMS\Settings\SettingSection;
-use NixPHP\CMS\Enums\Permission;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Settings\SettingField;
+use Naf\CMS\Settings\SettingSection;
+use Naf\CMS\Enums\Permission;
+use function Naf\CMS\cms;
 
 $languageOptions = array_combine(
     cms()->languages()->available(),
@@ -20,7 +20,7 @@ return [
         ->addFields([
             SettingField::text('app.name', 'Application name')
                 ->setDescription('Shown in the browser title and admin logo.')
-                ->setDefaultValue('NixCMS'),
+                ->setDefaultValue('NafCMS'),
             SettingField::text('app.short_name', 'Application short name')
                 ->setDescription('Shown as compact logo text when space is tight.')
                 ->setDefaultValue('NX'),

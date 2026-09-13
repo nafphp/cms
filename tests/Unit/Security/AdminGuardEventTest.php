@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Security;
 
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Events\AdminGuardEvent;
-use NixPHP\CMS\Exceptions\AuthException;
-use NixPHP\CMS\Support\UserHelper;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Events\AdminGuardEvent;
+use Naf\CMS\Exceptions\AuthException;
+use Naf\CMS\Support\UserHelper;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
-use function NixPHP\CMS\cms_reset;
-use function NixPHP\CMS\user;
+use function Naf\CMS\cms_reset;
+use function Naf\CMS\user;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]

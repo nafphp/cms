@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Mcp\Tools;
+namespace Naf\CMS\Mcp\Tools;
 
-use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
-use NixPHP\CMS\Enums\ToolRisk;
+use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
+use Naf\CMS\Enums\ToolRisk;
 
-use NixPHP\CMS\Services\Ai\LocalAiToolBridge;
-use NixPHP\MCP\Support\Schema;
-use NixPHP\MCP\Tools\ScopedToolInterface;
-use NixPHP\MCP\Tools\ToolInterface;
+use Naf\CMS\Services\Ai\LocalAiToolBridge;
+use Naf\MCP\Support\Schema;
+use Naf\MCP\Tools\ScopedToolInterface;
+use Naf\MCP\Tools\ToolInterface;
 
 final class ToolSearchTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {

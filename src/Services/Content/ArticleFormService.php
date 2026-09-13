@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Content;
+namespace Naf\CMS\Services\Content;
 
 use PDO;
 use Throwable;
-use function NixPHP\Database\database;
+use function Naf\Database\database;
 
 final class ArticleFormService
 {

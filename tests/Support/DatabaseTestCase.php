@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
-use NixPHP\ORM\Core\EntityManager;
-use NixPHP\ORM\Repository\RepositoryFactory;
-use NixPHP\Database\Core\Database;
+use Naf\ORM\Core\EntityManager;
+use Naf\ORM\Repository\RepositoryFactory;
+use Naf\Database\Core\Database;
 use PDO;
 
-use function NixPHP\app;
+use function Naf\app;
 
-abstract class DatabaseTestCase extends NixPHPTestCase
+abstract class DatabaseTestCase extends NafTestCase
 {
     protected PDO $pdo;
 

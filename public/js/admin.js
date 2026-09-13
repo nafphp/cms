@@ -6,9 +6,9 @@ import { initStyledSelects } from './components/styledSelect.js';
 import { initPageBuilders } from './admin/page-builder.js';
 
 const nativeFetch = window.fetch.bind(window);
-const configuredCsrfToken = window.NixCMS?.csrfToken;
-const configuredCsrfHeader = window.NixCMS?.csrfHeader || 'X-CSRF-Token';
-const flashToastKey = 'nixcms:flash-toast';
+const configuredCsrfToken = window.NafCMS?.csrfToken;
+const configuredCsrfHeader = window.NafCMS?.csrfHeader || 'X-CSRF-Token';
+const flashToastKey = 'nafcms:flash-toast';
 
 const csrfToken = () => {
     if (typeof configuredCsrfToken === 'function') {
@@ -28,8 +28,8 @@ const csrfFetch = (input, init = {}) => {
     return nativeFetch(input, {...init, headers});
 };
 
-window.NixCMS = {
-    ...(window.NixCMS || {}),
+window.NafCMS = {
+    ...(window.NafCMS || {}),
     csrfToken,
     fetch: csrfFetch,
     json: (input, init = {}) => csrfFetch(input, {
@@ -46,7 +46,7 @@ const root = document.documentElement;
 const menu = document.querySelector('.admin-menu');
 const trigger = document.querySelector('.admin-menu-trigger');
 const layout = document.querySelector('.admin-layout');
-const menuStateKey = 'nixcms:admin-menu-state';
+const menuStateKey = 'nafcms:admin-menu-state';
 
 document.addEventListener('click', (event) => {
     const link = event.target instanceof Element ? event.target.closest('.admin-menu a[href]') : null;
@@ -101,9 +101,9 @@ if (menu && trigger && layout) {
 }
 
 const createAdminNavigationOrderStore = () => {
-    const userKey = String(window.NixCMS?.adminUserKey || 'guest').replace(/[^a-zA-Z0-9:._-]/g, '_');
-    const storageKey = `nixcms:admin-navigation-order:v1:${userKey}`;
-    const configuredStore = window.NixCMS?.adminNavigationOrderStore;
+    const userKey = String(window.NafCMS?.adminUserKey || 'guest').replace(/[^a-zA-Z0-9:._-]/g, '_');
+    const storageKey = `nafcms:admin-navigation-order:v1:${userKey}`;
+    const configuredStore = window.NafCMS?.adminNavigationOrderStore;
 
     if (
         configuredStore

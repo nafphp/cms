@@ -300,7 +300,7 @@ export const previewMethods = {
                 <div class="page-site-header border-b border-[var(--page-border)] bg-[var(--page-header-bg)] text-[var(--page-header-text)] ${className}">
                     <div class="page-template-chrome-inner flex min-h-16 items-center gap-4 px-0 py-4">
                         <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[var(--page-accent)] text-sm font-black text-white">N</span>
-                        <strong class="text-base font-bold">NixCMS</strong>
+                        <strong class="text-base font-bold">NafCMS</strong>
                         <div class="ml-auto">${this.renderNavigationItems(this.selectedDefaultNavigationIdentifier(), 'horizontal')}</div>
                     </div>
                 </div>
@@ -311,7 +311,7 @@ export const previewMethods = {
             return `
                 <div class="page-site-footer border-t border-[var(--page-border)] bg-[var(--page-footer-bg)] ${className}">
                     <div class="page-template-chrome-inner flex min-h-16 flex-wrap items-center justify-between gap-3 px-8 py-4">
-                        <span class="text-xs font-medium text-[var(--page-footer-text)]">Powered by NixCMS</span>
+                        <span class="text-xs font-medium text-[var(--page-footer-text)]">Powered by NafCMS</span>
                         <div>${this.renderNavigationItems(this.selectedFooterNavigationIdentifier(), 'compact')}</div>
                     </div>
                 </div>
@@ -1005,7 +1005,7 @@ export const previewMethods = {
         if (content.type === 'header') {
             const compact = this.isMobilePreview();
             const logoImage = String(content.props?.logoImage || '');
-            const logoText = this.translateContentText(content.props?.logoText || 'NixCMS');
+            const logoText = this.translateContentText(content.props?.logoText || 'NafCMS');
             const showLogoMark = Boolean(content.props?.showLogoMark);
             const dividerClass = content.props?.showDivider ? 'border-b border-[var(--page-border)]' : '';
             const desktopNavigation = this.renderNavigationItems(content.props?.navigationIdentifier, content.props?.presentation || 'horizontal', '', content.props?.linkStyle || 'blank', content.props?.linkTheme || 'default');
@@ -1028,7 +1028,7 @@ export const previewMethods = {
 
         if (content.type === 'footer') {
             const compact = this.isMobilePreview();
-            const footerText = this.translateContentText(content.props?.text ?? 'Powered by NixCMS').trim();
+            const footerText = this.translateContentText(content.props?.text ?? 'Powered by NafCMS').trim();
             const footerAlignment = footerText === ''
                 ? 'items-center justify-end'
                 : (compact ? 'items-start' : 'items-center justify-between');
@@ -1150,18 +1150,18 @@ export const previewMethods = {
             };
 
             return `
-                <figure class="nixcms-chart nixcms-chart--surface-${escapeHtml(surface)}" data-nixcms-chart="${escapeHtml(chartId)}">
-                    <div class="nixcms-chart__header">
+                <figure class="nafcms-chart nafcms-chart--surface-${escapeHtml(surface)}" data-nafcms-chart="${escapeHtml(chartId)}">
+                    <div class="nafcms-chart__header">
                         <div>
-                            ${content.props?.title ? `<h3 class="nixcms-chart__title">${escapeHtml(this.translateContentText(content.props.title))}</h3>` : ''}
-                            ${content.props?.subtitle ? `<p class="nixcms-chart__subtitle">${escapeHtml(this.translateContentText(content.props.subtitle))}</p>` : ''}
+                            ${content.props?.title ? `<h3 class="nafcms-chart__title">${escapeHtml(this.translateContentText(content.props.title))}</h3>` : ''}
+                            ${content.props?.subtitle ? `<p class="nafcms-chart__subtitle">${escapeHtml(this.translateContentText(content.props.subtitle))}</p>` : ''}
                         </div>
                     </div>
-                    <div class="nixcms-chart__surface" style="min-height:${chartHeight}px;">
-                        <div class="nixcms-chart__canvas" style="height:${chartHeight}px;" role="img" aria-label="${escapeHtml(content.props?.title || 'Chart')}"></div>
-                        <p class="nixcms-chart__empty">No chart data available.</p>
+                    <div class="nafcms-chart__surface" style="min-height:${chartHeight}px;">
+                        <div class="nafcms-chart__canvas" style="height:${chartHeight}px;" role="img" aria-label="${escapeHtml(content.props?.title || 'Chart')}"></div>
+                        <p class="nafcms-chart__empty">No chart data available.</p>
                     </div>
-                    <script type="application/json" data-nixcms-chart-options>${this.jsonScriptPayload(payload)}</script>
+                    <script type="application/json" data-nafcms-chart-options>${this.jsonScriptPayload(payload)}</script>
                 </figure>
             `;
         }

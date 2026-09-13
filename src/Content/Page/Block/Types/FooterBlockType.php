@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Content\Page\Block\Types;
+namespace Naf\CMS\Content\Page\Block\Types;
 
-use NixPHP\CMS\Content\Page\Block\AbstractBlockType;
-use NixPHP\CMS\Content\Page\Block\PageBuilderBlockOptions;
+use Naf\CMS\Content\Page\Block\AbstractBlockType;
+use Naf\CMS\Content\Page\Block\PageBuilderBlockOptions;
 
 final class FooterBlockType extends AbstractBlockType
 {
@@ -44,7 +44,7 @@ final class FooterBlockType extends AbstractBlockType
         $navigationOptions = PageBuilderBlockOptions::navigationOptions();
 
         return [
-            'text' => 'Powered by NixCMS',
+            'text' => 'Powered by NafCMS',
             'navigationIdentifier' => (string) ($navigationOptions[0]['value'] ?? 'main'),
             'presentation' => 'compact',
             'linkStyle' => 'blank',

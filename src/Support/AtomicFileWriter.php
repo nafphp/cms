@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Support;
+namespace Naf\CMS\Support;
 
 final class AtomicFileWriter
 {

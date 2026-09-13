@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Localization;
 
-use NixPHP\CMS\Localization\LanguageRegistry;
+use Naf\CMS\Localization\LanguageRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class LanguageRegistryTest extends TestCase
@@ -15,7 +15,7 @@ final class LanguageRegistryTest extends TestCase
     {
         parent::setUp();
 
-        $this->directory = sys_get_temp_dir() . '/nixcms-lang-' . bin2hex(random_bytes(6));
+        $this->directory = sys_get_temp_dir() . '/nafcms-lang-' . bin2hex(random_bytes(6));
         mkdir($this->directory, 0777, true);
     }
 
@@ -44,7 +44,7 @@ final class LanguageRegistryTest extends TestCase
         self::assertSame(['de', 'en', 'es', 'fr', 'it'], $languages);
     }
 
-    public function testKnownLanguagesIncludeNixPhpLanguageCodes(): void
+    public function testKnownLanguagesIncludeNafLanguageCodes(): void
     {
         $languages = (new LanguageRegistry($this->directory))->known();
 
@@ -52,7 +52,7 @@ final class LanguageRegistryTest extends TestCase
         self::assertContains('pt', $languages);
     }
 
-    public function testKnownOptionsUseNixPhpLanguageLabels(): void
+    public function testKnownOptionsUseNafLanguageLabels(): void
     {
         $options = (new LanguageRegistry($this->directory))->knownOptions();
 

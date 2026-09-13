@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Assets;
+namespace Naf\CMS\Services\Assets;
 
 use Composer\InstalledVersions;
-use NixPHP\CMS\Support\AtomicFileWriter;
-use NixPHP\CMS\Support\RuntimePaths;
+use Naf\CMS\Support\AtomicFileWriter;
+use Naf\CMS\Support\RuntimePaths;
 
 final class AssetPublisher
 {
     private const array DIRECTORIES = ['css', 'fonts', 'images', 'js'];
-    private const string MANIFEST = '.nixcms-assets.json';
+    private const string MANIFEST = '.nafcms-assets.json';
 
     public function __construct(
         private readonly ?string $sourceRoot = null,
@@ -103,7 +103,7 @@ final class AssetPublisher
         }
 
         $manifest = json_encode([
-            'package' => 'nixphp/cms',
+            'package' => 'naf/cms',
             'version' => $this->version(),
             'files' => $source,
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL;
@@ -215,7 +215,7 @@ final class AssetPublisher
     private function version(): string
     {
         try {
-            return InstalledVersions::getPrettyVersion('nixphp/cms') ?? 'dev';
+            return InstalledVersions::getPrettyVersion('naf/cms') ?? 'dev';
         } catch (\OutOfBoundsException) {
             return 'dev';
         }

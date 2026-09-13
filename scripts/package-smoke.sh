@@ -3,8 +3,8 @@
 set -euo pipefail
 
 PACKAGE_ROOT="${1:-$(pwd)}"
-FIXTURE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/nixcms-host.XXXXXX")"
-PORT="${NIXCMS_SMOKE_PORT:-18089}"
+FIXTURE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/nafcms-host.XXXXXX")"
+PORT="${NAFCMS_SMOKE_PORT:-18089}"
 PHP_RUN=(php -d error_reporting=8191)
 SERVER_PID=""
 
@@ -18,11 +18,11 @@ cleanup() {
 }
 trap cleanup EXIT
 
-composer create-project nixphp/app "$FIXTURE_ROOT" --no-interaction --no-progress
-composer config repositories.nixcms path "$PACKAGE_ROOT" --working-dir="$FIXTURE_ROOT"
-COMPOSER_MIRROR_PATH_REPOS=1 composer require nixphp/cms:@dev --with-all-dependencies --no-interaction --no-progress --working-dir="$FIXTURE_ROOT"
+composer create-project naf/app "$FIXTURE_ROOT" --no-interaction --no-progress
+composer config repositories.nafcms path "$PACKAGE_ROOT" --working-dir="$FIXTURE_ROOT"
+COMPOSER_MIRROR_PATH_REPOS=1 composer require naf/cms:@dev --with-all-dependencies --no-interaction --no-progress --working-dir="$FIXTURE_ROOT"
 
-if [[ -L "$FIXTURE_ROOT/vendor/nixphp/cms" ]]; then
+if [[ -L "$FIXTURE_ROOT/vendor/naf/cms" ]]; then
     echo "Expected a mirrored package install, got a symlink." >&2
     exit 1
 fi
@@ -31,18 +31,18 @@ cat > "$FIXTURE_ROOT/app/plugins.php" <<'PHP'
 <?php
 
 return [
-    'nixphp/cli',
-    'nixphp/database',
-    'nixphp/session',
-    'nixphp/form',
-    'nixphp/view',
-    'nixphp/i18n',
-    'nixphp/orm',
-    'nixphp/queue',
-    'nixphp/schedule',
-    'nixphp/mail',
-    'nixphp/mcp',
-    'nixphp/cms',
+    'naf/cli',
+    'naf/database',
+    'naf/session',
+    'naf/form',
+    'naf/view',
+    'naf/i18n',
+    'naf/orm',
+    'naf/queue',
+    'naf/schedule',
+    'naf/mail',
+    'naf/mcp',
+    'naf/cms',
 ];
 PHP
 
@@ -52,7 +52,7 @@ cat > "$FIXTURE_ROOT/app/config.php" <<'PHP'
 return [
     'database' => [
         'driver' => 'sqlite',
-        'database' => BASE_PATH . '/storage/nixcms-smoke.sqlite',
+        'database' => BASE_PATH . '/storage/nafcms-smoke.sqlite',
     ],
 ];
 PHP
@@ -71,40 +71,40 @@ package_hash() {
         }
         ksort($files);
         echo hash("sha256", json_encode($files, JSON_THROW_ON_ERROR));
-    ' "$FIXTURE_ROOT/vendor/nixphp/cms"
+    ' "$FIXTURE_ROOT/vendor/naf/cms"
 }
 
 BEFORE_HASH="$(package_hash)"
 
-(cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/nix nixcms:assets:publish)
-(cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/nix nixcms:assets:check)
-(cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/nix nixcms:agents:install)
-grep -q 'managed-by: nixphp/cms agent-guide' "$FIXTURE_ROOT/AGENTS.md"
-(cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/nix db:migrate up)
+(cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/naf nafcms:assets:publish)
+(cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/naf nafcms:assets:check)
+(cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/naf nafcms:agents:install)
+grep -q 'managed-by: naf/cms agent-guide' "$FIXTURE_ROOT/AGENTS.md"
+(cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/naf db:migrate up)
 
 (cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" -r '
     define("BASE_PATH", getcwd());
     require "vendor/autoload.php";
-    $app = NixPHP\app();
-    $plugin = $app->getPlugin("nixphp/cms");
-    $before = [count(NixPHP\CMS\cms()->pages()->all()), count(NixPHP\CMS\cms()->blockTypes()->all())];
+    $app = Naf\app();
+    $plugin = $app->getPlugin("naf/cms");
+    $before = [count(Naf\CMS\cms()->pages()->all()), count(Naf\CMS\cms()->blockTypes()->all())];
     $plugin->boot();
-    $after = [count(NixPHP\CMS\cms()->pages()->all()), count(NixPHP\CMS\cms()->blockTypes()->all())];
+    $after = [count(Naf\CMS\cms()->pages()->all()), count(Naf\CMS\cms()->blockTypes()->all())];
     if ($before !== $after) throw new RuntimeException("Plugin bootstrap is not idempotent.");
-    if (NixPHP\View\render("page.blocks.empty")->getStatusCode() !== 200) throw new RuntimeException("Plugin view failed.");
-    if (NixPHP\CMS\cms()->pages()->require("admin.dashboard")->path() !== "/admin") throw new RuntimeException("Admin route missing.");
-    if ($app->container()->get(NixPHP\CLI\Support\CommandRegistry::class)->get("user:create") === null) throw new RuntimeException("CMS command missing.");
-    $identity = new NixPHP\MCP\Auth\McpIdentity("smoke", "Smoke", ["system:read"]);
-    $health = $app->container()->get(NixPHP\MCP\Support\ToolRegistry::class)->call("cms_system_health", [], $identity);
+    if (Naf\View\render("page.blocks.empty")->getStatusCode() !== 200) throw new RuntimeException("Plugin view failed.");
+    if (Naf\CMS\cms()->pages()->require("admin.dashboard")->path() !== "/admin") throw new RuntimeException("Admin route missing.");
+    if ($app->container()->get(Naf\CLI\Support\CommandRegistry::class)->get("user:create") === null) throw new RuntimeException("CMS command missing.");
+    $identity = new Naf\MCP\Auth\McpIdentity("smoke", "Smoke", ["system:read"]);
+    $health = $app->container()->get(Naf\MCP\Support\ToolRegistry::class)->call("cms_system_health", [], $identity);
     if (($health["database"]["available"] ?? false) !== true) throw new RuntimeException("Scoped MCP health tool failed.");
-    (new NixPHP\CMS\Services\Ai\LocalAiPromptLibrary())->savePromptFile("IDENTITY.md", "Host override");
-    (new NixPHP\CMS\Services\Settings\TranslationFileService())->save("de", ["Dashboard" => "Host-Dashboard"]);
-    (new NixPHP\CMS\Services\Theme\ThemeAssetWriter())->write("smoke", ".theme-smoke { color: red; }");
+    (new Naf\CMS\Services\Ai\LocalAiPromptLibrary())->savePromptFile("IDENTITY.md", "Host override");
+    (new Naf\CMS\Services\Settings\TranslationFileService())->save("de", ["Dashboard" => "Host-Dashboard"]);
+    (new Naf\CMS\Services\Theme\ThemeAssetWriter())->write("smoke", ".theme-smoke { color: red; }");
 ')
 
 AFTER_HASH="$(package_hash)"
 if [[ "$BEFORE_HASH" != "$AFTER_HASH" ]]; then
-    echo "Normal CMS writes changed files inside vendor/nixphp/cms." >&2
+    echo "Normal CMS writes changed files inside vendor/naf/cms." >&2
     exit 1
 fi
 
@@ -125,4 +125,4 @@ if ! grep -Eq '^HTTP/(1\.[01]|2) 30[23]' <<<"$HEADERS" || ! grep -Eiq '^Location
     exit 1
 fi
 
-echo "NixCMS package smoke passed in $FIXTURE_ROOT"
+echo "NafCMS package smoke passed in $FIXTURE_ROOT"

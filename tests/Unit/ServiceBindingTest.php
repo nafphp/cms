@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use NixPHP\CMS\Contracts\AuditSinkInterface;
-use NixPHP\CMS\Contracts\MediaStorageInterface;
-use NixPHP\CMS\Contracts\OutboundHttpClientInterface;
-use NixPHP\CMS\Contracts\PasswordPolicyInterface;
-use NixPHP\CMS\Contracts\RateLimiterInterface;
-use NixPHP\CMS\Contracts\SettingsServiceInterface;
-use NixPHP\CMS\Contracts\ThemeSourceInterface;
-use NixPHP\CMS\Contracts\TranslationServiceInterface;
-use NixPHP\CMS\Contracts\UserPrivilegePolicyInterface;
-use NixPHP\CMS\Services\Security\PasswordPolicy;
+use Naf\CMS\Contracts\AuditSinkInterface;
+use Naf\CMS\Contracts\MediaStorageInterface;
+use Naf\CMS\Contracts\OutboundHttpClientInterface;
+use Naf\CMS\Contracts\PasswordPolicyInterface;
+use Naf\CMS\Contracts\RateLimiterInterface;
+use Naf\CMS\Contracts\SettingsServiceInterface;
+use Naf\CMS\Contracts\ThemeSourceInterface;
+use Naf\CMS\Contracts\TranslationServiceInterface;
+use Naf\CMS\Contracts\UserPrivilegePolicyInterface;
+use Naf\CMS\Services\Security\PasswordPolicy;
 use PHPUnit\Framework\TestCase;
-use function NixPHP\app;
+use function Naf\app;
 
 /**
  * The overridable service surface.

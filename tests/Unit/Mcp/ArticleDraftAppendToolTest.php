@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mcp;
 
-use NixPHP\CMS\Enums\ArticleStatus;
-use NixPHP\CMS\Mcp\Tools\ArticleDraftAppendTool;
-use NixPHP\CMS\Models\Article;
-use Tests\Support\NixPHPTestCase;
+use Naf\CMS\Enums\ArticleStatus;
+use Naf\CMS\Mcp\Tools\ArticleDraftAppendTool;
+use Naf\CMS\Models\Article;
+use Tests\Support\NafTestCase;
 
-final class ArticleDraftAppendToolTest extends NixPHPTestCase
+final class ArticleDraftAppendToolTest extends NafTestCase
 {
     public function testAppendsPlainTextToExistingDraftByArticleId(): void
     {

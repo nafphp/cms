@@ -1,10 +1,10 @@
 <?php
 
-use function NixPHP\I18n\t;
-use function NixPHP\View\s;
-use NixPHP\CMS\Services\Ai\LocalAiPromptLibrary;
-use function NixPHP\CMS\cms;
-use function NixPHP\CMS\user;
+use function Naf\I18n\t;
+use function Naf\View\s;
+use Naf\CMS\Services\Ai\LocalAiPromptLibrary;
+use function Naf\CMS\cms;
+use function Naf\CMS\user;
 
 $settings = cms()->settings();
 $aiEnabledValue = strtolower(trim((string) $settings->value('ai.enabled', '0')));

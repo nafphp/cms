@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Content\Article\Block;
+namespace Naf\CMS\Content\Article\Block;
 
-use NixPHP\CMS\Security\UrlPolicy;
-use NixPHP\CMS\Content\Article\Block\AbstractBlock;
+use Naf\CMS\Security\UrlPolicy;
+use Naf\CMS\Content\Article\Block\AbstractBlock;
 
 final class EmbedBlock extends AbstractBlock
 {

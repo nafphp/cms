@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Events;
+namespace Naf\CMS\Events;
 
-use NixPHP\CMS\Services\Form\FormSubmissionGuard;
+use Naf\CMS\Services\Form\FormSubmissionGuard;
 use Psr\Http\Message\ServerRequestInterface;
-use function NixPHP\abort;
+use function Naf\abort;
 
 final class FormPayloadLimitEvent
 {

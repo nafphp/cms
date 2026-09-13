@@ -6,14 +6,14 @@ namespace Tests\Unit\Security;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use function NixPHP\View\s;
+use function Naf\View\s;
 
 final class CoreBlockUrlPolicyTest extends TestCase
 {
     public static function setUpBeforeClass(): void
     {
-        if (!function_exists('NixPHP\I18n\t')) {
-            eval('namespace NixPHP\I18n; function t(string $value): string { return $value; }');
+        if (!function_exists('Naf\I18n\t')) {
+            eval('namespace Naf\I18n; function t(string $value): string { return $value; }');
         }
     }
 
@@ -41,7 +41,7 @@ final class CoreBlockUrlPolicyTest extends TestCase
     {
         require_once BASE_PATH . '/views/page/blocks/_helpers/navigation.php';
 
-        $html = \nixcms_page_block_nav([['href' => 'javascript:alert(1)', 'label' => 'Unsafe']]);
+        $html = \nafcms_page_block_nav([['href' => 'javascript:alert(1)', 'label' => 'Unsafe']]);
 
         self::assertStringContainsString('href="#"', $html);
         self::assertStringNotContainsString('javascript:', strtolower($html));

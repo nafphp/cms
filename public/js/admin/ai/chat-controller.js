@@ -9,18 +9,18 @@ import { executeUiActions, registerThemeEditorAssistantActions } from './ui-acti
 import { canAutoRunToolCall, discoveredToolsFromResults, isToolSearchResult, localModelContextSize, localModelKeepAlive, mergeToolDefinitions, noToolFoundMessage, normalizeToolCalls, ollamaTools, sanitizeVisibleToolIdentifiers, toolActivityLine, toolArgumentsLabel, toolByName, toolDisplayName, toolResultsGroundingMessage, toolSearchFollowUpMessage, toolSearchToolName } from './tools.js';
 
 const storageKeys = {
-    open: 'nixcms:local-ai-chat:open',
-    mode: 'nixcms:local-ai-chat:mode',
-    toolConfirmation: 'nixcms:local-ai-chat:tool-confirmation',
-    messages: 'nixcms:local-ai-chat:messages',
-    feedbackQueue: 'nixcms:local-ai-chat:feedback-queue',
-    scroll: 'nixcms:local-ai-chat:scroll',
-    draft: 'nixcms:local-ai-chat:draft',
-    settingsModel: 'nixcms:local-ai-settings:model',
-    settingsUrl: 'nixcms:local-ai-settings:url',
-    settingsType: 'nixcms:local-ai-settings:type',
-    settingsEnabled: 'nixcms:local-ai-settings:enabled',
-    settingsInstructions: 'nixcms:local-ai-settings:instructions',
+    open: 'nafcms:local-ai-chat:open',
+    mode: 'nafcms:local-ai-chat:mode',
+    toolConfirmation: 'nafcms:local-ai-chat:tool-confirmation',
+    messages: 'nafcms:local-ai-chat:messages',
+    feedbackQueue: 'nafcms:local-ai-chat:feedback-queue',
+    scroll: 'nafcms:local-ai-chat:scroll',
+    draft: 'nafcms:local-ai-chat:draft',
+    settingsModel: 'nafcms:local-ai-settings:model',
+    settingsUrl: 'nafcms:local-ai-settings:url',
+    settingsType: 'nafcms:local-ai-settings:type',
+    settingsEnabled: 'nafcms:local-ai-settings:enabled',
+    settingsInstructions: 'nafcms:local-ai-settings:instructions',
 };
 
 export const initChat = (root) => {
@@ -107,7 +107,7 @@ export const initChat = (root) => {
                 arguments: request.arguments || {},
             }),
         }).catch((error) => {
-            throw new Error(`NixCMS tool API failed for ${request.name}: ${error.message || error}`);
+            throw new Error(`NafCMS tool API failed for ${request.name}: ${error.message || error}`);
         });
 
         return {
@@ -180,7 +180,7 @@ export const initChat = (root) => {
                     await postMistake(item.payload || {});
                     queue = storedFeedbackQueue().filter((candidate) => candidate.id !== item.id);
                     persistFeedbackQueue(queue);
-                    window.dispatchEvent(new CustomEvent('nixcms:ai-mistake-recorded'));
+                    window.dispatchEvent(new CustomEvent('nafcms:ai-mistake-recorded'));
                 } catch (error) {
                     break;
                 }
@@ -261,7 +261,7 @@ export const initChat = (root) => {
     const recordMistakeFromDissatisfaction = (content) => {
         const previousAssistant = [...messages].reverse().find((message) => message.role === 'assistant');
         recordMistake(
-            'User dissatisfaction signal in Nixorious chat.',
+            'User dissatisfaction signal in Nafarious chat.',
             [
                 `User message: ${content}`,
                 previousAssistant ? `Previous assistant answer: ${previousAssistant.content}` : '',
@@ -919,7 +919,7 @@ export const initChat = (root) => {
                             },
                         };
                         recordMistake(
-                            'Tool call failed in Nixorious chat.',
+                            'Tool call failed in Nafarious chat.',
                             `Tool: ${toolCall.name}; Error: ${error.message || error}`,
                             'Make tool failures visible and avoid implying that unavailable data was retrieved.'
                         );
@@ -1091,7 +1091,7 @@ export const initChat = (root) => {
         }
     });
     window.addEventListener('online', flushMistakeFeedbackQueue);
-    document.addEventListener('nixcms:assistant-pick-mode', (event) => {
+    document.addEventListener('nafcms:assistant-pick-mode', (event) => {
         const active = event?.detail?.active === true;
         if (active) {
             pickModeChatWasOpen = panel instanceof HTMLElement && panel.getAttribute('aria-hidden') === 'false';
@@ -1149,7 +1149,7 @@ export const initChat = (root) => {
             requestWarmupSoon({forceCheck: true});
         }
     });
-    window.addEventListener('nixcms:local-ai-settings-changed', (event) => {
+    window.addEventListener('nafcms:local-ai-settings-changed', (event) => {
         warmedModelKey = '';
         warmedModelCheckedAt = 0;
         if (event?.detail?.key === storageKeys.settingsEnabled) {

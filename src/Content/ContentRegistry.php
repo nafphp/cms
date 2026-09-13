@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Content;
+namespace Naf\CMS\Content;
 
-use NixPHP\ORM\Core\EntityInterface;
-use NixPHP\CMS\Content\ContentTypeInterface;
+use Naf\ORM\Core\EntityInterface;
+use Naf\CMS\Content\ContentTypeInterface;
 
 final class ContentRegistry
 {

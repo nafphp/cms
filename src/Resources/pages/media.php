@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Page\Page;
-use function NixPHP\I18n\t;
-use function NixPHP\route;
-use function NixPHP\View\render;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Page\Page;
+use function Naf\I18n\t;
+use function Naf\route;
+use function Naf\View\render;
+use function Naf\CMS\cms;
 
 return [
     Page::create('admin.media')

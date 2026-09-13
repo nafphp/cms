@@ -3,24 +3,24 @@
 declare(strict_types=1);
 namespace Tests\Unit\Security;
 
-use NixPHP\Auth\Credentials\PasswordCredentials;
-use NixPHP\CMS\Api\{ApiAuthorization, ApiEndpoint};
-use NixPHP\CMS\Contracts\RateLimiterInterface;
-use NixPHP\CMS\Enums\{Permission, Role};
-use NixPHP\CMS\Events\AuthRedirectEvent;
-use NixPHP\CMS\Exceptions\AuthException;
-use NixPHP\CMS\Handlers\Api\Article\ReviewArticle;
-use NixPHP\CMS\Handlers\Page\Auth\LoginUser;
-use NixPHP\CMS\Page\{Page, PageAuthorization};
-use NixPHP\CMS\Services\Security\{CmsSessionStateStore, CredentialService, DatabaseProvider, RateLimitDecision};
-use NixPHP\CMS\Support\UserHelper;
-use NixPHP\Session\Core\Session;
+use Naf\Auth\Credentials\PasswordCredentials;
+use Naf\CMS\Api\{ApiAuthorization, ApiEndpoint};
+use Naf\CMS\Contracts\RateLimiterInterface;
+use Naf\CMS\Enums\{Permission, Role};
+use Naf\CMS\Events\AuthRedirectEvent;
+use Naf\CMS\Exceptions\AuthException;
+use Naf\CMS\Handlers\Api\Article\ReviewArticle;
+use Naf\CMS\Handlers\Page\Auth\LoginUser;
+use Naf\CMS\Page\{Page, PageAuthorization};
+use Naf\CMS\Services\Security\{CmsSessionStateStore, CredentialService, DatabaseProvider, RateLimitDecision};
+use Naf\CMS\Support\UserHelper;
+use Naf\Session\Core\Session;
 use PHPUnit\Framework\Attributes\{PreserveGlobalState, RunTestsInSeparateProcesses};
 use Tests\Support\{DatabaseTestCase, JsonRequest};
-use function NixPHP\app;
-use function NixPHP\Auth\auth;
-use function NixPHP\CMS\user;
-use function NixPHP\Session\session;
+use function Naf\app;
+use function Naf\Auth\auth;
+use function Naf\CMS\user;
+use function Naf\Session\session;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]

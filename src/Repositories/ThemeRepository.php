@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Repositories;
+namespace Naf\CMS\Repositories;
 
-use NixPHP\CMS\Contracts\ThemeSourceInterface;
-use NixPHP\CMS\Services\Theme\ThemeCodeNormalizer;
-use NixPHP\CMS\Theme\Theme;
+use Naf\CMS\Contracts\ThemeSourceInterface;
+use Naf\CMS\Services\Theme\ThemeCodeNormalizer;
+use Naf\CMS\Theme\Theme;
 use PDO;
-use function NixPHP\Database\database;
-use function NixPHP\log;
+use function Naf\Database\database;
+use function Naf\log;
 
 final class ThemeRepository implements ThemeSourceInterface
 {

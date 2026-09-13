@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Localization;
+namespace Naf\CMS\Localization;
 
-use NixPHP\CMS\Contracts\TranslationServiceInterface;
-use NixPHP\I18n\Core\Translator;
-use NixPHP\I18n\Support\Language;
+use Naf\CMS\Contracts\TranslationServiceInterface;
+use Naf\I18n\Core\Translator;
+use Naf\I18n\Support\Language;
 use Stringable;
-use function NixPHP\config;
-use function NixPHP\app;
+use function Naf\config;
+use function Naf\app;
 
 final class RuntimeTranslator extends Translator
 {

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mcp;
 
-use NixPHP\CMS\Api\MediaApi;
-use NixPHP\CMS\Mcp\Tools\MediaSummaryTool;
-use NixPHP\CMS\Models\Media;
-use NixPHP\CMS\Services\Media\MediaStorageService;
-use NixPHP\CMS\Storage\EntityStorage;
+use Naf\CMS\Api\MediaApi;
+use Naf\CMS\Mcp\Tools\MediaSummaryTool;
+use Naf\CMS\Models\Media;
+use Naf\CMS\Services\Media\MediaStorageService;
+use Naf\CMS\Storage\EntityStorage;
 use Tests\Support\DatabaseTestCase;
 
 final class MediaSummaryToolTest extends DatabaseTestCase

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Support\Docs;
+namespace Naf\CMS\Support\Docs;
 
-use NixPHP\CMS\Support\Cms;
+use Naf\CMS\Support\Cms;
 use ReflectionClass;
 use ReflectionMethod;
-use NixPHP\CMS\Support\Docs\DocBlockRenderer;
-use NixPHP\CMS\Support\Docs\MarkdownTable;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Support\Docs\DocBlockRenderer;
+use Naf\CMS\Support\Docs\MarkdownTable;
+use function Naf\CMS\cms;
 
 final class CmsApiDocRenderer implements DocBlockRenderer
 {

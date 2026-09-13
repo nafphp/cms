@@ -131,7 +131,7 @@ class MediaLibrary {
         formData.append('visibility', this.uploadVisibilityValue());
 
         try {
-            const response = await (window.NixCMS?.fetch || fetch)(this.url('upload'), {
+            const response = await (window.NafCMS?.fetch || fetch)(this.url('upload'), {
                 method: 'POST',
                 headers: {'Accept': 'application/json'},
                 body: formData,
@@ -204,7 +204,7 @@ class MediaLibrary {
         }
 
         try {
-            const response = await (window.NixCMS?.json || fetch)(this.url('update', {id}), {
+            const response = await (window.NafCMS?.json || fetch)(this.url('update', {id}), {
                 method: 'POST',
                 body: JSON.stringify({visibility: select.value}),
             });
@@ -237,7 +237,7 @@ class MediaLibrary {
         }
 
         try {
-            const response = await (window.NixCMS?.json || fetch)(this.url('update', {id}), {
+            const response = await (window.NafCMS?.json || fetch)(this.url('update', {id}), {
                 method: 'POST',
                 body: JSON.stringify({alt_text: input.value}),
             });
@@ -290,7 +290,7 @@ class MediaLibrary {
         }
 
         try {
-            const response = await (window.NixCMS?.fetch || fetch)(this.url('delete', {id}), {
+            const response = await (window.NafCMS?.fetch || fetch)(this.url('delete', {id}), {
                 method: 'POST',
                 headers: {'Accept': 'application/json'},
             });
@@ -869,7 +869,7 @@ class MediaLibrary {
 
     storedViewMode() {
         try {
-            return localStorage.getItem('nixcms:media:view') === 'list' ? 'list' : 'grid';
+            return localStorage.getItem('nafcms:media:view') === 'list' ? 'list' : 'grid';
         } catch (error) {
             return 'grid';
         }
@@ -877,7 +877,7 @@ class MediaLibrary {
 
     storeViewMode() {
         try {
-            localStorage.setItem('nixcms:media:view', this.viewMode);
+            localStorage.setItem('nafcms:media:view', this.viewMode);
         } catch (error) {}
     }
 

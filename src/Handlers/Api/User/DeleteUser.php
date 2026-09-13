@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\User;
+namespace Naf\CMS\Handlers\Api\User;
 
-use NixPHP\CMS\Exceptions\PrivilegedActionDenied;
-use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
-use NixPHP\CMS\Handlers\Support\RejectsPrivilegedAction;
-use NixPHP\CMS\Repositories\UserRepository;
-use NixPHP\CMS\Support\AuditEntry;
+use Naf\CMS\Exceptions\PrivilegedActionDenied;
+use Naf\CMS\Handlers\Support\ReadsJsonBody;
+use Naf\CMS\Handlers\Support\RejectsPrivilegedAction;
+use Naf\CMS\Repositories\UserRepository;
+use Naf\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\json;
-use function NixPHP\ORM\repo;
-use function NixPHP\CMS\user;
+use function Naf\json;
+use function Naf\ORM\repo;
+use function Naf\CMS\user;
 
 final class DeleteUser
 {

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Support\Docs;
+namespace Naf\CMS\Support\Docs;
 
-use NixPHP\CMS\Support\Docs\DocBlockRenderer;
+use Naf\CMS\Support\Docs\DocBlockRenderer;
 
 final class ReadmeDocBlockUpdater
 {
@@ -46,7 +46,7 @@ final class ReadmeDocBlockUpdater
     private function replaceBlock(string $markdown, DocBlockRenderer $renderer): string
     {
         $name = preg_quote($renderer->name(), '/');
-        $pattern = sprintf('/(<!-- nix:auto:%s -->).*?(<!-- \/nix:auto:%s -->)/s', $name, $name);
+        $pattern = sprintf('/(<!-- naf:auto:%s -->).*?(<!-- \/naf:auto:%s -->)/s', $name, $name);
 
         $updated = preg_replace_callback(
             $pattern,
@@ -70,7 +70,7 @@ final class ReadmeDocBlockUpdater
     private function extractBlockBody(string $markdown, string $name): string
     {
         $name = preg_quote($name, '/');
-        $pattern = sprintf('/<!-- nix:auto:%s -->(.*?)<!-- \/nix:auto:%s -->/s', $name, $name);
+        $pattern = sprintf('/<!-- naf:auto:%s -->(.*?)<!-- \/naf:auto:%s -->/s', $name, $name);
 
         if (preg_match($pattern, $markdown, $matches) !== 1) {
             return '';
@@ -81,7 +81,7 @@ final class ReadmeDocBlockUpdater
 
     private function renderBody(DocBlockRenderer $renderer): string
     {
-        return "<!-- Automatically generated via `vendor/bin/nix docs:sync`; do not edit manually. -->\n\n"
+        return "<!-- Automatically generated via `vendor/bin/naf docs:sync`; do not edit manually. -->\n\n"
             . trim($renderer->render());
     }
 

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Models;
+namespace Naf\CMS\Models;
 
-use NixPHP\ORM\Model\AbstractModel;
-use NixPHP\CMS\Models\Permission;
+use Naf\ORM\Model\AbstractModel;
+use Naf\CMS\Models\Permission;
 
 final class Role extends AbstractModel
 {

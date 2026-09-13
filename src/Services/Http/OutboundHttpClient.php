@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Http;
+namespace Naf\CMS\Services\Http;
 
 use Closure;
-use NixPHP\CMS\Contracts\OutboundHttpClientInterface;
-use NixPHP\CMS\Exceptions\OutboundHttpDenied;
-use NixPHP\CMS\Services\Http\OutboundHttpPolicy;
-use NixPHP\CMS\Services\Http\OutboundHttpProfile;
-use NixPHP\CMS\Services\Http\OutboundHttpResponse;
-use NixPHP\CMS\Services\Http\OutboundHttpTarget;
-use function NixPHP\log;
+use Naf\CMS\Contracts\OutboundHttpClientInterface;
+use Naf\CMS\Exceptions\OutboundHttpDenied;
+use Naf\CMS\Services\Http\OutboundHttpPolicy;
+use Naf\CMS\Services\Http\OutboundHttpProfile;
+use Naf\CMS\Services\Http\OutboundHttpResponse;
+use Naf\CMS\Services\Http\OutboundHttpTarget;
+use function Naf\log;
 
 final class OutboundHttpClient implements OutboundHttpClientInterface
 {

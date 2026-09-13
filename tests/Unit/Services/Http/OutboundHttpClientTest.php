@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Http;
 
-use NixPHP\CMS\Exceptions\OutboundHttpDenied;
-use NixPHP\CMS\Services\Http\OutboundHttpClient;
-use NixPHP\CMS\Services\Http\OutboundHttpPolicy;
-use NixPHP\CMS\Services\Http\OutboundHttpProfile;
-use NixPHP\CMS\Services\Http\OutboundHttpTarget;
+use Naf\CMS\Exceptions\OutboundHttpDenied;
+use Naf\CMS\Services\Http\OutboundHttpClient;
+use Naf\CMS\Services\Http\OutboundHttpPolicy;
+use Naf\CMS\Services\Http\OutboundHttpProfile;
+use Naf\CMS\Services\Http\OutboundHttpTarget;
 use PHPUnit\Framework\TestCase;
 
 final class OutboundHttpClientTest extends TestCase

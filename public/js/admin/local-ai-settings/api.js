@@ -7,12 +7,12 @@
 import { stripModelReasoning, trimValue } from '../ollama-client.js';
 
 export const apiJson = async (url, options = {}) => {
-    const client = typeof window.NixCMS?.json === 'function'
-        ? window.NixCMS.json
+    const client = typeof window.NafCMS?.json === 'function'
+        ? window.NafCMS.json
         : window.fetch;
-    const csrfHeader = String(window.NixCMS?.csrfHeader || 'X-CSRF-Token');
-    const csrfToken = typeof window.NixCMS?.csrfToken === 'function'
-        ? String(window.NixCMS.csrfToken() || '')
+    const csrfHeader = String(window.NafCMS?.csrfHeader || 'X-CSRF-Token');
+    const csrfToken = typeof window.NafCMS?.csrfToken === 'function'
+        ? String(window.NafCMS.csrfToken() || '')
         : '';
     const headers = {
         'Accept': 'application/json',

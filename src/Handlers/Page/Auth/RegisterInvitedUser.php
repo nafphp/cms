@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Page\Auth;
+namespace Naf\CMS\Handlers\Page\Auth;
 
-use NixPHP\CMS\Models\User;
-use NixPHP\CMS\Repositories\UserRepository;
-use NixPHP\CMS\Contracts\PasswordPolicyInterface;
-use NixPHP\CMS\Services\Security\PasswordPolicy;
+use Naf\CMS\Models\User;
+use Naf\CMS\Repositories\UserRepository;
+use Naf\CMS\Contracts\PasswordPolicyInterface;
+use Naf\CMS\Services\Security\PasswordPolicy;
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\Form\validator;
-use function NixPHP\ORM\repo;
-use function NixPHP\redirect;
-use function NixPHP\request;
-use function NixPHP\View\render;
+use function Naf\Form\validator;
+use function Naf\ORM\repo;
+use function Naf\redirect;
+use function Naf\request;
+use function Naf\View\render;
 
 final class RegisterInvitedUser
 {

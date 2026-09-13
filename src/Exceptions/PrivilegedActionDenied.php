@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Exceptions;
+namespace Naf\CMS\Exceptions;
 
 final class PrivilegedActionDenied extends \DomainException
 {

@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Models;
+namespace Naf\CMS\Models;
 
-use NixPHP\CMS\Enums\ArticleStatus;
-use NixPHP\CMS\Enums\Language;
-use NixPHP\CMS\Repositories\ArticleVersionRepository;
-use NixPHP\CMS\Repositories\CategoryRepository;
-use NixPHP\CMS\Repositories\TagRepository;
-use NixPHP\CMS\Repositories\UserRepository;
-use NixPHP\CMS\Security\UrlPolicy;
-use NixPHP\ORM\Core\EntityInterface;
-use NixPHP\ORM\Model\AbstractModel;
-use NixPHP\CMS\Models\ArticleVersion;
-use NixPHP\CMS\Models\Category;
-use NixPHP\CMS\Models\Tag;
-use NixPHP\CMS\Models\User;
-use function NixPHP\ORM\repo;
+use Naf\CMS\Enums\ArticleStatus;
+use Naf\CMS\Enums\Language;
+use Naf\CMS\Repositories\ArticleVersionRepository;
+use Naf\CMS\Repositories\CategoryRepository;
+use Naf\CMS\Repositories\TagRepository;
+use Naf\CMS\Repositories\UserRepository;
+use Naf\CMS\Security\UrlPolicy;
+use Naf\ORM\Core\EntityInterface;
+use Naf\ORM\Model\AbstractModel;
+use Naf\CMS\Models\ArticleVersion;
+use Naf\CMS\Models\Category;
+use Naf\CMS\Models\Tag;
+use Naf\CMS\Models\User;
+use function Naf\ORM\repo;
 
 class Article extends AbstractModel implements \JsonSerializable
 {

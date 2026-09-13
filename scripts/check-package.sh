@@ -3,11 +3,11 @@
 set -euo pipefail
 
 ROOT="${1:-$(pwd)}"
-OUTPUT="$(mktemp -d "${TMPDIR:-/tmp}/nixcms-archive.XXXXXX")"
+OUTPUT="$(mktemp -d "${TMPDIR:-/tmp}/nafcms-archive.XXXXXX")"
 trap 'rm -rf "$OUTPUT"' EXIT
 
-(cd "$ROOT" && composer archive --format=tar --file=nixcms --dir="$OUTPUT" --no-interaction)
-CONTENTS="$(tar -tf "$OUTPUT/nixcms.tar")"
+(cd "$ROOT" && composer archive --format=tar --file=nafcms --dir="$OUTPUT" --no-interaction)
+CONTENTS="$(tar -tf "$OUTPUT/nafcms.tar")"
 
 if grep -E '(^|/)(\.env(\.local)?$|logs/|storage/|\.idea/|\.claude/|node_modules/|\.phpunit[^/]*|tests/|public/(css|js)/themes/)|^prompts/' <<<"$CONTENTS"; then
     echo "Release archive contains excluded development or runtime files." >&2

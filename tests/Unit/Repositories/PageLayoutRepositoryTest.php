@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
-use NixPHP\CMS\Repositories\PageLayoutRepository;
+use Naf\CMS\Repositories\PageLayoutRepository;
 use Tests\Support\DatabaseTestCase;
 
 final class PageLayoutRepositoryTest extends DatabaseTestCase

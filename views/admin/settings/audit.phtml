@@ -1,8 +1,8 @@
 <?php
 
-use function NixPHP\I18n\t;
-use function NixPHP\View\s;
-use function NixPHP\View\view;
+use function Naf\I18n\t;
+use function Naf\View\s;
+use function Naf\View\view;
 
 $entries = is_array($entries ?? null) ? $entries : [];
 $formatValue = static function (mixed $value): string {

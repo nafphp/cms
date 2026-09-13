@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to NixCMS are documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses semantic version tags, while APIs and stored preview payloads may still change before `0.1.0`.
+All notable changes to NafCMS are documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses semantic version tags, while APIs and stored preview payloads may still change before `0.1.0`.
 
 ## [Unreleased]
 
@@ -8,7 +8,7 @@ All notable changes to NixCMS are documented here. This project follows [Keep a 
 
 ### Added
 
-- Installable `nixphp-plugin` package with explicit pages, APIs, content types, block types, commands, migrations, views, events, permissions, and MCP tools.
+- Installable `naf-plugin` package with explicit pages, APIs, content types, block types, commands, migrations, views, events, permissions, and MCP tools.
 - Admin workflows for articles and versions, pages/Sitebuilder, forms, media, navigation, themes, settings, users, roles, permissions, audit, queue, and health visibility.
 - Local Ollama assistant with backend-selected, scope-aware MCP tools, keyword/optional embedding routing, and tool-owned metadata.
 - Host-safe asset publishing, immutable package defaults, atomic runtime overrides, and a managed host `AGENTS.md` installer.
@@ -27,5 +27,5 @@ All notable changes to NixCMS are documented here. This project follows [Keep a 
 - Theme JavaScript is disabled; reviewed plugins may register scripts through normal PHP/bootstrap paths.
 - PHP 8.5 is an experimental allowed-failure CI target while the current ORM dependency emits deprecations.
 
-[Unreleased]: https://github.com/nixphp/cms/compare/v0.0.1...HEAD
-[0.0.1]: https://github.com/nixphp/cms/releases/tag/v0.0.1
+[Unreleased]: https://github.com/nafphp/cms/compare/v0.0.1...HEAD
+[0.0.1]: https://github.com/nafphp/cms/releases/tag/v0.0.1

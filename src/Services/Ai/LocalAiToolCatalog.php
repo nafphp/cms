@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Ai;
+namespace Naf\CMS\Services\Ai;
 
 final class LocalAiToolCatalog
 {

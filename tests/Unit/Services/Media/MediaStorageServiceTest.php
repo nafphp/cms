@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Media;
 
-use NixPHP\CMS\Models\Media;
-use NixPHP\CMS\Services\Media\MediaStorageService;
-use NixPHP\CMS\Storage\EntityStorage;
+use Naf\CMS\Models\Media;
+use Naf\CMS\Services\Media\MediaStorageService;
+use Naf\CMS\Storage\EntityStorage;
 use Nyholm\Psr7\Stream;
 use Nyholm\Psr7\UploadedFile;
 use Tests\Support\DatabaseTestCase;
@@ -55,7 +55,7 @@ final class MediaStorageServiceTest extends DatabaseTestCase
             )
         SQL);
 
-        $this->publicRoot = sys_get_temp_dir() . '/nixcms-media-test-' . bin2hex(random_bytes(6));
+        $this->publicRoot = sys_get_temp_dir() . '/nafcms-media-test-' . bin2hex(random_bytes(6));
         mkdir($this->publicRoot, 0755, true);
 
         $this->storage = new EntityStorage(Media::class, $this->pdo);

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Security;
+namespace Naf\CMS\Services\Security;
 
-use NixPHP\CMS\Contracts\RateLimiterInterface;
-use NixPHP\CMS\Services\Security\FileRateLimiter;
-use NixPHP\CMS\Services\Security\RateLimitDecision;
+use Naf\CMS\Contracts\RateLimiterInterface;
+use Naf\CMS\Services\Security\FileRateLimiter;
+use Naf\CMS\Services\Security\RateLimitDecision;
 
 final class LoginRateLimiter implements RateLimiterInterface
 {

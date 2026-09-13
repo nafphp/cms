@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Developer;
 
-use NixPHP\CMS\Services\Developer\AgentGuideInstaller;
+use Naf\CMS\Services\Developer\AgentGuideInstaller;
 use PHPUnit\Framework\TestCase;
 
 final class AgentGuideInstallerTest extends TestCase
@@ -13,7 +13,7 @@ final class AgentGuideInstallerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->directory = sys_get_temp_dir() . '/nixcms-agent-guide-' . bin2hex(random_bytes(6));
+        $this->directory = sys_get_temp_dir() . '/nafcms-agent-guide-' . bin2hex(random_bytes(6));
         mkdir($this->directory, 0770, true);
     }
 

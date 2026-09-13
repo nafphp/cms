@@ -1,42 +1,42 @@
 {
-    "name": "nixphp/cms",
-    "description": "Fully working CMS for NixPHP.",
-    "type": "nixphp-plugin",
+    "name": "naf/cms",
+    "description": "Fully working CMS for NAF.",
+    "type": "naf-plugin",
     "keywords": [
-        "nixphp",
+        "naf",
         "cms",
         "content-management",
         "plugin"
     ],
-    "homepage": "https://github.com/nixphp/cms",
+    "homepage": "https://github.com/nafphp/cms",
     "support": {
-        "issues": "https://github.com/nixphp/cms/issues",
-        "source": "https://github.com/nixphp/cms"
+        "issues": "https://github.com/nafphp/cms/issues",
+        "source": "https://github.com/nafphp/cms"
     },
     "require": {
         "php": ">=8.3",
         "ext-curl": "*",
         "ext-dom": "*",
-        "nixphp/framework": "^0.1",
-        "nixphp/view": "^0.1",
-        "nixphp/form": "^0.1",
-        "nixphp/database": "^0.1",
-        "nixphp/orm": "^0.1.3",
-        "nixphp/session": "^0.1",
-        "nixphp/i18n": "^0.1.3",
-        "nixphp/cli": "^0.1",
-        "nixphp/queue": "^0.1",
-        "nixphp/schedule": "^0.1",
-        "nixphp/mail": "^0.1",
-        "nixphp/mcp": "^0.1",
-        "nixphp/auth": "^0.1"
+        "naf/framework": "^0.2",
+        "naf/view": "^0.2",
+        "naf/form": "^0.2",
+        "naf/database": "^0.2",
+        "naf/orm": "^0.2",
+        "naf/session": "^0.2",
+        "naf/i18n": "^0.2",
+        "naf/cli": "^0.2",
+        "naf/queue": "^0.2",
+        "naf/schedule": "^0.2",
+        "naf/mail": "^0.2",
+        "naf/mcp": "^0.2",
+        "naf/auth": "^0.2"
     },
     "autoload": {
         "files": [
             "src/functions.php"
         ],
         "psr-4": {
-            "NixPHP\\CMS\\": "src/"
+            "Naf\\CMS\\": "src/"
         }
     },
     "autoload-dev": {

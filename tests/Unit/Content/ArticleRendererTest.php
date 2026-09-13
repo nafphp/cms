@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Content;
 
-use NixPHP\CMS\Content\Article\Block\BlockInterface;
-use NixPHP\CMS\Content\Article\BlockRegistry;
-use NixPHP\CMS\Services\Content\ArticleRenderer;
+use Naf\CMS\Content\Article\Block\BlockInterface;
+use Naf\CMS\Content\Article\BlockRegistry;
+use Naf\CMS\Services\Content\ArticleRenderer;
 use PHPUnit\Framework\TestCase;
 
 final class ArticleRendererTest extends TestCase

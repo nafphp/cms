@@ -1,9 +1,9 @@
 <?php
 
-use function NixPHP\route;
-use function NixPHP\I18n\t;
-use function NixPHP\View\s;
-use function NixPHP\View\view;
+use function Naf\route;
+use function Naf\I18n\t;
+use function Naf\View\s;
+use function Naf\View\view;
 
 $users = is_array($users ?? null) ? $users : [];
 $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
@@ -112,7 +112,7 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
     </div>
 <?php endif; ?>
 
-<script nonce="<?= \NixPHP\CMS\csp_nonce() ?>" type="module">
+<script nonce="<?= \Naf\CMS\csp_nonce() ?>" type="module">
     import prompt from '/js/lib/notifyJs/Modules/Prompt.js';
     import toast from '/js/lib/notifyJs/Modules/Toast.js';
     import {setupActionMenus} from '/js/components/actionMenu.js';
@@ -211,7 +211,7 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
     });
 
     const postJson = async (url, payload) => {
-        const response = await (window.NixCMS?.json || fetch)(url, {
+        const response = await (window.NafCMS?.json || fetch)(url, {
             method: 'POST',
             body: JSON.stringify(payload),
         });

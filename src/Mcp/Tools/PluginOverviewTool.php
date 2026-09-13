@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Mcp\Tools;
+namespace Naf\CMS\Mcp\Tools;
 
-use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
-use NixPHP\CMS\Enums\ToolRisk;
+use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
+use Naf\CMS\Enums\ToolRisk;
 
-use NixPHP\MCP\Support\Schema;
-use NixPHP\MCP\Tools\ScopedToolInterface;
-use NixPHP\MCP\Tools\ToolInterface;
-use function NixPHP\app;
-use function NixPHP\CMS\cms;
+use Naf\MCP\Support\Schema;
+use Naf\MCP\Tools\ScopedToolInterface;
+use Naf\MCP\Tools\ToolInterface;
+use function Naf\app;
+use function Naf\CMS\cms;
 
 final class PluginOverviewTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
@@ -26,7 +26,7 @@ final class PluginOverviewTool implements ToolInterface, ScopedToolInterface, Lo
 
     public function description(): string
     {
-        return 'Returns loaded NixPHP plugins and registry counts relevant to NixCMS extensions.';
+        return 'Returns loaded NAF plugins and registry counts relevant to NafCMS extensions.';
     }
 
     public function inputSchema(): array

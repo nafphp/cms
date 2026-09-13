@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\Form;
+namespace Naf\CMS\Handlers\Api\Form;
 
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\json;
-use function NixPHP\CMS\cms;
+use function Naf\json;
+use function Naf\CMS\cms;
 
 final class DeleteForm
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Storage\Filter;
+namespace Naf\CMS\Storage\Filter;
 
 interface FilterInterface
 {

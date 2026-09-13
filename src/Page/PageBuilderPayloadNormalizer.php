@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Page;
+namespace Naf\CMS\Page;
 
-use NixPHP\CMS\Content\Page\Block\BlockTypeInterface;
-use NixPHP\CMS\Content\Page\Block\BlockTypeRegistry;
-use NixPHP\CMS\Security\UrlPolicy;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Content\Page\Block\BlockTypeInterface;
+use Naf\CMS\Content\Page\Block\BlockTypeRegistry;
+use Naf\CMS\Security\UrlPolicy;
+use function Naf\CMS\cms;
 
 final class PageBuilderPayloadNormalizer
 {

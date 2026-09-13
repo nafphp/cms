@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Handlers\Api\User;
 
-use NixPHP\CMS\Handlers\Api\User\CreateInvite;
-use NixPHP\CMS\Handlers\Api\User\DeleteUser;
-use NixPHP\CMS\Handlers\Api\User\UpdateUser;
-use NixPHP\CMS\Handlers\Api\User\UpdateUserPassword;
-use NixPHP\CMS\Handlers\Api\User\UpdateUserRoles;
+use Naf\CMS\Handlers\Api\User\CreateInvite;
+use Naf\CMS\Handlers\Api\User\DeleteUser;
+use Naf\CMS\Handlers\Api\User\UpdateUser;
+use Naf\CMS\Handlers\Api\User\UpdateUserPassword;
+use Naf\CMS\Handlers\Api\User\UpdateUserRoles;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\DatabaseTestCase;

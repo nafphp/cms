@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Security;
+namespace Naf\CMS\Services\Security;
 
-use NixPHP\Auth\Identity\IdentityInterface;
-use NixPHP\CMS\Models\User;
+use Naf\Auth\Identity\IdentityInterface;
+use Naf\CMS\Models\User;
 
 /** CMS model adapter; permission persistence and enums remain in the CMS. */
 final readonly class UserIdentity implements IdentityInterface

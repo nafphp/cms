@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Handlers\Page;
 
-use NixPHP\CMS\Handlers\Api\Theme\StoreTheme as StoreThemeApi;
-use NixPHP\CMS\Handlers\Page\Article\StoreArticleDraft;
-use NixPHP\CMS\Handlers\Page\Form\StoreForm;
-use NixPHP\CMS\Handlers\Page\Navigation\StoreNavigation;
-use NixPHP\CMS\Handlers\Page\Theme\StoreTheme as StoreThemePage;
+use Naf\CMS\Handlers\Api\Theme\StoreTheme as StoreThemeApi;
+use Naf\CMS\Handlers\Page\Article\StoreArticleDraft;
+use Naf\CMS\Handlers\Page\Form\StoreForm;
+use Naf\CMS\Handlers\Page\Navigation\StoreNavigation;
+use Naf\CMS\Handlers\Page\Theme\StoreTheme as StoreThemePage;
 use Tests\Support\DatabaseTestCase;
 use Tests\Support\JsonRequest;
 

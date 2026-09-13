@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Api;
+namespace Naf\CMS\Api;
 
-use NixPHP\CMS\Contracts\ScopeAwareInterface;
-use NixPHP\CMS\Enums\Scope;
-use NixPHP\CMS\Models\SiteNavigation;
-use NixPHP\CMS\Navigation\Navigation;
-use NixPHP\CMS\Navigation\NavigationItem;
-use NixPHP\CMS\Navigation\NavigationRegistry;
-use NixPHP\CMS\Repositories\NavigationRepository;
-use NixPHP\CMS\Storage\EntityStorage;
-use NixPHP\CMS\Support\AuditEntry;
-use NixPHP\CMS\Api\ScopedNavigationApi;
-use function NixPHP\I18n\t;
+use Naf\CMS\Contracts\ScopeAwareInterface;
+use Naf\CMS\Enums\Scope;
+use Naf\CMS\Models\SiteNavigation;
+use Naf\CMS\Navigation\Navigation;
+use Naf\CMS\Navigation\NavigationItem;
+use Naf\CMS\Navigation\NavigationRegistry;
+use Naf\CMS\Repositories\NavigationRepository;
+use Naf\CMS\Storage\EntityStorage;
+use Naf\CMS\Support\AuditEntry;
+use Naf\CMS\Api\ScopedNavigationApi;
+use function Naf\I18n\t;
 
 /**
  * Domain API for site navigations. Exposes navigation-specific behaviour and delegates persistence/queries to NavigationRepository.

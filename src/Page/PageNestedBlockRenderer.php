@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Page;
+namespace Naf\CMS\Page;
 
-use NixPHP\CMS\Content\BlockViewRegistry;
-use function NixPHP\View\s;
-use function NixPHP\View\view;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Content\BlockViewRegistry;
+use function Naf\View\s;
+use function Naf\View\view;
+use function Naf\CMS\cms;
 
 final class PageNestedBlockRenderer
 {

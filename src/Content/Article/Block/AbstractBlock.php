@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Content\Article\Block;
+namespace Naf\CMS\Content\Article\Block;
 
-use NixPHP\CMS\Security\InlineHtmlSanitizer;
-use NixPHP\CMS\Content\Article\Block\BlockInterface;
-use function NixPHP\View\s;
+use Naf\CMS\Security\InlineHtmlSanitizer;
+use Naf\CMS\Content\Article\Block\BlockInterface;
+use function Naf\View\s;
 
 abstract class AbstractBlock implements BlockInterface
 {

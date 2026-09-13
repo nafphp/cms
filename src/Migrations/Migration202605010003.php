@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Migrations;
+namespace Naf\CMS\Migrations;
 
-use NixPHP\Database\Core\AbstractMigration;
+use Naf\Database\Core\AbstractMigration;
 use PDO;
-use function NixPHP\CMS\audit_log;
+use function Naf\CMS\audit_log;
 
 final class Migration202605010003 extends AbstractMigration
 {

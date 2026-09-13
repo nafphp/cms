@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\Page;
+namespace Naf\CMS\Handlers\Api\Page;
 
-use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
-use NixPHP\CMS\Repositories\PageLayoutRepository;
+use Naf\CMS\Handlers\Support\ReadsJsonBody;
+use Naf\CMS\Repositories\PageLayoutRepository;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use function NixPHP\json;
+use function Naf\json;
 
 final class StorePageLayout
 {

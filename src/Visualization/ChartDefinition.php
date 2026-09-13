@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Visualization;
+namespace Naf\CMS\Visualization;
 
-use NixPHP\CMS\Visualization\ChartDataset;
+use Naf\CMS\Visualization\ChartDataset;
 
 final readonly class ChartDefinition
 {

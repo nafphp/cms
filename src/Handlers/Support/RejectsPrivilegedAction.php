@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Support;
+namespace Naf\CMS\Handlers\Support;
 
-use NixPHP\CMS\Exceptions\PrivilegedActionDenied;
-use NixPHP\CMS\Support\AuditEntry;
+use Naf\CMS\Exceptions\PrivilegedActionDenied;
+use Naf\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\json;
+use function Naf\json;
 
 trait RejectsPrivilegedAction
 {

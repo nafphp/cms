@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Examples\CustomContentType;
+namespace Naf\CMS\Examples\CustomContentType;
 
-use NixPHP\ORM\Model\AbstractModel;
+use Naf\ORM\Model\AbstractModel;
 
 final class ExampleProduct extends AbstractModel
 {

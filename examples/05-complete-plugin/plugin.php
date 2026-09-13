@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace ExampleVendor\ReportPlugin;
 
-use NixPHP\CMS\Api\ApiEndpoint;
-use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Page\Page;
-use NixPHP\Database\Support\MigrationRegistry;
-use NixPHP\MCP\Support\Schema;
-use NixPHP\MCP\Tools\ScopedToolInterface;
-use NixPHP\MCP\Tools\ToolInterface;
+use Naf\CMS\Api\ApiEndpoint;
+use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Page\Page;
+use Naf\Database\Support\MigrationRegistry;
+use Naf\MCP\Support\Schema;
+use Naf\MCP\Tools\ScopedToolInterface;
+use Naf\MCP\Tools\ToolInterface;
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\CMS\cms;
-use function NixPHP\json;
-use function NixPHP\MCP\tool;
-use function NixPHP\View\view;
+use function Naf\CMS\cms;
+use function Naf\json;
+use function Naf\MCP\tool;
+use function Naf\View\view;
 
 function register(string $root): void
 {

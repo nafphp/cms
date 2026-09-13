@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Content\Page\Block;
-use function NixPHP\CMS\cms;
-use function NixPHP\log;
+namespace Naf\CMS\Content\Page\Block;
+use function Naf\CMS\cms;
+use function Naf\log;
 
 final class PageBuilderBlockOptions
 {

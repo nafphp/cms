@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Ai;
 
-use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
-use NixPHP\CMS\Services\Ai\LocalAiToolCatalog;
+use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
+use Naf\CMS\Services\Ai\LocalAiToolCatalog;
 use PHPUnit\Framework\TestCase;
 
 final class LocalAiToolCatalogTest extends TestCase
@@ -17,7 +17,7 @@ final class LocalAiToolCatalogTest extends TestCase
         self::assertCount(20, $matches[1]);
 
         foreach ($matches[1] as $shortName) {
-            $class = 'NixPHP\\CMS\\Mcp\\Tools\\' . $shortName;
+            $class = 'Naf\\CMS\\Mcp\\Tools\\' . $shortName;
             $tool = new $class();
             self::assertInstanceOf(LocalAiToolMetadataInterface::class, $tool, $class);
             $metadata = $tool->localAiMetadata();
@@ -83,7 +83,7 @@ final class LocalAiToolCatalogTest extends TestCase
         $definitions = (new LocalAiToolCatalog())->enrich([
             [
                 'name' => 'cms_system_health',
-                'description' => 'Returns current NixCMS system health data. The result includes published asset status and loaded plugins.',
+                'description' => 'Returns current NafCMS system health data. The result includes published asset status and loaded plugins.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [

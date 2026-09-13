@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Support;
+namespace Naf\CMS\Support;
 
-use function NixPHP\app;
-use function NixPHP\config;
+use function Naf\app;
+use function Naf\config;
 
 final class RuntimePaths
 {
@@ -122,7 +122,7 @@ final class RuntimePaths
 
     public static function storageRoot(): string
     {
-        return self::hostPath((string) config('cms:runtime_path', 'storage/nixcms'));
+        return self::hostPath((string) config('cms:runtime_path', 'storage/nafcms'));
     }
 
     public static function prompts(): string

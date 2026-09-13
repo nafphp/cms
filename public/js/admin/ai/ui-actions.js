@@ -3,7 +3,7 @@ import { normalizeGeneratedCode } from './dom.js';
 import { assistantRuntime } from './runtime.js';
 
 export const registerThemeEditorAssistantActions = () => {
-    const editor = window.NixCMS?.themeEditor;
+    const editor = window.NafCMS?.themeEditor;
     const runtime = assistantRuntime();
     if (!editor || editor.__assistantActionsRegistered) {
         return;

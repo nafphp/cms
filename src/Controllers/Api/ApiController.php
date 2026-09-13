@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Controllers\Api;
+namespace Naf\CMS\Controllers\Api;
 
-use NixPHP\CMS\Api\ApiAuthorization;
-use NixPHP\CMS\Api\ApiEndpoint;
-use NixPHP\CMS\Support\HandlerInvoker;
+use Naf\CMS\Api\ApiAuthorization;
+use Naf\CMS\Api\ApiEndpoint;
+use Naf\CMS\Support\HandlerInvoker;
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\request;
-use function NixPHP\route;
-use function NixPHP\CMS\cms;
+use function Naf\request;
+use function Naf\route;
+use function Naf\CMS\cms;
 
 final class ApiController
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Theme;
+namespace Naf\CMS\Services\Theme;
 
 final class ThemeCodeNormalizer
 {

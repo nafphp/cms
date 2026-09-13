@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 return [
     'app' => [
-        'name' => 'NixCMS',
+        'name' => 'NafCMS',
         'short_name' => 'NX',
         'env' => 'ENV:APP_ENV',
         'url' => 'ENV:APP_URL',
@@ -56,7 +56,7 @@ return [
         ],
     ],
     'cms' => [
-        'runtime_path' => 'storage/nixcms',
+        'runtime_path' => 'storage/nafcms',
         'languages' => ['en', 'de'],
         'outbound_http' => [
             'webhooks' => [

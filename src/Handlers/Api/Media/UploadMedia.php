@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\Media;
+namespace Naf\CMS\Handlers\Api\Media;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UploadedFileInterface;
-use function NixPHP\I18n\t;
-use function NixPHP\json;
-use function NixPHP\request;
-use function NixPHP\CMS\cms;
-use function NixPHP\CMS\user;
+use function Naf\I18n\t;
+use function Naf\json;
+use function Naf\request;
+use function Naf\CMS\cms;
+use function Naf\CMS\user;
 
 final class UploadMedia
 {

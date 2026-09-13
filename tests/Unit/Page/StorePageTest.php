@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Page;
 
-use NixPHP\Database\Core\Database;
-use NixPHP\CMS\Handlers\Page\Pages\StorePage;
+use Naf\Database\Core\Database;
+use Naf\CMS\Handlers\Page\Pages\StorePage;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use Tests\Support\JsonRequest;
-use function NixPHP\app;
+use function Naf\app;
 
 final class StorePageTest extends TestCase
 {
@@ -125,7 +125,7 @@ final class StorePageTest extends TestCase
 
         $validate = new ReflectionMethod($handler, 'validate');
         $errors = $validate->invoke($handler, [
-            'builderVersion' => \NixPHP\CMS\Page\PageBuilderPayloadNormalizer::VERSION,
+            'builderVersion' => \Naf\CMS\Page\PageBuilderPayloadNormalizer::VERSION,
             'title' => 'Safe page title',
             'path' => '/canonical-policy-probe',
             'language' => 'en',

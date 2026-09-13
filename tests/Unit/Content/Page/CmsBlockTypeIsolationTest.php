@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Content\Page;
 
-use NixPHP\CMS\Content\Page\Block\AbstractBlockType;
+use Naf\CMS\Content\Page\Block\AbstractBlockType;
 use Tests\Support\CmsTestCase;
-use function NixPHP\CMS\cms;
+use function Naf\CMS\cms;
 
 final class CmsBlockTypeIsolationTest extends CmsTestCase
 {

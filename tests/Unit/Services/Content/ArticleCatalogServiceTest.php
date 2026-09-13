@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Content;
 
-use NixPHP\CMS\Services\Content\ArticleCatalogService;
+use Naf\CMS\Services\Content\ArticleCatalogService;
 use Tests\Support\DatabaseTestCase;
 
 final class ArticleCatalogServiceTest extends DatabaseTestCase

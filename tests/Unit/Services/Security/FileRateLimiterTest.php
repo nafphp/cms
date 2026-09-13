@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Security;
 
-use NixPHP\CMS\Services\Security\FileRateLimiter;
-use NixPHP\CMS\Services\Security\LoginRateLimiter;
+use Naf\CMS\Services\Security\FileRateLimiter;
+use Naf\CMS\Services\Security\LoginRateLimiter;
 use PHPUnit\Framework\TestCase;
 
 final class FileRateLimiterTest extends TestCase
@@ -13,7 +13,7 @@ final class FileRateLimiterTest extends TestCase
     public function testAttemptsAreLimitedAtomicallyAndResetAfterTtl(): void
     {
         $now = 1000;
-        $directory = sys_get_temp_dir() . '/nixcms-rate-test-' . bin2hex(random_bytes(6));
+        $directory = sys_get_temp_dir() . '/nafcms-rate-test-' . bin2hex(random_bytes(6));
         $limiter = new FileRateLimiter($directory, static function () use (&$now): int {
             return $now;
         });
@@ -31,7 +31,7 @@ final class FileRateLimiterTest extends TestCase
 
     public function testLoginLimiterUsesTemporaryPairBucketWithoutStoringIdentifiers(): void
     {
-        $directory = sys_get_temp_dir() . '/nixcms-login-rate-test-' . bin2hex(random_bytes(6));
+        $directory = sys_get_temp_dir() . '/nafcms-login-rate-test-' . bin2hex(random_bytes(6));
         $limiter = new LoginRateLimiter(new FileRateLimiter($directory, static fn(): int => 2000));
 
         for ($attempt = 0; $attempt < 5; $attempt++) {

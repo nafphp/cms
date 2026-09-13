@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\Settings;
+namespace Naf\CMS\Handlers\Api\Settings;
 
-use NixPHP\CMS\Contracts\SettingsServiceInterface;
-use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
+use Naf\CMS\Contracts\SettingsServiceInterface;
+use Naf\CMS\Handlers\Support\ReadsJsonBody;
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\json;
+use function Naf\json;
 
 final class UpdateSettings
 {

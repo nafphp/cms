@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Navigation;
+namespace Naf\CMS\Navigation;
 
-use NixPHP\CMS\Navigation\NavigationItem;
+use Naf\CMS\Navigation\NavigationItem;
 
 final class Navigation
 {

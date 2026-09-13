@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\Article;
+namespace Naf\CMS\Handlers\Api\Article;
 
-use NixPHP\CMS\Enums\ArticleStatus;
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Exceptions\AuthException;
-use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
-use NixPHP\CMS\Support\AuditEntry;
+use Naf\CMS\Enums\ArticleStatus;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Exceptions\AuthException;
+use Naf\CMS\Handlers\Support\ReadsJsonBody;
+use Naf\CMS\Support\AuditEntry;
 use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use function NixPHP\Database\database;
-use function NixPHP\json;
-use function NixPHP\CMS\user;
+use function Naf\Database\database;
+use function Naf\json;
+use function Naf\CMS\user;
 
 final class ReviewArticle
 {

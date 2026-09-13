@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Ai\ToolRouting;
 
-use NixPHP\CMS\Services\Ai\ToolRouting\RoutingTelemetry;
-use NixPHP\CMS\Services\Ai\ToolRouting\ToolContext;
+use Naf\CMS\Services\Ai\ToolRouting\RoutingTelemetry;
+use Naf\CMS\Services\Ai\ToolRouting\ToolContext;
 use PHPUnit\Framework\TestCase;
 
 final class RoutingTelemetryTest extends TestCase

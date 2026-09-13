@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Repositories\RoleRepository;
-use NixPHP\CMS\Repositories\UserRepository;
-use function NixPHP\I18n\t;
-use function NixPHP\ORM\repo;
-use function NixPHP\redirect;
-use function NixPHP\View\render;
-use function NixPHP\CMS\user;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Page\Page;
+use Naf\CMS\Repositories\RoleRepository;
+use Naf\CMS\Repositories\UserRepository;
+use function Naf\I18n\t;
+use function Naf\ORM\repo;
+use function Naf\redirect;
+use function Naf\View\render;
+use function Naf\CMS\user;
 
 $roleDefinitions = static fn(): array => user()?->can(Permission::ROLES_MANAGE) === true
     ? repo(RoleRepository::class)->findAllWithPermissions()

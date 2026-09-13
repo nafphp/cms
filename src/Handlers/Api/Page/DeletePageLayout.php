@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\Page;
+namespace Naf\CMS\Handlers\Api\Page;
 
-use NixPHP\CMS\Repositories\PageLayoutRepository;
+use Naf\CMS\Repositories\PageLayoutRepository;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use function NixPHP\json;
+use function Naf\json;
 
 final class DeletePageLayout
 {

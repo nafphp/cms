@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Page;
 
-use NixPHP\CMS\Page\PageBuilderPayloadNormalizer;
+use Naf\CMS\Page\PageBuilderPayloadNormalizer;
 use PHPUnit\Framework\TestCase;
 
 final class PageBuilderPayloadNormalizerTest extends TestCase

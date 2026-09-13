@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Storage;
+namespace Naf\CMS\Storage;
 
 /**
  * @internal

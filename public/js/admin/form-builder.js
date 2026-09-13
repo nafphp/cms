@@ -126,7 +126,7 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
                     <div class="flex items-center justify-between gap-3">
                         <div>
                             <h3 class="m-0 text-sm font-semibold text-slate-950 dark:text-white">Validators</h3>
-                            <p class="m-0 mt-1 text-xs text-slate-500">Applied as a NixPHP validator chain.</p>
+                            <p class="m-0 mt-1 text-xs text-slate-500">Applied as a NAF validator chain.</p>
                         </div>
                         <button class="${buttonClass}" type="button" data-add-validator="${index}">Add validator</button>
                     </div>
@@ -169,7 +169,7 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
                     <input class="mt-1 h-4 w-4 accent-[var(--admin-page-accent)]" type="checkbox" data-store-action-enabled ${store.enabled !== false ? 'checked' : ''}>
                     <span class="grid gap-1">
                         <span class="text-sm font-semibold text-slate-950 dark:text-white">Store submission</span>
-                        <span class="text-sm text-slate-500 dark:text-slate-400">Save validated values in NixCMS form submissions.</span>
+                        <span class="text-sm text-slate-500 dark:text-slate-400">Save validated values in NafCMS form submissions.</span>
                     </span>
                 </label>
             </article>
@@ -495,7 +495,7 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
     }
 
     async function saveTranslation(key, value) {
-        const response = await (window.NixCMS?.json || fetch)(translationEndpoint.replace('{language}', encodeURIComponent(translationLanguage)), {
+        const response = await (window.NafCMS?.json || fetch)(translationEndpoint.replace('{language}', encodeURIComponent(translationLanguage)), {
             method: 'POST',
             body: JSON.stringify({entries: {[key]: value}, mode: 'merge'}),
         });
@@ -517,7 +517,7 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
             node.classList.add('hidden');
         });
 
-        const response = await (window.NixCMS?.json || fetch)(root.dataset.saveUrl, {
+        const response = await (window.NafCMS?.json || fetch)(root.dataset.saveUrl, {
             method: 'POST',
             body: JSON.stringify({
                 ...payload(),
@@ -538,7 +538,7 @@ document.querySelectorAll('[data-form-builder]').forEach((root) => {
         }
 
         try {
-            window.sessionStorage.setItem('nixcms:flash-toast', 'Form saved.');
+            window.sessionStorage.setItem('nafcms:flash-toast', 'Form saved.');
         } catch (error) {}
         window.location.assign(overviewUrl);
     });

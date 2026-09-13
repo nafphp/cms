@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Mcp\Tools;
+namespace Naf\CMS\Mcp\Tools;
 
-use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
-use NixPHP\CMS\Enums\ToolRisk;
+use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
+use Naf\CMS\Enums\ToolRisk;
 
-use NixPHP\MCP\Support\Schema;
-use NixPHP\MCP\Tools\ScopedToolInterface;
-use NixPHP\MCP\Tools\ToolInterface;
+use Naf\MCP\Support\Schema;
+use Naf\MCP\Tools\ScopedToolInterface;
+use Naf\MCP\Tools\ToolInterface;
 use Throwable;
 
 final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
@@ -82,7 +82,7 @@ final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface, Lo
             ? sprintf('https://wikimedia.org/api/rest_v1/metrics/pageviews/top-per-country/%s/all-access/%s', rawurlencode($countryCode), $pathDate)
             : sprintf('https://wikimedia.org/api/rest_v1/metrics/pageviews/top/%s/all-access/%s', rawurlencode($project), $pathDate);
 
-        $payload = $this->requestJson($url, 'NixCMS Local AI Wikimedia Trends Tool');
+        $payload = $this->requestJson($url, 'NafCMS Local AI Wikimedia Trends Tool');
         $articles = $payload['items'][0]['articles'] ?? [];
         $articles = is_array($articles) ? $articles : [];
         $trends = [];
@@ -133,7 +133,7 @@ final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface, Lo
             'maxrecords' => $limit,
             'timespan' => $timespan,
             'sort' => 'datedesc',
-        ]), 'NixCMS Local AI GDELT Trends Tool');
+        ]), 'NafCMS Local AI GDELT Trends Tool');
         $articles = is_array($payload['articles'] ?? null) ? $payload['articles'] : [];
 
         return [

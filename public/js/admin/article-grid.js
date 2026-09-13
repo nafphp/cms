@@ -518,12 +518,12 @@ class ArticleGrid {
     }
 
     async post(url, payload = null) {
-        const response = await (window.NixCMS?.fetch || fetch)(url, {
+        const response = await (window.NafCMS?.fetch || fetch)(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRF-Token': String(window.NixCMS?.csrfToken?.() || this.config.csrfToken || ''),
+                'X-CSRF-Token': String(window.NafCMS?.csrfToken?.() || this.config.csrfToken || ''),
             },
             body: payload === null ? undefined : JSON.stringify(payload),
         });

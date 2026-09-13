@@ -45,8 +45,8 @@ jobs:
       - uses: ramsey/composer-install@v3
       - run: composer validate --strict
       - run: composer test
-      - run: vendor/bin/nix docs:check
-      - run: vendor/bin/nix integrity:check
+      - run: vendor/bin/naf docs:check
+      - run: vendor/bin/naf integrity:check
 
   assets:
     runs-on: ubuntu-latest
@@ -59,7 +59,7 @@ jobs:
       - run: npm ci
       - run: npm run test:builder
       - run: npm run build
-      - run: git diff --exit-code -- public/css/nixcms.css
+      - run: git diff --exit-code -- public/css/nafcms.css
 
   audit:
     runs-on: ubuntu-latest
@@ -89,9 +89,9 @@ jobs:
       mariadb:
         image: mariadb:11.4
         env:
-          MARIADB_DATABASE: nixcms
-          MARIADB_USER: nixcms
-          MARIADB_PASSWORD: nixcms
+          MARIADB_DATABASE: nafcms
+          MARIADB_USER: nafcms
+          MARIADB_PASSWORD: nafcms
           MARIADB_ROOT_PASSWORD: root
         ports:
           - 3306:3306
@@ -105,9 +105,9 @@ jobs:
       DB_DRIVER: mysql
       DB_HOST: 127.0.0.1
       DB_PORT: 3306
-      DB_USERNAME: nixcms
-      DB_PASSWORD: nixcms
-      DB_DATABASE: nixcms
+      DB_USERNAME: nafcms
+      DB_PASSWORD: nafcms
+      DB_DATABASE: nafcms
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -116,4 +116,4 @@ jobs:
           extensions: curl, dom, pdo_mysql
           coverage: none
       - uses: ramsey/composer-install@v3
-      - run: vendor/bin/nix db:migrate up
+      - run: vendor/bin/naf db:migrate up

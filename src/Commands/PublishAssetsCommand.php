@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Commands;
+namespace Naf\CMS\Commands;
 
-use NixPHP\CMS\Services\Assets\AssetPublisher;
-use NixPHP\CLI\Core\AbstractCommand;
-use NixPHP\CLI\Core\Input;
-use NixPHP\CLI\Core\Output;
+use Naf\CMS\Services\Assets\AssetPublisher;
+use Naf\CLI\Core\AbstractCommand;
+use Naf\CLI\Core\Input;
+use Naf\CLI\Core\Output;
 
 final class PublishAssetsCommand extends AbstractCommand
 {
-    public const string NAME = 'nixcms:assets:publish';
+    public const string NAME = 'nafcms:assets:publish';
 
     protected function configure(): void
     {
-        $this->setTitle('Publish NixCMS Assets')
-            ->setDescription('Publish versioned NixCMS assets into the host public directory.');
+        $this->setTitle('Publish NafCMS Assets')
+            ->setDescription('Publish versioned NafCMS assets into the host public directory.');
     }
 
     public function run(Input $input, Output $output): int

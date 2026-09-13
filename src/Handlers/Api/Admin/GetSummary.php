@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\Admin;
+namespace Naf\CMS\Handlers\Api\Admin;
 
-use NixPHP\CMS\Services\Admin\AdminDashboardService;
+use Naf\CMS\Services\Admin\AdminDashboardService;
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\json;
+use function Naf\json;
 
 final class GetSummary
 {

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Support\Docs;
+namespace Naf\CMS\Support\Docs;
 
-use NixPHP\CMS\Support\Docs\DocBlockRenderer;
-use NixPHP\CMS\Support\Docs\MarkdownTable;
-use function NixPHP\MCP\tool;
+use Naf\CMS\Support\Docs\DocBlockRenderer;
+use Naf\CMS\Support\Docs\MarkdownTable;
+use function Naf\MCP\tool;
 
 final class McpDocRenderer implements DocBlockRenderer
 {
@@ -17,7 +17,7 @@ final class McpDocRenderer implements DocBlockRenderer
 
     public function render(): string
     {
-        if (!function_exists('NixPHP\MCP\tool')) {
+        if (!function_exists('Naf\MCP\tool')) {
             return '_MCP support is not installed._';
         }
 

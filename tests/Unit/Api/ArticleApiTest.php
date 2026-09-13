@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Api;
 
-use NixPHP\CMS\Api\ArticleApi;
-use NixPHP\CMS\Models\Article;
-use NixPHP\CMS\Repositories\ArticleRepository;
+use Naf\CMS\Api\ArticleApi;
+use Naf\CMS\Models\Article;
+use Naf\CMS\Repositories\ArticleRepository;
 use PHPUnit\Framework\MockObject\MockObject;
-use Tests\Support\NixPHPTestCase;
+use Tests\Support\NafTestCase;
 
-final class ArticleApiTest extends NixPHPTestCase
+final class ArticleApiTest extends NafTestCase
 {
     private ArticleRepository&MockObject $articleRepository;
     private ArticleApi $articleApi;

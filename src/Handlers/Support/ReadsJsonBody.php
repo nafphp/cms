@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Support;
+namespace Naf\CMS\Handlers\Support;
 
-use function NixPHP\request;
+use function Naf\request;
 
 trait ReadsJsonBody
 {

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Contracts\AuditSinkInterface;
-use NixPHP\CMS\Contracts\SettingsServiceInterface;
-use function NixPHP\app;
-use function NixPHP\I18n\t;
-use function NixPHP\View\render;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Page\Page;
+use Naf\CMS\Contracts\AuditSinkInterface;
+use Naf\CMS\Contracts\SettingsServiceInterface;
+use function Naf\app;
+use function Naf\I18n\t;
+use function Naf\View\render;
+use function Naf\CMS\cms;
 
 return [
     Page::create('admin.settings')

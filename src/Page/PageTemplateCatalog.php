@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Page;
+namespace Naf\CMS\Page;
 
-use NixPHP\CMS\Page\Layout;
-use NixPHP\CMS\Support\RuntimePaths;
-use function NixPHP\app;
+use Naf\CMS\Page\Layout;
+use Naf\CMS\Support\RuntimePaths;
+use function Naf\app;
 
 final class PageTemplateCatalog
 {

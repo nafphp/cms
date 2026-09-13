@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Page\Theme;
+namespace Naf\CMS\Handlers\Page\Theme;
 
-use NixPHP\CMS\Repositories\ThemeRepository;
-use NixPHP\CMS\Services\Theme\ThemeAssetWriter;
-use NixPHP\CMS\Theme\Theme;
+use Naf\CMS\Repositories\ThemeRepository;
+use Naf\CMS\Services\Theme\ThemeAssetWriter;
+use Naf\CMS\Theme\Theme;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use function NixPHP\redirect;
-use function NixPHP\request;
-use function NixPHP\route;
+use function Naf\redirect;
+use function Naf\request;
+use function Naf\route;
 
 final class StoreTheme
 {

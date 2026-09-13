@@ -1,9 +1,9 @@
 <?php
 
-use function NixPHP\route;
-use function NixPHP\I18n\t;
-use function NixPHP\View\s;
-use function NixPHP\View\view;
+use function Naf\route;
+use function Naf\I18n\t;
+use function Naf\View\s;
+use function Naf\View\view;
 
 $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
 $user = is_array($user ?? null) ? $user : null;
@@ -110,7 +110,7 @@ if (!$isEdit && $selectedRoles === [] && $roleOptions !== []) {
     </div>
 </form>
 
-<script nonce="<?= \NixPHP\CMS\csp_nonce() ?>" type="module">
+<script nonce="<?= \Naf\CMS\csp_nonce() ?>" type="module">
     import prompt from '/js/lib/notifyJs/Modules/Prompt.js';
     import toast from '/js/lib/notifyJs/Modules/Toast.js';
 
@@ -217,7 +217,7 @@ if (!$isEdit && $selectedRoles === [] && $roleOptions !== []) {
             return;
         }
 
-        const response = await (window.NixCMS?.json || fetch)(passwordUrl, {
+        const response = await (window.NafCMS?.json || fetch)(passwordUrl, {
             method: 'POST',
             body: JSON.stringify({
                 user_id: userId,
@@ -240,7 +240,7 @@ if (!$isEdit && $selectedRoles === [] && $roleOptions !== []) {
         event.preventDefault();
 
         const data = collectFormData();
-        const response = await (window.NixCMS?.json || fetch)(submitUrl, {
+        const response = await (window.NafCMS?.json || fetch)(submitUrl, {
             method: 'POST',
             body: JSON.stringify(data),
         });

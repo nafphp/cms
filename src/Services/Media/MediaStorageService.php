@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Media;
+namespace Naf\CMS\Services\Media;
 
-use NixPHP\CMS\Contracts\MediaStorageInterface;
-use NixPHP\CMS\Models\Media;
-use NixPHP\CMS\Storage\EntityStorage;
-use NixPHP\CMS\Support\Slug;
+use Naf\CMS\Contracts\MediaStorageInterface;
+use Naf\CMS\Models\Media;
+use Naf\CMS\Storage\EntityStorage;
+use Naf\CMS\Support\Slug;
 use Psr\Http\Message\UploadedFileInterface;
-use NixPHP\CMS\Services\Media\MediaPayload;
-use function NixPHP\config;
-use function NixPHP\log;
-use function NixPHP\I18n\t;
+use Naf\CMS\Services\Media\MediaPayload;
+use function Naf\config;
+use function Naf\log;
+use function Naf\I18n\t;
 
 final class MediaStorageService implements MediaStorageInterface
 {

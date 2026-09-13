@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use NixPHP\CMS\Api\ApiEndpoint;
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Handlers\Api\Page\DeletePage;
-use NixPHP\CMS\Handlers\Api\Page\DeletePageLayout;
-use NixPHP\CMS\Handlers\Api\Page\StorePageLayout;
+use Naf\CMS\Api\ApiEndpoint;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Handlers\Api\Page\DeletePage;
+use Naf\CMS\Handlers\Api\Page\DeletePageLayout;
+use Naf\CMS\Handlers\Api\Page\StorePageLayout;
 
 return [
     ApiEndpoint::post('api.admin.page-layouts.store', '/api/admin/page-layouts')

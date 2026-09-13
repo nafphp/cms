@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Content\Media;
+namespace Naf\CMS\Content\Media;
 
-use NixPHP\CMS\Api\MediaApi;
-use NixPHP\CMS\Content\ContentTypeInterface;
-use NixPHP\CMS\Contracts\MediaStorageInterface;
-use NixPHP\CMS\Models\Media;
-use NixPHP\CMS\Storage\EntityStorage;
-use function NixPHP\app;
+use Naf\CMS\Api\MediaApi;
+use Naf\CMS\Content\ContentTypeInterface;
+use Naf\CMS\Contracts\MediaStorageInterface;
+use Naf\CMS\Models\Media;
+use Naf\CMS\Storage\EntityStorage;
+use function Naf\app;
 
 final class MediaContentType implements ContentTypeInterface
 {

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Api;
+namespace Naf\CMS\Api;
 
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Enums\Role;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Enums\Role;
 
 final class ApiEndpoint
 {

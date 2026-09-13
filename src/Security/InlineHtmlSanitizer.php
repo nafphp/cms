@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Security;
+namespace Naf\CMS\Security;
 
 use DOMComment;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMText;
-use NixPHP\CMS\Security\UrlPolicy;
-use function NixPHP\View\s;
+use Naf\CMS\Security\UrlPolicy;
+use function Naf\View\s;
 
 /**
  * Sanitizes the small Editor.js inline-formatting subset used by articles.
@@ -40,7 +40,7 @@ final class InlineHtmlSanitizer
         $previous = libxml_use_internal_errors(true);
         try {
             $document->loadHTML(
-                '<?xml encoding="UTF-8"><div id="nixcms-inline-root">' . $html . '</div>',
+                '<?xml encoding="UTF-8"><div id="nafcms-inline-root">' . $html . '</div>',
                 LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET,
             );
         } finally {
@@ -48,7 +48,7 @@ final class InlineHtmlSanitizer
             libxml_use_internal_errors($previous);
         }
 
-        $root = $document->getElementById('nixcms-inline-root');
+        $root = $document->getElementById('nafcms-inline-root');
         if (!$root instanceof DOMElement) {
             return '';
         }

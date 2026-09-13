@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Settings;
+namespace Naf\CMS\Services\Settings;
 
-use NixPHP\CMS\Contracts\TranslationServiceInterface;
-use NixPHP\CMS\Support\AtomicFileWriter;
-use NixPHP\CMS\Support\RuntimePaths;
-use function NixPHP\CMS\cms;
-use function NixPHP\CMS\audit_log;
+use Naf\CMS\Contracts\TranslationServiceInterface;
+use Naf\CMS\Support\AtomicFileWriter;
+use Naf\CMS\Support\RuntimePaths;
+use function Naf\CMS\cms;
+use function Naf\CMS\audit_log;
 
 final class TranslationFileService implements TranslationServiceInterface
 {

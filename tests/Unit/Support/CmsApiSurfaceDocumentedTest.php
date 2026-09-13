@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support;
 
-use NixPHP\CMS\Support\Cms;
+use Naf\CMS\Support\Cms;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
-use function NixPHP\CMS\cms;
+use function Naf\CMS\cms;
 
 final class CmsApiSurfaceDocumentedTest extends TestCase
 {

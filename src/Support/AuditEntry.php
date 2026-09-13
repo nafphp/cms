@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Support;
-use NixPHP\CMS\Support\Audit;
-use function NixPHP\CMS\audit;
+namespace Naf\CMS\Support;
+use Naf\CMS\Support\Audit;
+use function Naf\CMS\audit;
 
 final class AuditEntry
 {

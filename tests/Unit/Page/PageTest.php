@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Page;
 
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Enums\Role;
-use NixPHP\CMS\Page\Layout;
-use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Page\Template;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Enums\Role;
+use Naf\CMS\Page\Layout;
+use Naf\CMS\Page\Page;
+use Naf\CMS\Page\Template;
 use PHPUnit\Framework\TestCase;
 
 final class PageTest extends TestCase
@@ -36,7 +36,7 @@ final class PageTest extends TestCase
     {
         $page = Page::create('custom.about');
 
-        $page->meta()->seo->description = 'About NixCMS';
+        $page->meta()->seo->description = 'About NafCMS';
         $page->meta()->navigation->label = 'About';
         $page->meta()->theme->accent = '#64748b';
         $page->meta()->theme->headerBackground = '#020617';
@@ -49,7 +49,7 @@ final class PageTest extends TestCase
         $page->meta()->theme->footerContentWidthIncludesChrome = false;
         $page->meta()->theme->footerBackgroundWidthIncludesChrome = false;
 
-        self::assertSame('About NixCMS', $page->meta()->seo->description);
+        self::assertSame('About NafCMS', $page->meta()->seo->description);
         self::assertSame('About', $page->meta()->navigation->label);
         self::assertSame('#64748b', $page->meta()->theme->accent);
         self::assertSame('#020617', $page->meta()->theme->headerBackground);
@@ -122,13 +122,13 @@ final class PageTest extends TestCase
         $template = Template::create('public')
             ->setParent('page')
             ->addBodyClass('min-h-screen bg-white')
-            ->addStylesheet('/css/nixcms.css')
+            ->addStylesheet('/css/nafcms.css')
             ->addScript('/js/public.js', ['defer' => true]);
 
         self::assertSame('layouts.page', $template->parent());
         self::assertSame(['min-h-screen', 'bg-white'], $template->bodyClasses());
         self::assertSame([
-            ['href' => '/css/nixcms.css', 'attributes' => []],
+            ['href' => '/css/nafcms.css', 'attributes' => []],
         ], $template->stylesheets());
         self::assertSame([
             ['src' => '/js/public.js', 'attributes' => ['defer' => true]],
@@ -143,7 +143,7 @@ final class PageTest extends TestCase
             ->setHtmlAttribute('data-theme', 'default')
             ->setBodyAttribute('data-page', 'home')
             ->addBodyClass('min-h-screen bg-white')
-            ->addStylesheet('/css/nixcms.css', ['media' => 'screen'])
+            ->addStylesheet('/css/nafcms.css', ['media' => 'screen'])
             ->addScript('/js/home.js', ['defer' => true]);
 
         self::assertSame('de', $page->language());
@@ -151,7 +151,7 @@ final class PageTest extends TestCase
         self::assertSame(['data-page' => 'home'], $page->bodyAttributes());
         self::assertSame(['min-h-screen', 'bg-white'], $page->bodyClasses());
         self::assertSame([
-            ['href' => '/css/nixcms.css', 'attributes' => ['media' => 'screen']],
+            ['href' => '/css/nafcms.css', 'attributes' => ['media' => 'screen']],
         ], $page->stylesheets());
         self::assertSame([
             ['src' => '/js/home.js', 'attributes' => ['defer' => true]],

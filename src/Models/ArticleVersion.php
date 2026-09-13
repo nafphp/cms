@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Models;
+namespace Naf\CMS\Models;
 
-use NixPHP\CMS\Enums\ArticleStatus;
-use NixPHP\CMS\Enums\Language;
+use Naf\CMS\Enums\ArticleStatus;
+use Naf\CMS\Enums\Language;
 use DateTime;
-use NixPHP\ORM\Model\AbstractModel;
+use Naf\ORM\Model\AbstractModel;
 
 class ArticleVersion extends AbstractModel implements \JsonSerializable
 {

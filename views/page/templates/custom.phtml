@@ -1,11 +1,11 @@
 <?php
 
-use NixPHP\CMS\Page\PageBlock;
-use NixPHP\CMS\Page\CustomLayoutOptions;
-use function NixPHP\View\s;
+use Naf\CMS\Page\PageBlock;
+use Naf\CMS\Page\CustomLayoutOptions;
+use function Naf\View\s;
 
-/** @var \NixPHP\CMS\Page\Template $template */
-/** @var \NixPHP\CMS\Page\Layout $layout */
+/** @var \Naf\CMS\Page\Template $template */
+/** @var \Naf\CMS\Page\Layout $layout */
 /** @var array<string, string> $blocks */
 
 $slots = $layout->blocks();
@@ -24,9 +24,9 @@ $renderSlot = static function (PageBlock $slot) use ($blocks): void {
     $position = CustomLayoutOptions::choice($data['position'] ?? null, CustomLayoutOptions::POSITIONS, 'stretch');
     $maxHeight = CustomLayoutOptions::choice($data['maxHeight'] ?? null, CustomLayoutOptions::MAX_HEIGHTS, 'none');
     $overflow = CustomLayoutOptions::choice($data['overflow'] ?? null, CustomLayoutOptions::OVERFLOWS, 'visible');
-    $surface = \NixPHP\CMS\Theme\Theme::slug((string) ($data['surface'] ?? 'none')) ?: 'none';
+    $surface = \Naf\CMS\Theme\Theme::slug((string) ($data['surface'] ?? 'none')) ?: 'none';
     $content = is_array($data['content'] ?? null) ? $data['content'] : [];
-    $contentType = \NixPHP\CMS\Theme\Theme::slug((string) ($content['type'] ?? 'empty')) ?: 'empty';
+    $contentType = \Naf\CMS\Theme\Theme::slug((string) ($content['type'] ?? 'empty')) ?: 'empty';
     ?>
     <section
         class="page-template-region page-template-custom-slot page-template-custom-slot--<?= s($region) ?> page-template-custom-slot--<?= s($size) ?> page-template-custom-slot--content-<?= s($contentType) ?> page-template-custom-slot--position-<?= s($position) ?> page-template-custom-slot--max-<?= s($maxHeight) ?> page-template-custom-slot--overflow-<?= s($overflow) ?> page-template-custom-slot--surface-<?= s($surface) ?>"

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Contracts;
+namespace Naf\CMS\Contracts;
 
-use NixPHP\CMS\Services\Http\OutboundHttpProfile;
-use NixPHP\CMS\Services\Http\OutboundHttpResponse;
+use Naf\CMS\Services\Http\OutboundHttpProfile;
+use Naf\CMS\Services\Http\OutboundHttpResponse;
 
 interface OutboundHttpClientInterface
 {

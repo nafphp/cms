@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Security;
 
-use NixPHP\CMS\Events\AuthRedirectEvent;
-use NixPHP\CMS\Exceptions\AuthException;
+use Naf\CMS\Events\AuthRedirectEvent;
+use Naf\CMS\Exceptions\AuthException;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use function NixPHP\app;
-use function NixPHP\Session\session;
+use function Naf\app;
+use function Naf\Session\session;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]

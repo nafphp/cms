@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Ai;
 
-use NixPHP\CMS\Services\Ai\LocalAiPromptLibrary;
+use Naf\CMS\Services\Ai\LocalAiPromptLibrary;
 use PHPUnit\Framework\TestCase;
 
 final class LocalAiPromptLibraryRuntimeTest extends TestCase
 {
     public function testHostOverrideWinsWithoutChangingPackageDefault(): void
     {
-        $root = sys_get_temp_dir() . '/nixcms-prompts-' . bin2hex(random_bytes(6));
+        $root = sys_get_temp_dir() . '/nafcms-prompts-' . bin2hex(random_bytes(6));
         $defaults = $root . '/defaults';
         $overrides = $root . '/runtime';
         mkdir($defaults, 0777, true);

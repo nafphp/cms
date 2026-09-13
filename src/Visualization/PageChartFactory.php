@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Visualization;
+namespace Naf\CMS\Visualization;
 
-use NixPHP\CMS\Visualization\ChartDefinition;
-use function NixPHP\CMS\Visualization\t;
-use function NixPHP\I18n\t as i18n_t;
+use Naf\CMS\Visualization\ChartDefinition;
+use function Naf\CMS\Visualization\t;
+use function Naf\I18n\t as i18n_t;
 
 final class PageChartFactory
 {
@@ -213,7 +213,7 @@ final class PageChartFactory
 
     private function surface(mixed $surface): string
     {
-        return \NixPHP\CMS\Theme\Theme::slug((string) $surface) ?: 'none';
+        return \Naf\CMS\Theme\Theme::slug((string) $surface) ?: 'none';
     }
 
     private function height(mixed $value): int
@@ -248,7 +248,7 @@ final class PageChartFactory
 
     private function translate(string $value): string
     {
-        if (function_exists('NixPHP\I18n\t')) {
+        if (function_exists('Naf\I18n\t')) {
             return i18n_t($value);
         }
 

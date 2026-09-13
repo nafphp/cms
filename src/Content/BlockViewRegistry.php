@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Content;
+namespace Naf\CMS\Content;
 
 final class BlockViewRegistry
 {

@@ -33,13 +33,13 @@ final class ReleaseDocumentationTest extends TestCase
         self::assertSame('0.0.1', $package['version']);
         self::assertTrue($package['private']);
         self::assertSame('MIT', $composer['license']);
-        self::assertSame('https://github.com/nixphp/cms', $composer['homepage']);
+        self::assertSame('https://github.com/nafphp/cms', $composer['homepage']);
     }
 
     public function testPublicDocsDescribeSafeInstallationAndPrivateReporting(): void
     {
         $readme = (string) file_get_contents(BASE_PATH . '/README.md');
-        foreach (['composer require nixphp/cms', 'nixcms:assets:publish', 'db:migrate up', 'user:create', 'public', 'Sitebuilder Preview', 'AI and MCP features are permission-, scope-, and tool-driven'] as $needle) {
+        foreach (['composer require naf/cms', 'nafcms:assets:publish', 'db:migrate up', 'user:create', 'public', 'Sitebuilder Preview', 'AI and MCP features are permission-, scope-, and tool-driven'] as $needle) {
             self::assertStringContainsString($needle, $readme);
         }
         self::assertStringNotContainsString('change-me', $readme);

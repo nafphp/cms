@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Commands;
+namespace Naf\CMS\Commands;
 
-use NixPHP\CMS\Services\Assets\AssetPublisher;
-use NixPHP\CLI\Core\AbstractCommand;
-use NixPHP\CLI\Core\Input;
-use NixPHP\CLI\Core\Output;
+use Naf\CMS\Services\Assets\AssetPublisher;
+use Naf\CLI\Core\AbstractCommand;
+use Naf\CLI\Core\Input;
+use Naf\CLI\Core\Output;
 
 final class RemoveAssetsCommand extends AbstractCommand
 {
-    public const string NAME = 'nixcms:assets:remove';
+    public const string NAME = 'nafcms:assets:remove';
 
     protected function configure(): void
     {
-        $this->setTitle('Remove NixCMS Assets')
-            ->setDescription('Remove only unchanged assets owned by the NixCMS publish manifest.');
+        $this->setTitle('Remove NafCMS Assets')
+            ->setDescription('Remove only unchanged assets owned by the NafCMS publish manifest.');
     }
 
     public function run(Input $input, Output $output): int
@@ -28,7 +28,7 @@ final class RemoveAssetsCommand extends AbstractCommand
             return self::ERROR;
         }
 
-        $output->writeLine(sprintf('Removed %d published NixCMS asset(s).', $removed), 'ok');
+        $output->writeLine(sprintf('Removed %d published NafCMS asset(s).', $removed), 'ok');
         return self::SUCCESS;
     }
 }

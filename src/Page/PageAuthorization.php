@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Page;
+namespace Naf\CMS\Page;
 
-use NixPHP\CMS\Services\Security\ResourceAuthorization;
-use NixPHP\Auth\Exceptions\{ForbiddenException, UnauthenticatedException};
-use NixPHP\CMS\Exceptions\AuthException;
-use NixPHP\CMS\Enums\Permission;
-use function NixPHP\CMS\user;
+use Naf\CMS\Services\Security\ResourceAuthorization;
+use Naf\Auth\Exceptions\{ForbiddenException, UnauthenticatedException};
+use Naf\CMS\Exceptions\AuthException;
+use Naf\CMS\Enums\Permission;
+use function Naf\CMS\user;
 
 final class PageAuthorization
 {

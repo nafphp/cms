@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Security;
 
-use NixPHP\CMS\Handlers\Api\User\UserPayloadValidator;
-use NixPHP\CMS\Services\Security\PasswordPolicy;
+use Naf\CMS\Handlers\Api\User\UserPayloadValidator;
+use Naf\CMS\Services\Security\PasswordPolicy;
 use PHPUnit\Framework\TestCase;
 
 final class PasswordPolicyTest extends TestCase

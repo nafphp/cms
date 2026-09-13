@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Api\Media;
+namespace Naf\CMS\Handlers\Api\Media;
 
-use NixPHP\CMS\Enums\Permission;
+use Naf\CMS\Enums\Permission;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\I18n\t;
-use function NixPHP\response;
-use function NixPHP\CMS\cms;
-use function NixPHP\CMS\user;
+use function Naf\I18n\t;
+use function Naf\response;
+use function Naf\CMS\cms;
+use function Naf\CMS\user;
 
 final class ServeMedia
 {

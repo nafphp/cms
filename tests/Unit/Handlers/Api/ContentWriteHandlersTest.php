@@ -4,25 +4,25 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Handlers\Api;
 
-use NixPHP\CMS\Exceptions\AuthException;
-use NixPHP\CMS\Handlers\Api\Article\DeleteArticleLocale;
-use NixPHP\CMS\Handlers\Api\Article\DeleteArticleVersion;
-use NixPHP\CMS\Handlers\Api\Article\EnqueueArticleTranslation;
-use NixPHP\CMS\Handlers\Api\Article\NextArticleVersion;
-use NixPHP\CMS\Handlers\Api\Article\PublishArticle;
-use NixPHP\CMS\Handlers\Api\Article\ReviewArticle;
-use NixPHP\CMS\Handlers\Api\Article\UploadArticleImage;
-use NixPHP\CMS\Handlers\Api\Form\DeleteForm;
-use NixPHP\CMS\Handlers\Api\Form\SubmitForm;
-use NixPHP\CMS\Handlers\Api\Media\DeleteMedia;
-use NixPHP\CMS\Handlers\Api\Media\ListMedia;
-use NixPHP\CMS\Handlers\Api\Media\UpdateMedia;
-use NixPHP\CMS\Handlers\Api\Media\UploadMedia;
-use NixPHP\CMS\Handlers\Api\Navigation\DeleteNavigation;
-use NixPHP\CMS\Handlers\Api\Navigation\PublishNavigation;
-use NixPHP\CMS\Handlers\Api\Page\DeletePage;
-use NixPHP\CMS\Handlers\Api\Page\DeletePageLayout;
-use NixPHP\CMS\Handlers\Api\Page\StorePageLayout;
+use Naf\CMS\Exceptions\AuthException;
+use Naf\CMS\Handlers\Api\Article\DeleteArticleLocale;
+use Naf\CMS\Handlers\Api\Article\DeleteArticleVersion;
+use Naf\CMS\Handlers\Api\Article\EnqueueArticleTranslation;
+use Naf\CMS\Handlers\Api\Article\NextArticleVersion;
+use Naf\CMS\Handlers\Api\Article\PublishArticle;
+use Naf\CMS\Handlers\Api\Article\ReviewArticle;
+use Naf\CMS\Handlers\Api\Article\UploadArticleImage;
+use Naf\CMS\Handlers\Api\Form\DeleteForm;
+use Naf\CMS\Handlers\Api\Form\SubmitForm;
+use Naf\CMS\Handlers\Api\Media\DeleteMedia;
+use Naf\CMS\Handlers\Api\Media\ListMedia;
+use Naf\CMS\Handlers\Api\Media\UpdateMedia;
+use Naf\CMS\Handlers\Api\Media\UploadMedia;
+use Naf\CMS\Handlers\Api\Navigation\DeleteNavigation;
+use Naf\CMS\Handlers\Api\Navigation\PublishNavigation;
+use Naf\CMS\Handlers\Api\Page\DeletePage;
+use Naf\CMS\Handlers\Api\Page\DeletePageLayout;
+use Naf\CMS\Handlers\Api\Page\StorePageLayout;
 use Tests\Support\DatabaseTestCase;
 use Tests\Support\JsonRequest;
 
@@ -55,7 +55,7 @@ final class ContentWriteHandlersTest extends DatabaseTestCase
     public function testReviewArticleRejectsAnUnauthenticatedCallerBeforeStorage(): void
     {
         JsonRequest::bind(['action' => 'approve']);
-        \NixPHP\CMS\user(reset: true);
+        \Naf\CMS\user(reset: true);
 
         $this->expectException(AuthException::class);
         (new ReviewArticle())('1', 'de');

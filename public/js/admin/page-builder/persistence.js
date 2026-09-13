@@ -168,7 +168,7 @@ export const persistenceMethods = {
         this.saveButton?.setAttribute('disabled', 'disabled');
 
         try {
-            const request = window.NixCMS?.json || fetch;
+            const request = window.NafCMS?.json || fetch;
             const response = await request(this.saveUrl, {
                 method: 'POST',
                 body: JSON.stringify(payload),

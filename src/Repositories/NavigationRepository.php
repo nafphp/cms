@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Repositories;
+namespace Naf\CMS\Repositories;
 
-use NixPHP\CMS\Navigation\Navigation;
+use Naf\CMS\Navigation\Navigation;
 use PDO;
-use function NixPHP\Database\database;
-use function NixPHP\log;
+use function Naf\Database\database;
+use function Naf\log;
 
 final class NavigationRepository
 {

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Security;
+namespace Naf\CMS\Services\Security;
 
-use NixPHP\CMS\Contracts\UserPrivilegePolicyInterface;
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Enums\Role;
-use NixPHP\CMS\Exceptions\PrivilegedActionDenied;
+use Naf\CMS\Contracts\UserPrivilegePolicyInterface;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Enums\Role;
+use Naf\CMS\Exceptions\PrivilegedActionDenied;
 use PDO;
-use function NixPHP\Database\database;
+use function Naf\Database\database;
 
 /**
  * Central authorization boundary for user, role, credential, and deletion mutations.

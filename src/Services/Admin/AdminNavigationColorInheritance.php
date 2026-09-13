@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Admin;
+namespace Naf\CMS\Services\Admin;
 
-use NixPHP\CMS\Page\PageRegistry;
-use NixPHP\CMS\Services\Admin\AdminNavigationItemCollector;
-use function NixPHP\CMS\cms;
-use function NixPHP\config;
-use function NixPHP\log;
+use Naf\CMS\Page\PageRegistry;
+use Naf\CMS\Services\Admin\AdminNavigationItemCollector;
+use function Naf\CMS\cms;
+use function Naf\config;
+use function Naf\log;
 
 final class AdminNavigationColorInheritance
 {

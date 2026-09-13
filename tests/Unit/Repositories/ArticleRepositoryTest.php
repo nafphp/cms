@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
-use NixPHP\CMS\Enums\ArticleStatus;
-use NixPHP\CMS\Repositories\ArticleRepository;
-use NixPHP\ORM\Core\EntityManager;
+use Naf\CMS\Enums\ArticleStatus;
+use Naf\CMS\Repositories\ArticleRepository;
+use Naf\ORM\Core\EntityManager;
 use Tests\Support\DatabaseTestCase;
 
 final class ArticleRepositoryTest extends DatabaseTestCase

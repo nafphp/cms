@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Support;
+namespace Naf\CMS\Support;
 
-use NixPHP\Auth\Auth;
-use NixPHP\CMS\Enums\{Permission, Role};
-use NixPHP\CMS\Models\User;
-use NixPHP\CMS\Services\Security\UserIdentity;
+use Naf\Auth\Auth;
+use Naf\CMS\Enums\{Permission, Role};
+use Naf\CMS\Models\User;
+use Naf\CMS\Services\Security\UserIdentity;
 
 /** Compatibility facade for CMS views and handlers; auth evaluates grants. */
 class UserHelper

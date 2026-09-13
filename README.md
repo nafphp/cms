@@ -1,8 +1,8 @@
-# NixCMS
+# NafCMS
 
-NixCMS is a lightweight, extensible CMS built on top of NixPHP. It is bare-metal first: PHP 8.3+, Composer, server-rendered `.phtml` templates, Tailwind v4, and optional MCP/AI integration without a separate documentation-site toolchain.
+NafCMS is a lightweight, extensible CMS built on top of NAF. It is bare-metal first: PHP 8.3+, Composer, server-rendered `.phtml` templates, Tailwind v4, and optional MCP/AI integration without a separate documentation-site toolchain.
 
-> **This repository is a NixPHP plugin, not an application.** It ships no front
+> **This repository is a NAF plugin, not an application.** It ships no front
 > controller and cannot be served or booted on its own. You install it into a
 > host application, which owns `BASE_PATH`, the configuration, the webroot and
 > the request lifecycle — see [Quickstart](#quickstart). Your own code belongs
@@ -12,36 +12,36 @@ PHP 8.3 and 8.4 are the supported release targets and are required CI gates. Dev
 
 ## Quickstart
 
-Prerequisites are PHP 8.3 or 8.4 with cURL, DOM, PDO, and either PDO SQLite or PDO MySQL, plus Composer 2. Node.js is needed only when changing NixCMS frontend sources, not in an installed host.
+Prerequisites are PHP 8.3 or 8.4 with cURL, DOM, PDO, and either PDO SQLite or PDO MySQL, plus Composer 2. Node.js is needed only when changing NafCMS frontend sources, not in an installed host.
 
-Create a regular NixPHP host application, then install NixCMS as a plugin:
+Create a regular NAF host application, then install NafCMS as a plugin:
 
 ```bash
-composer create-project nixphp/app my-cms
+composer create-project naf/app my-cms
 cd my-cms
-composer require nixphp/cms
+composer require naf/cms
 ```
 
-NixPHP discovers `nixphp/cms` from its Composer package type and loads its configuration, routes, views, migrations, commands, and MCP tools. Because those registrations consume the other NixPHP plugins, list NixCMS last in the host's `app/plugins.php`:
+NAF discovers `naf/cms` from its Composer package type and loads its configuration, routes, views, migrations, commands, and MCP tools. Because those registrations consume the other NAF plugins, list NafCMS last in the host's `app/plugins.php`:
 
 ```php
 return [
-    'nixphp/cli',
-    'nixphp/database',
-    'nixphp/session',
-    'nixphp/form',
-    'nixphp/view',
-    'nixphp/i18n',
-    'nixphp/orm',
-    'nixphp/queue',
-    'nixphp/schedule',
-    'nixphp/mail',
-    'nixphp/mcp',
-    'nixphp/cms',
+    'naf/cli',
+    'naf/database',
+    'naf/session',
+    'naf/form',
+    'naf/view',
+    'naf/i18n',
+    'naf/orm',
+    'naf/queue',
+    'naf/schedule',
+    'naf/mail',
+    'naf/mcp',
+    'naf/cms',
 ];
 ```
 
-This uses NixPHP's normal explicit plugin-order mechanism; it does not copy NixCMS source into the host. The host owns `BASE_PATH`, its configuration, runtime storage, public webroot, and application lifecycle; NixCMS never starts the host from its plugin bootstrap. If the ordering file is missing, the bootstrap reports which dependency was not loaded yet instead of failing later with an undefined helper or registry.
+This uses NAF's normal explicit plugin-order mechanism; it does not copy NafCMS source into the host. The host owns `BASE_PATH`, its configuration, runtime storage, public webroot, and application lifecycle; NafCMS never starts the host from its plugin bootstrap. If the ordering file is missing, the bootstrap reports which dependency was not loaded yet instead of failing later with an undefined helper or registry.
 
 For a small SQLite installation, configure the host before running migrations:
 
@@ -50,7 +50,7 @@ For a small SQLite installation, configure the host before running migrations:
 return [
     'database' => [
         'driver' => 'sqlite',
-        'database' => BASE_PATH . '/storage/nixcms.sqlite',
+        'database' => BASE_PATH . '/storage/nafcms.sqlite',
     ],
 ];
 ```
@@ -60,34 +60,34 @@ For MariaDB/MySQL, set the host's `DB_DRIVER`, `DB_HOST`, `DB_PORT`, `DB_USERNAM
 After the plugin order and database are configured, finish setup:
 
 ```bash
-vendor/bin/nix nixcms:agents:install
-vendor/bin/nix nixcms:assets:publish
-vendor/bin/nix db:migrate up
-vendor/bin/nix user:create admin admin@example.com admin
-vendor/bin/nix mcp:token:create
+vendor/bin/naf nafcms:agents:install
+vendor/bin/naf nafcms:assets:publish
+vendor/bin/naf db:migrate up
+vendor/bin/naf user:create admin admin@example.com admin
+vendor/bin/naf mcp:token:create
 php -S 127.0.0.1:8080 -t public
 ```
 
-`nixcms:agents:install` creates the short project guide used by people and AI coding agents at the host root. It never overwrites an existing user-owned `AGENTS.md`; `--update` refreshes only a file carrying the NixCMS managed marker. The guide gives a synchronized inspection order and the explicit Page, API, content, migration, view, handler, service, repository, model, plugin, and MCP extension points.
+`nafcms:agents:install` creates the short project guide used by people and AI coding agents at the host root. It never overwrites an existing user-owned `AGENTS.md`; `--update` refreshes only a file carrying the NafCMS managed marker. The guide gives a synchronized inspection order and the explicit Page, API, content, migration, view, handler, service, repository, model, plugin, and MCP extension points.
 
 `user:create` requests the password twice with terminal echo disabled. For non-interactive installation, pass `--password-file` with a short-lived mode-`0600` file instead of exposing a password in shell history or the process list. Open `http://127.0.0.1:8080/admin` after installation. Configure the host database in `app/config.php` or its environment file before migrating. Production web servers should use the host's `public` directory as the DocumentRoot and rewrite missing files to `index.php`.
 
-In production, terminate TLS, keep auth enabled, restrict writable paths to host runtime/public asset targets, and keep `.env`, database credentials, MCP tokens, logs, and `storage/nixcms` outside the public webroot. Run `nixcms:assets:check` after Composer deployment, back up the database and installation-owned runtime files, and supervise `queue:consume` plus `schedule:ticker` only when those workflows are used. The PHP built-in server is for local development, not production.
+In production, terminate TLS, keep auth enabled, restrict writable paths to host runtime/public asset targets, and keep `.env`, database credentials, MCP tokens, logs, and `storage/nafcms` outside the public webroot. Run `nafcms:assets:check` after Composer deployment, back up the database and installation-owned runtime files, and supervise `queue:consume` plus `schedule:ticker` only when those workflows are used. The PHP built-in server is for local development, not production.
 
-For development of NixCMS itself, work through a host application — this package cannot be served on its own. [NixPHP Studio](https://github.com/nixphp/studio) is the reference environment: it ships a Docker setup and mounts this repository as the `nixphp/cms` dependency, so edits take effect immediately and every CLI command runs from the host:
+For development of NafCMS itself, work through a host application — this package cannot be served on its own. [NAF Studio](https://github.com/nafphp/studio) is the reference environment: it ships a Docker setup and mounts this repository as the `naf/cms` dependency, so edits take effect immediately and every CLI command runs from the host:
 
 ```bash
 composer install                       # in this repository, for the test suite
 vendor/bin/phpunit                     # unit tests, no host required
 
-# everything else runs in the host, e.g. NixPHP Studio:
-vendor/bin/nix db:migrate up
-vendor/bin/nix user:create admin admin@example.com admin
+# everything else runs in the host, e.g. NAF Studio:
+vendor/bin/naf db:migrate up
+vendor/bin/naf user:create admin admin@example.com admin
 ```
 
-The asset publisher copies only the package's `css`, `js`, `fonts`, and `images` trees into the configured host public directory. `.nixcms-assets.json` records ownership and hashes: repeat publishes update unchanged owned files, while host-modified collisions stop with an error. Use `vendor/bin/nix nixcms:assets:check` in deployments and `vendor/bin/nix nixcms:assets:remove` before uninstalling; removal never deletes a modified host file.
+The asset publisher copies only the package's `css`, `js`, `fonts`, and `images` trees into the configured host public directory. `.nafcms-assets.json` records ownership and hashes: repeat publishes update unchanged owned files, while host-modified collisions stop with an error. Use `vendor/bin/naf nafcms:assets:check` in deployments and `vendor/bin/naf nafcms:assets:remove` before uninstalling; removal never deletes a modified host file.
 
-When developing NixCMS itself, frontend assets are intentionally simple:
+When developing NafCMS itself, frontend assets are intentionally simple:
 
 ```bash
 npm install
@@ -98,7 +98,7 @@ Use `npm run dev` while working on Tailwind or admin UI assets.
 
 ## Release Gates
 
-Every change is checked on PHP 8.3 and 8.4 with Composer validation, PHPUnit, generated-documentation drift detection, and the repository integrity check. Separate jobs rebuild the Tailwind asset, audit the locked Composer dependencies, apply all migrations to MariaDB, inspect the Composer archive, and install the mirrored package into a freshly generated NixPHP host. The host smoke test verifies plugin boot idempotence, views and admin routing, commands, SQLite migrations, published assets, authenticated admin boundaries, scoped MCP execution, and that normal host writes never modify `vendor/nixphp/cms`.
+Every change is checked on PHP 8.3 and 8.4 with Composer validation, PHPUnit, generated-documentation drift detection, and the repository integrity check. Separate jobs rebuild the Tailwind asset, audit the locked Composer dependencies, apply all migrations to MariaDB, inspect the Composer archive, and install the mirrored package into a freshly generated NAF host. The host smoke test verifies plugin boot idempotence, views and admin routing, commands, SQLite migrations, published assets, authenticated admin boundaries, scoped MCP execution, and that normal host writes never modify `vendor/naf/cms`.
 
 Run the same package-level checks locally with:
 
@@ -107,7 +107,7 @@ scripts/check-package.sh
 scripts/package-smoke.sh
 ```
 
-The smoke script needs network access to create the temporary official `nixphp/app` host. It deletes the fixture after the run and does not require Docker; MariaDB is only an additional CI migration gate.
+The smoke script needs network access to create the temporary official `naf/app` host. It deletes the fixture after the run and does not require Docker; MariaDB is only an additional CI migration gate.
 
 ## Sitebuilder Preview
 
@@ -125,12 +125,12 @@ That flow adds and configures a block, creates a nested layout, saves and reload
 
 ## Runtime State and Package Updates
 
-Package defaults remain read-only under `vendor/nixphp/cms`. Installation-specific prompts, AI memory, mistake logs, translation overrides, rate-limit counters, and embedding caches live below the host-relative `storage/nixcms` directory by default. Override the root in the host's `app/config.php` when needed:
+Package defaults remain read-only under `vendor/naf/cms`. Installation-specific prompts, AI memory, mistake logs, translation overrides, rate-limit counters, and embedding caches live below the host-relative `storage/nafcms` directory by default. Override the root in the host's `app/config.php` when needed:
 
 ```php
 return [
     'cms' => [
-        'runtime_path' => 'storage/nixcms',
+        'runtime_path' => 'storage/nafcms',
     ],
 ];
 ```
@@ -139,20 +139,20 @@ Relative runtime paths are resolved below the host `BASE_PATH` and may not conta
 
 The v0.0.1 local Ollama assistant has no persisted API-key field. A future remote provider must introduce a real secret store before accepting credentials. Global prompt/memory/mistake administration requires `ai.instructions.manage`, and editable theme code requires `themes.code.manage`.
 
-Normal AI tool-routing fallbacks record a SHA-256 query fingerprint, character count, requested mode/capabilities, and UI area—not the user text. A host may deliberately set `ai.routing_debug=true` while diagnosing routing; debug text is capped at 500 characters and should not be enabled in routine production operation. MCP tools may implement `NixPHP\CMS\Contracts\LocalAiToolMetadataInterface` to provide their title, routing text, examples, capabilities, mode, risk, and auto-run policy. These tool-owned values take precedence; the catalog only derives missing metadata.
+Normal AI tool-routing fallbacks record a SHA-256 query fingerprint, character count, requested mode/capabilities, and UI area—not the user text. A host may deliberately set `ai.routing_debug=true` while diagnosing routing; debug text is capped at 500 characters and should not be enabled in routine production operation. MCP tools may implement `Naf\CMS\Contracts\LocalAiToolMetadataInterface` to provide their title, routing text, examples, capabilities, mode, risk, and auto-run policy. These tool-owned values take precedence; the catalog only derives missing metadata.
 
-AI and MCP features are permission-, scope-, and tool-driven. The executable tool registry and plugin metadata define what an assistant can do; NixCMS does not promise or maintain a separate static capability catalog. Browser-local Ollama support selects a small relevant tool set, concrete write tools use the same CMS domain APIs and permissions as other callers, and MCP Bearer tokens should receive only the scopes their client needs.
+AI and MCP features are permission-, scope-, and tool-driven. The executable tool registry and plugin metadata define what an assistant can do; NafCMS does not promise or maintain a separate static capability catalog. Browser-local Ollama support selects a small relevant tool set, concrete write tools use the same CMS domain APIs and permissions as other callers, and MCP Bearer tokens should receive only the scopes their client needs.
 
 The local assistant's confirmation dialog is user guidance, not a security
 boundary. Tool-declared `risk` and `destructive` metadata decide when it is
 shown; server-side API permissions and the MCP scopes derived by
 `LocalAiToolBridge` remain authoritative even if a client omits that dialog.
 
-Removing the Composer package intentionally leaves `storage/nixcms` and generated theme CSS in place because they are installation data. Back up or remove those paths explicitly after running `nixcms:assets:remove` if the installation is being permanently deleted.
+Removing the Composer package intentionally leaves `storage/nafcms` and generated theme CSS in place because they are installation data. Back up or remove those paths explicitly after running `nafcms:assets:remove` if the installation is being permanently deleted.
 
 ## Outbound HTTP Security
 
-Server-side form webhooks accept public HTTPS targets only. Before connecting, NixCMS resolves and validates every target address, pins cURL to a validated address, disables proxy inheritance, and repeats the policy check for every redirect. Loopback, private, link-local, multicast, documentation/reserved, and cloud-metadata networks are blocked by default.
+Server-side form webhooks accept public HTTPS targets only. Before connecting, NafCMS resolves and validates every target address, pins cURL to a validated address, disables proxy inheritance, and repeats the policy check for every redirect. Loopback, private, link-local, multicast, documentation/reserved, and cloud-metadata networks are blocked by default.
 
 Local development HTTP webhooks require both `cms.outbound_http.webhooks.allow_development_http=true` and an exact hostname in `cms.outbound_http.webhooks.development_hosts`; do not enable this exception in production. Server-side Ollama embeddings are intentionally narrower: `ai.url` must use `localhost`, `127.0.0.1`, or `::1` and a port listed in `cms.outbound_http.ollama.allowed_ports` (`11434` by default). If the embedding target is blocked or unavailable, tool selection falls back to the deterministic keyword router.
 
@@ -162,16 +162,16 @@ Authentication is always enabled in the v0.0.1 preview; there is no implicit set
 
 Logout is a CSRF-protected `POST`. User creation, invites, admin password resets, and the bootstrap CLI share the same password policy. The CLI requests passwords with terminal echo disabled or accepts a protected `--password-file`; passwords must never be passed as positional shell arguments.
 
-NixCMS adds CSP, clickjacking, MIME-sniffing, referrer, browser-permission, and HTTPS HSTS headers centrally. The preview CSP still permits inline scripts/styles because the current server-rendered admin and editor use them, but executable theme JavaScript remains disabled. Session cookies come from `nixphp/session` with `HttpOnly`, `SameSite=Lax`, and `Secure` when HTTPS is detected. Behind TLS-terminating proxies, set `session.trust_proxy_headers=true` only together with exact `session.trusted_proxies` addresses; never trust forwarded protocol headers from arbitrary clients.
+NafCMS adds CSP, clickjacking, MIME-sniffing, referrer, browser-permission, and HTTPS HSTS headers centrally. The preview CSP still permits inline scripts/styles because the current server-rendered admin and editor use them, but executable theme JavaScript remains disabled. Session cookies come from `naf/session` with `HttpOnly`, `SameSite=Lax`, and `Secure` when HTTPS is detected. Behind TLS-terminating proxies, set `session.trust_proxy_headers=true` only together with exact `session.trusted_proxies` addresses; never trust forwarded protocol headers from arbitrary clients.
 
 ## First Page
 
 Register pages through the CMS registry. A plugin can run this from its bootstrap file:
 
 ```php
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Page\Page;
-use function NixPHP\View\view;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Page\Page;
+use function Naf\View\view;
 
 cms()->pages()->add(
     Page::create('plugin.reports')
@@ -187,7 +187,7 @@ cms()->pages()->add(
 ## Admin Navigation
 
 `Scope::FRONTEND` is the default CMS scope. Use `cms()->scope()`, `cms()->scope(Scope::FRONTEND)`, or the direct unscoped helpers for frontend-facing registrations, and switch to `Scope::ADMIN` only when extending the admin area.
-Scoped CMS APIs are generic: any CMS entry point that returns an object implementing `NixPHP\CMS\Contracts\ScopeAwareInterface` is automatically bound when called through `cms()->scope(...)`.
+Scoped CMS APIs are generic: any CMS entry point that returns an object implementing `Naf\CMS\Contracts\ScopeAwareInterface` is automatically bound when called through `cms()->scope(...)`.
 
 Use the page metadata when the menu item belongs to a registered admin page:
 
@@ -200,8 +200,8 @@ Page::create('plugin.reports')
 Use `cms()->scope(Scope::ADMIN)->navigation()->add(...)` when a plugin contributes admin navigation metadata directly, for example a parent item, an external tool link, or a menu entry registered outside a page definition:
 
 ```php
-use NixPHP\CMS\Enums\Scope;
-use NixPHP\CMS\Navigation\NavigationItem;
+use Naf\CMS\Enums\Scope;
+use Naf\CMS\Navigation\NavigationItem;
 
 cms()->scope(Scope::ADMIN)->navigation()->add(
     NavigationItem::create('plugin.reports')
@@ -223,15 +223,15 @@ Run `composer test` after changing examples; the smoke test loads them against t
 
 ## Services überschreiben
 
-NixCMS bindet austauschbares Verhalten an kleine Interfaces. Ein Host lädt
+NafCMS bindet austauschbares Verhalten an kleine Interfaces. Ein Host lädt
 `app/src/services.php` am Anfang seiner `app/src/routes.php`; dieser Schritt
 läuft nach den Plugin-Bootstraps, sodass die Host-Bindings die Defaults
 ersetzen. Closures halten die Auflösung lazy:
 
 ```php
-use NixPHP\CMS\Contracts\MediaStorageInterface;
+use Naf\CMS\Contracts\MediaStorageInterface;
 use App\Media\S3MediaStorage;
-use function NixPHP\app;
+use function Naf\app;
 
 app()->container()->set(
     MediaStorageInterface::class,
@@ -244,12 +244,12 @@ Die vollständige Struktur steht in
 
 ## Auto Reference
 
-These sections are generated from registries and enums. Edit the source code, then run `vendor/bin/nix docs:sync` from a host that has this package installed.
+These sections are generated from registries and enums. Edit the source code, then run `vendor/bin/naf docs:sync` from a host that has this package installed.
 
 ### Public `cms()` Entry Points
 
-<!-- nix:auto:cms -->
-<!-- Automatically generated via `vendor/bin/nix docs:sync`; do not edit manually. -->
+<!-- naf:auto:cms -->
+<!-- Automatically generated via `vendor/bin/naf docs:sync`; do not edit manually. -->
 
 | Entry point | Purpose |
 | --- | --- |
@@ -269,12 +269,12 @@ These sections are generated from registries and enums. Edit the source code, th
 | `cms()->themes()` | Frontend theme assets and builder-visible surfaces. |
 | `cms()->languages()` | Enabled, available, and discovered language codes. |
 | `cms()->settings()` | Resolved runtime settings and admin-editable setting metadata. |
-<!-- /nix:auto:cms -->
+<!-- /naf:auto:cms -->
 
 ### Pages
 
-<!-- nix:auto:pages -->
-<!-- Automatically generated via `vendor/bin/nix docs:sync`; do not edit manually. -->
+<!-- naf:auto:pages -->
+<!-- Automatically generated via `vendor/bin/naf docs:sync`; do not edit manually. -->
 
 | ID | Path | Layout | Permissions | Data handler |
 | --- | --- | --- | --- | --- |
@@ -313,12 +313,12 @@ These sections are generated from registries and enums. Edit the source code, th
 | `admin.users.edit` | `/admin/users/{userId}/edit` | `layouts.admin` | `users.edit` | no |
 | `frontend.article.detail` | `/articles/{slug}` | - | - | no |
 | `auth.register` | `/register/{token}` | - | - | yes |
-<!-- /nix:auto:pages -->
+<!-- /naf:auto:pages -->
 
 ### API Endpoints
 
-<!-- nix:auto:api -->
-<!-- Automatically generated via `vendor/bin/nix docs:sync`; do not edit manually. -->
+<!-- naf:auto:api -->
+<!-- Automatically generated via `vendor/bin/naf docs:sync`; do not edit manually. -->
 
 | ID | Method | Path | Permissions |
 | --- | --- | --- | --- |
@@ -374,25 +374,25 @@ These sections are generated from registries and enums. Edit the source code, th
 | `api.admin.users.update` | `POST` | `/api/admin/users/update` | `users.edit` |
 | `api.forms.submit` | `POST` | `/api/forms/{identifier}/submit` | - |
 | `media.serve` | `GET` | `/media/{publicId}/{filename}` | - |
-<!-- /nix:auto:api -->
+<!-- /naf:auto:api -->
 
 ### Content Types
 
-<!-- nix:auto:contenttypes -->
-<!-- Automatically generated via `vendor/bin/nix docs:sync`; do not edit manually. -->
+<!-- naf:auto:contenttypes -->
+<!-- Automatically generated via `vendor/bin/naf docs:sync`; do not edit manually. -->
 
 | ID | Label | Model class |
 | --- | --- | --- |
-| `article` | Article | `NixPHP\CMS\Models\Article` |
-| `form` | Form | `NixPHP\CMS\Models\Form` |
-| `media` | Media | `NixPHP\CMS\Models\Media` |
-| `navigation` | Navigation | `NixPHP\CMS\Models\SiteNavigation` |
-<!-- /nix:auto:contenttypes -->
+| `article` | Article | `Naf\CMS\Models\Article` |
+| `form` | Form | `Naf\CMS\Models\Form` |
+| `media` | Media | `Naf\CMS\Models\Media` |
+| `navigation` | Navigation | `Naf\CMS\Models\SiteNavigation` |
+<!-- /naf:auto:contenttypes -->
 
 ### Permissions
 
-<!-- nix:auto:permissions -->
-<!-- Automatically generated via `vendor/bin/nix docs:sync`; do not edit manually. -->
+<!-- naf:auto:permissions -->
+<!-- Automatically generated via `vendor/bin/naf docs:sync`; do not edit manually. -->
 
 | Permission | Description |
 | --- | --- |
@@ -437,16 +437,16 @@ These sections are generated from registries and enums. Edit the source code, th
 | `queue.read` | Read queue. |
 | `mcp.tools.call` | Call allowed MCP tools. |
 | `ai.instructions.manage` | Manage ai instructions. |
-<!-- /nix:auto:permissions -->
+<!-- /naf:auto:permissions -->
 
 ### MCP Tools
 
-<!-- nix:auto:mcp -->
-<!-- Automatically generated via `vendor/bin/nix docs:sync`; do not edit manually. -->
+<!-- naf:auto:mcp -->
+<!-- Automatically generated via `vendor/bin/naf docs:sync`; do not edit manually. -->
 
 | Tool | Description |
 | --- | --- |
-| `cms_admin_navigate` | Navigates the current admin UI to a safe registered NixCMS admin area such as PageBuilder, articles, forms, themes, media, users, roles, navigation, or settings. |
+| `cms_admin_navigate` | Navigates the current admin UI to a safe registered NafCMS admin area such as PageBuilder, articles, forms, themes, media, users, roles, navigation, or settings. |
 | `cms_article_draft_append` | Appends plain text as paragraphs to an existing article draft, resolving the article by id, title, or slug. |
 | `cms_article_draft_create` | Creates a new article draft with Editor.js-style content blocks. |
 | `cms_article_lookup` | Finds latest article versions by title, slug, language, or status so later MCP actions can target an article id. |
@@ -456,32 +456,32 @@ These sections are generated from registries and enums. Edit the source code, th
 | `cms_media_summary` | Returns media library counts, byte totals, kind counts, and optional recent media items. |
 | `cms_page_overview` | Returns page counts by status, language, template, and optional recent pages. |
 | `cms_pagebuilder_inspect` | Starts the PageBuilder show mode so the user can click a visible block or nested element and return structured read-only information about it. |
-| `cms_plugin_overview` | Returns loaded NixPHP plugins and registry counts relevant to NixCMS extensions. |
+| `cms_plugin_overview` | Returns loaded NAF plugins and registry counts relevant to NafCMS extensions. |
 | `cms_queue_status` | Returns file-backed queue counts for pending, locked, and deadletter jobs. |
-| `cms_system_health` | Returns current NixCMS system health data. The result includes php.version, php.memory_limit, database.available, database.driver, database.server_version, session storage settings, MCP auth token-file status, host runtime directories, published asset status, and loaded NixPHP plugins. When summarizing this tool result for a user, use the exact returned values and present all returned sections as compact Markdown tables. Use tables for PHP, database, session, MCP auth, storage, and plugins when those sections are present; do not render scalar diagnostics only as label-colon text when they can be represented as table rows. Do not say that PHP version, database version, modules, storage, or plugin data are missing when the returned JSON contains those fields. Do not invent modules or health checks that are not present in the result. |
+| `cms_system_health` | Returns current NafCMS system health data. The result includes php.version, php.memory_limit, database.available, database.driver, database.server_version, session storage settings, MCP auth token-file status, host runtime directories, published asset status, and loaded NAF plugins. When summarizing this tool result for a user, use the exact returned values and present all returned sections as compact Markdown tables. Use tables for PHP, database, session, MCP auth, storage, and plugins when those sections are present; do not render scalar diagnostics only as label-colon text when they can be represented as table rows. Do not say that PHP version, database version, modules, storage, or plugin data are missing when the returned JSON contains those fields. Do not invent modules or health checks that are not present in the result. |
 | `cms_tools_search` | Searches the registered CMS tools for the current request and UI context. Use this when the currently visible tools do not clearly cover the user request. The result returns candidate tool definitions. It never answers the user request itself: always call one of the returned tools afterwards instead of describing them. |
-| `cms_user_role_summary` | Returns user, role, permission, and assignment counts for the NixCMS RBAC model. |
+| `cms_user_role_summary` | Returns user, role, permission, and assignment counts for the NafCMS RBAC model. |
 | `external_air_quality` | Returns current air quality, UV index, and pollen context for a location so local businesses can plan outdoor, health, sport, and seasonal campaigns. |
 | `external_exchange_rates` | Returns latest exchange rates and optional converted amounts for international shop pricing, ads, purchasing, and campaign planning. |
 | `external_public_holidays` | Returns public holidays for a country and year so CMS or shop owners can plan campaigns, opening hours, staffing, and publishing schedules. |
 | `external_trending_topics` | Returns current public-interest or news trend signals from public sources for content ideas, campaigns, and shop planning. |
 | `external_weather_forecast` | Returns current weather and a short forecast for a location so CMS or shop owners can plan campaigns, events, and operational actions. |
-<!-- /nix:auto:mcp -->
+<!-- /naf:auto:mcp -->
 
 ### Examples
 
-<!-- nix:auto:examples -->
-<!-- Automatically generated via `vendor/bin/nix docs:sync`; do not edit manually. -->
+<!-- naf:auto:examples -->
+<!-- Automatically generated via `vendor/bin/naf docs:sync`; do not edit manually. -->
 
 | Example | Shows |
 | --- | --- |
 | [01-page-with-permission](examples/01-page-with-permission/) | Shows how to register an admin page through `cms()->pages()`. |
-| [02-custom-content-type](examples/02-custom-content-type/) | Shows a minimal content type backed by a NixPHP ORM model. |
+| [02-custom-content-type](examples/02-custom-content-type/) | Shows a minimal content type backed by a NAF ORM model. |
 | [03-block-type](examples/03-block-type/) | Shows how to register page-builder block metadata through `cms()->blockTypes()`. |
-| [04-mcp-tool](examples/04-mcp-tool/) | Shows the small class pattern used by NixCMS MCP tools. |
-| [05-complete-plugin](examples/05-complete-plugin/) | This compact example shows the explicit registration path for a Composer package of type `nixphp-plugin`: `bootstrap.php` registers a protected Page, API endpoint, migration path, and scoped MCP tool. NixPHP discovers the package's `src/views` directory by convention; the Page references that view explicitly. |
-| [06-service-override](examples/06-service-override/) | NixCMS binds replaceable behavior to contracts during the plugin bootstrap. |
-<!-- /nix:auto:examples -->
+| [04-mcp-tool](examples/04-mcp-tool/) | Shows the small class pattern used by NafCMS MCP tools. |
+| [05-complete-plugin](examples/05-complete-plugin/) | This compact example shows the explicit registration path for a Composer package of type `naf-plugin`: `bootstrap.php` registers a protected Page, API endpoint, migration path, and scoped MCP tool. NAF discovers the package's `src/views` directory by convention; the Page references that view explicitly. |
+| [06-service-override](examples/06-service-override/) | NafCMS binds replaceable behavior to contracts during the plugin bootstrap. |
+<!-- /naf:auto:examples -->
 
 ## Conventions And Security
 
@@ -491,4 +491,4 @@ For architecture principles, audit rules, testing expectations, and contributor 
 
 ## Authentication migration
 
-Generic identity, provider and permission mechanics use `nixphp/auth`. See [the migration guide](docs/auth-migration.md) for the local pre-release Composer setup, existing-session compatibility and application boundaries.
+Generic identity, provider and permission mechanics use `naf/auth`. See [the migration guide](docs/auth-migration.md) for the local pre-release Composer setup, existing-session compatibility and application boundaries.

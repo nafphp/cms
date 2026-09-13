@@ -1,8 +1,8 @@
 <?php
 
-use function NixPHP\I18n\t;
-use function NixPHP\View\s;
-use function NixPHP\View\view;
+use function Naf\I18n\t;
+use function Naf\View\s;
+use function Naf\View\view;
 
 $fields = is_array($fields ?? null) ? $fields : [];
 $routingFallbacks = is_array($routingFallbacks ?? null) ? $routingFallbacks : [];
@@ -167,7 +167,7 @@ $embeddingModelSourceLabel = (string) ($sourceLabels[$embeddingModelSource] ?? $
     </section>
 </div>
 
-<script nonce="<?= \NixPHP\CMS\csp_nonce() ?>" type="module">
+<script nonce="<?= \Naf\CMS\csp_nonce() ?>" type="module">
     import { initLocalAiSettings } from '/js/admin/local-ai-settings.js';
 
     initLocalAiSettings(document.querySelector('[data-local-ai-settings]'));

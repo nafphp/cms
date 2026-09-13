@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Support\Docs;
+namespace Naf\CMS\Support\Docs;
 
-use NixPHP\CMS\Support\Docs\ApiDocRenderer;
-use NixPHP\CMS\Support\Docs\CmsApiDocRenderer;
-use NixPHP\CMS\Support\Docs\ContentTypesDocRenderer;
-use NixPHP\CMS\Support\Docs\DocBlockRenderer;
-use NixPHP\CMS\Support\Docs\ExamplesDocRenderer;
-use NixPHP\CMS\Support\Docs\McpDocRenderer;
-use NixPHP\CMS\Support\Docs\PagesDocRenderer;
-use NixPHP\CMS\Support\Docs\PermissionsDocRenderer;
+use Naf\CMS\Support\Docs\ApiDocRenderer;
+use Naf\CMS\Support\Docs\CmsApiDocRenderer;
+use Naf\CMS\Support\Docs\ContentTypesDocRenderer;
+use Naf\CMS\Support\Docs\DocBlockRenderer;
+use Naf\CMS\Support\Docs\ExamplesDocRenderer;
+use Naf\CMS\Support\Docs\McpDocRenderer;
+use Naf\CMS\Support\Docs\PagesDocRenderer;
+use Naf\CMS\Support\Docs\PermissionsDocRenderer;
 
 final class DefaultDocRenderers
 {

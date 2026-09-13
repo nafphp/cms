@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Handlers\Page\Pages;
+namespace Naf\CMS\Handlers\Page\Pages;
 
-use NixPHP\CMS\Handlers\Support\ReadsJsonBody;
-use NixPHP\CMS\Page\CustomLayoutNormalizer;
-use NixPHP\CMS\Page\PageBuilderPayloadNormalizer;
-use NixPHP\CMS\Page\PageTemplateCatalog;
-use NixPHP\CMS\Repositories\PageLayoutRepository;
-use NixPHP\CMS\Security\UrlPolicy;
+use Naf\CMS\Handlers\Support\ReadsJsonBody;
+use Naf\CMS\Page\CustomLayoutNormalizer;
+use Naf\CMS\Page\PageBuilderPayloadNormalizer;
+use Naf\CMS\Page\PageTemplateCatalog;
+use Naf\CMS\Repositories\PageLayoutRepository;
+use Naf\CMS\Security\UrlPolicy;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use function NixPHP\json;
-use function NixPHP\CMS\cms;
+use function Naf\json;
+use function Naf\CMS\cms;
 
 final class StorePage
 {

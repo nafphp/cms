@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Mcp\Tools;
+namespace Naf\CMS\Mcp\Tools;
 
-use NixPHP\CMS\Contracts\LocalAiToolMetadataInterface;
-use NixPHP\CMS\Enums\ToolRisk;
+use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
+use Naf\CMS\Enums\ToolRisk;
 
 use Closure;
-use NixPHP\CMS\Enums\ArticleStatus;
-use NixPHP\CMS\Models\Article;
-use NixPHP\CMS\Models\ArticleVersion;
-use NixPHP\MCP\Support\Schema;
-use NixPHP\MCP\Tools\ScopedToolInterface;
-use NixPHP\MCP\Tools\ToolInterface;
-use NixPHP\CMS\Mcp\Tools\ArticleLookupTool;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Enums\ArticleStatus;
+use Naf\CMS\Models\Article;
+use Naf\CMS\Models\ArticleVersion;
+use Naf\MCP\Support\Schema;
+use Naf\MCP\Tools\ScopedToolInterface;
+use Naf\MCP\Tools\ToolInterface;
+use Naf\CMS\Mcp\Tools\ArticleLookupTool;
+use function Naf\CMS\cms;
 
 final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {

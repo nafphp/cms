@@ -13,9 +13,9 @@ test('dashboard charts render with the bundled library without an external scrip
         },
     };
     const dom = new JSDOM(`<!doctype html><html><body>
-        <figure data-nixcms-chart="inventory">
-            <div class="nixcms-chart__canvas" style="width:600px;height:260px"></div>
-            <script type="application/json" data-nixcms-chart-options>${JSON.stringify(payload)}</script>
+        <figure data-nafcms-chart="inventory">
+            <div class="nafcms-chart__canvas" style="width:600px;height:260px"></div>
+            <script type="application/json" data-nafcms-chart-options>${JSON.stringify(payload)}</script>
         </figure>
     </body></html>`, {pretendToBeVisual: true, url: 'https://cms.example/admin'});
     const globals = {
@@ -30,18 +30,18 @@ test('dashboard charts render with the bundled library without an external scrip
     }
     // jsdom has no layout engine or canvas; SVG charts only need text measurement.
     dom.window.HTMLCanvasElement.prototype.getContext = () => ({measureText: (text) => ({width: String(text).length * 8})});
-    const canvas = dom.window.document.querySelector('.nixcms-chart__canvas');
+    const canvas = dom.window.document.querySelector('.nafcms-chart__canvas');
     canvas.getBoundingClientRect = () => ({width: 600, height: 260, x: 0, y: 0, top: 0, left: 0, right: 600, bottom: 260});
-    const chart = dom.window.document.querySelector('[data-nixcms-chart]');
+    const chart = dom.window.document.querySelector('[data-nafcms-chart]');
 
     try {
         // No preloaded window.echarts: exercise the production module import.
         await import('../../public/js/admin/diagrams.js');
-        for (let attempt = 0; attempt < 100 && chart.dataset.nixcmsChartReady !== 'true' && !chart.classList.contains('has-render-error'); attempt++) {
+        for (let attempt = 0; attempt < 100 && chart.dataset.nafcmsChartReady !== 'true' && !chart.classList.contains('has-render-error'); attempt++) {
             await new Promise((resolve) => setTimeout(resolve, 10));
         }
         assert.equal(chart.classList.contains('has-render-error'), false);
-        assert.equal(chart.dataset.nixcmsChartReady, 'true');
+        assert.equal(chart.dataset.nafcmsChartReady, 'true');
         assert.ok(canvas.querySelector('svg'), 'the real ECharts renderer should produce an SVG');
         assert.match(canvas.textContent, /Articles/);
         assert.match(canvas.textContent, /Users/);

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Content\Block;
 
-use NixPHP\CMS\Content\Article\Block\CodeBlock;
-use NixPHP\CMS\Content\Article\Block\EmbedBlock;
-use NixPHP\CMS\Content\Article\Block\HeaderBlock;
-use NixPHP\CMS\Content\Article\Block\ImageBlock;
-use NixPHP\CMS\Content\Article\Block\ListBlock;
-use NixPHP\CMS\Content\Article\Block\ParagraphBlock;
-use NixPHP\CMS\Content\Article\Block\QuoteBlock;
-use NixPHP\CMS\Content\Article\Block\TableBlock;
+use Naf\CMS\Content\Article\Block\CodeBlock;
+use Naf\CMS\Content\Article\Block\EmbedBlock;
+use Naf\CMS\Content\Article\Block\HeaderBlock;
+use Naf\CMS\Content\Article\Block\ImageBlock;
+use Naf\CMS\Content\Article\Block\ListBlock;
+use Naf\CMS\Content\Article\Block\ParagraphBlock;
+use Naf\CMS\Content\Article\Block\QuoteBlock;
+use Naf\CMS\Content\Article\Block\TableBlock;
 use PHPUnit\Framework\TestCase;
 
 final class BlocksTest extends TestCase

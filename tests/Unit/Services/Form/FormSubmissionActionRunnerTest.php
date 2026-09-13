@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Form;
 
-use NixPHP\CMS\Services\Form\FormSubmissionActionRunner;
-use NixPHP\CMS\Services\Http\OutboundHttpPolicy;
-use Tests\Support\NixPHPTestCase;
+use Naf\CMS\Services\Form\FormSubmissionActionRunner;
+use Naf\CMS\Services\Http\OutboundHttpPolicy;
+use Tests\Support\NafTestCase;
 
-final class FormSubmissionActionRunnerTest extends NixPHPTestCase
+final class FormSubmissionActionRunnerTest extends NafTestCase
 {
     public function testDefaultsToStoreActionWhenNoActionsAreConfigured(): void
     {

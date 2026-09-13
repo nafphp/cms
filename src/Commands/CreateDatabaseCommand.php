@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Commands;
+namespace Naf\CMS\Commands;
 
-use NixPHP\CLI\Core\AbstractCommand;
-use NixPHP\CLI\Core\Input;
-use NixPHP\CLI\Core\Output;
+use Naf\CLI\Core\AbstractCommand;
+use Naf\CLI\Core\Input;
+use Naf\CLI\Core\Output;
 use PDO;
 use PDOException;
-use function NixPHP\config;
+use function Naf\config;
 
 class CreateDatabaseCommand extends AbstractCommand
 {
@@ -28,8 +28,8 @@ class CreateDatabaseCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine('    vendor/bin/nix db:create');
-            $output->writeLine('    vendor/bin/nix db:create --force');
+            $output->writeLine('    vendor/bin/naf db:create');
+            $output->writeLine('    vendor/bin/naf db:create --force');
             $output->writeLine('  Reads driver/host/port/username/password/database from app config (.env).');
             $output->writeLine('  --force drops the configured database before recreating it.');
             return self::SUCCESS;

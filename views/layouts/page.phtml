@@ -1,17 +1,17 @@
 <?php
 
-use NixPHP\CMS\Security\UrlPolicy;
-use function NixPHP\View\s;
-use function NixPHP\View\asset;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Security\UrlPolicy;
+use function Naf\View\s;
+use function Naf\View\asset;
+use function Naf\CMS\cms;
 
 /** @var string|null $content */
-/** @var \NixPHP\CMS\Page\Page $page */
-/** @var \NixPHP\CMS\Page\Template $template */
+/** @var \Naf\CMS\Page\Page $page */
+/** @var \Naf\CMS\Page\Template $template */
 /** @var string|null $title */
 
 $settings = cms()->settings();
-$template = ($template ?? null) instanceof \NixPHP\CMS\Page\Template ? $template : \NixPHP\CMS\Page\Template::create();
+$template = ($template ?? null) instanceof \Naf\CMS\Page\Template ? $template : \Naf\CMS\Page\Template::create();
 $currentLanguage = $page->language() ?? $settings->currentLanguage();
 $stylesheetTags = [];
 $scriptTags = [];
@@ -154,7 +154,7 @@ foreach ([...$template->scripts(), ...$theme->scripts(), ...$page->scripts()] as
     <?= $this->renderBlock('content', $content ?? '') ?>
     <?= asset()->render('js') ?>
     <?php foreach ($scriptTags as $script): ?>
-        <script nonce="<?= \NixPHP\CMS\csp_nonce() ?>" src="<?= s($script['src']) ?>"<?= $attributeString($script['attributes']) ?>></script>
+        <script nonce="<?= \Naf\CMS\csp_nonce() ?>" src="<?= s($script['src']) ?>"<?= $attributeString($script['attributes']) ?>></script>
     <?php endforeach; ?>
 </body>
 </html>

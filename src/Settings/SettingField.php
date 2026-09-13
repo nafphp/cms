@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Settings;
+namespace Naf\CMS\Settings;
 
 final class SettingField
 {

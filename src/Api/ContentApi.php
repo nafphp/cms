@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Api;
+namespace Naf\CMS\Api;
 
-use NixPHP\ORM\Core\EntityInterface;
-use NixPHP\ORM\Repository\AbstractRepository;
+use Naf\ORM\Core\EntityInterface;
+use Naf\ORM\Repository\AbstractRepository;
 
 /**
  * Generic content API. Exposes only operations that are meaningful for any

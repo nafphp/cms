@@ -1,8 +1,8 @@
 <?php
 
-use function NixPHP\View\view;
+use function Naf\View\view;
 /** @var string $templateView */
-/** @var \NixPHP\CMS\Page\Template $template */
+/** @var \Naf\CMS\Page\Template $template */
 
 if ($template->parent() !== null && $template->parent() !== '') {
     $this->setLayout($template->parent());

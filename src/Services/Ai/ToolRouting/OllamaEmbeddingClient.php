@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Ai\ToolRouting;
+namespace Naf\CMS\Services\Ai\ToolRouting;
 
-use NixPHP\CMS\Exceptions\OutboundHttpDenied;
-use NixPHP\CMS\Services\Http\OutboundHttpClient;
-use NixPHP\CMS\Services\Http\OutboundHttpPolicy;
-use NixPHP\CMS\Services\Ai\ToolRouting\EmbeddingClientInterface;
-use NixPHP\CMS\Services\Http\OutboundHttpProfile;
-use NixPHP\CMS\Support\RuntimePaths;
-use function NixPHP\config;
-use function NixPHP\log;
+use Naf\CMS\Exceptions\OutboundHttpDenied;
+use Naf\CMS\Services\Http\OutboundHttpClient;
+use Naf\CMS\Services\Http\OutboundHttpPolicy;
+use Naf\CMS\Services\Ai\ToolRouting\EmbeddingClientInterface;
+use Naf\CMS\Services\Http\OutboundHttpProfile;
+use Naf\CMS\Support\RuntimePaths;
+use function Naf\config;
+use function Naf\log;
 
 final class OllamaEmbeddingClient implements EmbeddingClientInterface
 {

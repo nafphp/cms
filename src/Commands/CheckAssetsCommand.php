@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Commands;
+namespace Naf\CMS\Commands;
 
-use NixPHP\CMS\Services\Assets\AssetPublisher;
-use NixPHP\CLI\Core\AbstractCommand;
-use NixPHP\CLI\Core\Input;
-use NixPHP\CLI\Core\Output;
+use Naf\CMS\Services\Assets\AssetPublisher;
+use Naf\CLI\Core\AbstractCommand;
+use Naf\CLI\Core\Input;
+use Naf\CLI\Core\Output;
 
 final class CheckAssetsCommand extends AbstractCommand
 {
-    public const string NAME = 'nixcms:assets:check';
+    public const string NAME = 'nafcms:assets:check';
 
     protected function configure(): void
     {
-        $this->setTitle('Check NixCMS Assets')
+        $this->setTitle('Check NafCMS Assets')
             ->setDescription('Report missing, outdated, stale, or conflicting published assets.');
     }
 
@@ -23,7 +23,7 @@ final class CheckAssetsCommand extends AbstractCommand
     {
         $status = (new AssetPublisher())->status();
         if ($status['current']) {
-            $output->writeLine('Published NixCMS assets are current.', 'ok');
+            $output->writeLine('Published NafCMS assets are current.', 'ok');
             return self::SUCCESS;
         }
 

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Events;
+namespace Naf\CMS\Events;
 
-use NixPHP\CMS\Security\CspNonce;
+use Naf\CMS\Security\CspNonce;
 use Psr\Http\Message\ResponseInterface;
-use function NixPHP\config;
-use function NixPHP\request;
+use function Naf\config;
+use function Naf\request;
 
 final class SecurityHeadersEvent
 {

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Form;
 
-use NixPHP\CMS\Events\FormPayloadLimitEvent;
-use NixPHP\CMS\Services\Form\FormSubmissionGuard;
-use NixPHP\CMS\Services\Security\FileRateLimiter;
+use Naf\CMS\Events\FormPayloadLimitEvent;
+use Naf\CMS\Services\Form\FormSubmissionGuard;
+use Naf\CMS\Services\Security\FileRateLimiter;
 use PHPUnit\Framework\TestCase;
-use NixPHP\Exceptions\AbortException;
+use Naf\Exceptions\AbortException;
 use Nyholm\Psr7\ServerRequest;
 
 final class FormSubmissionGuardTest extends TestCase
@@ -17,7 +17,7 @@ final class FormSubmissionGuardTest extends TestCase
     {
         $now = 1000;
         $limiter = new FileRateLimiter(
-            sys_get_temp_dir() . '/nixcms-form-rate-test-' . bin2hex(random_bytes(6)),
+            sys_get_temp_dir() . '/nafcms-form-rate-test-' . bin2hex(random_bytes(6)),
             static function () use (&$now): int {
                 return $now;
             },
@@ -36,7 +36,7 @@ final class FormSubmissionGuardTest extends TestCase
 
     public function testPayloadAndFieldSizeLimitsAreServerSide(): void
     {
-        $guard = new FormSubmissionGuard(new FileRateLimiter(sys_get_temp_dir() . '/nixcms-form-payload-' . bin2hex(random_bytes(6))));
+        $guard = new FormSubmissionGuard(new FileRateLimiter(sys_get_temp_dir() . '/nafcms-form-payload-' . bin2hex(random_bytes(6))));
 
         $errors = $guard->validatePayload(
             str_repeat('x', FormSubmissionGuard::MAXIMUM_BODY_BYTES + 1),
@@ -59,10 +59,10 @@ final class FormSubmissionGuardTest extends TestCase
 
     public function testHoneypotAndMinimumFillTimeDetectSpam(): void
     {
-        $guard = new FormSubmissionGuard(new FileRateLimiter(sys_get_temp_dir() . '/nixcms-form-spam-' . bin2hex(random_bytes(6))));
+        $guard = new FormSubmissionGuard(new FileRateLimiter(sys_get_temp_dir() . '/nafcms-form-spam-' . bin2hex(random_bytes(6))));
 
-        self::assertTrue($guard->looksLikeSpam(['_nixcms_hp' => 'https://spam.test', '_nixcms_started_at' => 90], 100));
-        self::assertTrue($guard->looksLikeSpam(['_nixcms_hp' => '', '_nixcms_started_at' => 99], 100));
-        self::assertFalse($guard->looksLikeSpam(['_nixcms_hp' => '', '_nixcms_started_at' => 90], 100));
+        self::assertTrue($guard->looksLikeSpam(['_nafcms_hp' => 'https://spam.test', '_nafcms_started_at' => 90], 100));
+        self::assertTrue($guard->looksLikeSpam(['_nafcms_hp' => '', '_nafcms_started_at' => 99], 100));
+        self::assertFalse($guard->looksLikeSpam(['_nafcms_hp' => '', '_nafcms_started_at' => 90], 100));
     }
 }

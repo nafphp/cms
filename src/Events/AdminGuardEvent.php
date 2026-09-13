@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Events;
+namespace Naf\CMS\Events;
 
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Exceptions\AuthException;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Exceptions\AuthException;
 use Psr\Http\Message\ServerRequestInterface;
-use function NixPHP\CMS\user;
+use function Naf\CMS\user;
 
 class AdminGuardEvent
 {
@@ -29,11 +29,11 @@ class AdminGuardEvent
 
         $helper = user();
         try {
-            (new \NixPHP\CMS\Services\Security\ResourceAuthorization())->authorize(
+            (new \Naf\CMS\Services\Security\ResourceAuthorization())->authorize(
                 $helper?->isLoggedIn() === true ? $helper : null,
                 permissions: [Permission::ADMIN_ACCESS],
             );
-        } catch (\NixPHP\Auth\Exceptions\UnauthenticatedException|\NixPHP\Auth\Exceptions\ForbiddenException $exception) {
+        } catch (\Naf\Auth\Exceptions\UnauthenticatedException|\Naf\Auth\Exceptions\ForbiddenException $exception) {
             throw new AuthException($exception->getMessage(), $exception->getCode(), $exception);
         }
     }

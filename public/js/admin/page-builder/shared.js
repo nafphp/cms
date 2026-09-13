@@ -10,9 +10,9 @@ export const inputClass = 'min-h-9 w-full rounded-md border border-slate-700 bg-
 export const previewFrameClass = 'pointer-events-none block aspect-video w-full rounded-md border-0 bg-slate-950 opacity-0 transition-opacity duration-200 ease-out';
 
 export const clone = (value) => JSON.parse(JSON.stringify(value));
-export const storageKey = 'nixcms:page-builder:draft';
-export const recentContentTypesKey = 'nixcms:page-builder:recent-content-types';
-export const flashToastKey = 'nixcms:flash-toast';
+export const storageKey = 'nafcms:page-builder:draft';
+export const recentContentTypesKey = 'nafcms:page-builder:recent-content-types';
+export const flashToastKey = 'nafcms:flash-toast';
 export const previewViewports = {
     desktop: {label: 'Desktop', labelKey: 'viewportDesktop', width: 1280},
     tablet: {label: 'Tablet', labelKey: 'viewportTablet', width: 768},

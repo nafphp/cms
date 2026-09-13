@@ -8,22 +8,22 @@ use PHPUnit\Framework\TestCase;
 
 abstract class CmsTestCase extends TestCase
 {
-    private \NixPHP\CMS\Support\Cms $previousCms;
+    private \Naf\CMS\Support\Cms $previousCms;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->previousCms = \NixPHP\CMS\cms();
-        \NixPHP\CMS\cms(override: new \NixPHP\CMS\Support\Cms());
-        \NixPHP\CMS\user(reset: true);
-        \NixPHP\CMS\audit(reset: true);
+        $this->previousCms = \Naf\CMS\cms();
+        \Naf\CMS\cms(override: new \Naf\CMS\Support\Cms());
+        \Naf\CMS\user(reset: true);
+        \Naf\CMS\audit(reset: true);
     }
 
     protected function tearDown(): void
     {
-        \NixPHP\CMS\cms(override: $this->previousCms);
-        \NixPHP\CMS\user(reset: true);
-        \NixPHP\CMS\audit(reset: true);
+        \Naf\CMS\cms(override: $this->previousCms);
+        \Naf\CMS\user(reset: true);
+        \Naf\CMS\audit(reset: true);
         parent::tearDown();
     }
 }

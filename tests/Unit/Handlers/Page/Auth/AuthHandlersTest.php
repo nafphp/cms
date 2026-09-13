@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Handlers\Page\Auth;
 
-use NixPHP\CMS\Contracts\RateLimiterInterface;
-use NixPHP\CMS\Handlers\Page\Auth\LoginUser;
-use NixPHP\CMS\Handlers\Page\Auth\RegisterInvitedUser;
-use NixPHP\CMS\Services\Security\RateLimitDecision;
+use Naf\CMS\Contracts\RateLimiterInterface;
+use Naf\CMS\Handlers\Page\Auth\LoginUser;
+use Naf\CMS\Handlers\Page\Auth\RegisterInvitedUser;
+use Naf\CMS\Services\Security\RateLimitDecision;
 use Tests\Support\DatabaseTestCase;
 use Tests\Support\JsonRequest;
 

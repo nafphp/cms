@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mcp;
 
-use NixPHP\CMS\Mcp\Tools\ArticleLookupTool;
+use Naf\CMS\Mcp\Tools\ArticleLookupTool;
 use Tests\Support\DatabaseTestCase;
 
 final class ArticleLookupToolTest extends DatabaseTestCase

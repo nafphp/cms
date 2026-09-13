@@ -1,13 +1,13 @@
 <?php
 
-use NixPHP\CMS\Security\UrlPolicy;
-use function NixPHP\View\s;
-use function NixPHP\I18n\t;
+use Naf\CMS\Security\UrlPolicy;
+use function Naf\View\s;
+use function Naf\I18n\t;
 
 $content = is_array($content ?? null) ? $content : [];
 $props = is_array($content['props'] ?? null) ? $content['props'] : [];
 $buttonUrl = UrlPolicy::link((string) ($props['buttonUrl'] ?? '#')) ?? '#';
-$surface = \NixPHP\CMS\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
+$surface = \Naf\CMS\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
 $surfaceClass = [
     'none' => 'flex flex-wrap items-center justify-between gap-5',
     'soft' => 'flex flex-wrap items-center justify-between gap-5 rounded-lg bg-[var(--page-panel-soft)] p-6',

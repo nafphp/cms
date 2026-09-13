@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Settings;
+namespace Naf\CMS\Services\Settings;
 
 use Closure;
-use NixPHP\CMS\Contracts\SettingsServiceInterface;
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Repositories\SettingRepository;
-use NixPHP\CMS\Settings\SettingField;
-use NixPHP\CMS\Settings\SettingSection;
-use function NixPHP\config;
-use function NixPHP\I18n\t;
-use function NixPHP\CMS\cms;
-use function NixPHP\CMS\audit_log;
-use function NixPHP\CMS\user;
+use Naf\CMS\Contracts\SettingsServiceInterface;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Repositories\SettingRepository;
+use Naf\CMS\Settings\SettingField;
+use Naf\CMS\Settings\SettingSection;
+use function Naf\config;
+use function Naf\I18n\t;
+use function Naf\CMS\cms;
+use function Naf\CMS\audit_log;
+use function Naf\CMS\user;
 
 final class SettingsService implements SettingsServiceInterface
 {

@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-use NixPHP\CMS\Content\Article\ArticleContentType;
-use NixPHP\CMS\Enums\ArticleStatus;
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Handlers\Page\Article\StoreArticleDraft;
-use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Models\Article;
-use function NixPHP\redirect;
-use function NixPHP\I18n\t;
-use function NixPHP\request;
-use function NixPHP\route;
-use function NixPHP\View\render;
-use function NixPHP\CMS\cms;
-use function NixPHP\CMS\user;
+use Naf\CMS\Content\Article\ArticleContentType;
+use Naf\CMS\Enums\ArticleStatus;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Handlers\Page\Article\StoreArticleDraft;
+use Naf\CMS\Page\Page;
+use Naf\CMS\Models\Article;
+use function Naf\redirect;
+use function Naf\I18n\t;
+use function Naf\request;
+use function Naf\route;
+use function Naf\View\render;
+use function Naf\CMS\cms;
+use function Naf\CMS\user;
 
 $articles = static function (): ArticleContentType {
     $type = cms()->contentTypes()->requireByModel(Article::class);

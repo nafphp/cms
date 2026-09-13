@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Commands;
+namespace Naf\CMS\Commands;
 
-use NixPHP\CMS\Enums\Role as RoleName;
-use NixPHP\CMS\Models\Role;
-use NixPHP\CMS\Models\User;
-use NixPHP\CMS\Repositories\RoleRepository;
-use NixPHP\CMS\Repositories\UserRepository;
-use NixPHP\CMS\Contracts\PasswordPolicyInterface;
-use NixPHP\CMS\Services\Security\PasswordPolicy;
-use NixPHP\CLI\Core\AbstractCommand;
-use NixPHP\CLI\Core\Input;
-use NixPHP\CLI\Core\Output;
-use function NixPHP\ORM\repo;
+use Naf\CMS\Enums\Role as RoleName;
+use Naf\CMS\Models\Role;
+use Naf\CMS\Models\User;
+use Naf\CMS\Repositories\RoleRepository;
+use Naf\CMS\Repositories\UserRepository;
+use Naf\CMS\Contracts\PasswordPolicyInterface;
+use Naf\CMS\Services\Security\PasswordPolicy;
+use Naf\CLI\Core\AbstractCommand;
+use Naf\CLI\Core\Input;
+use Naf\CLI\Core\Output;
+use function Naf\ORM\repo;
 
 class CreateUserCommand extends AbstractCommand
 {
@@ -46,7 +46,7 @@ class CreateUserCommand extends AbstractCommand
     {
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage:');
-            $output->writeLine('    vendor/bin/nix user:create <username> <email> <role> [-p <password-file>] [-f <firstname>] [-l <lastname>]');
+            $output->writeLine('    vendor/bin/naf user:create <username> <email> <role> [-p <password-file>] [-f <firstname>] [-l <lastname>]');
             $output->writeLine('  Without --password-file the password is requested twice without terminal echo.');
             return self::SUCCESS;
         }

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Support;
+namespace Naf\CMS\Support;
 
 use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionNamedType;
-use function NixPHP\app;
+use function Naf\app;
 
 final class HandlerInvoker
 {
@@ -21,13 +21,17 @@ final class HandlerInvoker
      */
     public static function call(callable|array|string $handler, array $params = []): mixed
     {
-        if (is_array($handler) && isset($handler[0], $handler[1]) && is_string($handler[0])) {
-            $instance = self::make($handler[0]);
-            return $instance->{$handler[1]}(...self::parametersFor(new ReflectionMethod($instance, $handler[1]), $params));
-        }
+        // Asked once: both branches want the same two offsets, and repeating the
+        // check told PHPStan the second one could not fail.
+        if (is_array($handler) && isset($handler[0], $handler[1])) {
+            if (is_string($handler[0])) {
+                $instance = self::make($handler[0]);
+                return $instance->{$handler[1]}(...self::parametersFor(new ReflectionMethod($instance, $handler[1]), $params));
+            }
 
-        if (is_array($handler) && isset($handler[0], $handler[1]) && is_object($handler[0])) {
-            return $handler[0]->{$handler[1]}(...self::parametersFor(new ReflectionMethod($handler[0], $handler[1]), $params));
+            if (is_object($handler[0])) {
+                return $handler[0]->{$handler[1]}(...self::parametersFor(new ReflectionMethod($handler[0], $handler[1]), $params));
+            }
         }
 
         if (is_string($handler) && class_exists($handler)) {
@@ -89,7 +93,7 @@ final class HandlerInvoker
                 return $container->make($class);
             }
         } catch (\Throwable) {
-            // Isolated unit tests may invoke handlers before the NixPHP app container is booted.
+            // Isolated unit tests may invoke handlers before the NAF app container is booted.
         }
 
         return new $class();

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Services\Security;
+namespace Naf\CMS\Services\Security;
 
-use NixPHP\Auth\Session\SessionStateStore;
-use NixPHP\Session\Core\Session;
+use Naf\Auth\Session\SessionStateStore;
+use Naf\Session\Core\Session;
 
 /** Keep pre-migration sessions and the session table's user_id metadata working. */
 final class CmsSessionStateStore extends SessionStateStore

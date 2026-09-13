@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Visualization;
+namespace Naf\CMS\Visualization;
 
-use NixPHP\CMS\Visualization\ChartDefinition;
-use NixPHP\CMS\Visualization\EChartsOptionsFactory;
+use Naf\CMS\Visualization\ChartDefinition;
+use Naf\CMS\Visualization\EChartsOptionsFactory;
 
 final class ChartRenderer
 {
@@ -31,33 +31,33 @@ final class ChartRenderer
         $title = $this->escape((string) ($chart->title ?? ''));
         $subtitle = $this->escape((string) ($chart->subtitle ?? ''));
         $emptyText = $this->escape($chart->emptyText);
-        $surface = \NixPHP\CMS\Theme\Theme::slug((string) ($chart->options['surface'] ?? 'none')) ?: 'none';
+        $surface = \Naf\CMS\Theme\Theme::slug((string) ($chart->options['surface'] ?? 'none')) ?: 'none';
 
         return <<<HTML
-<figure class="nixcms-chart nixcms-chart--surface-{$this->escape($surface)}" data-nixcms-chart="{$this->escape($chart->id)}">
-    <div class="nixcms-chart__header">
+<figure class="nafcms-chart nafcms-chart--surface-{$this->escape($surface)}" data-nafcms-chart="{$this->escape($chart->id)}">
+    <div class="nafcms-chart__header">
         <div>
             {$this->optionalHeading($title)}
             {$this->optionalSubtitle($subtitle)}
         </div>
     </div>
-    <div class="nixcms-chart__surface" style="min-height: {$chart->height}px;">
-        <div class="nixcms-chart__canvas" style="height: {$chart->height}px;" role="img" aria-label="{$title}"></div>
-        <p class="nixcms-chart__empty">{$emptyText}</p>
+    <div class="nafcms-chart__surface" style="min-height: {$chart->height}px;">
+        <div class="nafcms-chart__canvas" style="height: {$chart->height}px;" role="img" aria-label="{$title}"></div>
+        <p class="nafcms-chart__empty">{$emptyText}</p>
     </div>
-    <script type="application/json" data-nixcms-chart-options>{$json}</script>
+    <script type="application/json" data-nafcms-chart-options>{$json}</script>
 </figure>
 HTML;
     }
 
     private function optionalHeading(string $title): string
     {
-        return $title !== '' ? '<h3 class="nixcms-chart__title">' . $title . '</h3>' : '';
+        return $title !== '' ? '<h3 class="nafcms-chart__title">' . $title . '</h3>' : '';
     }
 
     private function optionalSubtitle(string $subtitle): string
     {
-        return $subtitle !== '' ? '<p class="nixcms-chart__subtitle">' . $subtitle . '</p>' : '';
+        return $subtitle !== '' ? '<p class="nafcms-chart__subtitle">' . $subtitle . '</p>' : '';
     }
 
     private function escape(string $value): string

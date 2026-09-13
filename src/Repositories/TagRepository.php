@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Repositories;
+namespace Naf\CMS\Repositories;
 
-use NixPHP\CMS\Models\Tag;
-use NixPHP\CMS\Support\Slug;
-use NixPHP\ORM\Repository\AbstractRepository;
-use function NixPHP\ORM\em;
+use Naf\CMS\Models\Tag;
+use Naf\CMS\Support\Slug;
+use Naf\ORM\Repository\AbstractRepository;
+use function Naf\ORM\em;
 
 class TagRepository extends AbstractRepository
 {

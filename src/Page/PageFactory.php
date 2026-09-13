@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace NixPHP\CMS\Page;
+namespace Naf\CMS\Page;
 
-use NixPHP\CMS\Content\BlockViewRegistry;
-use NixPHP\CMS\Enums\Permission;
-use NixPHP\CMS\Page\CustomLayoutNormalizer;
-use NixPHP\CMS\Page\Layout;
-use NixPHP\CMS\Page\Page;
-use NixPHP\CMS\Page\PageBuilderPayloadNormalizer;
-use NixPHP\CMS\Page\Template;
-use function NixPHP\log;
-use function NixPHP\CMS\cms;
+use Naf\CMS\Content\BlockViewRegistry;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Page\CustomLayoutNormalizer;
+use Naf\CMS\Page\Layout;
+use Naf\CMS\Page\Page;
+use Naf\CMS\Page\PageBuilderPayloadNormalizer;
+use Naf\CMS\Page\Template;
+use function Naf\log;
+use function Naf\CMS\cms;
 
 final class PageFactory
 {
@@ -28,7 +28,7 @@ final class PageFactory
     {
         $layout = Layout::create(Template::create((string) ($definition['view'] ?? 'page.templates.default'))
             ->setParent((string) ($row['layout'] ?? $definition['layout'] ?? 'layouts.page'))
-            ->addStylesheet('/css/nixcms.css')
+            ->addStylesheet('/css/nafcms.css')
             ->addScript('/js/page-forms.js', ['type' => 'module'])
             ->addScript('/js/admin/diagrams.js', ['type' => 'module'])
             ->addBodyClass('min-h-screen bg-[var(--page-bg)] text-[var(--page-text)]'));

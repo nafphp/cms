@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Content\Page;
 
-use NixPHP\CMS\Content\Page\Block\AbstractBlockType;
-use NixPHP\Core\Config;
+use Naf\CMS\Content\Page\Block\AbstractBlockType;
+use Naf\Core\Config;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use function NixPHP\guard;
-use function NixPHP\app;
-use function NixPHP\CMS\cms;
+use function Naf\guard;
+use function Naf\app;
+use function Naf\CMS\cms;
 
 final class PageBuilderBlockTypesTest extends TestCase
 {
@@ -68,7 +68,7 @@ final class PageBuilderBlockTypesTest extends TestCase
 
     private function createBuilderProbeView(): string
     {
-        $viewRoot = sys_get_temp_dir() . '/nixcms-page-builder-test-' . bin2hex(random_bytes(6));
+        $viewRoot = sys_get_temp_dir() . '/nafcms-page-builder-test-' . bin2hex(random_bytes(6));
         $directory = $viewRoot . '/admin/pages';
         if (!is_dir($directory)) {
             mkdir($directory, 0777, true);
