@@ -4,6 +4,14 @@ All notable changes to NafCMS are documented here. This project follows [Keep a 
 
 ## [Unreleased]
 
+### Changed
+
+- Apply the shared NAF PHP code style to source, tests, examples and templates, with Composer commands and a CI check.
+
+### Fixed
+
+- Standalone page charts now call the host's global translation fallback when NAF's translator is not loaded; the previous import targeted a nonexistent namespaced function.
+
 ## [0.0.1] - 2026-07-21
 
 ### Added

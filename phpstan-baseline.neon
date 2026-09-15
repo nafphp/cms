@@ -1165,18 +1165,6 @@ parameters:
 			path: src/Visualization/ChartDataset.php
 
 		-
-			message: '#^Function Naf\\CMS\\Visualization\\t not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: src/Visualization/PageChartFactory.php
-
-		-
-			message: '#^Used function Naf\\CMS\\Visualization\\t not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: src/Visualization/PageChartFactory.php
-
-		-
 			message: '#^Parameter \#3 \$options of static method Naf\\CMS\\Settings\\SettingField\:\:select\(\) expects array\<string, string\>, array\<int, string\> given\.$#'
 			identifier: argument.type
 			count: 1
