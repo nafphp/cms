@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Naf\CMS\Services\Developer;
 
 use Naf\CMS\Support\AtomicFileWriter;
+use RuntimeException;
 
 final class AgentGuideInstaller
 {
@@ -14,14 +15,15 @@ final class AgentGuideInstaller
         private readonly string $source,
         private readonly string $destination,
         private readonly ?AtomicFileWriter $writer = null,
-    ) {}
+    ) {
+    }
 
     /** @return array{status: string, path: string} */
     public function install(bool $update = false): array
     {
         $template = file_get_contents($this->source);
         if (!is_string($template) || !str_contains($template, self::MARKER)) {
-            throw new \RuntimeException('The shipped NafCMS agent guide template is missing or unmanaged.');
+            throw new RuntimeException('The shipped NafCMS agent guide template is missing or unmanaged.');
         }
 
         $existed = is_file($this->destination);

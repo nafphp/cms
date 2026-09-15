@@ -10,9 +10,10 @@ use Naf\CMS\Handlers\Support\RejectsPrivilegedAction;
 use Naf\CMS\Repositories\RoleRepository;
 use Naf\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
+
+use function Naf\CMS\user;
 use function Naf\json;
 use function Naf\ORM\repo;
-use function Naf\CMS\user;
 
 final class UpdateRolePermissions
 {
@@ -21,15 +22,15 @@ final class UpdateRolePermissions
 
     public function __invoke(): ResponseInterface
     {
-        $payload = $this->jsonBody();
-        $roleId = (int) ($payload['roleId'] ?? 0);
+        $payload       = $this->jsonBody();
+        $roleId        = (int) ($payload['roleId'] ?? 0);
         $permissionIds = $payload['permissionIds'] ?? [];
         if ($roleId <= 0 || !is_array($permissionIds)) {
             return json(['success' => false, 'reason' => 'Invalid role assignment payload.'], 400);
         }
 
         $repository = repo(RoleRepository::class);
-        $oldRole = null;
+        $oldRole    = null;
         foreach ($repository->findAllWithPermissions() as $role) {
             if ((int) ($role['id'] ?? 0) === $roleId) {
                 $oldRole = $role;
@@ -63,9 +64,9 @@ final class UpdateRolePermissions
         )->record();
 
         return json([
-            'success' => true,
+            'success'         => true,
             'permissionNames' => $permissionNames,
-            'role' => $updatedRole,
+            'role'            => $updatedRole,
         ]);
     }
 }

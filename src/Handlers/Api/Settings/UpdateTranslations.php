@@ -7,13 +7,16 @@ namespace Naf\CMS\Handlers\Api\Settings;
 use Naf\CMS\Contracts\TranslationServiceInterface;
 use Naf\CMS\Handlers\Support\ReadsJsonBody;
 use Psr\Http\Message\ResponseInterface;
+
 use function Naf\json;
 
 final class UpdateTranslations
 {
     use ReadsJsonBody;
 
-    public function __construct(private readonly TranslationServiceInterface $translations) {}
+    public function __construct(private readonly TranslationServiceInterface $translations)
+    {
+    }
 
     public function __invoke(string $language): ResponseInterface
     {
@@ -32,8 +35,8 @@ final class UpdateTranslations
         if (!$result['success']) {
             return json([
                 'success' => false,
-                'errors' => $result['errors'],
-                'reason' => 'Could not save translations.',
+                'errors'  => $result['errors'],
+                'reason'  => 'Could not save translations.',
             ], 400);
         }
 

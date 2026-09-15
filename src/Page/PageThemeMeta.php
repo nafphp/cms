@@ -39,15 +39,15 @@ final class PageThemeMeta
     public function toArray(): array
     {
         return [
-            'accent' => $this->accent,
-            'headerBackground' => $this->headerBackground,
-            'headerBackgroundTransparent' => $this->headerBackgroundTransparent,
-            'footerBackground' => $this->footerBackground,
-            'footerBackgroundTransparent' => $this->footerBackgroundTransparent,
-            'contentWidth' => $this->contentWidth,
-            'headerContentWidthIncludesChrome' => $this->headerContentWidthIncludesChrome,
+            'accent'                              => $this->accent,
+            'headerBackground'                    => $this->headerBackground,
+            'headerBackgroundTransparent'         => $this->headerBackgroundTransparent,
+            'footerBackground'                    => $this->footerBackground,
+            'footerBackgroundTransparent'         => $this->footerBackgroundTransparent,
+            'contentWidth'                        => $this->contentWidth,
+            'headerContentWidthIncludesChrome'    => $this->headerContentWidthIncludesChrome,
             'headerBackgroundWidthIncludesChrome' => $this->headerBackgroundWidthIncludesChrome,
-            'footerContentWidthIncludesChrome' => $this->footerContentWidthIncludesChrome,
+            'footerContentWidthIncludesChrome'    => $this->footerContentWidthIncludesChrome,
             'footerBackgroundWidthIncludesChrome' => $this->footerBackgroundWidthIncludesChrome,
         ];
     }

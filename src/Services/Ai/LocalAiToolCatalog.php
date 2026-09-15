@@ -24,9 +24,9 @@ final class LocalAiToolCatalog
      */
     private function metadata(array $definition): array
     {
-        $name = strtolower(trim((string) ($definition['name'] ?? '')));
+        $name        = strtolower(trim((string) ($definition['name'] ?? '')));
         $description = strtolower(trim((string) ($definition['description'] ?? '')));
-        $text = $name . ' ' . $description;
+        $text        = $name . ' ' . $description;
 
         $provided = is_array($definition['meta'] ?? null) ? $definition['meta'] : [];
         foreach (['title', 'routingText', 'routingDescription', 'examples', 'capabilities', 'mode', 'risk', 'destructive', 'autoRun', 'category', 'source', 'scopes'] as $key) {
@@ -38,16 +38,16 @@ final class LocalAiToolCatalog
         $risk = $this->resolveRisk($provided, $description, $name);
 
         return [
-            'title' => $this->title($name),
-            'category' => $this->category($text, $name, $risk),
-            'source' => str_starts_with($name, 'external_') ? 'external' : 'cms',
-            'risk' => $risk,
-            'destructive' => $this->resolveDestructive($provided, $description, $name),
-            'mode' => $this->mode($text, $name, $risk),
+            'title'        => $this->title($name),
+            'category'     => $this->category($text, $name, $risk),
+            'source'       => str_starts_with($name, 'external_') ? 'external' : 'cms',
+            'risk'         => $risk,
+            'destructive'  => $this->resolveDestructive($provided, $description, $name),
+            'mode'         => $this->mode($text, $name, $risk),
             'capabilities' => $this->capabilities($text, $name, $risk),
-            'routingText' => trim($this->routingText($definition)),
-            'examples' => $this->examples($definition, $name),
-            'tags' => $this->tags($name, $description),
+            'routingText'  => trim($this->routingText($definition)),
+            'examples'     => $this->examples($definition, $name),
+            'tags'         => $this->tags($name, $description),
             ...$provided,
         ];
     }
@@ -76,6 +76,7 @@ final class LocalAiToolCatalog
     private function title(string $name): string
     {
         $name = preg_replace('/^(cms|external)_/', '', $name) ?? $name;
+
         return ucwords(str_replace('_', ' ', $name));
     }
 
@@ -242,11 +243,11 @@ final class LocalAiToolCatalog
      */
     private function routingText(array $definition): string
     {
-        $schema = $definition['inputSchema'] ?? [];
+        $schema     = $definition['inputSchema'] ?? [];
         $properties = is_array($schema) && isset($schema['properties']) && is_array($schema['properties'])
             ? implode(' ', array_keys($schema['properties']))
             : '';
-        $examples = $definition['examples'] ?? [];
+        $examples    = $definition['examples'] ?? [];
         $exampleText = is_array($examples) ? implode(' ', array_filter($examples, 'is_scalar')) : '';
 
         return trim(implode(' ', [
@@ -287,8 +288,8 @@ final class LocalAiToolCatalog
     private function tags(string $name, string $description): array
     {
         $words = preg_split('/[^a-z0-9]+/', $name . ' ' . $description) ?: [];
-        $stop = array_flip(['cms', 'external', 'returns', 'return', 'and', 'for', 'the', 'with', 'from', 'into', 'optional', 'current']);
-        $tags = [];
+        $stop  = array_flip(['cms', 'external', 'returns', 'return', 'and', 'for', 'the', 'with', 'from', 'into', 'optional', 'current']);
+        $tags  = [];
 
         foreach ($words as $word) {
             $word = strtolower(trim($word));

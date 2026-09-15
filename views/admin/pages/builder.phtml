@@ -3,18 +3,19 @@
 use Naf\CMS\Enums\Permission;
 use Naf\CMS\Repositories\ThemeRepository;
 use Naf\CMS\Services\Settings\TranslationFileService;
-use function Naf\View\s;
-use function Naf\I18n\t;
-use function Naf\route;
+
 use function Naf\CMS\cms;
 use function Naf\CMS\user;
+use function Naf\I18n\t;
+use function Naf\route;
+use function Naf\View\s;
 
-$templates = is_array($templates ?? null) ? $templates : [];
-$contentTypes = is_array($contentTypes ?? null) ? $contentTypes : [];
-$themes = is_array($themes ?? null) ? $themes : cms()->themes()->options();
-$themeSurfaces = is_array($themeSurfaces ?? null) ? $themeSurfaces : cms()->themes()->surfaceOptionsByTheme();
+$templates      = is_array($templates ?? null) ? $templates : [];
+$contentTypes   = is_array($contentTypes ?? null) ? $contentTypes : [];
+$themes         = is_array($themes ?? null) ? $themes : cms()->themes()->options();
+$themeSurfaces  = is_array($themeSurfaces ?? null) ? $themeSurfaces : cms()->themes()->surfaceOptionsByTheme();
 $editableThemes = [];
-$canEditThemes = user()?->can(Permission::THEMES_EDIT) === true;
+$canEditThemes  = user()?->can(Permission::THEMES_EDIT) === true;
 if ($canEditThemes) {
     $themeRepository = new ThemeRepository();
     foreach ($themeRepository->summaries() as $themeSummary) {
@@ -29,33 +30,33 @@ if ($canEditThemes) {
         }
 
         $editableThemes[$identifier] = [
-            'id' => (int) ($themeRow['id'] ?? 0),
+            'id'         => (int) ($themeRow['id'] ?? 0),
             'identifier' => $identifier,
-            'label' => (string) ($themeRow['label'] ?? $identifier),
-            'surfaces' => is_array($themeRow['surfaces'] ?? null) ? $themeRow['surfaces'] : [],
-            'css' => (string) ($themeRow['css'] ?? ''),
-            'cssPath' => (string) ($themeRow['cssPath'] ?? ('/css/themes/' . $identifier . '.css')),
+            'label'      => (string) ($themeRow['label'] ?? $identifier),
+            'surfaces'   => is_array($themeRow['surfaces'] ?? null) ? $themeRow['surfaces'] : [],
+            'css'        => (string) ($themeRow['css'] ?? ''),
+            'cssPath'    => (string) ($themeRow['cssPath'] ?? ('/css/themes/' . $identifier . '.css')),
         ];
     }
 }
 $themeAssets = [];
 foreach (cms()->themes()->all() as $theme) {
     $themeAssets[$theme->id()] = [
-        'className' => $theme->className(),
+        'className'   => $theme->className(),
         'stylesheets' => $theme->stylesheets(),
     ];
 }
-$navigationChoices = is_array($navigationChoices ?? null) ? $navigationChoices : [];
-$languages = is_array($languages ?? null) ? array_values($languages) : ['en'];
-$defaultLanguage = (string) ($defaultLanguage ?? ($languages[0] ?? 'en'));
-$initialState = is_array($initialState ?? null) ? $initialState : [];
-$mode = (string) ($mode ?? 'create');
+$navigationChoices       = is_array($navigationChoices ?? null) ? $navigationChoices : [];
+$languages               = is_array($languages ?? null) ? array_values($languages) : ['en'];
+$defaultLanguage         = (string) ($defaultLanguage ?? ($languages[0] ?? 'en'));
+$initialState            = is_array($initialState ?? null) ? $initialState : [];
+$mode                    = (string) ($mode ?? 'create');
 $mediaAcceptedExtensions = cms()->media()->acceptedExtensions();
-$mediaMaxUploadSize = cms()->media()->maxUploadSize();
-$canUploadMedia = user()?->can(Permission::MEDIA_UPLOAD) === true;
-$translationService = new TranslationFileService();
-$uiLanguage = cms()->settings()->currentLanguage();
-$translationLanguages = array_values(array_unique([
+$mediaMaxUploadSize      = cms()->media()->maxUploadSize();
+$canUploadMedia          = user()?->can(Permission::MEDIA_UPLOAD) === true;
+$translationService      = new TranslationFileService();
+$uiLanguage              = cms()->settings()->currentLanguage();
+$translationLanguages    = array_values(array_unique([
     ...$languages,
     ...cms()->settings()->languages(),
     ...array_map(
@@ -70,7 +71,7 @@ foreach ($translationLanguages as $language) {
         continue;
     }
 
-    $entries = $translationService->entries($language);
+    $entries                           = $translationService->entries($language);
     $translationSuggestions[$language] = array_map(
         static fn(string $key, string $value): array => ['key' => $key, 'value' => $value],
         array_keys($entries),
@@ -79,37 +80,37 @@ foreach ($translationLanguages as $language) {
 }
 
 $config = [
-    'templates' => $templates,
-    'contentTypes' => $contentTypes,
-    'themes' => $themes,
-    'themeAssets' => $themeAssets,
-    'themeSurfaces' => $themeSurfaces,
-    'editableThemes' => $editableThemes,
-    'canEditThemes' => $canEditThemes,
-    'themeSaveUrl' => '/api/admin/themes',
-    'navigationChoices' => $navigationChoices,
+    'templates'                   => $templates,
+    'contentTypes'                => $contentTypes,
+    'themes'                      => $themes,
+    'themeAssets'                 => $themeAssets,
+    'themeSurfaces'               => $themeSurfaces,
+    'editableThemes'              => $editableThemes,
+    'canEditThemes'               => $canEditThemes,
+    'themeSaveUrl'                => '/api/admin/themes',
+    'navigationChoices'           => $navigationChoices,
     'defaultNavigationIdentifier' => (string) ($defaultNavigationIdentifier ?? ($navigationChoices[0]['identifier'] ?? 'main')),
-    'languages' => $languages,
-    'defaultLanguage' => $defaultLanguage,
-    'uiLanguage' => $uiLanguage,
-    'languageOptions' => cms()->languages()->knownOptions(),
-    'translationEntries' => $translationService->entries($uiLanguage),
-    'translationSuggestions' => $translationSuggestions,
-    'translationEndpoint' => '/api/admin/translations/{language}',
-    'translationReadEndpoint' => '/api/admin/translations/{language}',
-    'saveUrl' => (string) ($saveUrl ?? '/admin/pages'),
-    'layoutSaveUrl' => '/api/admin/page-layouts',
-    'overviewUrl' => (string) ($overviewUrl ?? route('admin.pages')),
-    'initialState' => $initialState,
-    'mode' => $mode,
-    'media' => [
+    'languages'                   => $languages,
+    'defaultLanguage'             => $defaultLanguage,
+    'uiLanguage'                  => $uiLanguage,
+    'languageOptions'             => cms()->languages()->knownOptions(),
+    'translationEntries'          => $translationService->entries($uiLanguage),
+    'translationSuggestions'      => $translationSuggestions,
+    'translationEndpoint'         => '/api/admin/translations/{language}',
+    'translationReadEndpoint'     => '/api/admin/translations/{language}',
+    'saveUrl'                     => (string) ($saveUrl ?? '/admin/pages'),
+    'layoutSaveUrl'               => '/api/admin/page-layouts',
+    'overviewUrl'                 => (string) ($overviewUrl ?? route('admin.pages')),
+    'initialState'                => $initialState,
+    'mode'                        => $mode,
+    'media'                       => [
         'urls' => [
-            'list' => route('api.admin.media'),
+            'list'   => route('api.admin.media'),
             'upload' => route('api.admin.media.upload'),
         ],
         'acceptedExtensions' => array_values($mediaAcceptedExtensions),
-        'maxUploadSize' => $mediaMaxUploadSize,
-        'canUpload' => $canUploadMedia,
+        'maxUploadSize'      => $mediaMaxUploadSize,
+        'canUpload'          => $canUploadMedia,
     ],
 ];
 
@@ -168,12 +169,12 @@ $config = [
                                 <?php foreach ($navigationChoices as $navigation): ?>
                                     <?php
                                     $priority = (int) ($navigation['priority'] ?? 0);
-                                    $status = (string) ($navigation['status'] ?? '');
-                                    $label = trim(sprintf(
+                                    $status   = (string) ($navigation['status'] ?? '');
+                                    $label    = trim(sprintf(
                                         '%s%s%s',
                                         (string) ($navigation['label'] ?? $navigation['identifier'] ?? ''),
                                         $status !== '' ? ' · ' . $status : '',
-                                        $priority > 0 ? ' · Prio ' . $priority : ''
+                                        $priority > 0 ? ' · Prio ' . $priority : '',
                                     ));
                                     ?>
                                     <option value="<?= s((string) ($navigation['identifier'] ?? '')) ?>"><?= s($label) ?></option>
@@ -186,12 +187,12 @@ $config = [
                                 <?php foreach ($navigationChoices as $navigation): ?>
                                     <?php
                                     $priority = (int) ($navigation['priority'] ?? 0);
-                                    $status = (string) ($navigation['status'] ?? '');
-                                    $label = trim(sprintf(
+                                    $status   = (string) ($navigation['status'] ?? '');
+                                    $label    = trim(sprintf(
                                         '%s%s%s',
                                         (string) ($navigation['label'] ?? $navigation['identifier'] ?? ''),
                                         $status !== '' ? ' · ' . $status : '',
-                                        $priority > 0 ? ' · Prio ' . $priority : ''
+                                        $priority > 0 ? ' · Prio ' . $priority : '',
                                     ));
                                     ?>
                                     <option value="<?= s((string) ($navigation['identifier'] ?? '')) ?>"><?= s($label) ?></option>

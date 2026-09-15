@@ -16,7 +16,8 @@ final readonly class ToolContext
         public ?string $themeId = null,
         public ?string $contentType = null,
         public array $uiContext = [],
-    ) {}
+    ) {
+    }
 
     /**
      * @param array<string, mixed> $context
@@ -46,7 +47,7 @@ final readonly class ToolContext
             $this->layoutId,
             $this->themeId,
             $this->contentType,
-        ], static fn (?string $value): bool => $value !== null && $value !== '')));
+        ], static fn(?string $value): bool => $value !== null && $value !== '')));
     }
 
     /**

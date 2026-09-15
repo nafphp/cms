@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Api;
 
+use InvalidArgumentException;
+use Naf\CMS\Localization\LanguageRegistry;
 use Naf\CMS\Models\Article;
 use Naf\CMS\Models\ArticleVersion;
-use Naf\CMS\Localization\LanguageRegistry;
 use Naf\CMS\Repositories\ArticleRepository;
 use Naf\CMS\Storage\EntityStorage;
 use Naf\CMS\Support\AuditEntry;
+use RuntimeException;
+use Throwable;
 
 /**
  * Domain API for articles. Exposes article-specific behaviour and delegates persistence/queries to ArticleRepository.
@@ -26,7 +29,8 @@ final class ArticleApi
 
     public function __construct(
         private ArticleRepository $articleRepository,
-    ) {}
+    ) {
+    }
 
     /**
      * @return EntityStorage<Article>
@@ -48,7 +52,7 @@ final class ArticleApi
     public function create(array $data, ?int $authorId = null): array
     {
         $data['article_id'] = 0;
-        $result = $this->articleRepository->saveDraftFromPayload($data, $authorId);
+        $result             = $this->articleRepository->saveDraftFromPayload($data, $authorId);
 
         AuditEntry::create(
             'article.created',
@@ -68,9 +72,9 @@ final class ArticleApi
      */
     public function draft(int $id, array $data, ?int $authorId = null): array
     {
-        $old = $this->articleSnapshot($id, (string) ($data['language'] ?? ''));
+        $old                = $this->articleSnapshot($id, (string) ($data['language'] ?? ''));
         $data['article_id'] = $id;
-        $result = $this->articleRepository->saveDraftFromPayload($data, $authorId);
+        $result             = $this->articleRepository->saveDraftFromPayload($data, $authorId);
 
         AuditEntry::create(
             'article.draft_saved',
@@ -86,8 +90,8 @@ final class ArticleApi
 
     public function publish(int $id, string $locale = 'de'): bool
     {
-        $language = $this->resolveLocale($locale);
-        $old = $this->articleSnapshot($id, $language);
+        $language  = $this->resolveLocale($locale);
+        $old       = $this->articleSnapshot($id, $language);
         $published = $this->articleRepository->publishLatestLanguageVersion($id, $language);
         if ($published) {
             AuditEntry::create(
@@ -141,28 +145,28 @@ final class ArticleApi
         $article = $this->articleRepository->findWithSpecificVersion($articleId, $locale, $versionNumber);
         $version = $article?->getVersion();
         if (!$article instanceof Article || !$version instanceof ArticleVersion) {
-            throw new \RuntimeException(
-                "Version not found for article {$articleId}, locale {$locale}, version {$versionNumber}"
+            throw new RuntimeException(
+                "Version not found for article {$articleId}, locale {$locale}, version {$versionNumber}",
             );
         }
 
-        $content = $version->getContent();
+        $content        = $version->getContent();
         $decodedContent = $content !== null
             ? json_decode($content, true, 512, JSON_THROW_ON_ERROR)
             : [];
 
         $result = $this->articleRepository->saveDraftFromPayload([
-            'article_id' => $articleId,
-            'title' => $version->getTitle() ?? '',
-            'slug' => $version->getSlug() ?? '',
-            'teaser' => $version->getTeaser() ?? '',
-            'content' => $decodedContent,
-            'language' => $locale,
-            'show_teaser' => $version->shouldShowTeaser(),
+            'article_id'                 => $articleId,
+            'title'                      => $version->getTitle() ?? '',
+            'slug'                       => $version->getSlug() ?? '',
+            'teaser'                     => $version->getTeaser() ?? '',
+            'content'                    => $decodedContent,
+            'language'                   => $locale,
+            'show_teaser'                => $version->shouldShowTeaser(),
             'hide_lead_image_in_content' => $article->shouldHideLeadImageInContent(),
-            'tags' => $article->getTagNames(),
-            'category' => $article->getCategory()?->getName() ?? '',
-            'publish_date' => $version->getPublishedAt()?->format('Y-m-d H:i:s') ?? '',
+            'tags'                       => $article->getTagNames(),
+            'category'                   => $article->getCategory()?->getName() ?? '',
+            'publish_date'               => $version->getPublishedAt()?->format('Y-m-d H:i:s') ?? '',
         ]);
 
         AuditEntry::create(
@@ -172,8 +176,8 @@ final class ArticleApi
             $this->articleVersionSnapshot($version),
             $this->articleSnapshot($articleId, $locale),
             [
-                'language' => $locale,
-                'restored_version' => $versionNumber,
+                'language'           => $locale,
+                'restored_version'   => $versionNumber,
                 'article_version_id' => $result['articleVersionId'],
             ],
         )->record();
@@ -184,8 +188,8 @@ final class ArticleApi
     public function deleteLocale(int $articleId, string $locale): bool
     {
         $language = $this->resolveLocale($locale);
-        $old = $this->articleSnapshot($articleId, $language);
-        $deleted = $this->articleRepository->deleteLanguageVersions($articleId, $language);
+        $old      = $this->articleSnapshot($articleId, $language);
+        $deleted  = $this->articleRepository->deleteLanguageVersions($articleId, $language);
         if ($deleted) {
             AuditEntry::create(
                 'article.locale_deleted',
@@ -203,8 +207,8 @@ final class ArticleApi
     public function deleteVersion(int $articleId, string $locale, int $versionNumber): bool
     {
         $language = $this->resolveLocale($locale);
-        $old = $this->articleSnapshot($articleId, $language, $versionNumber);
-        $deleted = $this->articleRepository->deleteSpecificVersion(
+        $old      = $this->articleSnapshot($articleId, $language, $versionNumber);
+        $deleted  = $this->articleRepository->deleteSpecificVersion(
             $articleId,
             $language,
             $versionNumber,
@@ -290,12 +294,12 @@ final class ArticleApi
     private function resolveLocale(string $locale): string
     {
         $languages = new LanguageRegistry();
-        $language = $languages->normalize($locale);
+        $language  = $languages->normalize($locale);
         if ($language !== null && $languages->isKnown($language)) {
             return $language;
         }
 
-        throw new \InvalidArgumentException("Unknown locale: {$locale}");
+        throw new InvalidArgumentException("Unknown locale: {$locale}");
     }
 
     /**
@@ -307,7 +311,7 @@ final class ArticleApi
             $article = $versionNumber !== null
                 ? $this->findVersion($id, (string) $locale, $versionNumber)
                 : $this->find($id, $locale);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
 
@@ -318,11 +322,11 @@ final class ArticleApi
         $version = $article->getVersion();
 
         return [
-            'id' => $article->getId(),
-            'category' => $article->getCategory()?->getName(),
-            'tags' => $article->getTagNames(),
+            'id'                         => $article->getId(),
+            'category'                   => $article->getCategory()?->getName(),
+            'tags'                       => $article->getTagNames(),
             'hide_lead_image_in_content' => $article->shouldHideLeadImageInContent(),
-            'version' => $version instanceof ArticleVersion ? $this->articleVersionSnapshot($version) : null,
+            'version'                    => $version instanceof ArticleVersion ? $this->articleVersionSnapshot($version) : null,
         ];
     }
 
@@ -332,12 +336,12 @@ final class ArticleApi
     private function articleVersionSnapshot(ArticleVersion $version): array
     {
         return [
-            'id' => $version->getId(),
-            'language' => $version->getLanguageCode(),
-            'version' => $version->getVersion(),
-            'status' => $version->getStatus()?->value,
-            'title' => $version->getTitle(),
-            'slug' => $version->getSlug(),
+            'id'           => $version->getId(),
+            'language'     => $version->getLanguageCode(),
+            'version'      => $version->getVersion(),
+            'status'       => $version->getStatus()?->value,
+            'title'        => $version->getTitle(),
+            'slug'         => $version->getSlug(),
             'published_at' => $version->getPublishedAt()?->format('Y-m-d H:i:s'),
         ];
     }

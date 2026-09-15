@@ -10,6 +10,7 @@ use Naf\CMS\Repositories\RoleRepository;
 use Naf\CMS\Repositories\UserRepository;
 use Naf\CMS\Services\Security\CredentialService;
 use Naf\ORM\Core\EntityManager;
+use PDO;
 use Tests\Support\DatabaseTestCase;
 
 final class PrivilegedMutationBoundaryTest extends DatabaseTestCase
@@ -51,9 +52,9 @@ final class PrivilegedMutationBoundaryTest extends DatabaseTestCase
         $this->addUser('manager', 'manager-hash', 'manager');
         $this->addUser('editor', 'editor-hash', 'editor');
 
-        $entityManager = new EntityManager($this->pdo);
-        $this->users = new UserRepository($this->pdo, $entityManager, new CredentialService());
-        $this->roles = new RoleRepository($this->pdo, $entityManager);
+        $entityManager     = new EntityManager($this->pdo);
+        $this->users       = new UserRepository($this->pdo, $entityManager, new CredentialService());
+        $this->roles       = new RoleRepository($this->pdo, $entityManager);
         $this->permissions = new PermissionRepository($this->pdo, $entityManager);
     }
 
@@ -191,11 +192,11 @@ final class PrivilegedMutationBoundaryTest extends DatabaseTestCase
     /** @param array<int, string> $permissionNames */
     private function addRole(string $name, array $permissionNames): void
     {
-        $roleId = $this->insertRow('roles', ['name' => $name]);
+        $roleId               = $this->insertRow('roles', ['name' => $name]);
         $this->roleIds[$name] = $roleId;
         foreach ($permissionNames as $permission) {
             $this->insertRow('role_permissions', [
-                'role_id' => $roleId,
+                'role_id'       => $roleId,
                 'permission_id' => $this->permissionIds[$permission],
             ]);
         }
@@ -203,7 +204,7 @@ final class PrivilegedMutationBoundaryTest extends DatabaseTestCase
 
     private function addUser(string $username, string $password, string $role): void
     {
-        $userId = $this->insertRow('users', ['username' => $username, 'password' => $password]);
+        $userId                   = $this->insertRow('users', ['username' => $username, 'password' => $password]);
         $this->userIds[$username] = $userId;
         $this->insertRow('user_role', ['user_id' => $userId, 'role_id' => $this->roleIds[$role]]);
     }
@@ -215,7 +216,8 @@ final class PrivilegedMutationBoundaryTest extends DatabaseTestCase
             'SELECT r.name FROM user_role ur JOIN roles r ON r.id = ur.role_id WHERE ur.user_id = :id ORDER BY r.name',
         );
         $statement->execute(['id' => $this->userIds[$username]]);
-        return array_map('strval', $statement->fetchAll(\PDO::FETCH_COLUMN));
+
+        return array_map('strval', $statement->fetchAll(PDO::FETCH_COLUMN));
     }
 
     /** @return array<int, string> */
@@ -225,7 +227,8 @@ final class PrivilegedMutationBoundaryTest extends DatabaseTestCase
             'SELECT p.name FROM role_permissions rp JOIN permissions p ON p.id = rp.permission_id WHERE rp.role_id = :id ORDER BY p.name',
         );
         $statement->execute(['id' => $this->roleIds[$role]]);
-        return array_map('strval', $statement->fetchAll(\PDO::FETCH_COLUMN));
+
+        return array_map('strval', $statement->fetchAll(PDO::FETCH_COLUMN));
     }
 
     private function passwordFor(string $username): string

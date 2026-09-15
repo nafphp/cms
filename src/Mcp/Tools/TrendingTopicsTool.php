@@ -4,20 +4,22 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Mcp\Tools;
 
+use DateTimeImmutable;
 use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
 use Naf\CMS\Enums\ToolRisk;
-
 use Naf\MCP\Support\Schema;
 use Naf\MCP\Tools\ScopedToolInterface;
 use Naf\MCP\Tools\ToolInterface;
+use RuntimeException;
 use Throwable;
 
 final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
     use DeclaresLocalAiToolRisk;
 
-    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const ToolRisk AI_RISK    = ToolRisk::READ;
     private const bool AI_DESTRUCTIVE = false;
+
     public function name(): string
     {
         return 'external_trending_topics';
@@ -51,7 +53,7 @@ final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface, Lo
     public function handle(array $args): array
     {
         $source = strtolower(trim((string) ($args['source'] ?? 'wikipedia'))) === 'news' ? 'news' : 'wikipedia';
-        $limit = max(1, min(50, (int) ($args['limit'] ?? 15)));
+        $limit  = max(1, min(50, (int) ($args['limit'] ?? 15)));
 
         try {
             return $source === 'news'
@@ -59,10 +61,10 @@ final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface, Lo
                 : $this->wikipediaTrends($args, $limit);
         } catch (Throwable $throwable) {
             return [
-                'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
-                'source' => $source,
-                'error' => $throwable->getMessage(),
-                'trends' => [],
+                'generated_at' => (new DateTimeImmutable())->format(DATE_ATOM),
+                'source'       => $source,
+                'error'        => $throwable->getMessage(),
+                'trends'       => [],
             ];
         }
     }
@@ -73,20 +75,20 @@ final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface, Lo
      */
     private function wikipediaTrends(array $args, int $limit): array
     {
-        $project = $this->project((string) ($args['project'] ?? 'de.wikipedia'));
+        $project     = $this->project((string) ($args['project'] ?? 'de.wikipedia'));
         $countryCode = strtoupper(trim((string) ($args['country_code'] ?? '')));
-        $date = $this->date((string) ($args['date'] ?? ''));
-        $pathDate = $date->format('Y/m/d');
+        $date        = $this->date((string) ($args['date'] ?? ''));
+        $pathDate    = $date->format('Y/m/d');
 
         $url = $countryCode !== '' && preg_match('/^[A-Z]{2}$/', $countryCode) === 1
             ? sprintf('https://wikimedia.org/api/rest_v1/metrics/pageviews/top-per-country/%s/all-access/%s', rawurlencode($countryCode), $pathDate)
             : sprintf('https://wikimedia.org/api/rest_v1/metrics/pageviews/top/%s/all-access/%s', rawurlencode($project), $pathDate);
 
-        $payload = $this->requestJson($url, 'NafCMS Local AI Wikimedia Trends Tool');
+        $payload  = $this->requestJson($url, 'NafCMS Local AI Wikimedia Trends Tool');
         $articles = $payload['items'][0]['articles'] ?? [];
         $articles = is_array($articles) ? $articles : [];
-        $trends = [];
-        $seen = [];
+        $trends   = [];
+        $seen     = [];
         foreach ($articles as $article) {
             $trend = $this->summarizeWikipediaArticle($article);
             if ($trend === null) {
@@ -99,20 +101,20 @@ final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface, Lo
             }
 
             $seen[$key] = true;
-            $trends[] = $trend;
+            $trends[]   = $trend;
             if (count($trends) >= $limit) {
                 break;
             }
         }
 
         return [
-            'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
-            'source' => 'Wikimedia Pageviews',
-            'signal' => 'Most viewed Wikipedia pages. Treat as public-interest signal, not search volume.',
-            'project' => $countryCode !== '' ? null : $project,
+            'generated_at' => (new DateTimeImmutable())->format(DATE_ATOM),
+            'source'       => 'Wikimedia Pageviews',
+            'signal'       => 'Most viewed Wikipedia pages. Treat as public-interest signal, not search volume.',
+            'project'      => $countryCode !== '' ? null : $project,
             'country_code' => $countryCode !== '' ? $countryCode : null,
-            'date' => $date->format('Y-m-d'),
-            'trends' => $trends,
+            'date'         => $date->format('Y-m-d'),
+            'trends'       => $trends,
         ];
     }
 
@@ -122,27 +124,27 @@ final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface, Lo
      */
     private function newsTrends(array $args, int $limit): array
     {
-        $query = trim((string) ($args['query'] ?? ''));
-        $timespan = $this->timespan((string) ($args['timespan'] ?? '1day'));
+        $query      = trim((string) ($args['query'] ?? ''));
+        $timespan   = $this->timespan((string) ($args['timespan'] ?? '1day'));
         $gdeltQuery = $query !== '' ? $query : '(retail OR ecommerce OR shopping OR consumer OR marketing)';
 
         $payload = $this->requestJson('https://api.gdeltproject.org/api/v2/doc/doc?' . http_build_query([
-            'query' => $gdeltQuery,
-            'mode' => 'artlist',
-            'format' => 'json',
+            'query'      => $gdeltQuery,
+            'mode'       => 'artlist',
+            'format'     => 'json',
             'maxrecords' => $limit,
-            'timespan' => $timespan,
-            'sort' => 'datedesc',
+            'timespan'   => $timespan,
+            'sort'       => 'datedesc',
         ]), 'NafCMS Local AI GDELT Trends Tool');
         $articles = is_array($payload['articles'] ?? null) ? $payload['articles'] : [];
 
         return [
-            'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
-            'source' => 'GDELT DOC 2.0',
-            'signal' => 'Recent news coverage matching the query. Treat as media-coverage signal, not search volume.',
-            'query' => $gdeltQuery,
-            'timespan' => $timespan,
-            'trends' => array_map($this->summarizeNewsArticle(...), $articles),
+            'generated_at' => (new DateTimeImmutable())->format(DATE_ATOM),
+            'source'       => 'GDELT DOC 2.0',
+            'signal'       => 'Recent news coverage matching the query. Treat as media-coverage signal, not search volume.',
+            'query'        => $gdeltQuery,
+            'timespan'     => $timespan,
+            'trends'       => array_map($this->summarizeNewsArticle(...), $articles),
         ];
     }
 
@@ -153,15 +155,15 @@ final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface, Lo
         return preg_match('/^[a-z0-9_-]+\.wikipedia$/', $project) === 1 ? $project : 'de.wikipedia';
     }
 
-    private function date(string $value): \DateTimeImmutable
+    private function date(string $value): DateTimeImmutable
     {
         $date = trim($value) !== ''
-            ? \DateTimeImmutable::createFromFormat('!Y-m-d', trim($value))
+            ? DateTimeImmutable::createFromFormat('!Y-m-d', trim($value))
             : false;
 
-        return $date instanceof \DateTimeImmutable
+        return $date instanceof DateTimeImmutable
             ? $date
-            : new \DateTimeImmutable('yesterday');
+            : new DateTimeImmutable('yesterday');
     }
 
     private function timespan(string $value): string
@@ -180,19 +182,19 @@ final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface, Lo
     {
         $context = stream_context_create([
             'http' => [
-                'method' => 'GET',
+                'method'  => 'GET',
                 'timeout' => 8,
-                'header' => "Accept: application/json\r\nUser-Agent: {$userAgent}\r\n",
+                'header'  => "Accept: application/json\r\nUser-Agent: {$userAgent}\r\n",
             ],
         ]);
         $raw = @file_get_contents($url, false, $context);
         if (!is_string($raw) || trim($raw) === '') {
-            throw new \RuntimeException('Trend source did not return a response.');
+            throw new RuntimeException('Trend source did not return a response.');
         }
 
         $data = json_decode($raw, true);
         if (!is_array($data)) {
-            throw new \RuntimeException('Trend source returned invalid JSON.');
+            throw new RuntimeException('Trend source returned invalid JSON.');
         }
 
         return $data;
@@ -216,15 +218,15 @@ final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface, Lo
         return [
             'title' => str_replace('_', ' ', $title),
             'views' => (int) ($article['views'] ?? 0),
-            'rank' => (int) ($article['rank'] ?? 0),
+            'rank'  => (int) ($article['rank'] ?? 0),
         ];
     }
 
     private function isIgnoredWikipediaTitle(string $title): bool
     {
         $normalized = str_replace('_', ' ', trim($title));
-        $lower = mb_strtolower($normalized);
-        $prefixes = [
+        $lower      = mb_strtolower($normalized);
+        $prefixes   = [
             'main page',
             'wikipedia:',
             'special:',
@@ -266,12 +268,12 @@ final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface, Lo
     private function summarizeNewsArticle(array $article): array
     {
         return [
-            'title' => (string) ($article['title'] ?? ''),
-            'url' => (string) ($article['url'] ?? ''),
-            'domain' => (string) ($article['domain'] ?? ''),
-            'language' => (string) ($article['language'] ?? ''),
+            'title'          => (string) ($article['title'] ?? ''),
+            'url'            => (string) ($article['url'] ?? ''),
+            'domain'         => (string) ($article['domain'] ?? ''),
+            'language'       => (string) ($article['language'] ?? ''),
             'source_country' => (string) ($article['sourcecountry'] ?? ''),
-            'seen_at' => (string) ($article['seendate'] ?? ''),
+            'seen_at'        => (string) ($article['seendate'] ?? ''),
         ];
     }
 }

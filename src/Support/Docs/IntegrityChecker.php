@@ -8,14 +8,16 @@ use Naf\CMS\Content\BlockViewRegistry;
 use Naf\CMS\Content\Page\Block\BlockTypeInterface;
 use Naf\CMS\Page\Layout;
 use Naf\CMS\Support\RuntimePaths;
+use ReflectionObject;
+
 use function Naf\CMS\cms;
 
 final class IntegrityChecker
 {
     private const array IGNORED_BLOCK_VIEWS = [
-        'empty.phtml' => true,
+        'empty.phtml'       => true,
         'placeholder.phtml' => true,
-        'welcome.phtml' => true,
+        'welcome.phtml'     => true,
     ];
 
     /**
@@ -24,8 +26,7 @@ final class IntegrityChecker
     public function __construct(
         private readonly string $basePath,
         private readonly ?array $blockTypes = null,
-    )
-    {
+    ) {
     }
 
     /**
@@ -33,11 +34,11 @@ final class IntegrityChecker
      */
     public function check(): array
     {
-        $issues = [];
-        $blockTypes = $this->blockTypes();
-        $blockViews = new BlockViewRegistry();
+        $issues       = [];
+        $blockTypes   = $this->blockTypes();
+        $blockViews   = new BlockViewRegistry();
         $templateFile = RuntimePaths::resource($this->basePath, 'pages/page_templates.php');
-        $templates = $this->pageTemplates($templateFile);
+        $templates    = $this->pageTemplates($templateFile);
 
         $issues = [
             ...$issues,
@@ -77,14 +78,14 @@ final class IntegrityChecker
      */
     private function checkBlockViews(array $blockTypes, BlockViewRegistry $blockViews): array
     {
-        $issues = [];
-        $mappings = $blockViews->all();
+        $issues          = [];
+        $mappings        = $blockViews->all();
         $referencedViews = [];
 
         foreach ($blockTypes as $id => $type) {
-            $reflection = new \ReflectionObject($type);
-            $file = (string) $reflection->getFileName();
-            $line = $reflection->getStartLine();
+            $reflection = new ReflectionObject($type);
+            $file       = (string) $reflection->getFileName();
+            $line       = $reflection->getStartLine();
 
             if (!isset($mappings[$id])) {
                 $issues[] = $this->issue($file, $line, sprintf(
@@ -94,13 +95,13 @@ final class IntegrityChecker
                 continue;
             }
 
-            $view = $mappings[$id];
-            $viewFile = $this->viewFile($view);
+            $view                       = $mappings[$id];
+            $viewFile                   = $this->viewFile($view);
             $referencedViews[$viewFile] = true;
 
             if (!is_file($viewFile)) {
                 $registryFile = $this->basePath . '/src/Content/BlockViewRegistry.php';
-                $issues[] = $this->issue($registryFile, $this->lineOf($registryFile, $id), sprintf(
+                $issues[]     = $this->issue($registryFile, $this->lineOf($registryFile, $id), sprintf(
                     'BlockType "%s" maps to missing view "%s" (%s).',
                     $id,
                     $view,
@@ -127,11 +128,11 @@ final class IntegrityChecker
      */
     private function checkTemplateViews(array $templates, string $templateFile): array
     {
-        $issues = [];
+        $issues          = [];
         $registeredViews = [];
 
         foreach ($templates as $template) {
-            $id = (string) ($template['id'] ?? '');
+            $id   = (string) ($template['id'] ?? '');
             $view = (string) ($template['view'] ?? '');
             if ($view === '') {
                 $issues[] = $this->issue($templateFile, $this->lineOf($templateFile, $id), sprintf(
@@ -141,7 +142,7 @@ final class IntegrityChecker
                 continue;
             }
 
-            $viewFile = $this->viewFile($view);
+            $viewFile                   = $this->viewFile($view);
             $registeredViews[$viewFile] = $id;
             if (!is_file($viewFile)) {
                 $issues[] = $this->issue($templateFile, $this->lineOf($templateFile, $view), sprintf(
@@ -173,7 +174,7 @@ final class IntegrityChecker
      */
     private function checkTemplateBlockReferences(array $templates, string $templateFile, array $blockTypeIds): array
     {
-        $issues = [];
+        $issues          = [];
         $knownBlockTypes = array_fill_keys($blockTypeIds, true);
 
         foreach ($templates as $template) {
@@ -223,6 +224,7 @@ final class IntegrityChecker
         }
 
         $templates = require $templateFile;
+
         return is_array($templates) ? Layout::definitions($templates) : [];
     }
 
@@ -249,6 +251,7 @@ final class IntegrityChecker
     private function viewFile(string $view): string
     {
         $path = str_replace('.', '/', trim($view, '/'));
+
         return RuntimePaths::views($this->basePath, $path . '.phtml');
     }
 
@@ -258,8 +261,8 @@ final class IntegrityChecker
     private function issue(string $file, int $line, string $message): array
     {
         return [
-            'file' => $this->relative($file),
-            'line' => max(1, $line),
+            'file'    => $this->relative($file),
+            'line'    => max(1, $line),
             'message' => $message,
         ];
     }
@@ -287,6 +290,7 @@ final class IntegrityChecker
     private function relative(string $file): string
     {
         $prefix = rtrim($this->basePath, '/') . '/';
+
         return str_starts_with($file, $prefix) ? substr($file, strlen($prefix)) : $file;
     }
 }

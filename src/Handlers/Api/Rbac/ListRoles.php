@@ -6,6 +6,7 @@ namespace Naf\CMS\Handlers\Api\Rbac;
 
 use Naf\CMS\Repositories\RoleRepository;
 use Psr\Http\Message\ResponseInterface;
+
 use function Naf\json;
 use function Naf\ORM\repo;
 

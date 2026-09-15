@@ -11,9 +11,10 @@ use Naf\CMS\Models\Role;
 use Naf\CMS\Repositories\RoleRepository;
 use Naf\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
+
+use function Naf\CMS\user;
 use function Naf\json;
 use function Naf\ORM\repo;
-use function Naf\CMS\user;
 
 final class CreateRole
 {
@@ -44,9 +45,9 @@ final class CreateRole
 
         return json([
             'success' => true,
-            'role' => [
-                'id' => $created->getId(),
-                'name' => $created->getName(),
+            'role'    => [
+                'id'               => $created->getId(),
+                'name'             => $created->getName(),
                 'permission_names' => [],
             ],
         ]);

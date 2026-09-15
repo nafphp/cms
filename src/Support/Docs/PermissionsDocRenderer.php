@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Naf\CMS\Support\Docs;
 
 use Naf\CMS\Enums\Permission;
-use Naf\CMS\Support\Docs\DocBlockRenderer;
-use Naf\CMS\Support\Docs\MarkdownTable;
 
 final class PermissionsDocRenderer implements DocBlockRenderer
 {
@@ -24,25 +22,25 @@ final class PermissionsDocRenderer implements DocBlockRenderer
                     '`' . $permission->value . '`',
                     $this->describe($permission),
                 ],
-                Permission::cases()
-            )
+                Permission::cases(),
+            ),
         );
     }
 
     private function describe(Permission $permission): string
     {
         return match ($permission) {
-            Permission::ADMIN_ACCESS => 'Access the admin area.',
-            Permission::SYSTEM_READ => 'Read system status and health information.',
+            Permission::ADMIN_ACCESS   => 'Access the admin area.',
+            Permission::SYSTEM_READ    => 'Read system status and health information.',
             Permission::MCP_TOOLS_CALL => 'Call allowed MCP tools.',
-            default => $this->humanize($permission->value),
+            default                    => $this->humanize($permission->value),
         };
     }
 
     private function humanize(string $value): string
     {
-        $parts = explode('.', $value);
-        $action = array_pop($parts) ?: 'use';
+        $parts   = explode('.', $value);
+        $action  = array_pop($parts) ?: 'use';
         $subject = implode(' ', $parts);
 
         return ucfirst(str_replace('_', ' ', $action)) . ' ' . str_replace('_', ' ', $subject) . '.';

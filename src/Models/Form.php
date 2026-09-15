@@ -8,13 +8,13 @@ use Naf\ORM\Model\AbstractModel;
 
 class Form extends AbstractModel
 {
-    protected ?string $identifier = null;
-    protected ?string $title = null;
-    protected ?string $status = 'draft';
-    protected ?string $fields_json = null;
+    protected ?string $identifier    = null;
+    protected ?string $title         = null;
+    protected ?string $status        = 'draft';
+    protected ?string $fields_json   = null;
     protected ?string $settings_json = null;
-    protected ?string $created_at = null;
-    protected ?string $updated_at = null;
+    protected ?string $created_at    = null;
+    protected ?string $updated_at    = null;
 
     public function getIdentifier(): ?string
     {

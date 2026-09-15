@@ -6,6 +6,8 @@ namespace Naf\CMS\Events;
 
 use Naf\CMS\Security\CspNonce;
 use Psr\Http\Message\ResponseInterface;
+use Throwable;
+
 use function Naf\config;
 use function Naf\request;
 
@@ -24,7 +26,7 @@ final class SecurityHeadersEvent
             if (strtolower(request()->getUri()->getScheme()) === 'https') {
                 $response = $response->withHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
             }
-        } catch (\Throwable) {
+        } catch (Throwable) {
         }
 
         return $response;
@@ -53,7 +55,7 @@ final class SecurityHeadersEvent
     private function connectSrc(): string
     {
         $enabled = filter_var(config('ai:enabled', false), FILTER_VALIDATE_BOOL);
-        $local = (string) config('ai:type', 'local') === 'local';
+        $local   = (string) config('ai:type', 'local') === 'local';
 
         return $enabled && $local
             ? "connect-src 'self' http://localhost:* http://127.0.0.1:* http://[::1]:*"

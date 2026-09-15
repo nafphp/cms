@@ -9,15 +9,16 @@ use Naf\CMS\Content\Page\Block\BlockTypeInterface;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
+
 use function Naf\CMS\cms;
 
 final class BlockTypeContractTest extends TestCase
 {
     private const array ALLOWED_REGIONS = [
         'header' => true,
-        'hero' => true,
-        'main' => true,
-        'aside' => true,
+        'hero'   => true,
+        'main'   => true,
+        'aside'  => true,
         'footer' => true,
     ];
 
@@ -28,7 +29,7 @@ final class BlockTypeContractTest extends TestCase
         $types = cms()->blockTypes()->all();
         self::assertGreaterThanOrEqual(27, count($types));
 
-        $seen = [];
+        $seen       = [];
         $blockViews = new BlockViewRegistry();
 
         foreach ($types as $registryId => $type) {

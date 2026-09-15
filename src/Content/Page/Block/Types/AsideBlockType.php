@@ -39,8 +39,8 @@ final class AsideBlockType extends AbstractBlockType
         $navigationOptions = PageBuilderBlockOptions::navigationOptions();
 
         return [
-            'title' => 'Explore',
-            'text' => 'Contextual links and supporting content.',
+            'title'                => 'Explore',
+            'text'                 => 'Contextual links and supporting content.',
             'navigationIdentifier' => (string) ($navigationOptions[0]['value'] ?? 'main'),
         ];
     }

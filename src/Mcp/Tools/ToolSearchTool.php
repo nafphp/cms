@@ -6,7 +6,6 @@ namespace Naf\CMS\Mcp\Tools;
 
 use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
 use Naf\CMS\Enums\ToolRisk;
-
 use Naf\CMS\Services\Ai\LocalAiToolBridge;
 use Naf\MCP\Support\Schema;
 use Naf\MCP\Tools\ScopedToolInterface;
@@ -16,8 +15,9 @@ final class ToolSearchTool implements ToolInterface, ScopedToolInterface, LocalA
 {
     use DeclaresLocalAiToolRisk;
 
-    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const ToolRisk AI_RISK    = ToolRisk::READ;
     private const bool AI_DESTRUCTIVE = false;
+
     public function name(): string
     {
         return 'cms_tools_search';
@@ -78,12 +78,12 @@ final class ToolSearchTool implements ToolInterface, ScopedToolInterface, LocalA
 
         return [
             'success' => true,
-            'count' => count($tools),
-            'tools' => array_map(static fn(array $tool): array => [
-                'name' => (string) ($tool['name'] ?? ''),
+            'count'   => count($tools),
+            'tools'   => array_map(static fn(array $tool): array => [
+                'name'        => (string) ($tool['name'] ?? ''),
                 'description' => (string) ($tool['description'] ?? ''),
                 'inputSchema' => is_array($tool['inputSchema'] ?? null) ? $tool['inputSchema'] : [],
-                'meta' => is_array($tool['meta'] ?? null) ? $tool['meta'] : [],
+                'meta'        => is_array($tool['meta'] ?? null) ? $tool['meta'] : [],
             ], $tools),
         ];
     }

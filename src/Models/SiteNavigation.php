@@ -9,10 +9,10 @@ use Naf\ORM\Model\AbstractModel;
 class SiteNavigation extends AbstractModel
 {
     protected ?string $identifier = null;
-    protected ?string $title = null;
-    protected ?string $scope = 'frontend';
-    protected ?string $language = null;
-    protected ?string $status = 'draft';
+    protected ?string $title      = null;
+    protected ?string $scope      = 'frontend';
+    protected ?string $language   = null;
+    protected ?string $status     = 'draft';
     protected ?string $items_json = null;
     protected ?string $created_at = null;
     protected ?string $updated_at = null;

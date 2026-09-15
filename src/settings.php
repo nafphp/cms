@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
+use Naf\CMS\Enums\Permission;
 use Naf\CMS\Settings\SettingField;
 use Naf\CMS\Settings\SettingSection;
-use Naf\CMS\Enums\Permission;
+
 use function Naf\CMS\cms;
 
 $languageOptions = array_combine(
@@ -61,7 +62,7 @@ return [
                 ->setDescription('Shows the floating Local AI chat in the admin UI. Chat history stays in this browser when disabled.')
                 ->setDefaultValue('0'),
             SettingField::select('ai.type', 'AI type', [
-                'local' => 'Local Ollama',
+                'local'  => 'Local Ollama',
                 'remote' => 'Remote provider',
             ])
                 ->setDescription('Local uses Ollama directly from the admin browser. Remote is reserved for a later provider integration.')

@@ -7,8 +7,9 @@ namespace Naf\CMS\Handlers\Api\Article;
 use Naf\CMS\Enums\ArticleStatus;
 use Naf\CMS\Models\Article;
 use Psr\Http\Message\ResponseInterface;
-use function Naf\json;
+
 use function Naf\CMS\cms;
+use function Naf\json;
 
 final class DeleteArticleVersion
 {
@@ -20,7 +21,7 @@ final class DeleteArticleVersion
         }
 
         $articles = cms()->content(Article::class);
-        $article = $articles->findVersion((int) $articleId, $lang->value, (int) $version);
+        $article  = $articles->findVersion((int) $articleId, $lang->value, (int) $version);
         if ($article?->getVersion()?->getStatus() === ArticleStatus::PUBLISHED) {
             return json(['success' => false, 'reason' => 'Published versions cannot be deleted.'], 400);
         }

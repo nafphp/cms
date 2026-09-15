@@ -11,9 +11,10 @@ use Naf\CMS\Models\Role;
 use Naf\CMS\Repositories\RoleRepository;
 use Naf\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
+
+use function Naf\CMS\user;
 use function Naf\json;
 use function Naf\ORM\repo;
-use function Naf\CMS\user;
 
 final class UpdateRole
 {
@@ -22,11 +23,12 @@ final class UpdateRole
 
     public function __invoke(): ResponseInterface
     {
-        $payload = $this->jsonBody();
-        $roleId = (int) ($payload['id'] ?? 0);
+        $payload    = $this->jsonBody();
+        $roleId     = (int) ($payload['id'] ?? 0);
         $repository = repo(RoleRepository::class);
         /** @var Role|null $old */
         $old = $repository->findOneBy('id', $roleId);
+
         try {
             $updated = $repository->renameById(
                 (int) user()?->get()?->getId(),

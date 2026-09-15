@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support\Docs;
 
+use FilesystemIterator;
+use Naf\CMS\Content\Page\Block\BlockTypeInterface;
 use Naf\CMS\Support\Docs\IntegrityChecker;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 final class IntegrityCheckerTest extends TestCase
 {
@@ -27,41 +31,84 @@ final class IntegrityCheckerTest extends TestCase
     public function testCheckReportsAndSortsDriftIssues(): void
     {
         $blockTypes = [
-            new class implements \Naf\CMS\Content\Page\Block\BlockTypeInterface {
-        public function id(): string { return 'hero'; }
-        public function label(): string { return 'Hero'; }
-        public function description(): string { return ''; }
-        public function regions(): array { return ['main']; }
-        public function previewTitle(): string { return 'Hero'; }
-        public function defaults(): array { return []; }
-        public function fields(): array { return []; }
-        public function unique(): bool { return false; }
-        public function contentTypes(): array { return []; }
-        public function templateKinds(): array { return []; }
-        public function toBuilderArray(): array { return []; }
-    },
+            new class implements BlockTypeInterface {
+                public function id(): string
+                {
+                    return 'hero';
+                }
+
+                public function label(): string
+                {
+                    return 'Hero';
+                }
+
+                public function description(): string
+                {
+                    return '';
+                }
+
+                public function regions(): array
+                {
+                    return ['main'];
+                }
+
+                public function previewTitle(): string
+                {
+                    return 'Hero';
+                }
+
+                public function defaults(): array
+                {
+                    return [];
+                }
+
+                public function fields(): array
+                {
+                    return [];
+                }
+
+                public function unique(): bool
+                {
+                    return false;
+                }
+
+                public function contentTypes(): array
+                {
+                    return [];
+                }
+
+                public function templateKinds(): array
+                {
+                    return [];
+                }
+
+                public function toBuilderArray(): array
+                {
+                    return [];
+                }
+            },
         ];
         $this->write('src/Resources/pages/page_templates.php', <<<'PHP'
-<?php
+        <?php
 
-return [
-    [
-        'id' => 'landing',
-        'view' => 'page.templates.missing',
-        'blocks' => [
+        return [
             [
-                'id' => 'hero_slot',
-                'accepts' => ['hero', 'ghost'],
-                'defaultContentType' => 'phantom',
+                'id' => 'landing',
+                'view' => 'page.templates.missing',
+                'blocks' => [
+                    [
+                        'id' => 'hero_slot',
+                        'accepts' => ['hero', 'ghost'],
+                        'defaultContentType' => 'phantom',
+                    ],
+                ],
             ],
-        ],
-    ],
-];
-PHP);
+        ];
+        PHP);
         $this->write('views/page/blocks/orphan.phtml', '<div>orphan</div>');
         $this->write('views/page/templates/orphan.phtml', '<main>orphan</main>');
 
-        $issues = (new IntegrityChecker($this->basePath, $blockTypes))->check();
+        $issues   = (new IntegrityChecker($this->basePath, $blockTypes))->check();
         $messages = array_column($issues, 'message');
 
         self::assertContains('BlockType "hero" maps to missing view "page.blocks.hero" (views/page/blocks/hero.phtml).', $messages);
@@ -100,9 +147,9 @@ PHP);
             return;
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
 
         foreach ($iterator as $file) {

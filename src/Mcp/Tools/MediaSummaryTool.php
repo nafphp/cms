@@ -4,23 +4,27 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Mcp\Tools;
 
+use DateTimeImmutable;
+use Naf\CMS\Api\MediaApi;
 use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
 use Naf\CMS\Enums\ToolRisk;
-
-use Naf\CMS\Api\MediaApi;
 use Naf\MCP\Support\Schema;
 use Naf\MCP\Tools\ScopedToolInterface;
 use Naf\MCP\Tools\ToolInterface;
 use Throwable;
+
 use function Naf\CMS\cms;
 
 final class MediaSummaryTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
     use DeclaresLocalAiToolRisk;
 
-    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const ToolRisk AI_RISK    = ToolRisk::READ;
     private const bool AI_DESTRUCTIVE = false;
-    public function __construct(private ?MediaApi $media = null) {}
+
+    public function __construct(private ?MediaApi $media = null)
+    {
+    }
 
     public function name(): string
     {
@@ -50,36 +54,36 @@ final class MediaSummaryTool implements ToolInterface, ScopedToolInterface, Loca
     public function handle(array $args): array
     {
         $includeRecent = filter_var($args['include_recent'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $limit = max(1, min(50, (int) ($args['limit'] ?? 10)));
+        $limit         = max(1, min(50, (int) ($args['limit'] ?? 10)));
 
         try {
             $summary = $this->media()->summary();
-            $recent = $includeRecent
+            $recent  = $includeRecent
                 ? array_map($this->summarizeMediaItem(...), $this->media()->recent($limit))
                 : [];
 
             return [
-                'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
+                'generated_at'       => (new DateTimeImmutable())->format(DATE_ATOM),
                 'database_available' => true,
                 ...$summary,
                 'recent' => $recent,
             ];
         } catch (Throwable $throwable) {
             return [
-                'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
+                'generated_at'       => (new DateTimeImmutable())->format(DATE_ATOM),
                 'database_available' => false,
-                'error' => $throwable->getMessage(),
-                'total' => 0,
-                'images' => 0,
-                'documents' => 0,
-                'archives' => 0,
-                'files' => 0,
-                'bytes' => 0,
-                'kind_counts' => [
-                    'image' => 0,
+                'error'              => $throwable->getMessage(),
+                'total'              => 0,
+                'images'             => 0,
+                'documents'          => 0,
+                'archives'           => 0,
+                'files'              => 0,
+                'bytes'              => 0,
+                'kind_counts'        => [
+                    'image'    => 0,
                     'document' => 0,
-                    'archive' => 0,
-                    'file' => 0,
+                    'archive'  => 0,
+                    'file'     => 0,
                 ],
                 'recent' => [],
             ];
@@ -98,17 +102,17 @@ final class MediaSummaryTool implements ToolInterface, ScopedToolInterface, Loca
     private function summarizeMediaItem(array $media): array
     {
         return [
-            'id' => (int) ($media['id'] ?? 0),
-            'public_id' => (string) ($media['public_id'] ?? ''),
-            'original_name' => (string) ($media['original_name'] ?? ''),
-            'kind' => (string) ($media['kind'] ?? 'file'),
-            'mime_type' => (string) ($media['mime_type'] ?? ''),
-            'visibility' => (string) ($media['visibility'] ?? 'public'),
-            'size_bytes' => (int) ($media['size_bytes'] ?? 0),
-            'size_label' => (string) ($media['size_label'] ?? ''),
+            'id'               => (int) ($media['id'] ?? 0),
+            'public_id'        => (string) ($media['public_id'] ?? ''),
+            'original_name'    => (string) ($media['original_name'] ?? ''),
+            'kind'             => (string) ($media['kind'] ?? 'file'),
+            'mime_type'        => (string) ($media['mime_type'] ?? ''),
+            'visibility'       => (string) ($media['visibility'] ?? 'public'),
+            'size_bytes'       => (int) ($media['size_bytes'] ?? 0),
+            'size_label'       => (string) ($media['size_label'] ?? ''),
             'dimensions_label' => (string) ($media['dimensions_label'] ?? ''),
-            'public_url' => (string) ($media['public_url'] ?? ''),
-            'created_at' => (string) ($media['created_at'] ?? ''),
+            'public_url'       => (string) ($media['public_url'] ?? ''),
+            'created_at'       => (string) ($media['created_at'] ?? ''),
         ];
     }
 }

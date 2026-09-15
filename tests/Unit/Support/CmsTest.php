@@ -4,26 +4,27 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support;
 
+use InvalidArgumentException;
 use Naf\CMS\Content\Navigation\NavigationContentType;
+use Naf\CMS\Content\Page\Block\BlockTypeRegistry;
 use Naf\CMS\Enums\Scope;
 use Naf\CMS\Navigation\NavigationItem;
 use Naf\CMS\Settings\SettingField;
 use Naf\CMS\Settings\SettingSection;
 use Naf\CMS\Support\Cms;
-use Naf\CMS\Content\Page\Block\BlockTypeRegistry;
 use Naf\CMS\Visualization\VisualizationRegistry;
 use PHPUnit\Framework\TestCase;
-use function Naf\CMS\cms;
+use stdClass;
 
 final class CmsTest extends TestCase
 {
     public function testCmsThrowsForUnsupportedContentType(): void
     {
-        self::expectException(\InvalidArgumentException::class);
+        self::expectException(InvalidArgumentException::class);
         self::expectExceptionMessage('No content type registered for "stdClass". Register one through cms()->contentTypes()->add(...).');
 
         $cms = new Cms();
-        $cms->content(\stdClass::class);
+        $cms->content(stdClass::class);
     }
 
     public function testCmsExposesVisualizationRegistry(): void
@@ -60,7 +61,7 @@ final class CmsTest extends TestCase
         $cms->navigation()->add(
             NavigationItem::create('admin.example')
                 ->setScope('admin')
-                ->setLabel('Example')
+                ->setLabel('Example'),
         );
 
         self::assertSame('Example', $cms->navigation()->item('admin.example')?->toArray()['label']);
@@ -72,7 +73,7 @@ final class CmsTest extends TestCase
 
         $cms->scope(Scope::ADMIN)->navigation()->add(
             NavigationItem::create('admin.scoped')
-                ->setLabel('Scoped Admin')
+                ->setLabel('Scoped Admin'),
         );
 
         $item = $cms->scope(Scope::ADMIN)->navigation()->item('admin.scoped');
@@ -88,7 +89,7 @@ final class CmsTest extends TestCase
 
         $cms->scope()->navigation()->add(
             NavigationItem::create('frontend.scoped')
-                ->setLabel('Scoped Frontend')
+                ->setLabel('Scoped Frontend'),
         );
 
         $item = $cms->scope(Scope::FRONTEND)->navigation()->item('frontend.scoped');

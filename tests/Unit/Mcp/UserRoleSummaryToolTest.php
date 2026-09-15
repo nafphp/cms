@@ -16,16 +16,16 @@ final class UserRoleSummaryToolTest extends DatabaseTestCase
             'CREATE TABLE roles (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL)',
             'CREATE TABLE permissions (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL)',
             'CREATE TABLE user_role (user_id INTEGER NOT NULL, role_id INTEGER NOT NULL)',
-            'CREATE TABLE role_permissions (role_id INTEGER NOT NULL, permission_id INTEGER NOT NULL)'
+            'CREATE TABLE role_permissions (role_id INTEGER NOT NULL, permission_id INTEGER NOT NULL)',
         );
 
-        $adminUser = $this->insertRow('users', ['username' => 'admin']);
-        $editorUser = $this->insertRow('users', ['username' => 'editor']);
-        $adminRole = $this->insertRow('roles', ['name' => 'admin']);
-        $editorRole = $this->insertRow('roles', ['name' => 'editor']);
+        $adminUser    = $this->insertRow('users', ['username' => 'admin']);
+        $editorUser   = $this->insertRow('users', ['username' => 'editor']);
+        $adminRole    = $this->insertRow('roles', ['name' => 'admin']);
+        $editorRole   = $this->insertRow('roles', ['name' => 'editor']);
         $articlesView = $this->insertRow('permissions', ['name' => 'articles.view']);
         $articlesEdit = $this->insertRow('permissions', ['name' => 'articles.edit']);
-        $usersView = $this->insertRow('permissions', ['name' => 'users.view']);
+        $usersView    = $this->insertRow('permissions', ['name' => 'users.view']);
 
         $this->insertRow('user_role', ['user_id' => $adminUser, 'role_id' => $adminRole]);
         $this->insertRow('user_role', ['user_id' => $editorUser, 'role_id' => $editorRole]);

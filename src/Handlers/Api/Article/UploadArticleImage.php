@@ -6,10 +6,12 @@ namespace Naf\CMS\Handlers\Api\Article;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UploadedFileInterface;
-use function Naf\json;
-use function Naf\request;
+use Throwable;
+
 use function Naf\CMS\cms;
 use function Naf\CMS\user;
+use function Naf\json;
+use function Naf\request;
 
 final class UploadArticleImage
 {
@@ -24,14 +26,14 @@ final class UploadArticleImage
             $media = cms()->media()->storeUploadedFile($file, user()?->get()?->getId(), [
                 'collection' => 'articles',
             ]);
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             return json(['success' => 0, 'message' => $exception->getMessage()], 400);
         }
 
         return json([
             'success' => 1,
-            'media' => $media,
-            'file' => ['url' => (string) ($media['public_url'] ?? '')],
+            'media'   => $media,
+            'file'    => ['url' => (string) ($media['public_url'] ?? '')],
         ]);
     }
 }

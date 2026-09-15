@@ -8,6 +8,7 @@ use Naf\CMS\Handlers\Support\ReadsJsonBody;
 use Naf\CMS\Services\Ai\LocalAiPromptLibrary;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
+
 use function Naf\json;
 
 final class SaveAiPromptFile
@@ -16,14 +17,14 @@ final class SaveAiPromptFile
 
     public function __invoke(): ResponseInterface
     {
-        $body = $this->jsonBody();
-        $file = trim((string) ($body['file'] ?? ''));
+        $body    = $this->jsonBody();
+        $file    = trim((string) ($body['file'] ?? ''));
         $content = (string) ($body['content'] ?? '');
 
         if ($file === '') {
             return json([
                 'success' => false,
-                'reason' => 'Prompt file is required.',
+                'reason'  => 'Prompt file is required.',
             ], 400);
         }
 
@@ -32,14 +33,14 @@ final class SaveAiPromptFile
         } catch (Throwable $exception) {
             return json([
                 'success' => false,
-                'reason' => $exception->getMessage(),
+                'reason'  => $exception->getMessage(),
             ], 500);
         }
 
         return json([
             'success' => true,
-            'file' => [
-                'name' => $file,
+            'file'    => [
+                'name'    => $file,
                 'content' => $saved,
             ],
         ]);

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Content;
 
+use InvalidArgumentException;
+use LogicException;
 use Naf\ORM\Core\EntityInterface;
-use Naf\CMS\Content\ContentTypeInterface;
+use RuntimeException;
 
 final class ContentRegistry
 {
@@ -15,10 +17,11 @@ final class ContentRegistry
     public function add(ContentTypeInterface $type, bool $replace = false): self
     {
         if (isset($this->types[$type->id()]) && !$replace) {
-            throw new \LogicException(sprintf('Content type "%s" is already registered.', $type->id()));
+            throw new LogicException(sprintf('Content type "%s" is already registered.', $type->id()));
         }
 
         $this->types[$type->id()] = $type;
+
         return $this;
     }
 
@@ -46,7 +49,7 @@ final class ContentRegistry
 
     public function require(string $id): ContentTypeInterface
     {
-        return $this->get($id) ?? throw new \RuntimeException(sprintf('Content type "%s" is not registered.', $id));
+        return $this->get($id) ?? throw new RuntimeException(sprintf('Content type "%s" is not registered.', $id));
     }
 
     /**
@@ -69,7 +72,7 @@ final class ContentRegistry
     public function requireByModel(string $modelClass): ContentTypeInterface
     {
         return $this->findByModel($modelClass)
-            ?? throw new \InvalidArgumentException(sprintf('No content type registered for "%s".', $modelClass));
+            ?? throw new InvalidArgumentException(sprintf('No content type registered for "%s".', $modelClass));
     }
 
     /** @return array<string, ContentTypeInterface> */

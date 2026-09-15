@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Api;
 
+use LogicException;
 use Naf\CMS\Enums\Permission;
 use Naf\CMS\Enums\Role;
 
 final class ApiEndpoint
 {
-    private string $method = 'GET';
-    private ?string $path = null;
+    private string $method               = 'GET';
+    private ?string $path                = null;
     private bool $requiresAuthentication = false;
     /** @var array<int, Role> */
     private array $requiredRoles = [];
     /** @var array<int, Permission> */
-    private array $requiredPermissions = [];
+    private array $requiredPermissions  = [];
     private bool $requiresAnyPermission = false;
     /** @var callable|array{0: class-string, 1: string}|class-string|null */
     private mixed $handler = null;
@@ -62,13 +63,14 @@ final class ApiEndpoint
     public function setMethod(string $method): self
     {
         $this->method = strtoupper(trim($method));
+
         return $this;
     }
 
     public function path(): string
     {
         if ($this->path === null || $this->path === '') {
-            throw new \LogicException(sprintf('API endpoint "%s" has no path.', $this->id));
+            throw new LogicException(sprintf('API endpoint "%s" has no path.', $this->id));
         }
 
         return $this->path;
@@ -76,8 +78,9 @@ final class ApiEndpoint
 
     public function setPath(string $path): self
     {
-        $path = '/' . ltrim(trim($path), '/');
+        $path       = '/' . ltrim(trim($path), '/');
         $this->path = $path === '/' ? '/' : rtrim($path, '/');
+
         return $this;
     }
 
@@ -89,6 +92,7 @@ final class ApiEndpoint
     public function requireAuthentication(bool $required = true): self
     {
         $this->requiresAuthentication = $required;
+
         return $this;
     }
 
@@ -120,6 +124,7 @@ final class ApiEndpoint
         }
 
         $this->requiresAnyPermission = false;
+
         return $this->requireAuthentication();
     }
 
@@ -132,6 +137,7 @@ final class ApiEndpoint
         }
 
         $this->requiresAnyPermission = true;
+
         return $this->requireAuthentication();
     }
 
@@ -146,13 +152,14 @@ final class ApiEndpoint
     public function setHandler(callable|array|string $handler): self
     {
         $this->handler = $handler;
+
         return $this;
     }
 
     public function handler(): callable|array|string
     {
         if ($this->handler === null) {
-            throw new \LogicException(sprintf('API endpoint "%s" has no handler.', $this->id));
+            throw new LogicException(sprintf('API endpoint "%s" has no handler.', $this->id));
         }
 
         return $this->handler;

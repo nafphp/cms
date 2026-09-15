@@ -6,10 +6,10 @@ use function Naf\route;
 use function Naf\View\view;
 
 $navigations = is_array($navigations ?? null) ? $navigations : [];
-$config = [
-    'rows' => array_map(static fn(array $navigation): array => $navigation + ['kind' => 'Navigation'], $navigations),
-    'sort' => ['key' => 'title', 'direction' => 'asc'],
-    'search' => ['title', 'identifier', 'language', 'status'],
+$config      = [
+    'rows'    => array_map(static fn(array $navigation): array => $navigation + ['kind' => 'Navigation'], $navigations),
+    'sort'    => ['key' => 'title', 'direction' => 'asc'],
+    'search'  => ['title', 'identifier', 'language', 'status'],
     'columns' => [
         ['key' => 'title', 'labelKey' => 'title', 'type' => 'title', 'subtitle' => 'kind', 'colClass' => 'w-[26%]'],
         ['key' => 'identifier', 'labelKey' => 'identifier', 'type' => 'code', 'colClass' => 'w-[18%]'],
@@ -18,41 +18,41 @@ $config = [
         ['key' => 'item_count', 'labelKey' => 'items', 'cellClass' => 'text-slate-600 dark:text-slate-300', 'colClass' => 'w-[10%]'],
         ['key' => 'updated', 'labelKey' => 'updated', 'cellClass' => 'text-slate-500 dark:text-slate-400', 'colClass' => 'w-[14%]'],
         [
-            'key' => 'actions',
+            'key'      => 'actions',
             'labelKey' => 'actions',
             'sortable' => false,
             'colClass' => 'w-[120px]',
         ],
     ],
     'labels' => [
-        'actions' => t('Actions'),
-        'createPage' => t('Create navigation'),
-        'edit' => t('Edit'),
-        'empty' => t('No navigation trees found.'),
-        'identifier' => t('Identifier'),
-        'items' => t('Items'),
-        'language' => t('Language'),
-        'loading' => t('Loading navigation trees...'),
-        'noResults' => t('No matching navigation trees found.'),
-        'search' => t('Search navigation'),
-        'status' => t('Status'),
-        'title' => t('Title'),
-        'updated' => t('Updated'),
-        'publish' => t('Publish'),
+        'actions'        => t('Actions'),
+        'createPage'     => t('Create navigation'),
+        'edit'           => t('Edit'),
+        'empty'          => t('No navigation trees found.'),
+        'identifier'     => t('Identifier'),
+        'items'          => t('Items'),
+        'language'       => t('Language'),
+        'loading'        => t('Loading navigation trees...'),
+        'noResults'      => t('No matching navigation trees found.'),
+        'search'         => t('Search navigation'),
+        'status'         => t('Status'),
+        'title'          => t('Title'),
+        'updated'        => t('Updated'),
+        'publish'        => t('Publish'),
         'publishConfirm' => t('Really publish?'),
-        'published' => t('Published.'),
-        'delete' => t('Delete'),
-        'deleteConfirm' => t('Really delete this navigation?'),
-        'deleted' => t('Navigation deleted.'),
-        'error' => t('Action failed.'),
-        'cancel' => t('Cancel'),
+        'published'      => t('Published.'),
+        'delete'         => t('Delete'),
+        'deleteConfirm'  => t('Really delete this navigation?'),
+        'deleted'        => t('Navigation deleted.'),
+        'error'          => t('Action failed.'),
+        'cancel'         => t('Cancel'),
     ],
     'csrfToken' => csrf()->generate(),
-    'urls' => [
-        'create' => route('admin.navigation.create'),
-        'edit' => '/admin/navigation/{id}/edit',
+    'urls'      => [
+        'create'  => route('admin.navigation.create'),
+        'edit'    => '/admin/navigation/{id}/edit',
         'publish' => '/api/admin/navigation/{id}/publish',
-        'delete' => '/api/admin/navigation/{id}/delete',
+        'delete'  => '/api/admin/navigation/{id}/delete',
     ],
 ];
 
@@ -61,13 +61,13 @@ $config = [
 
 <?php $this->block('content'); ?>
 <?= view('components.admin.grid', [
-    'attributes' => ['data-navigation-grid' => true],
-    'frameAttributes' => ['data-page-grid-frame' => true],
-    'config' => $config,
+    'attributes'        => ['data-navigation-grid' => true],
+    'frameAttributes'   => ['data-page-grid-frame' => true],
+    'config'            => $config,
     'searchPlaceholder' => t('Search navigation'),
-    'actionLabel' => t('Create navigation'),
-    'actionHref' => route('admin.navigation.create'),
-    'loadingLabel' => t('Loading navigation trees...'),
-    'script' => '/js/admin/navigation-grid.js',
+    'actionLabel'       => t('Create navigation'),
+    'actionHref'        => route('admin.navigation.create'),
+    'loadingLabel'      => t('Loading navigation trees...'),
+    'script'            => '/js/admin/navigation-grid.js',
 ]) ?>
 <?php $this->endBlock('content'); ?>

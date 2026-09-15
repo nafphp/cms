@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Handlers\Page\Auth;
 
+use Naf\CMS\Contracts\PasswordPolicyInterface;
 use Naf\CMS\Models\User;
 use Naf\CMS\Repositories\UserRepository;
-use Naf\CMS\Contracts\PasswordPolicyInterface;
 use Naf\CMS\Services\Security\PasswordPolicy;
 use Psr\Http\Message\ResponseInterface;
+
 use function Naf\Form\validator;
 use function Naf\ORM\repo;
 use function Naf\redirect;
@@ -19,12 +20,13 @@ final class RegisterInvitedUser
 {
     public function __construct(
         private readonly PasswordPolicyInterface $passwords = new PasswordPolicy(),
-    ) {}
+    ) {
+    }
 
     public function __invoke(string $token): ResponseInterface
     {
         $repository = repo(UserRepository::class);
-        $invite = $repository->findInviteByToken($token);
+        $invite     = $repository->findInviteByToken($token);
         if ($invite === null) {
             return $this->registerView($token, null, 'Invite link is invalid.');
         }
@@ -34,13 +36,13 @@ final class RegisterInvitedUser
             return $this->registerView($token, $invite, $stateError);
         }
 
-        $data = request()->getParsedBody() ?? [];
+        $data       = request()->getParsedBody() ?? [];
         $validation = validator()->validate($data, [
-            'email' => 'required',
-            'username' => 'required|min:3',
-            'password' => 'required',
+            'email'                 => 'required',
+            'username'              => 'required|min:3',
+            'password'              => 'required',
             'password_confirmation' => 'required|same:password',
-            '_csrf' => 'required',
+            '_csrf'                 => 'required',
         ]);
 
         if (!$validation->isValid()) {
@@ -90,15 +92,15 @@ final class RegisterInvitedUser
     private function registrationError(string $reason): string
     {
         return match ($reason) {
-            'invalid_invite' => 'Invite link is invalid.',
-            'invite_used' => 'This invite link has already been used.',
-            'invite_expired' => 'This invite link has expired.',
+            'invalid_invite'        => 'Invite link is invalid.',
+            'invite_used'           => 'This invite link has already been used.',
+            'invite_expired'        => 'This invite link has expired.',
             'invite_email_mismatch' => 'The email does not match this invite.',
-            'username_exists' => 'Username already exists.',
-            'email_exists' => 'Email already exists.',
-            'invalid_roles' => 'This invite is not configured with valid roles.',
-            'invalid_password' => $this->passwords->message(),
-            default => 'Could not complete registration. Please try again.',
+            'username_exists'       => 'Username already exists.',
+            'email_exists'          => 'Email already exists.',
+            'invalid_roles'         => 'This invite is not configured with valid roles.',
+            'invalid_password'      => $this->passwords->message(),
+            default                 => 'Could not complete registration. Please try again.',
         };
     }
 
@@ -108,10 +110,10 @@ final class RegisterInvitedUser
     private function registerView(string $token, ?array $invite, string $error): ResponseInterface
     {
         return render('auth.register', [
-            'title' => 'Register',
-            'token' => $token,
+            'title'  => 'Register',
+            'token'  => $token,
             'invite' => $invite,
-            'error' => $error,
+            'error'  => $error,
         ]);
     }
 }

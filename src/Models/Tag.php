@@ -8,8 +8,8 @@ use Naf\ORM\Model\AbstractModel;
 
 final class Tag extends AbstractModel
 {
-    protected ?string $name = null;
-    protected ?string $slug = null;
+    protected ?string $name      = null;
+    protected ?string $slug      = null;
     protected ?string $createdAt = null;
 
     public function getName(): ?string

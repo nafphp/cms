@@ -8,6 +8,7 @@ use Naf\CMS\Contracts\ThemeSourceInterface;
 use Naf\CMS\Support\Cms;
 use Naf\CMS\Theme\Theme;
 use PHPUnit\Framework\TestCase;
+
 use function Naf\app;
 
 final class CmsThemeSourceTest extends TestCase

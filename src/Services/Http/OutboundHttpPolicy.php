@@ -6,8 +6,6 @@ namespace Naf\CMS\Services\Http;
 
 use Closure;
 use Naf\CMS\Exceptions\OutboundHttpDenied;
-use Naf\CMS\Services\Http\OutboundHttpProfile;
-use Naf\CMS\Services\Http\OutboundHttpTarget;
 
 final class OutboundHttpPolicy
 {
@@ -64,8 +62,8 @@ final class OutboundHttpPolicy
             throw new OutboundHttpDenied('Outbound URL credentials are not allowed.');
         }
 
-        $scheme = strtolower((string) ($parts['scheme'] ?? ''));
-        $host = strtolower(rtrim((string) ($parts['host'] ?? ''), '.'));
+        $scheme     = strtolower((string) ($parts['scheme'] ?? ''));
+        $host       = strtolower(rtrim((string) ($parts['host'] ?? ''), '.'));
         $policyHost = trim($host, '[]');
         if ($host === '' || !in_array($scheme, $profile->schemes, true)) {
             throw new OutboundHttpDenied('Outbound URL scheme or host is not allowed.');
@@ -114,7 +112,7 @@ final class OutboundHttpPolicy
         if ($this->resolver instanceof Closure) {
             $resolved = ($this->resolver)($host);
         } else {
-            $records = dns_get_record($host, DNS_A | DNS_AAAA);
+            $records  = dns_get_record($host, DNS_A | DNS_AAAA);
             $resolved = [];
             foreach (is_array($records) ? $records : [] as $record) {
                 $address = (string) ($record['ip'] ?? $record['ipv6'] ?? '');
@@ -157,20 +155,21 @@ final class OutboundHttpPolicy
         }
 
         $binary = @inet_pton($address);
+
         return is_string($binary) && strlen($binary) === 4 && ord($binary[0]) === 127;
     }
 
     private function addressInCidr(string $address, string $cidr): bool
     {
         [$network, $prefixText] = explode('/', $cidr, 2);
-        $addressBytes = @inet_pton($address);
-        $networkBytes = @inet_pton($network);
+        $addressBytes           = @inet_pton($address);
+        $networkBytes           = @inet_pton($network);
         if (!is_string($addressBytes) || !is_string($networkBytes) || strlen($addressBytes) !== strlen($networkBytes)) {
             return false;
         }
 
-        $prefix = (int) $prefixText;
-        $fullBytes = intdiv($prefix, 8);
+        $prefix        = (int) $prefixText;
+        $fullBytes     = intdiv($prefix, 8);
         $remainingBits = $prefix % 8;
         if ($fullBytes > 0 && substr($addressBytes, 0, $fullBytes) !== substr($networkBytes, 0, $fullBytes)) {
             return false;
@@ -180,6 +179,7 @@ final class OutboundHttpPolicy
         }
 
         $mask = (0xff << (8 - $remainingBits)) & 0xff;
+
         return (ord($addressBytes[$fullBytes]) & $mask) === (ord($networkBytes[$fullBytes]) & $mask);
     }
 }

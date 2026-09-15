@@ -36,9 +36,9 @@ final class ColumnsBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'columns' => 2,
-            'gap' => 'medium',
-            'align' => 'start',
+            'columns'  => 2,
+            'gap'      => 'medium',
+            'align'    => 'start',
             'children' => [],
         ];
     }

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Api;
 
+use InvalidArgumentException;
 use Naf\CMS\Api\ArticleApi;
-use Naf\CMS\Models\Article;
 use Naf\CMS\Repositories\ArticleRepository;
 use PHPUnit\Framework\MockObject\MockObject;
+use RuntimeException;
 use Tests\Support\NafTestCase;
 
 final class ArticleApiTest extends NafTestCase
@@ -24,7 +25,7 @@ final class ArticleApiTest extends NafTestCase
 
     public function testCreateSetsArticleIdToZeroAndCallsSaveDraft(): void
     {
-        $data = ['title' => 'New', 'slug' => 'new'];
+        $data     = ['title' => 'New', 'slug' => 'new'];
         $expected = ['articleId' => 1, 'articleVersionId' => 10];
 
         $this->articleRepository
@@ -38,7 +39,7 @@ final class ArticleApiTest extends NafTestCase
 
     public function testDraftPreservesArticleIdAndCallsSaveDraft(): void
     {
-        $data = ['title' => 'Updated', 'slug' => 'updated'];
+        $data     = ['title' => 'Updated', 'slug' => 'updated'];
         $expected = ['articleId' => 1, 'articleVersionId' => 11];
 
         $this->articleRepository
@@ -78,7 +79,7 @@ final class ArticleApiTest extends NafTestCase
             ->expects($this->never())
             ->method('publishLatestLanguageVersion');
 
-        self::expectException(\InvalidArgumentException::class);
+        self::expectException(InvalidArgumentException::class);
         self::expectExceptionMessage('Unknown locale: xx');
 
         $this->articleApi->publish(1, 'xx');
@@ -101,7 +102,7 @@ final class ArticleApiTest extends NafTestCase
             ->expects($this->never())
             ->method('deleteLanguageVersions');
 
-        self::expectException(\InvalidArgumentException::class);
+        self::expectException(InvalidArgumentException::class);
         self::expectExceptionMessage('Unknown locale: xx');
 
         $this->articleApi->deleteLocale(1, 'xx');
@@ -126,7 +127,7 @@ final class ArticleApiTest extends NafTestCase
             ->with(1, 'de', 1)
             ->willReturn(null);
 
-        self::expectException(\RuntimeException::class);
+        self::expectException(RuntimeException::class);
         self::expectExceptionMessage('Version not found');
 
         $this->articleApi->restoreVersion(1, 'de', 1);
@@ -142,7 +143,7 @@ final class ArticleApiTest extends NafTestCase
             ->with(1, 'de', 1)
             ->willReturn($article);
 
-        self::expectException(\RuntimeException::class);
+        self::expectException(RuntimeException::class);
         self::expectExceptionMessage('Version not found');
 
         $this->articleApi->restoreVersion(1, 'de', 1);
@@ -163,20 +164,20 @@ final class ArticleApiTest extends NafTestCase
     {
         $expectedQueue = [
             [
-                'article_id' => 1,
-                'language' => 'de',
-                'article_version_id' => 10,
-                'version' => 1,
-                'title' => 'Test Article',
-                'slug' => 'test-article',
-                'teaser' => 'A test article',
-                'author_name' => 'John Doe',
-                'published_at' => null,
-                'created_at' => '2026-05-01 12:00:00',
-                'last_review_action' => null,
+                'article_id'          => 1,
+                'language'            => 'de',
+                'article_version_id'  => 10,
+                'version'             => 1,
+                'title'               => 'Test Article',
+                'slug'                => 'test-article',
+                'teaser'              => 'A test article',
+                'author_name'         => 'John Doe',
+                'published_at'        => null,
+                'created_at'          => '2026-05-01 12:00:00',
+                'last_review_action'  => null,
                 'last_review_comment' => null,
-                'last_reviewed_at' => null,
-                'last_reviewer_name' => null,
+                'last_reviewed_at'    => null,
+                'last_reviewer_name'  => null,
             ],
         ];
 
@@ -191,10 +192,10 @@ final class ArticleApiTest extends NafTestCase
 
     public function testFindReadingRecommendationsReturnsRepositoryPayload(): void
     {
-        $article = $this->mockArticle(['id' => 1]);
+        $article         = $this->mockArticle(['id' => 1]);
         $recommendations = [
             [
-                'article' => $this->mockArticle(['id' => 2]),
+                'article'        => $this->mockArticle(['id' => 2]),
                 'sharedTagCount' => 2,
             ],
         ];
@@ -211,8 +212,8 @@ final class ArticleApiTest extends NafTestCase
     public function testGetStatusOverviewForwardsAuthorAndLanguage(): void
     {
         $expectedOverview = [
-            'draft' => 5,
-            'review' => 2,
+            'draft'     => 5,
+            'review'    => 2,
             'published' => 10,
         ];
 

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Mcp\Tools;
 
+use InvalidArgumentException;
 use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
 use Naf\CMS\Enums\ToolRisk;
-
 use Naf\MCP\Support\Schema;
 use Naf\MCP\Tools\ScopedToolInterface;
 use Naf\MCP\Tools\ToolInterface;
@@ -15,8 +15,9 @@ final class AdminNavigateTool implements ToolInterface, ScopedToolInterface, Loc
 {
     use DeclaresLocalAiToolRisk;
 
-    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const ToolRisk AI_RISK    = ToolRisk::READ;
     private const bool AI_DESTRUCTIVE = false;
+
     public function name(): string
     {
         return 'cms_admin_navigate';
@@ -71,16 +72,16 @@ final class AdminNavigateTool implements ToolInterface, ScopedToolInterface, Loc
     public function handle(array $args): array
     {
         $target = trim((string) ($args['target'] ?? ''));
-        $id = (int) ($args['id'] ?? 0);
-        $url = $this->url($target, $id);
+        $id     = (int) ($args['id'] ?? 0);
+        $url    = $this->url($target, $id);
 
         return [
-            'success' => true,
-            'target' => $target,
-            'url' => $url,
+            'success'   => true,
+            'target'    => $target,
+            'url'       => $url,
             'uiActions' => [
                 [
-                    'action' => 'admin.navigate',
+                    'action'  => 'admin.navigate',
                     'payload' => [
                         'url' => $url,
                     ],
@@ -92,24 +93,24 @@ final class AdminNavigateTool implements ToolInterface, ScopedToolInterface, Loc
     private function url(string $target, int $id): string
     {
         return match ($target) {
-            'dashboard' => '/admin',
-            'pages' => '/admin/pages',
-            'pageBuilder' => $id > 0 ? '/admin/pages/create?id=' . $id : '/admin/pages/create',
-            'articles' => '/admin/articles',
-            'articleEditor' => $id > 0 ? '/admin/articles/' . $id . '/edit' : '/admin/articles/create',
-            'forms' => '/admin/forms',
-            'formBuilder' => $id > 0 ? '/admin/forms/' . $id . '/edit' : '/admin/forms/create',
-            'themes' => '/admin/themes',
-            'themeEditor' => $id > 0 ? '/admin/themes/' . $id . '/edit' : '/admin/themes',
-            'media' => '/admin/media',
-            'users' => '/admin/users',
-            'userEditor' => $id > 0 ? '/admin/users/' . $id . '/edit' : '/admin/users/create',
-            'roles' => '/admin/roles',
-            'navigation' => '/admin/navigation',
+            'dashboard'        => '/admin',
+            'pages'            => '/admin/pages',
+            'pageBuilder'      => $id > 0 ? '/admin/pages/create?id=' . $id : '/admin/pages/create',
+            'articles'         => '/admin/articles',
+            'articleEditor'    => $id > 0 ? '/admin/articles/' . $id . '/edit' : '/admin/articles/create',
+            'forms'            => '/admin/forms',
+            'formBuilder'      => $id > 0 ? '/admin/forms/' . $id . '/edit' : '/admin/forms/create',
+            'themes'           => '/admin/themes',
+            'themeEditor'      => $id > 0 ? '/admin/themes/' . $id . '/edit' : '/admin/themes',
+            'media'            => '/admin/media',
+            'users'            => '/admin/users',
+            'userEditor'       => $id > 0 ? '/admin/users/' . $id . '/edit' : '/admin/users/create',
+            'roles'            => '/admin/roles',
+            'navigation'       => '/admin/navigation',
             'navigationEditor' => $id > 0 ? '/admin/navigation/' . $id . '/edit' : '/admin/navigation/create',
-            'settings' => '/admin/settings',
-            'aiSettings' => '/admin/settings/ai',
-            default => throw new \InvalidArgumentException(sprintf('Unknown admin navigation target "%s".', $target)),
+            'settings'         => '/admin/settings',
+            'aiSettings'       => '/admin/settings/ai',
+            default            => throw new InvalidArgumentException(sprintf('Unknown admin navigation target "%s".', $target)),
         };
     }
 }

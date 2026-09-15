@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Mcp\Tools;
 
+use DateTimeImmutable;
 use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
 use Naf\CMS\Enums\ToolRisk;
-
 use Naf\CMS\Repositories\AuditLogRepository;
 use Naf\MCP\Support\Schema;
 use Naf\MCP\Tools\ScopedToolInterface;
@@ -17,9 +17,12 @@ final class AuditRecentTool implements ToolInterface, ScopedToolInterface, Local
 {
     use DeclaresLocalAiToolRisk;
 
-    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const ToolRisk AI_RISK    = ToolRisk::READ;
     private const bool AI_DESTRUCTIVE = false;
-    public function __construct(private ?AuditLogRepository $auditLog = null) {}
+
+    public function __construct(private ?AuditLogRepository $auditLog = null)
+    {
+    }
 
     public function name(): string
     {
@@ -48,7 +51,7 @@ final class AuditRecentTool implements ToolInterface, ScopedToolInterface, Local
 
     public function handle(array $args): array
     {
-        $limit = max(1, min(50, (int) ($args['limit'] ?? 10)));
+        $limit       = max(1, min(50, (int) ($args['limit'] ?? 10)));
         $subjectType = trim((string) ($args['subject_type'] ?? ''));
 
         try {
@@ -56,20 +59,20 @@ final class AuditRecentTool implements ToolInterface, ScopedToolInterface, Local
                 ->latest($limit, $subjectType !== '' ? $subjectType : null);
 
             return [
-                'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
+                'generated_at'       => (new DateTimeImmutable())->format(DATE_ATOM),
                 'database_available' => true,
-                'subject_type' => $subjectType !== '' ? $subjectType : 'all',
-                'total_returned' => count($records),
-                'events' => array_map($this->summarizeRecord(...), $records),
+                'subject_type'       => $subjectType !== '' ? $subjectType : 'all',
+                'total_returned'     => count($records),
+                'events'             => array_map($this->summarizeRecord(...), $records),
             ];
         } catch (Throwable $throwable) {
             return [
-                'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
+                'generated_at'       => (new DateTimeImmutable())->format(DATE_ATOM),
                 'database_available' => false,
-                'error' => $throwable->getMessage(),
-                'subject_type' => $subjectType !== '' ? $subjectType : 'all',
-                'total_returned' => 0,
-                'events' => [],
+                'error'              => $throwable->getMessage(),
+                'subject_type'       => $subjectType !== '' ? $subjectType : 'all',
+                'total_returned'     => 0,
+                'events'             => [],
             ];
         }
     }
@@ -86,14 +89,14 @@ final class AuditRecentTool implements ToolInterface, ScopedToolInterface, Local
     private function summarizeRecord(array $record): array
     {
         return [
-            'id' => (int) ($record['id'] ?? 0),
-            'action' => (string) ($record['action'] ?? ''),
-            'subject_type' => (string) ($record['subject_type'] ?? ''),
-            'subject_key' => (string) ($record['subject_key'] ?? ''),
-            'actor_label' => (string) ($record['actor_label'] ?? ''),
+            'id'            => (int) ($record['id'] ?? 0),
+            'action'        => (string) ($record['action'] ?? ''),
+            'subject_type'  => (string) ($record['subject_type'] ?? ''),
+            'subject_key'   => (string) ($record['subject_key'] ?? ''),
+            'actor_label'   => (string) ($record['actor_label'] ?? ''),
             'actor_user_id' => $record['actor_user_id'] ?? null,
-            'created_at' => (string) ($record['created_at'] ?? ''),
-            'meta' => $record['meta'] ?? [],
+            'created_at'    => (string) ($record['created_at'] ?? ''),
+            'meta'          => $record['meta'] ?? [],
         ];
     }
 }

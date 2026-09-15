@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Media;
 
+use FilesystemIterator;
+use InvalidArgumentException;
 use Naf\CMS\Models\Media;
 use Naf\CMS\Services\Media\MediaStorageService;
 use Naf\CMS\Storage\EntityStorage;
 use Nyholm\Psr7\Stream;
 use Nyholm\Psr7\UploadedFile;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 use Tests\Support\DatabaseTestCase;
 
 final class MediaStorageServiceTest extends DatabaseTestCase
@@ -104,7 +109,7 @@ final class MediaStorageServiceTest extends DatabaseTestCase
 
     public function testRejectsDisallowedExtensionBeforeWritingFile(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('extension');
 
         try {
@@ -158,13 +163,13 @@ final class MediaStorageServiceTest extends DatabaseTestCase
             return [];
         }
 
-        $files = [];
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->publicRoot, \FilesystemIterator::SKIP_DOTS),
+        $files    = [];
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->publicRoot, FilesystemIterator::SKIP_DOTS),
         );
 
         foreach ($iterator as $file) {
-            if ($file instanceof \SplFileInfo && $file->isFile()) {
+            if ($file instanceof SplFileInfo && $file->isFile()) {
                 $files[] = $file->getPathname();
             }
         }
@@ -178,13 +183,13 @@ final class MediaStorageServiceTest extends DatabaseTestCase
             return;
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
 
         foreach ($iterator as $file) {
-            if (!$file instanceof \SplFileInfo) {
+            if (!$file instanceof SplFileInfo) {
                 continue;
             }
 

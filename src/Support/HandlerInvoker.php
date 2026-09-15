@@ -7,6 +7,8 @@ namespace Naf\CMS\Support;
 use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionNamedType;
+use Throwable;
+
 use function Naf\app;
 
 final class HandlerInvoker
@@ -26,6 +28,7 @@ final class HandlerInvoker
         if (is_array($handler) && isset($handler[0], $handler[1])) {
             if (is_string($handler[0])) {
                 $instance = self::make($handler[0]);
+
                 return $instance->{$handler[1]}(...self::parametersFor(new ReflectionMethod($instance, $handler[1]), $params));
             }
 
@@ -36,6 +39,7 @@ final class HandlerInvoker
 
         if (is_string($handler) && class_exists($handler)) {
             $instance = self::make($handler);
+
             return $instance(...self::parametersFor(new ReflectionMethod($instance, '__invoke'), $params));
         }
 
@@ -92,7 +96,7 @@ final class HandlerInvoker
             if (method_exists($container, 'make')) {
                 return $container->make($class);
             }
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // Isolated unit tests may invoke handlers before the NAF app container is booted.
         }
 

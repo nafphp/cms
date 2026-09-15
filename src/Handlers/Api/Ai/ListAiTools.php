@@ -7,6 +7,7 @@ namespace Naf\CMS\Handlers\Api\Ai;
 use Naf\CMS\Services\Ai\LocalAiToolBridge;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
+
 use function Naf\json;
 
 final class ListAiTools
@@ -16,13 +17,13 @@ final class ListAiTools
         try {
             return json([
                 'success' => true,
-                'tools' => (new LocalAiToolBridge())->definitions(),
+                'tools'   => (new LocalAiToolBridge())->definitions(),
             ]);
         } catch (Throwable $exception) {
             return json([
                 'success' => false,
-                'reason' => $exception->getMessage(),
-                'tools' => [],
+                'reason'  => $exception->getMessage(),
+                'tools'   => [],
             ], 500);
         }
     }

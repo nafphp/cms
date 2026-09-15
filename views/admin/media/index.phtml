@@ -1,74 +1,76 @@
 <?php
 
 use Naf\CMS\Enums\Permission;
+
+use function Naf\CMS\user;
 use function Naf\I18n\t;
 use function Naf\View\asset;
 use function Naf\View\s;
-use function Naf\CMS\user;
 
-$media = is_array($media ?? null) ? $media : [];
-$summary = is_array($summary ?? null) ? $summary : [];
+$media              = is_array($media ?? null) ? $media : [];
+$summary            = is_array($summary ?? null) ? $summary : [];
 $acceptedExtensions = is_array($acceptedExtensions ?? null) ? array_values($acceptedExtensions) : [];
-$maxUploadSize = (int) ($maxUploadSize ?? 0);
-$canUpload = user()?->can(Permission::MEDIA_UPLOAD) === true;
-$canEdit = user()?->can(Permission::MEDIA_EDIT) === true;
-$canDelete = user()?->can(Permission::MEDIA_DELETE) === true;
-$formatBytes = static function (int $bytes): string {
+$maxUploadSize      = (int) ($maxUploadSize ?? 0);
+$canUpload          = user()?->can(Permission::MEDIA_UPLOAD) === true;
+$canEdit            = user()?->can(Permission::MEDIA_EDIT) === true;
+$canDelete          = user()?->can(Permission::MEDIA_DELETE) === true;
+$formatBytes        = static function (int $bytes): string {
     if ($bytes < 1024) {
         return $bytes . ' B';
     }
     if ($bytes < 1024 * 1024) {
         return number_format($bytes / 1024, 1) . ' KB';
     }
+
     return number_format($bytes / (1024 * 1024), 1) . ' MB';
 };
 $mediaTypeLabels = [
-    'image' => t('Images'),
+    'image'    => t('Images'),
     'document' => t('Documents'),
-    'archive' => t('Archives'),
-    'file' => t('Other files'),
+    'archive'  => t('Archives'),
+    'file'     => t('Other files'),
 ];
 $mediaTypeColors = [
-    'image' => '#38bdf8',
+    'image'    => '#38bdf8',
     'document' => '#22c55e',
-    'archive' => '#f59e0b',
-    'file' => '#f43f5e',
+    'archive'  => '#f59e0b',
+    'file'     => '#f43f5e',
 ];
 $rawKindCounts = is_array($summary['kind_counts'] ?? null)
     ? $summary['kind_counts']
     : [
-        'image' => (int) ($summary['images'] ?? 0),
+        'image'    => (int) ($summary['images'] ?? 0),
         'document' => (int) ($summary['documents'] ?? 0),
-        'archive' => (int) ($summary['archives'] ?? 0),
-        'file' => (int) ($summary['files'] ?? 0),
+        'archive'  => (int) ($summary['archives'] ?? 0),
+        'file'     => (int) ($summary['files'] ?? 0),
     ];
-$mediaTypeTotal = max(0, (int) ($summary['total'] ?? 0));
+$mediaTypeTotal    = max(0, (int) ($summary['total'] ?? 0));
 $mediaTypeSegments = [];
 foreach ($mediaTypeLabels as $kind => $label) {
-    $count = max(0, (int) ($rawKindCounts[$kind] ?? 0));
-    $percent = $mediaTypeTotal > 0 ? (int) round(($count / $mediaTypeTotal) * 100) : 0;
+    $count               = max(0, (int) ($rawKindCounts[$kind] ?? 0));
+    $percent             = $mediaTypeTotal > 0 ? (int) round(($count / $mediaTypeTotal) * 100) : 0;
     $mediaTypeSegments[] = [
-        'kind' => $kind,
-        'label' => $label,
-        'count' => $count,
+        'kind'    => $kind,
+        'label'   => $label,
+        'count'   => $count,
         'percent' => $percent,
-        'color' => $mediaTypeColors[$kind],
+        'color'   => $mediaTypeColors[$kind],
     ];
 }
 $visibleMediaTypeSegments = array_values(array_filter(
     $mediaTypeSegments,
     static fn(array $segment): bool => (int) $segment['count'] > 0,
 ));
-$mediaTypeStops = [];
+$mediaTypeStops  = [];
 $mediaTypeCursor = 0.0;
 foreach ($visibleMediaTypeSegments as $index => $segment) {
     $degrees = $mediaTypeTotal > 0 ? ((int) $segment['count'] / $mediaTypeTotal) * 360 : 0.0;
-    $start = $mediaTypeCursor;
-    $end = $index === array_key_last($visibleMediaTypeSegments)
+    $start   = $mediaTypeCursor;
+    $end     = $index === array_key_last($visibleMediaTypeSegments)
         ? 360.0
         : min(360.0, $mediaTypeCursor + $degrees);
     $mediaTypeStops[] = sprintf('%s %.2fdeg %.2fdeg', $segment['color'], $start, $end);
-    $mediaTypeCursor = $end;
+    $mediaTypeCursor  = $end;
 }
 $mediaTypeChartBackground = $mediaTypeStops !== []
     ? 'conic-gradient(' . implode(', ', $mediaTypeStops) . ')'
@@ -83,57 +85,57 @@ $mediaTypeCenterValue = $dominantMediaType !== null ? (int) $dominantMediaType['
 $mediaTypeCenterLabel = $dominantMediaType !== null ? (string) $dominantMediaType['label'] : t('Files');
 
 $config = [
-    'files' => $media,
-    'summary' => $summary,
+    'files'      => $media,
+    'summary'    => $summary,
     'typeLabels' => $mediaTypeLabels,
     'typeColors' => $mediaTypeColors,
-    'urls' => [
-        'list' => (string) ($listUrl ?? ''),
+    'urls'       => [
+        'list'   => (string) ($listUrl ?? ''),
         'upload' => (string) ($uploadUrl ?? ''),
         'update' => (string) ($updateUrl ?? ''),
         'delete' => (string) ($deleteUrl ?? ''),
     ],
     'acceptedExtensions' => $acceptedExtensions,
-    'maxUploadSize' => $maxUploadSize,
-    'permissions' => [
+    'maxUploadSize'      => $maxUploadSize,
+    'permissions'        => [
         'upload' => $canUpload,
-        'edit' => $canEdit,
+        'edit'   => $canEdit,
         'delete' => $canDelete,
     ],
     'visibilityOptions' => [
-        'public' => t('Public'),
+        'public'     => t('Public'),
         'registered' => t('Registered'),
-        'private' => t('Private'),
+        'private'    => t('Private'),
     ],
     'labels' => [
-        'allFiles' => t('All files'),
-        'altText' => t('Alt text'),
-        'cancel' => t('Cancel'),
-        'copied' => t('URL copied.'),
-        'copyUrl' => t('Copy URL'),
-        'delete' => t('Delete'),
-        'deleteConfirm' => t('Really delete this media item? Existing references to its URL will stop working.'),
-        'deleted' => t('Media item deleted.'),
-        'drop' => t('Drop files here'),
-        'empty' => t('No media files yet.'),
-        'error' => t('Upload failed.'),
-        'fileTooLarge' => t('File is too large.'),
-        'folders' => t('Folders'),
-        'gridView' => t('Grid view'),
-        'images' => t('Images'),
+        'allFiles'         => t('All files'),
+        'altText'          => t('Alt text'),
+        'cancel'           => t('Cancel'),
+        'copied'           => t('URL copied.'),
+        'copyUrl'          => t('Copy URL'),
+        'delete'           => t('Delete'),
+        'deleteConfirm'    => t('Really delete this media item? Existing references to its URL will stop working.'),
+        'deleted'          => t('Media item deleted.'),
+        'drop'             => t('Drop files here'),
+        'empty'            => t('No media files yet.'),
+        'error'            => t('Upload failed.'),
+        'fileTooLarge'     => t('File is too large.'),
+        'folders'          => t('Folders'),
+        'gridView'         => t('Grid view'),
+        'images'           => t('Images'),
         'invalidExtension' => t('File type is not allowed.'),
-        'listView' => t('List view'),
-        'noResults' => t('No matching media files found.'),
-        'otherFiles' => t('Other files'),
-        'private' => t('Private'),
-        'public' => t('Public'),
-        'registered' => t('Registered'),
-        'search' => t('Search media'),
-        'smartFolders' => t('Smart folders'),
-        'storage' => t('Storage'),
-        'uploading' => t('Uploading...'),
-        'updated' => t('Media item updated.'),
-        'visibility' => t('Visibility'),
+        'listView'         => t('List view'),
+        'noResults'        => t('No matching media files found.'),
+        'otherFiles'       => t('Other files'),
+        'private'          => t('Private'),
+        'public'           => t('Public'),
+        'registered'       => t('Registered'),
+        'search'           => t('Search media'),
+        'smartFolders'     => t('Smart folders'),
+        'storage'          => t('Storage'),
+        'uploading'        => t('Uploading...'),
+        'updated'          => t('Media item updated.'),
+        'visibility'       => t('Visibility'),
     ],
 ];
 

@@ -1,18 +1,19 @@
 <?php
 
 use Naf\CMS\Security\UrlPolicy;
-use function Naf\View\s;
-use function Naf\I18n\t;
 
-$content = is_array($content ?? null) ? $content : [];
-$props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$query = trim((string) ($props['query'] ?? ''));
+use function Naf\I18n\t;
+use function Naf\View\s;
+
+$content  = is_array($content ?? null) ? $content : [];
+$props    = is_array($content['props'] ?? null) ? $content['props'] : [];
+$query    = trim((string) ($props['query'] ?? ''));
 $embedUrl = trim((string) ($props['embedUrl'] ?? ''));
-$title = trim(t((string) ($props['title'] ?? 'Map')));
-$caption = trim(t((string) ($props['caption'] ?? '')));
-$height = max(220, min(760, (int) ($props['height'] ?? 360)));
-$url = UrlPolicy::embed($embedUrl !== '' ? $embedUrl : ($query !== '' ? 'https://www.google.com/maps?q=' . rawurlencode($query) . '&output=embed' : ''));
-$linkUrl = UrlPolicy::link($query !== '' ? 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($query) : (string) $url);
+$title    = trim(t((string) ($props['title'] ?? 'Map')));
+$caption  = trim(t((string) ($props['caption'] ?? '')));
+$height   = max(220, min(760, (int) ($props['height'] ?? 360)));
+$url      = UrlPolicy::embed($embedUrl !== '' ? $embedUrl : ($query !== '' ? 'https://www.google.com/maps?q=' . rawurlencode($query) . '&output=embed' : ''));
+$linkUrl  = UrlPolicy::link($query !== '' ? 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($query) : (string) $url);
 
 ?>
 <section class="grid gap-3">

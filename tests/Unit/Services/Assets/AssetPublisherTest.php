@@ -6,12 +6,13 @@ namespace Tests\Unit\Services\Assets;
 
 use Naf\CMS\Services\Assets\AssetPublisher;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class AssetPublisherTest extends TestCase
 {
     public function testPublishIsRepeatableUpdatesOwnedFilesAndRejectsConflicts(): void
     {
-        $root = sys_get_temp_dir() . '/nafcms-assets-' . bin2hex(random_bytes(6));
+        $root   = sys_get_temp_dir() . '/nafcms-assets-' . bin2hex(random_bytes(6));
         $source = $root . '/package';
         $public = $root . '/public';
         mkdir($source . '/css', 0777, true);
@@ -30,7 +31,7 @@ final class AssetPublisherTest extends TestCase
         file_put_contents($public . '/css/nafcms.css', 'host-owned');
         self::assertSame(['css/nafcms.css'], $publisher->status()['conflicts']);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Asset publish conflicts: css/nafcms.css');
         $publisher->publish();
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Visualization;
 
+use Naf\CMS\Visualization\ChartDataset;
 use Naf\CMS\Visualization\ChartDefinition;
 use PHPUnit\Framework\TestCase;
 
@@ -37,7 +38,7 @@ final class ChartDefinitionTest extends TestCase
             'metric-bars',
             'metric-bars',
             ['Draft'],
-            [\Naf\CMS\Visualization\ChartDataset::make('Value', [4])],
+            [ChartDataset::make('Value', [4])],
         );
 
         self::assertSame('metric-bars', $chart->type);

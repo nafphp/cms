@@ -1,17 +1,17 @@
 <?php
 
-use function Naf\route;
 use function Naf\I18n\t;
+use function Naf\route;
 use function Naf\View\s;
 use function Naf\View\view;
 
-$users = is_array($users ?? null) ? $users : [];
+$users           = is_array($users ?? null) ? $users : [];
 $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
 
 ?>
 <?php $this->setLayout('layouts.admin') ?>
 
-<?php $pageTitle = t('User management'); ?>
+<?php $pageTitle    = t('User management'); ?>
 <?php $pageSubtitle = t('Invite users and manage roles.'); ?>
 
 <?php $this->block('content'); ?>
@@ -28,7 +28,7 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
 <?php if ($users === []): ?>
     <?= view('components.admin.empty-state', [
         'title' => t('No users yet'),
-        'text' => t('Create the first administration account and assign a role.'),
+        'text'  => t('Create the first administration account and assign a role.'),
     ]) ?>
 <?php else: ?>
     <div class="relative overflow-x-auto rounded-lg border border-slate-300/70 bg-white/80 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-slate-400/25 dark:bg-slate-950/50 dark:shadow-none">
@@ -52,8 +52,8 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
             <tbody id="users-table-body">
             <?php foreach ($users as $user): ?>
                 <?php
-                $userId = (int) ($user['id'] ?? 0);
-                $roles = is_array($user['roles'] ?? null) ? $user['roles'] : [];
+                $userId      = (int) ($user['id'] ?? 0);
+                $roles       = is_array($user['roles'] ?? null) ? $user['roles'] : [];
                 $permissions = is_array($user['permissions'] ?? null) ? $user['permissions'] : [];
                 $displayName = trim((string) ($user['firstname'] ?? '') . ' ' . (string) ($user['lastname'] ?? ''));
                 ?>
@@ -73,33 +73,33 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
                     <td class="text-right">
                         <div class="flex justify-end">
                             <?= view('components.admin.action-menu', [
-                                'label' => t('Actions'),
+                                'label'   => t('Actions'),
                                 'actions' => [
                                     [
                                         'label' => t('Edit'),
-                                        'href' => route('admin.users.edit', ['userId' => $userId]),
-                                        'icon' => 'icon-user',
+                                        'href'  => route('admin.users.edit', ['userId' => $userId]),
+                                        'icon'  => 'icon-user',
                                     ],
                                     [
-                                        'label' => t('Change roles'),
+                                        'label'      => t('Change roles'),
                                         'attributes' => ['data-edit-roles' => $userId],
-                                        'icon' => 'icon-lock',
+                                        'icon'       => 'icon-lock',
                                     ],
                                     [
-                                        'label' => t('Show permissions'),
+                                        'label'      => t('Show permissions'),
                                         'attributes' => ['data-show-permissions' => $userId],
-                                        'icon' => 'icon-checkmark',
+                                        'icon'       => 'icon-checkmark',
                                     ],
                                     [
-                                        'label' => t('Send message'),
+                                        'label'    => t('Send message'),
                                         'disabled' => true,
-                                        'icon' => 'icon-circle-right',
+                                        'icon'     => 'icon-circle-right',
                                     ],
                                     [
-                                        'label' => t('Delete'),
+                                        'label'      => t('Delete'),
                                         'attributes' => ['data-delete-user' => $userId],
-                                        'icon' => 'icon-cross',
-                                        'danger' => true,
+                                        'icon'       => 'icon-cross',
+                                        'danger'     => true,
                                     ],
                                 ],
                             ]) ?>
@@ -123,38 +123,38 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
     const deleteUserUrl = <?= json_encode(route('api.admin.users.delete')) ?>;
     const createInviteUrl = <?= json_encode(route('api.admin.users.invite')) ?>;
     const i18n = <?= json_encode([
-        'cancel' => t('Cancel'),
-        'couldNotCreateInvite' => t('Could not create invite.'),
-        'couldNotUpdateRoles' => t('Could not update roles.'),
-        'createInvite' => t('Create invite'),
-        'done' => t('Done'),
-        'email' => t('Email'),
-        'expiresInDays' => t('Expires in days'),
-        'expiryMustBeBetween' => t('Expiry must be between 1 and 30 days.'),
-        'generateInviteIntro' => t('Generate a one-time registration link for a new account.'),
-        'inviteCreated' => t('Invite created.'),
-        'inviteLinkCopied' => t('Invite link copied.'),
-        'inviteLinkCreated' => t('Invite link created'),
-        'noPermissions' => t('No permissions'),
+        'cancel'                  => t('Cancel'),
+        'couldNotCreateInvite'    => t('Could not create invite.'),
+        'couldNotUpdateRoles'     => t('Could not update roles.'),
+        'createInvite'            => t('Create invite'),
+        'done'                    => t('Done'),
+        'email'                   => t('Email'),
+        'expiresInDays'           => t('Expires in days'),
+        'expiryMustBeBetween'     => t('Expiry must be between 1 and 30 days.'),
+        'generateInviteIntro'     => t('Generate a one-time registration link for a new account.'),
+        'inviteCreated'           => t('Invite created.'),
+        'inviteLinkCopied'        => t('Invite link copied.'),
+        'inviteLinkCreated'       => t('Invite link created'),
+        'noPermissions'           => t('No permissions'),
         'pleaseProvideValidEmail' => t('Please provide a valid email address.'),
-        'pleaseSelectRole' => t('Please select a role.'),
-        'registrationLink' => t('Registration link'),
-        'role' => t('Role'),
-        'rolesUpdated' => t('Roles updated.'),
-        'save' => t('Save'),
-        'selectOne' => t('Select one'),
-        'showPermissions' => t('Show permissions'),
-        'validUntil' => t('Valid until'),
-        'permissionsFor' => t('Permissions for'),
-        'delete' => t('Delete'),
-        'deleteUserFallback' => t('this user'),
-        'deleteUserIntro' => t('This removes the account and active sessions.'),
-        'couldNotDeleteUser' => t('Could not delete user.'),
-        'userDeleted' => t('User deleted.'),
-        'updateRolesFor' => t('Update roles for'),
-        'roles' => t('Roles'),
-        'selectAtLeastOne' => t('Select at least one'),
-        'pleaseAssignRole' => t('Please assign at least one role.'),
+        'pleaseSelectRole'        => t('Please select a role.'),
+        'registrationLink'        => t('Registration link'),
+        'role'                    => t('Role'),
+        'rolesUpdated'            => t('Roles updated.'),
+        'save'                    => t('Save'),
+        'selectOne'               => t('Select one'),
+        'showPermissions'         => t('Show permissions'),
+        'validUntil'              => t('Valid until'),
+        'permissionsFor'          => t('Permissions for'),
+        'delete'                  => t('Delete'),
+        'deleteUserFallback'      => t('this user'),
+        'deleteUserIntro'         => t('This removes the account and active sessions.'),
+        'couldNotDeleteUser'      => t('Could not delete user.'),
+        'userDeleted'             => t('User deleted.'),
+        'updateRolesFor'          => t('Update roles for'),
+        'roles'                   => t('Roles'),
+        'selectAtLeastOne'        => t('Select at least one'),
+        'pleaseAssignRole'        => t('Please assign at least one role.'),
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
 
     const escapeHtml = (value) => String(value)

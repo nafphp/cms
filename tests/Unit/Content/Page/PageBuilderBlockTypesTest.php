@@ -12,9 +12,10 @@ use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use function Naf\guard;
+
 use function Naf\app;
 use function Naf\CMS\cms;
+use function Naf\guard;
 
 final class PageBuilderBlockTypesTest extends TestCase
 {
@@ -23,12 +24,12 @@ final class PageBuilderBlockTypesTest extends TestCase
     public function testPageBuilderReadsBlockTypesRegisteredAfterPagesWereLoaded(): void
     {
         $viewRoot = $this->createBuilderProbeView();
-        $app = app();
+        $app      = app();
         $this->registerCliViewGuards();
 
         self::assertNotNull(cms()->blockTypes()->get('hero'));
 
-        $config = $app->container()->get(Config::class)->all();
+        $config                  = $app->container()->get(Config::class)->all();
         $config['view']['paths'] = [$viewRoot, 'views', 'app/views'];
         $app->container()->set(Config::class, new Config($config));
 
@@ -53,8 +54,8 @@ final class PageBuilderBlockTypesTest extends TestCase
             }
         });
 
-        $page = cms()->pages()->require('admin.pages.create');
-        $content = $page->content();
+        $page     = cms()->pages()->require('admin.pages.create');
+        $content  = $page->content();
         $response = $content();
 
         $payload = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
@@ -68,7 +69,7 @@ final class PageBuilderBlockTypesTest extends TestCase
 
     private function createBuilderProbeView(): string
     {
-        $viewRoot = sys_get_temp_dir() . '/nafcms-page-builder-test-' . bin2hex(random_bytes(6));
+        $viewRoot  = sys_get_temp_dir() . '/nafcms-page-builder-test-' . bin2hex(random_bytes(6));
         $directory = $viewRoot . '/admin/pages';
         if (!is_dir($directory)) {
             mkdir($directory, 0777, true);
@@ -77,9 +78,9 @@ final class PageBuilderBlockTypesTest extends TestCase
         file_put_contents(
             $directory . '/builder.phtml',
             <<<'PHP'
-<?php
-echo json_encode(['contentTypes' => $contentTypes ?? null], JSON_THROW_ON_ERROR);
-PHP
+            <?php
+            echo json_encode(['contentTypes' => $contentTypes ?? null], JSON_THROW_ON_ERROR);
+            PHP,
         );
 
         return $viewRoot;
@@ -98,7 +99,7 @@ PHP
                 if (is_array($value)) {
                     return array_map(
                         static fn(mixed $item): string => htmlspecialchars((string) $item, ENT_QUOTES, 'UTF-8'),
-                        $value
+                        $value,
                     );
                 }
 

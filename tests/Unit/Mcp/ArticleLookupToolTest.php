@@ -24,18 +24,18 @@ final class ArticleLookupToolTest extends DatabaseTestCase
                 title TEXT NOT NULL,
                 teaser TEXT NULL,
                 createdAt TEXT NOT NULL
-            )'
+            )',
         );
 
         $categoryId = $this->insertRow('categories', ['name' => 'Intern', 'slug' => 'intern']);
-        $articleId = $this->insertRow('articles', ['category_id' => $categoryId, 'createdAt' => '2026-05-03 10:00:00']);
+        $articleId  = $this->insertRow('articles', ['category_id' => $categoryId, 'createdAt' => '2026-05-03 10:00:00']);
         $this->insertVersion($articleId, 'de', 1, 'draft', 'Old title', 'old-title', '2026-05-03 10:01:00');
         $this->insertVersion($articleId, 'de', 2, 'draft', 'Das ist ein Test.', 'das-ist-ein-test', '2026-05-03 10:02:00');
 
         $result = (new ArticleLookupTool($this->pdo))->handle([
-            'query' => 'test',
+            'query'    => 'test',
             'language' => 'de',
-            'status' => 'draft',
+            'status'   => 'draft',
         ]);
 
         self::assertTrue($result['database_available']);
@@ -56,13 +56,13 @@ final class ArticleLookupToolTest extends DatabaseTestCase
     ): int {
         return $this->insertRow('article_versions', [
             'article_id' => $articleId,
-            'language' => $language,
-            'version' => $version,
-            'status' => $status,
-            'slug' => $slug,
-            'title' => $title,
-            'teaser' => '',
-            'createdAt' => $createdAt,
+            'language'   => $language,
+            'version'    => $version,
+            'status'     => $status,
+            'slug'       => $slug,
+            'title'      => $title,
+            'teaser'     => '',
+            'createdAt'  => $createdAt,
         ]);
     }
 }

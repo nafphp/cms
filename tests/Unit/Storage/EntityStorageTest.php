@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Storage;
 
+use InvalidArgumentException;
 use Naf\CMS\Enums\ArticleStatus;
 use Naf\CMS\Models\Media;
 use Naf\CMS\Storage\Criteria;
@@ -41,64 +42,64 @@ final class EntityStorageTest extends DatabaseTestCase
         SQL);
 
         $this->insertRow('media', [
-            'disk' => 'public',
-            'public_id' => 'hero',
-            'visibility' => 'public',
+            'disk'          => 'public',
+            'public_id'     => 'hero',
+            'visibility'    => 'public',
             'original_name' => 'Hero Image.jpg',
-            'stored_name' => 'hero.jpg',
-            'storage_path' => 'media/hero.jpg',
-            'file_path' => '/tmp/hero.jpg',
-            'public_url' => '/media/hero.jpg',
-            'mime_type' => 'image/jpeg',
-            'extension' => 'jpg',
-            'size_bytes' => 900,
-            'width' => 1200,
-            'height' => 800,
-            'alt_text' => 'NafCMS hero',
-            'uploaded_by' => 1,
+            'stored_name'   => 'hero.jpg',
+            'storage_path'  => 'media/hero.jpg',
+            'file_path'     => '/tmp/hero.jpg',
+            'public_url'    => '/media/hero.jpg',
+            'mime_type'     => 'image/jpeg',
+            'extension'     => 'jpg',
+            'size_bytes'    => 900,
+            'width'         => 1200,
+            'height'        => 800,
+            'alt_text'      => 'NafCMS hero',
+            'uploaded_by'   => 1,
             'metadata_json' => '{}',
-            'created_at' => '2026-05-01 10:00:00',
-            'updated_at' => '2026-05-01 10:00:00',
+            'created_at'    => '2026-05-01 10:00:00',
+            'updated_at'    => '2026-05-01 10:00:00',
         ]);
         $this->insertRow('media', [
-            'disk' => 'public',
-            'public_id' => 'brief',
-            'visibility' => 'private',
+            'disk'          => 'public',
+            'public_id'     => 'brief',
+            'visibility'    => 'private',
             'original_name' => 'Editorial Brief.pdf',
-            'stored_name' => 'brief.pdf',
-            'storage_path' => 'media/brief.pdf',
-            'file_path' => '/tmp/brief.pdf',
-            'public_url' => '/media/brief.pdf',
-            'mime_type' => 'application/pdf',
-            'extension' => 'pdf',
-            'size_bytes' => 400,
-            'width' => null,
-            'height' => null,
-            'alt_text' => null,
-            'uploaded_by' => 2,
+            'stored_name'   => 'brief.pdf',
+            'storage_path'  => 'media/brief.pdf',
+            'file_path'     => '/tmp/brief.pdf',
+            'public_url'    => '/media/brief.pdf',
+            'mime_type'     => 'application/pdf',
+            'extension'     => 'pdf',
+            'size_bytes'    => 400,
+            'width'         => null,
+            'height'        => null,
+            'alt_text'      => null,
+            'uploaded_by'   => 2,
             'metadata_json' => '{}',
-            'created_at' => '2026-05-02 10:00:00',
-            'updated_at' => '2026-05-02 10:00:00',
+            'created_at'    => '2026-05-02 10:00:00',
+            'updated_at'    => '2026-05-02 10:00:00',
         ]);
         $this->insertRow('media', [
-            'disk' => 'public',
-            'public_id' => 'thumb',
-            'visibility' => 'public',
+            'disk'          => 'public',
+            'public_id'     => 'thumb',
+            'visibility'    => 'public',
             'original_name' => 'Thumbnail.png',
-            'stored_name' => 'thumb.png',
-            'storage_path' => 'media/thumb.png',
-            'file_path' => '/tmp/thumb.png',
-            'public_url' => '/media/thumb.png',
-            'mime_type' => 'image/png',
-            'extension' => 'png',
-            'size_bytes' => 120,
-            'width' => 320,
-            'height' => 240,
-            'alt_text' => 'Small preview',
-            'uploaded_by' => 1,
+            'stored_name'   => 'thumb.png',
+            'storage_path'  => 'media/thumb.png',
+            'file_path'     => '/tmp/thumb.png',
+            'public_url'    => '/media/thumb.png',
+            'mime_type'     => 'image/png',
+            'extension'     => 'png',
+            'size_bytes'    => 120,
+            'width'         => 320,
+            'height'        => 240,
+            'alt_text'      => 'Small preview',
+            'uploaded_by'   => 1,
             'metadata_json' => '{}',
-            'created_at' => '2026-05-03 10:00:00',
-            'updated_at' => '2026-05-03 10:00:00',
+            'created_at'    => '2026-05-03 10:00:00',
+            'updated_at'    => '2026-05-03 10:00:00',
         ]);
     }
 
@@ -123,7 +124,7 @@ final class EntityStorageTest extends DatabaseTestCase
 
     public function testFirstAndCountUseCriteria(): void
     {
-        $storage = new EntityStorage(Media::class, $this->pdo);
+        $storage  = new EntityStorage(Media::class, $this->pdo);
         $criteria = Criteria::create()
             ->equals('visibility', 'public')
             ->sort('created_at', 'DESC');
@@ -152,24 +153,24 @@ final class EntityStorageTest extends DatabaseTestCase
         $storage = new EntityStorage(Media::class, $this->pdo);
 
         $media = $storage->create([
-            'disk' => 'public',
-            'public_id' => 'created',
-            'visibility' => 'public',
+            'disk'          => 'public',
+            'public_id'     => 'created',
+            'visibility'    => 'public',
             'original_name' => 'Created.png',
-            'stored_name' => 'created.png',
-            'storage_path' => 'media/created.png',
-            'file_path' => '/tmp/created.png',
-            'public_url' => '/media/created.png',
-            'mime_type' => 'image/png',
-            'extension' => 'png',
-            'size_bytes' => 42,
-            'width' => 10,
-            'height' => 20,
-            'alt_text' => 'Created alt',
-            'uploaded_by' => 3,
+            'stored_name'   => 'created.png',
+            'storage_path'  => 'media/created.png',
+            'file_path'     => '/tmp/created.png',
+            'public_url'    => '/media/created.png',
+            'mime_type'     => 'image/png',
+            'extension'     => 'png',
+            'size_bytes'    => 42,
+            'width'         => 10,
+            'height'        => 20,
+            'alt_text'      => 'Created alt',
+            'uploaded_by'   => 3,
             'metadata_json' => '{}',
-            'created_at' => '2026-05-04 10:00:00',
-            'updated_at' => '2026-05-04 10:00:00',
+            'created_at'    => '2026-05-04 10:00:00',
+            'updated_at'    => '2026-05-04 10:00:00',
         ]);
 
         self::assertInstanceOf(Media::class, $media);
@@ -183,7 +184,7 @@ final class EntityStorageTest extends DatabaseTestCase
 
         $updated = $storage->update(1, [
             'visibility' => 'private',
-            'alt_text' => 'Updated alt',
+            'alt_text'   => 'Updated alt',
         ]);
 
         self::assertInstanceOf(Media::class, $updated);
@@ -210,7 +211,7 @@ final class EntityStorageTest extends DatabaseTestCase
     {
         $storage = new EntityStorage(Media::class, $this->pdo);
 
-        self::expectException(\InvalidArgumentException::class);
+        self::expectException(InvalidArgumentException::class);
         self::expectExceptionMessage('Column not allowed for ' . Media::class . ': does_not_exist');
 
         $storage->search(Criteria::create()->equals('does_not_exist', 'x'));

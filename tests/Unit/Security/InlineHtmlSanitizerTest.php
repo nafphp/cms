@@ -6,6 +6,7 @@ namespace Tests\Unit\Security;
 
 use Naf\CMS\Security\InlineHtmlSanitizer;
 use PHPUnit\Framework\TestCase;
+
 use function Naf\View\s;
 
 final class InlineHtmlSanitizerTest extends TestCase

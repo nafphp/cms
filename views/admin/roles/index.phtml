@@ -1,17 +1,17 @@
 <?php
 
-use function Naf\route;
 use function Naf\Form\csrf;
 use function Naf\I18n\t;
+use function Naf\route;
 use function Naf\View\s;
 
-$roles = is_array($roles ?? null) ? $roles : [];
+$roles       = is_array($roles ?? null) ? $roles : [];
 $permissions = is_array($permissions ?? null) ? $permissions : [];
 
 ?>
 <?php $this->setLayout('layouts.admin') ?>
 
-<?php $pageTitle = t('Role management'); ?>
+<?php $pageTitle    = t('Role management'); ?>
 <?php $pageSubtitle = t('Manage roles and assign permissions.'); ?>
 
 <?php $this->block('content'); ?>

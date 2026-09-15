@@ -25,8 +25,8 @@ final class PageSeoMeta
     public function toArray(): array
     {
         return [
-            'description' => $this->description,
-            'robots' => $this->robots,
+            'description'  => $this->description,
+            'robots'       => $this->robots,
             'canonicalUrl' => $this->canonicalUrl,
         ];
     }

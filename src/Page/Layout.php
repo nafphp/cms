@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Page;
 
-use Naf\CMS\Page\PageBlock;
-use Naf\CMS\Page\Template;
+use LogicException;
 
 /**
  * Page-level composition: one layout template plus the blocks rendered into it.
@@ -13,10 +12,10 @@ use Naf\CMS\Page\Template;
 final class Layout
 {
     private Template $template;
-    private ?string $id = null;
-    private ?string $label = null;
+    private ?string $id          = null;
+    private ?string $label       = null;
     private ?string $description = null;
-    private string $kind = 'static';
+    private string $kind         = 'static';
     /** @var array<string, mixed> */
     private array $metadata = [];
     /** @var array<string, PageBlock> */
@@ -44,8 +43,9 @@ final class Layout
 
     public function setId(?string $id): self
     {
-        $id = $id === null ? null : trim($id);
+        $id       = $id === null ? null : trim($id);
         $this->id = $id === '' ? null : $id;
+
         return $this;
     }
 
@@ -56,8 +56,9 @@ final class Layout
 
     public function setLabel(?string $label): self
     {
-        $label = $label === null ? null : trim($label);
+        $label       = $label === null ? null : trim($label);
         $this->label = $label === '' ? null : $label;
+
         return $this;
     }
 
@@ -68,8 +69,9 @@ final class Layout
 
     public function setDescription(?string $description): self
     {
-        $description = $description === null ? null : trim($description);
+        $description       = $description === null ? null : trim($description);
         $this->description = $description === '' ? null : $description;
+
         return $this;
     }
 
@@ -80,8 +82,9 @@ final class Layout
 
     public function setKind(string $kind): self
     {
-        $kind = trim($kind);
+        $kind       = trim($kind);
         $this->kind = $kind === '' ? 'static' : $kind;
+
         return $this;
     }
 
@@ -113,6 +116,7 @@ final class Layout
     public function setParent(?string $parent): self
     {
         $this->template->setParent($parent);
+
         return $this;
     }
 
@@ -124,6 +128,7 @@ final class Layout
     public function setTheme(?string $themeId): self
     {
         $this->template->setTheme($themeId);
+
         return $this;
     }
 
@@ -135,10 +140,11 @@ final class Layout
         $block = new PageBlock($id, $template, $data);
 
         if (isset($this->blocks[$block->id()])) {
-            throw new \LogicException(sprintf('Layout already has a block "%s".', $block->id()));
+            throw new LogicException(sprintf('Layout already has a block "%s".', $block->id()));
         }
 
         $this->blocks[$block->id()] = $block;
+
         return $this;
     }
 
@@ -153,6 +159,7 @@ final class Layout
     public function addBodyClass(string $class): self
     {
         $this->template->addBodyClass($class);
+
         return $this;
     }
 
@@ -170,6 +177,7 @@ final class Layout
     public function addStylesheet(string $href, array $attributes = []): self
     {
         $this->template->addStylesheet($href, $attributes);
+
         return $this;
     }
 
@@ -187,6 +195,7 @@ final class Layout
     public function addScript(string $src, array $attributes = []): self
     {
         $this->template->addScript($src, $attributes);
+
         return $this;
     }
 
@@ -206,19 +215,19 @@ final class Layout
         $blocksAreDeletable = $this->kind === 'custom';
 
         return array_filter([
-            'id' => $this->id,
-            'label' => $this->label,
-            'kind' => $this->kind,
-            'layout' => $this->parent(),
-            'view' => $this->templateView(),
+            'id'          => $this->id,
+            'label'       => $this->label,
+            'kind'        => $this->kind,
+            'layout'      => $this->parent(),
+            'view'        => $this->templateView(),
             'description' => $this->description,
-            'blocks' => array_map(
+            'blocks'      => array_map(
                 static fn(PageBlock $block): array => [
-                    'id' => $block->id(),
+                    'id'        => $block->id(),
                     'deletable' => $blocksAreDeletable,
                     ...$block->data(),
                 ],
-                array_values($this->blocks)
+                array_values($this->blocks),
             ),
             ...$this->metadata,
         ], static fn(mixed $value): bool => $value !== null);

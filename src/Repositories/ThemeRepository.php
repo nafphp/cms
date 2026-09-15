@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Repositories;
 
+use InvalidArgumentException;
 use Naf\CMS\Contracts\ThemeSourceInterface;
 use Naf\CMS\Services\Theme\ThemeCodeNormalizer;
 use Naf\CMS\Theme\Theme;
 use PDO;
+use RuntimeException;
+use Throwable;
+
 use function Naf\Database\database;
 use function Naf\log;
 
@@ -29,8 +33,9 @@ final class ThemeRepository implements ThemeSourceInterface
 
         try {
             $rows = $connection->query('SELECT * FROM themes ORDER BY updated_at DESC, created_at DESC, label ASC')->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('ThemeRepository.summaries failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return [];
         }
 
@@ -53,8 +58,9 @@ final class ThemeRepository implements ThemeSourceInterface
                 $statement->execute(['identifier' => Theme::slug((string) $id)]);
             }
             $row = $statement->fetch(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('ThemeRepository.find failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return null;
         }
 
@@ -75,8 +81,9 @@ final class ThemeRepository implements ThemeSourceInterface
             // Avoid the former table-existence probe on every public page.
             // A missing schema is already handled by this repository boundary.
             $rows = $connection->query('SELECT * FROM themes ORDER BY label ASC')->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('ThemeRepository.themes failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return [];
         }
 
@@ -98,25 +105,25 @@ final class ThemeRepository implements ThemeSourceInterface
     {
         $connection = $this->connection();
         if (!$connection instanceof PDO) {
-            throw new \RuntimeException('No database connection available.');
+            throw new RuntimeException('No database connection available.');
         }
 
-        $id = (int) ($payload['id'] ?? 0);
-        $label = trim((string) ($payload['label'] ?? ''));
+        $id         = (int) ($payload['id'] ?? 0);
+        $label      = trim((string) ($payload['label'] ?? ''));
         $identifier = Theme::slug((string) ($payload['identifier'] ?? $label));
-        $surfaces = $this->normalizeSurfaces(is_array($payload['surfaces'] ?? null) ? $payload['surfaces'] : []);
+        $surfaces   = $this->normalizeSurfaces(is_array($payload['surfaces'] ?? null) ? $payload['surfaces'] : []);
         $normalizer = new ThemeCodeNormalizer();
-        $css = $normalizer->normalize((string) ($payload['css'] ?? ''));
+        $css        = $normalizer->normalize((string) ($payload['css'] ?? ''));
 
         if ($label === '' || $identifier === '') {
-            throw new \InvalidArgumentException('Theme label and identifier are required.');
+            throw new InvalidArgumentException('Theme label and identifier are required.');
         }
 
         $params = [
-            'identifier' => $identifier,
-            'label' => $label,
+            'identifier'    => $identifier,
+            'label'         => $label,
             'surfaces_json' => json_encode($surfaces, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-            'css' => $css,
+            'css'           => $css,
             // Custom JavaScript is intentionally disabled for database-backed themes in v0.0.1.
             'js' => '',
         ];
@@ -133,6 +140,7 @@ final class ThemeRepository implements ThemeSourceInterface
                 WHERE id = :id
             SQL);
             $statement->execute($params + ['id' => $id]);
+
             return $id;
         }
 
@@ -160,10 +168,10 @@ final class ThemeRepository implements ThemeSourceInterface
     {
         return [
             ...$row,
-            'id' => (int) ($row['id'] ?? 0),
+            'id'       => (int) ($row['id'] ?? 0),
             'surfaces' => $this->decodeJson((string) ($row['surfaces_json'] ?? '{}')),
-            'cssPath' => '/css/themes/' . Theme::slug((string) ($row['identifier'] ?? '')) . '.css',
-            'jsPath' => '',
+            'cssPath'  => '/css/themes/' . Theme::slug((string) ($row['identifier'] ?? '')) . '.css',
+            'jsPath'   => '',
         ];
     }
 
@@ -176,14 +184,14 @@ final class ThemeRepository implements ThemeSourceInterface
         $surfaces = is_array($theme['surfaces'] ?? null) ? $theme['surfaces'] : [];
 
         return [
-            'id' => (int) ($theme['id'] ?? 0),
-            'identifier' => (string) ($theme['identifier'] ?? ''),
-            'label' => (string) ($theme['label'] ?? ''),
-            'surfaces' => implode(', ', array_values($surfaces)),
+            'id'           => (int) ($theme['id'] ?? 0),
+            'identifier'   => (string) ($theme['identifier'] ?? ''),
+            'label'        => (string) ($theme['label'] ?? ''),
+            'surfaces'     => implode(', ', array_values($surfaces)),
             'surfaceCount' => count($surfaces),
-            'cssPath' => (string) ($theme['cssPath'] ?? ''),
-            'jsPath' => (string) ($theme['jsPath'] ?? ''),
-            'updated' => (string) (($theme['updated_at'] ?? null) ?: ($theme['created_at'] ?? '')),
+            'cssPath'      => (string) ($theme['cssPath'] ?? ''),
+            'jsPath'       => (string) ($theme['jsPath'] ?? ''),
+            'updated'      => (string) (($theme['updated_at'] ?? null) ?: ($theme['created_at'] ?? '')),
         ];
     }
 
@@ -205,6 +213,7 @@ final class ThemeRepository implements ThemeSourceInterface
         if (trim((string) ($row['css'] ?? '')) !== '') {
             $theme->addStylesheet((string) ($row['cssPath'] ?? '/css/themes/' . $identifier . '.css'));
         }
+
         return $theme;
     }
 
@@ -216,7 +225,7 @@ final class ThemeRepository implements ThemeSourceInterface
     {
         $normalized = [];
         foreach ($surfaces as $id => $label) {
-            $id = Theme::slug((string) $id);
+            $id    = Theme::slug((string) $id);
             $label = trim((string) $label);
             if ($id !== '' && $label !== '') {
                 $normalized[$id] = $label;
@@ -233,8 +242,9 @@ final class ThemeRepository implements ThemeSourceInterface
     {
         try {
             $decoded = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->warning(sprintf('ThemeRepository.decodeJson failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return [];
         }
 
@@ -253,14 +263,17 @@ final class ThemeRepository implements ThemeSourceInterface
             if ($driver === 'sqlite') {
                 $statement = $connection->prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'themes'");
                 $statement->execute();
+
                 return (bool) $statement->fetchColumn();
             }
 
             $statement = $connection->prepare('SHOW TABLES LIKE :table');
             $statement->execute(['table' => 'themes']);
+
             return (bool) $statement->fetchColumn();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->warning(sprintf('ThemeRepository.tableExists failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return false;
         }
     }
@@ -273,8 +286,9 @@ final class ThemeRepository implements ThemeSourceInterface
 
         try {
             $connection = database();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('ThemeRepository.connection failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return null;
         }
 

@@ -7,15 +7,15 @@ namespace Tests\Unit\Services\Form;
 use Naf\CMS\Events\FormPayloadLimitEvent;
 use Naf\CMS\Services\Form\FormSubmissionGuard;
 use Naf\CMS\Services\Security\FileRateLimiter;
-use PHPUnit\Framework\TestCase;
 use Naf\Exceptions\AbortException;
 use Nyholm\Psr7\ServerRequest;
+use PHPUnit\Framework\TestCase;
 
 final class FormSubmissionGuardTest extends TestCase
 {
     public function testFormRateLimitIsScopedAndTemporary(): void
     {
-        $now = 1000;
+        $now     = 1000;
         $limiter = new FileRateLimiter(
             sys_get_temp_dir() . '/nafcms-form-rate-test-' . bin2hex(random_bytes(6)),
             static function () use (&$now): int {

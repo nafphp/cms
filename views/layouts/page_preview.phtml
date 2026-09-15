@@ -1,19 +1,22 @@
 <?php
 
+use Naf\CMS\Page\Page;
+use Naf\CMS\Page\Template;
 use Naf\View\Core\Asset;
-use function Naf\View\s;
+
 use function Naf\CMS\cms;
+use function Naf\View\s;
 
 /** @var string|null $content */
-/** @var \Naf\CMS\Page\Page $page */
-/** @var \Naf\CMS\Page\Template $template */
+/** @var Page $page */
+/** @var Template $template */
 /** @var string|null $title */
 
-$settings = cms()->settings();
-$template = ($template ?? null) instanceof \Naf\CMS\Page\Template ? $template : \Naf\CMS\Page\Template::create();
+$settings        = cms()->settings();
+$template        = ($template ?? null) instanceof Template ? $template : Template::create();
 $currentLanguage = $page->language() ?? $settings->currentLanguage();
-$assets = new Asset();
-$stylesheetTags = [];
+$assets          = new Asset();
+$stylesheetTags  = [];
 
 $attributeString = static function (array $attributes): string {
     $html = '';
@@ -30,13 +33,13 @@ $attributeString = static function (array $attributes): string {
     return $html;
 };
 
-$bodyAttributes = $page->bodyAttributes();
-$htmlAttributes = $page->htmlAttributes();
+$bodyAttributes          = $page->bodyAttributes();
+$htmlAttributes          = $page->htmlAttributes();
 $htmlAttributes['class'] = trim(($htmlAttributes['class'] ?? '') . ' dark');
-$templateThemeId = trim((string) $template->themeId());
-$theme = cms()->themes()->resolve($templateThemeId !== '' && $templateThemeId !== 'inherit' ? $templateThemeId : $page->themeId());
-$accent = trim((string) ($page->meta()->theme->accent ?? ''));
-$themeStyles = [];
+$templateThemeId         = trim((string) $template->themeId());
+$theme                   = cms()->themes()->resolve($templateThemeId !== '' && $templateThemeId !== 'inherit' ? $templateThemeId : $page->themeId());
+$accent                  = trim((string) ($page->meta()->theme->accent ?? ''));
+$themeStyles             = [];
 if (preg_match('/^#[0-9a-fA-F]{6}$/', $accent) === 1) {
     $themeStyles[] = '--page-accent: ' . $accent;
 }
@@ -53,20 +56,20 @@ if (($page->meta()->theme->footerBackgroundTransparent ?? false) === true) {
     $themeStyles[] = '--page-footer-bg: ' . $footerBackground;
 }
 $templateDefaultWidth = match ($template->view()) {
-    'page.templates.default', 'page.templates.full_bleed' => '100%',
-    'page.templates.article_detail' => '820px',
-    'page.templates.editorial' => '1040px',
+    'page.templates.default', 'page.templates.full_bleed'   => '100%',
+    'page.templates.article_detail'                         => '820px',
+    'page.templates.editorial'                              => '1040px',
     'page.templates.landing', 'page.templates.feature_grid' => '1120px',
-    'page.templates.two_column' => '960px',
-    default => '1120px',
+    'page.templates.two_column'                             => '960px',
+    default                                                 => '1120px',
 };
 $themeStyles[] = '--page-template-default-width: ' . $templateDefaultWidth;
-$contentWidth = match ((string) ($page->meta()->theme->contentWidth ?? '')) {
-    'narrow' => '760px',
+$contentWidth  = match ((string) ($page->meta()->theme->contentWidth ?? '')) {
+    'narrow'      => '760px',
     'comfortable' => '960px',
-    'wide' => '1120px',
-    'full' => '100%',
-    default => '',
+    'wide'        => '1120px',
+    'full'        => '100%',
+    default       => '',
 };
 if ($contentWidth !== '') {
     $themeStyles[] = '--page-content-max-width: ' . $contentWidth;
@@ -85,7 +88,7 @@ if ($bodyClasses !== '') {
     $bodyAttributes['class'] = trim(($bodyAttributes['class'] ?? '') . ' ' . $bodyClasses);
 }
 if ($themeStyles !== []) {
-    $style = trim((string) ($bodyAttributes['style'] ?? ''));
+    $style                   = trim((string) ($bodyAttributes['style'] ?? ''));
     $bodyAttributes['style'] = trim($style . ($style !== '' && !str_ends_with($style, ';') ? '; ' : ' ') . implode('; ', $themeStyles));
 }
 

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Services\Admin;
 
+use LogicException;
 use Naf\CMS\Page\PageRegistry;
-use Naf\CMS\Services\Admin\AdminNavigationItemCollector;
+use Throwable;
+
 use function Naf\CMS\cms;
 use function Naf\config;
 use function Naf\log;
@@ -17,7 +19,8 @@ final class AdminNavigationColorInheritance
     public function __construct(
         private ?PageRegistry $pages = null,
         private ?array $accentColors = null,
-    ) {}
+    ) {
+    }
 
     /**
      * @param array<int, array<string, mixed>> $items
@@ -54,9 +57,9 @@ final class AdminNavigationColorInheritance
     private function applyInheritedAccents(array $items, ?string $inheritedAccent, array $colors): array
     {
         foreach ($items as &$item) {
-            $directAccent = $this->directAccentForItem($item, $colors);
-            $accent = $inheritedAccent ?? $directAccent ?? $this->fallbackAccent($colors);
-            $item['accent'] = $accent;
+            $directAccent     = $this->directAccentForItem($item, $colors);
+            $accent           = $inheritedAccent ?? $directAccent ?? $this->fallbackAccent($colors);
+            $item['accent']   = $accent;
             $item['children'] = $this->applyInheritedAccents(
                 is_array($item['children'] ?? null) ? $item['children'] : [],
                 $inheritedAccent ?? $directAccent,
@@ -87,7 +90,7 @@ final class AdminNavigationColorInheritance
             }
         }
 
-        $key = (string) ($item['key'] ?? '');
+        $key    = (string) ($item['key'] ?? '');
         $accent = isset($colors[$key]) ? trim((string) $colors[$key]) : '';
 
         return $accent !== '' ? $accent : null;
@@ -100,13 +103,13 @@ final class AdminNavigationColorInheritance
     private function accentForNavigationKey(string $key, array $items, array $colors): ?string
     {
         $visited = [];
-        $chain = [];
-        $key = trim($key);
+        $chain   = [];
+        $key     = trim($key);
 
         while ($key !== '' && !isset($visited[$key])) {
             $visited[$key] = true;
-            $item = $items[$key] ?? [
-                'key' => $key,
+            $item          = $items[$key] ?? [
+                'key'    => $key,
                 'parent' => AdminNavigationItemCollector::parentFromKey($key),
             ];
             array_unshift($chain, $item);
@@ -135,17 +138,17 @@ final class AdminNavigationColorInheritance
 
     private function navigationKeyForPath(string $path): ?string
     {
-        $path = $this->normalizePath($path);
-        $bestKey = null;
+        $path      = $this->normalizePath($path);
+        $bestKey   = null;
         $bestScore = -1;
 
         foreach ($this->pages()->all() as $page) {
             try {
                 $pagePath = $page->path();
-            } catch (\LogicException $e) {
+            } catch (LogicException $e) {
                 log()->debug('AdminNavigationColorInheritance.pagePath unavailable', [
                     'exception' => $e,
-                    'page_id' => $page->id(),
+                    'page_id'   => $page->id(),
                 ]);
                 continue;
             }
@@ -170,7 +173,7 @@ final class AdminNavigationColorInheritance
             $score = strlen($pagePath) + ($this->normalizePath($pagePath) === $path ? 1000 : 0);
             if ($score > $bestScore) {
                 $bestScore = $score;
-                $bestKey = trim($key);
+                $bestKey   = trim($key);
             }
         }
 
@@ -189,7 +192,7 @@ final class AdminNavigationColorInheritance
         }
 
         $parts = explode('/', trim($path, '/'));
-        $key = trim((string) ($parts[1] ?? ''));
+        $key   = trim((string) ($parts[1] ?? ''));
 
         return $key !== '' ? $key : null;
     }
@@ -209,7 +212,7 @@ final class AdminNavigationColorInheritance
             return true;
         }
 
-        $quoted = preg_quote($pagePath, '#');
+        $quoted  = preg_quote($pagePath, '#');
         $pattern = preg_replace('#\\\\\{[^}]+\\\\\}#', '[^/]+', $quoted);
         if (!is_string($pattern)) {
             return false;
@@ -227,8 +230,8 @@ final class AdminNavigationColorInheritance
         if ($colors === null) {
             try {
                 $configured = config('cms:admin:accent_colors', []);
-                $colors = is_array($configured) ? $configured : [];
-            } catch (\Throwable $e) {
+                $colors     = is_array($configured) ? $configured : [];
+            } catch (Throwable $e) {
                 log()->warning('AdminNavigationColorInheritance.accentColors failed', [
                     'exception' => $e,
                 ]);
@@ -238,7 +241,7 @@ final class AdminNavigationColorInheritance
 
         $normalized = [];
         foreach ($colors as $key => $color) {
-            $key = trim((string) $key);
+            $key   = trim((string) $key);
             $color = trim((string) $color);
             if ($key !== '' && $color !== '') {
                 $normalized[$key] = $color;

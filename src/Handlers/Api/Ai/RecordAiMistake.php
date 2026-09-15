@@ -8,6 +8,7 @@ use Naf\CMS\Handlers\Support\ReadsJsonBody;
 use Naf\CMS\Services\Ai\LocalAiPromptLibrary;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
+
 use function Naf\json;
 
 final class RecordAiMistake
@@ -16,15 +17,15 @@ final class RecordAiMistake
 
     public function __invoke(): ResponseInterface
     {
-        $body = $this->jsonBody();
-        $event = trim((string) ($body['event'] ?? ''));
-        $context = trim((string) ($body['context'] ?? ''));
+        $body       = $this->jsonBody();
+        $event      = trim((string) ($body['event'] ?? ''));
+        $context    = trim((string) ($body['context'] ?? ''));
         $correction = trim((string) ($body['correction'] ?? ''));
 
         if ($event === '') {
             return json([
                 'success' => false,
-                'reason' => 'Event is required.',
+                'reason'  => 'Event is required.',
             ], 400);
         }
 
@@ -33,7 +34,7 @@ final class RecordAiMistake
         } catch (Throwable $exception) {
             return json([
                 'success' => false,
-                'reason' => $exception->getMessage(),
+                'reason'  => $exception->getMessage(),
             ], 500);
         }
 

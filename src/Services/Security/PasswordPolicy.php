@@ -14,6 +14,7 @@ final class PasswordPolicy implements PasswordPolicyInterface
     public function accepts(string $password): bool
     {
         $length = mb_strlen($password);
+
         return $length >= $this->minimumLength() && $length <= $this->maximumLength();
     }
 

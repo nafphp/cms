@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Commands;
 
+use DateTimeImmutable;
+use Naf\CLI\Core\AbstractCommand;
+use Naf\CLI\Core\Input;
+use Naf\CLI\Core\Output;
 use Naf\CMS\Enums\Permission;
 use Naf\CMS\Enums\Role;
 use Naf\CMS\Services\Security\CredentialService;
 use Naf\CMS\Support\Slug;
-use Naf\CLI\Core\AbstractCommand;
-use Naf\CLI\Core\Input;
-use Naf\CLI\Core\Output;
 use PDO;
 use RuntimeException;
+
 use function Naf\Database\database;
 
 class FakeDataCommand extends AbstractCommand
@@ -30,16 +32,16 @@ class FakeDataCommand extends AbstractCommand
      */
     private const array DEMO_ARTICLE_VERSIONS = [
         'de' => [
-            'slug' => 'nafcms-demo-geschichte',
-            'title' => 'NafCMS Demo-Geschichte',
+            'slug'   => 'nafcms-demo-geschichte',
+            'title'  => 'NafCMS Demo-Geschichte',
             'teaser' => 'Ein kurzer Beispielbeitrag fuer lokale Entwicklung und Tests.',
-            'body' => 'Dies ist ein automatisch erzeugter Demo-Artikel. Du kannst ihn im Adminbereich bearbeiten.',
+            'body'   => 'Dies ist ein automatisch erzeugter Demo-Artikel. Du kannst ihn im Adminbereich bearbeiten.',
         ],
         'en' => [
-            'slug' => 'nafcms-demo-story',
-            'title' => 'NafCMS Demo Story',
+            'slug'   => 'nafcms-demo-story',
+            'title'  => 'NafCMS Demo Story',
             'teaser' => 'A short sample story used for local development and testing.',
-            'body' => 'This is an auto-generated demo article. You can edit it in the admin area.',
+            'body'   => 'This is an auto-generated demo article. You can edit it in the admin area.',
         ],
     ];
 
@@ -67,12 +69,14 @@ class FakeDataCommand extends AbstractCommand
             $output->writeLine('  Usage:');
             $output->writeLine('    vendor/bin/naf seed:fake-data');
             $output->writeLine('  Idempotent: re-running updates demo content rather than duplicating.');
+
             return self::SUCCESS;
         }
 
         $pdo = database();
         if (!$pdo instanceof PDO) {
             $output->writeLine('Database connection not available. Run install:database first.', 'error');
+
             return self::ERROR;
         }
 
@@ -84,13 +88,13 @@ class FakeDataCommand extends AbstractCommand
         $this->assignRoleToUser($pdo, $userId, Role::ADMIN->value);
 
         $categoryId = $this->upsertCategory($pdo, 'City Walks');
-        $tagIds = $this->upsertTags($pdo, ['demo', 'city', 'walk']);
+        $tagIds     = $this->upsertTags($pdo, ['demo', 'city', 'walk']);
 
         $articleId = $this->upsertDemoArticle($pdo, $userId, $categoryId);
         $this->upsertDemoArticleTags($pdo, $articleId, $tagIds);
         $this->upsertDemoArticleVersions($pdo, $articleId);
 
-        $repaired = $this->repairBrokenArticleVersions($pdo);
+        $repaired  = $this->repairBrokenArticleVersions($pdo);
         $recovered = $this->createMissingArticleVersions($pdo);
 
         $output->writeLine('Seed run complete.', 'ok');
@@ -121,7 +125,7 @@ class FakeDataCommand extends AbstractCommand
     private function seedRolePermissionMatrix(PDO $pdo): void
     {
         $matrix = [
-            Role::ADMIN->value => Permission::cases(),
+            Role::ADMIN->value  => Permission::cases(),
             Role::EDITOR->value => [
                 Permission::ADMIN_ACCESS,
                 Permission::SYSTEM_READ,
@@ -183,9 +187,9 @@ class FakeDataCommand extends AbstractCommand
                 }
 
                 $pdo->prepare(
-                    'INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES (:roleId, :permissionId)'
+                    'INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES (:roleId, :permissionId)',
                 )->execute([
-                    'roleId' => $roleId,
+                    'roleId'       => $roleId,
                     'permissionId' => $permissionId,
                 ]);
             }
@@ -201,13 +205,13 @@ class FakeDataCommand extends AbstractCommand
                 password = VALUES(password),
                 firstname = VALUES(firstname),
                 lastname = VALUES(lastname),
-                email = COALESCE(users.email, VALUES(email))'
+                email = COALESCE(users.email, VALUES(email))',
         )->execute([
-            'username' => 'flo',
-            'password' => (new CredentialService())->hashPassword('test'),
-            'email' => 'flo@example.test',
+            'username'  => 'flo',
+            'password'  => (new CredentialService())->hashPassword('test'),
+            'email'     => 'flo@example.test',
             'firstname' => 'Flo',
-            'lastname' => 'Mustermann',
+            'lastname'  => 'Mustermann',
         ]);
 
         $stmt = $pdo->prepare('SELECT id FROM users WHERE username = :username LIMIT 1');
@@ -285,7 +289,7 @@ class FakeDataCommand extends AbstractCommand
              FROM article_versions
              WHERE slug IN (' . $placeholders . ')
              ORDER BY version DESC
-             LIMIT 1'
+             LIMIT 1',
         );
         $stmt->execute(array_values($slugs));
         $articleId = (int) $stmt->fetchColumn();
@@ -293,8 +297,9 @@ class FakeDataCommand extends AbstractCommand
         if ($articleId <= 0) {
             $pdo->prepare(
                 'INSERT INTO articles (author, category_id, hide_lead_image_in_content)
-                 VALUES (:authorId, :categoryId, 1)'
+                 VALUES (:authorId, :categoryId, 1)',
             )->execute(['authorId' => $authorId, 'categoryId' => $categoryId]);
+
             return (int) $pdo->lastInsertId();
         }
 
@@ -310,7 +315,7 @@ class FakeDataCommand extends AbstractCommand
     private function upsertDemoArticleTags(PDO $pdo, int $articleId, array $tagIds): void
     {
         $insert = $pdo->prepare(
-            'INSERT IGNORE INTO article_tags (article_id, tag_id) VALUES (:articleId, :tagId)'
+            'INSERT IGNORE INTO article_tags (article_id, tag_id) VALUES (:articleId, :tagId)',
         );
         foreach ($tagIds as $tagId) {
             $insert->execute(['articleId' => $articleId, 'tagId' => $tagId]);
@@ -319,7 +324,7 @@ class FakeDataCommand extends AbstractCommand
 
     private function upsertDemoArticleVersions(PDO $pdo, int $articleId): void
     {
-        $now = (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+        $now = (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
 
         foreach (self::DEMO_ARTICLE_VERSIONS as $language => $version) {
             $this->upsertArticleVersion(
@@ -330,7 +335,7 @@ class FakeDataCommand extends AbstractCommand
                 $version['title'],
                 $version['teaser'],
                 $this->buildContentJson($version['body']),
-                $now
+                $now,
             );
         }
     }
@@ -350,7 +355,7 @@ class FakeDataCommand extends AbstractCommand
              FROM article_versions
              WHERE article_id = :articleId AND language = :language
              ORDER BY version DESC
-             LIMIT 1'
+             LIMIT 1',
         );
         $stmt->execute(['articleId' => $articleId, 'language' => $language]);
         $existingVersionId = (int) $stmt->fetchColumn();
@@ -365,23 +370,24 @@ class FakeDataCommand extends AbstractCommand
                      content = :content,
                      show_teaser = 1,
                      publishedAt = :publishedAt
-                 WHERE id = :id'
+                 WHERE id = :id',
             )->execute([
-                'slug' => $slug,
-                'status' => 'published',
-                'title' => $title,
-                'teaser' => $teaser,
-                'content' => $contentJson,
+                'slug'        => $slug,
+                'status'      => 'published',
+                'title'       => $title,
+                'teaser'      => $teaser,
+                'content'     => $contentJson,
                 'publishedAt' => $publishedAt,
-                'id' => $existingVersionId,
+                'id'          => $existingVersionId,
             ]);
+
             return;
         }
 
         $nextVersionStmt = $pdo->prepare(
             'SELECT COALESCE(MAX(version), 0) + 1
              FROM article_versions
-             WHERE article_id = :articleId AND language = :language'
+             WHERE article_id = :articleId AND language = :language',
         );
         $nextVersionStmt->execute(['articleId' => $articleId, 'language' => $language]);
         $version = max(1, (int) $nextVersionStmt->fetchColumn());
@@ -390,60 +396,60 @@ class FakeDataCommand extends AbstractCommand
             'INSERT INTO article_versions
                 (article_id, language, version, status, slug, title, teaser, show_teaser, content, publishedAt)
              VALUES
-                (:articleId, :language, :version, :status, :slug, :title, :teaser, 1, :content, :publishedAt)'
+                (:articleId, :language, :version, :status, :slug, :title, :teaser, 1, :content, :publishedAt)',
         )->execute([
-            'articleId' => $articleId,
-            'language' => $language,
-            'version' => $version,
-            'status' => 'published',
-            'slug' => $slug,
-            'title' => $title,
-            'teaser' => $teaser,
-            'content' => $contentJson,
+            'articleId'   => $articleId,
+            'language'    => $language,
+            'version'     => $version,
+            'status'      => 'published',
+            'slug'        => $slug,
+            'title'       => $title,
+            'teaser'      => $teaser,
+            'content'     => $contentJson,
             'publishedAt' => $publishedAt,
         ]);
     }
 
     private function repairBrokenArticleVersions(PDO $pdo): int
     {
-        $now = (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+        $now             = (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
         $fallbackContent = $this->buildContentJson('Recovered placeholder content.');
-        $affected = 0;
+        $affected        = 0;
 
         $affected += $pdo->exec(
             "UPDATE article_versions
              SET slug = CONCAT('article-', article_id, '-v', version, '-', language)
-             WHERE slug IS NULL OR TRIM(slug) = ''"
+             WHERE slug IS NULL OR TRIM(slug) = ''",
         ) ?: 0;
 
         $affected += $pdo->exec(
             "UPDATE article_versions
              SET status = 'draft'
-             WHERE status IS NULL OR TRIM(status) = ''"
+             WHERE status IS NULL OR TRIM(status) = ''",
         ) ?: 0;
 
         $affected += $pdo->exec(
             "UPDATE article_versions
              SET title = CONCAT('Recovered Article #', article_id, ' (', UPPER(language), ')')
-             WHERE title IS NULL OR TRIM(title) = ''"
+             WHERE title IS NULL OR TRIM(title) = ''",
         ) ?: 0;
 
         $affected += $pdo->exec(
             "UPDATE article_versions
              SET teaser = 'Recovered teaser.'
-             WHERE teaser IS NULL OR TRIM(teaser) = ''"
+             WHERE teaser IS NULL OR TRIM(teaser) = ''",
         ) ?: 0;
 
         $contentStmt = $pdo->prepare(
             "UPDATE article_versions
              SET content = :content
-             WHERE content IS NULL OR TRIM(content) = ''"
+             WHERE content IS NULL OR TRIM(content) = ''",
         );
         $contentStmt->execute(['content' => $fallbackContent]);
         $affected += $contentStmt->rowCount();
 
         $publishedStmt = $pdo->prepare(
-            'UPDATE article_versions SET publishedAt = :publishedAt WHERE publishedAt IS NULL'
+            'UPDATE article_versions SET publishedAt = :publishedAt WHERE publishedAt IS NULL',
         );
         $publishedStmt->execute(['publishedAt' => $now]);
         $affected += $publishedStmt->rowCount();
@@ -456,12 +462,12 @@ class FakeDataCommand extends AbstractCommand
         $stmt = $pdo->query(
             'SELECT a.id
              FROM articles a
-             WHERE NOT EXISTS (SELECT 1 FROM article_versions av WHERE av.article_id = a.id)'
+             WHERE NOT EXISTS (SELECT 1 FROM article_versions av WHERE av.article_id = a.id)',
         );
         $articleIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-        $created = 0;
-        $publishedAt = (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+        $created     = 0;
+        $publishedAt = (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
 
         foreach ($articleIds as $rawArticleId) {
             $articleId = (int) $rawArticleId;
@@ -477,7 +483,7 @@ class FakeDataCommand extends AbstractCommand
                 sprintf('Recovered Article #%d', $articleId),
                 'Recovered teaser.',
                 $this->buildContentJson('Recovered article content.'),
-                $publishedAt
+                $publishedAt,
             );
 
             $created++;
@@ -489,7 +495,7 @@ class FakeDataCommand extends AbstractCommand
     private function buildContentJson(string $text): string
     {
         $payload = [
-            'time' => time() * 1000,
+            'time'   => time() * 1000,
             'blocks' => [
                 ['type' => 'paragraph', 'data' => ['text' => $text]],
             ],
@@ -497,6 +503,7 @@ class FakeDataCommand extends AbstractCommand
         ];
 
         $encoded = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
         return $encoded !== false ? $encoded : '{"time":0,"blocks":[],"version":"2.30.7"}';
     }
 
@@ -504,6 +511,7 @@ class FakeDataCommand extends AbstractCommand
     {
         $stmt = $pdo->prepare('SELECT id FROM roles WHERE name = :name LIMIT 1');
         $stmt->execute(['name' => $roleName]);
+
         return (int) $stmt->fetchColumn();
     }
 
@@ -511,6 +519,7 @@ class FakeDataCommand extends AbstractCommand
     {
         $stmt = $pdo->prepare('SELECT MIN(id) FROM permissions WHERE name = :name');
         $stmt->execute(['name' => $permissionName]);
+
         return (int) $stmt->fetchColumn();
     }
 }

@@ -1,11 +1,13 @@
 <?php
 
+use Naf\CMS\Page\PageBlock;
 use Naf\CMS\Visualization\PageChartFactory;
+
 use function Naf\CMS\cms;
 
 $content = is_array($content ?? null) ? $content : [];
-$props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$blockId = isset($block) && $block instanceof \Naf\CMS\Page\PageBlock ? $block->id() : 'chart';
+$props   = is_array($content['props'] ?? null) ? $content['props'] : [];
+$blockId = isset($block) && $block instanceof PageBlock ? $block->id() : 'chart';
 
 $chart = (new PageChartFactory())->fromBlockProps($props, $blockId);
 

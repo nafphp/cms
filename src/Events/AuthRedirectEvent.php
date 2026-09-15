@@ -6,16 +6,18 @@ namespace Naf\CMS\Events;
 
 use Naf\CMS\Exceptions\AuthException;
 use Psr\Http\Message\ResponseInterface;
+use Throwable;
+
+use function Naf\CMS\user;
 use function Naf\redirect;
 use function Naf\request;
 use function Naf\route;
 use function Naf\Session\session;
 use function Naf\View\render;
-use function Naf\CMS\user;
 
 class AuthRedirectEvent
 {
-    public function onException(\Throwable $t): ?ResponseInterface
+    public function onException(Throwable $t): ?ResponseInterface
     {
         if (!$t instanceof AuthException) {
             return null;
@@ -41,7 +43,7 @@ class AuthRedirectEvent
     {
         try {
             return (string) request()->getUri();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return '/admin';
         }
     }

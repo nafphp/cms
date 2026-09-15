@@ -6,12 +6,12 @@ namespace Naf\CMS\Models;
 
 use Naf\CMS\Repositories\RoleRepository;
 use Naf\ORM\Model\AbstractModel;
-use Naf\CMS\Models\Role;
+
 use function Naf\ORM\repo;
 
 class Permission extends AbstractModel
 {
-    protected ?string $name = null;
+    protected ?string $name      = null;
     protected ?string $createdAt = null;
 
     public function getName(): ?string

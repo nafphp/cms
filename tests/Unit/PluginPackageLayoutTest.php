@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use Naf\CMS\Mcp\Tools\SystemHealthTool;
 use Naf\CLI\Support\CommandRegistry;
+use Naf\CMS\Mcp\Tools\SystemHealthTool;
 use Naf\Database\Support\MigrationRegistry;
 use Naf\MCP\Support\ToolRegistry;
+use Naf\Support\CoreFileLoader;
 use PHPUnit\Framework\TestCase;
+
 use function Naf\app;
 
 final class PluginPackageLayoutTest extends TestCase
@@ -47,7 +49,7 @@ final class PluginPackageLayoutTest extends TestCase
 
     public function testFrameworkDiscoversCorePluginResources(): void
     {
-        if (!class_exists(\Naf\Support\CoreFileLoader::class)) {
+        if (!class_exists(CoreFileLoader::class)) {
             self::markTestSkipped('Discovery of a top-level views/ directory needs naf/framework >= 0.1.6.');
         }
 

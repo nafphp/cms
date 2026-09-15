@@ -4,21 +4,26 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Mcp\Tools;
 
+use DateTimeImmutable;
+use InvalidArgumentException;
 use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
 use Naf\CMS\Enums\ToolRisk;
-
 use Naf\MCP\Support\Schema;
 use Naf\MCP\Tools\ScopedToolInterface;
 use Naf\MCP\Tools\ToolInterface;
+
 use function Naf\app;
 
 final class QueueStatusTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
     use DeclaresLocalAiToolRisk;
 
-    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const ToolRisk AI_RISK    = ToolRisk::READ;
     private const bool AI_DESTRUCTIVE = false;
-    public function __construct(private ?string $queuePath = null) {}
+
+    public function __construct(private ?string $queuePath = null)
+    {
+    }
 
     public function name(): string
     {
@@ -46,16 +51,16 @@ final class QueueStatusTool implements ToolInterface, ScopedToolInterface, Local
 
     public function handle(array $args): array
     {
-        $channel = $this->normalizeChannel($args['channel'] ?? 'default');
+        $channel  = $this->normalizeChannel($args['channel'] ?? 'default');
         $basePath = $this->queuePath();
 
         return [
-            'channel' => $channel,
-            'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
+            'channel'            => $channel,
+            'generated_at'       => (new DateTimeImmutable())->format(DATE_ATOM),
             'available_channels' => $this->channels($basePath),
-            'pending_jobs' => $this->countFiles($basePath, $channel, '*.job'),
-            'active_workers' => $this->countFiles($basePath, $channel, '*.job.lock'),
-            'deadletter_jobs' => $this->countFiles($basePath . '/deadletter', $channel, '*.job'),
+            'pending_jobs'       => $this->countFiles($basePath, $channel, '*.job'),
+            'active_workers'     => $this->countFiles($basePath, $channel, '*.job.lock'),
+            'deadletter_jobs'    => $this->countFiles($basePath . '/deadletter', $channel, '*.job'),
         ];
     }
 
@@ -71,7 +76,7 @@ final class QueueStatusTool implements ToolInterface, ScopedToolInterface, Local
         }
 
         if (preg_match('/^[a-z0-9_.-]+$/', $normalized) !== 1) {
-            throw new \InvalidArgumentException('Queue channel must contain only letters, numbers, dots, dashes, or underscores.');
+            throw new InvalidArgumentException('Queue channel must contain only letters, numbers, dots, dashes, or underscores.');
         }
 
         return $normalized;
@@ -102,7 +107,7 @@ final class QueueStatusTool implements ToolInterface, ScopedToolInterface, Local
         }
 
         foreach (glob($basePath . '/deadletter/*', GLOB_ONLYDIR) ?: [] as $directory) {
-            $name = basename($directory);
+            $name            = basename($directory);
             $channels[$name] = $name;
         }
 
@@ -122,10 +127,12 @@ final class QueueStatusTool implements ToolInterface, ScopedToolInterface, Local
 
                 $count += count(glob($directory . '/' . $pattern) ?: []);
             }
+
             return $count;
         }
 
         $path = $basePath . '/' . $channel;
+
         return is_dir($path) ? count(glob($path . '/' . $pattern) ?: []) : 0;
     }
 }

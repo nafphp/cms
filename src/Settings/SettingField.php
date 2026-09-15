@@ -7,9 +7,9 @@ namespace Naf\CMS\Settings;
 final class SettingField
 {
     /** @var array<string, string> */
-    private array $options = [];
+    private array $options       = [];
     private ?string $description = null;
-    private mixed $defaultValue = null;
+    private mixed $defaultValue  = null;
 
     private function __construct(
         private readonly string $key,
@@ -63,6 +63,7 @@ final class SettingField
     public function setDescription(string $description): self
     {
         $this->description = trim($description);
+
         return $this;
     }
 
@@ -74,6 +75,7 @@ final class SettingField
     public function setDefaultValue(mixed $defaultValue): self
     {
         $this->defaultValue = $defaultValue;
+
         return $this;
     }
 
@@ -87,6 +89,7 @@ final class SettingField
     public function setOptions(array $options): self
     {
         $this->options = $options;
+
         return $this;
     }
 }

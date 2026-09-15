@@ -14,9 +14,9 @@ final class ArticleRendererTest extends TestCase
     public function testHtmlRendersBlocksThroughRegistry(): void
     {
         $registry = new BlockRegistry();
-        $article = [
+        $article  = [
             'hide_lead_image_in_content' => 0,
-            'content' => json_encode([
+            'content'                    => json_encode([
                 'blocks' => [
                     ['type' => 'header', 'data' => ['level' => 2, 'text' => 'Title']],
                     ['type' => 'paragraph', 'data' => ['text' => 'Hello']],
@@ -32,9 +32,9 @@ final class ArticleRendererTest extends TestCase
     public function testHtmlSkipsFirstImageWhenLeadImageHidden(): void
     {
         $registry = new BlockRegistry();
-        $article = [
+        $article  = [
             'hide_lead_image_in_content' => 1,
-            'content' => json_encode([
+            'content'                    => json_encode([
                 'blocks' => [
                     ['type' => 'image', 'data' => ['file' => ['url' => '/lead.png']]],
                     ['type' => 'paragraph', 'data' => ['text' => 'Body']],
@@ -53,7 +53,7 @@ final class ArticleRendererTest extends TestCase
     public function testUnknownBlockTypeFallsBackToParagraph(): void
     {
         $registry = new BlockRegistry();
-        $article = [
+        $article  = [
             'content' => json_encode([
                 'blocks' => [
                     ['type' => 'mystery', 'data' => ['text' => 'fallback']],

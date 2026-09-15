@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Services\Admin;
 
+use Naf\Auth\Exceptions\ForbiddenException;
+use Naf\Auth\Exceptions\UnauthenticatedException;
 use Naf\CMS\Page\Page;
 use Naf\CMS\Page\PageRegistry;
+use Naf\CMS\Services\Security\ResourceAuthorization;
 use Naf\CMS\Support\UserHelper;
-use Naf\CMS\Services\Admin\AdminNavigationItemCollector;
-use Naf\CMS\Services\Admin\AdminNavigationTreeBuilder;
+
 use function Naf\CMS\cms;
 use function Naf\CMS\user;
 
@@ -18,7 +20,8 @@ final class AdminNavigationAuthorizationFilter
         private ?PageRegistry $pages = null,
         private mixed $userResolver = null,
         private ?AdminNavigationTreeBuilder $treeBuilder = null,
-    ) {}
+    ) {
+    }
 
     /**
      * @param array<int, array<string, mixed>> $items
@@ -29,7 +32,7 @@ final class AdminNavigationAuthorizationFilter
         $visible = [];
 
         foreach ($items as $item) {
-            $children = $this->filter(is_array($item['children'] ?? null) ? $item['children'] : []);
+            $children         = $this->filter(is_array($item['children'] ?? null) ? $item['children'] : []);
             $item['children'] = $children;
 
             if ($children !== [] || $this->isItemAuthorized($item)) {
@@ -78,14 +81,18 @@ final class AdminNavigationAuthorizationFilter
     private function isPageAuthorized(Page $page): bool
     {
         $user = $this->currentUser();
+
         try {
-            (new \Naf\CMS\Services\Security\ResourceAuthorization())->authorize(
+            (new ResourceAuthorization())->authorize(
                 $user?->isLoggedIn() === true ? $user : null,
-                $page->requiresAuthentication(), $page->requiredRoles(),
-                $page->requiredPermissions(), $page->requiresAnyPermission(),
+                $page->requiresAuthentication(),
+                $page->requiredRoles(),
+                $page->requiredPermissions(),
+                $page->requiresAnyPermission(),
             );
+
             return true;
-        } catch (\Naf\Auth\Exceptions\UnauthenticatedException|\Naf\Auth\Exceptions\ForbiddenException) {
+        } catch (UnauthenticatedException|ForbiddenException) {
             return false;
         }
     }
@@ -94,6 +101,7 @@ final class AdminNavigationAuthorizationFilter
     {
         if (is_callable($this->userResolver)) {
             $user = ($this->userResolver)();
+
             return $user instanceof UserHelper ? $user : null;
         }
 

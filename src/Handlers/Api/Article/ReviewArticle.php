@@ -12,9 +12,10 @@ use Naf\CMS\Support\AuditEntry;
 use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
+
+use function Naf\CMS\user;
 use function Naf\Database\database;
 use function Naf\json;
-use function Naf\CMS\user;
 
 final class ReviewArticle
 {
@@ -35,9 +36,9 @@ final class ReviewArticle
             throw new AuthException('Authentication required.', 401);
         }
 
-        $payload = $this->jsonBody();
-        $action = strtolower(trim((string) ($payload['action'] ?? '')));
-        $comment = isset($payload['comment']) ? trim((string) $payload['comment']) : null;
+        $payload        = $this->jsonBody();
+        $action         = strtolower(trim((string) ($payload['action'] ?? '')));
+        $comment        = isset($payload['comment']) ? trim((string) $payload['comment']) : null;
         $publishArticle = filter_var($payload['publish_article'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         if (!in_array($action, ['approve', 'decline'], true)) {
@@ -50,14 +51,14 @@ final class ReviewArticle
 
         return $this->withDatabase(function (PDO $connection) use ($articleId, $language, $action, $comment, $publishArticle, $reviewerId): array {
             $articleIdValue = (int) $articleId;
-            $languageValue = strtolower(trim($language));
+            $languageValue  = strtolower(trim($language));
 
             $select = $connection->prepare(
-                'SELECT id, status FROM article_versions WHERE article_id = :article_id AND language = :language ORDER BY version DESC LIMIT 1'
+                'SELECT id, status FROM article_versions WHERE article_id = :article_id AND language = :language ORDER BY version DESC LIMIT 1',
             );
             $select->execute([
                 'article_id' => $articleIdValue,
-                'language' => $languageValue,
+                'language'   => $languageValue,
             ]);
             $version = $select->fetch(PDO::FETCH_ASSOC);
             if (!is_array($version)) {
@@ -80,28 +81,29 @@ final class ReviewArticle
             }
 
             $connection->beginTransaction();
+
             try {
                 if ($newStatus !== $currentStatus) {
                     $update = $connection->prepare(
-                        'UPDATE article_versions SET status = :status, publishedAt = CASE WHEN :status_publish = 1 THEN COALESCE(publishedAt, CURRENT_TIMESTAMP) ELSE publishedAt END WHERE id = :id'
+                        'UPDATE article_versions SET status = :status, publishedAt = CASE WHEN :status_publish = 1 THEN COALESCE(publishedAt, CURRENT_TIMESTAMP) ELSE publishedAt END WHERE id = :id',
                     );
                     $update->execute([
-                        'status' => $newStatus,
+                        'status'         => $newStatus,
                         'status_publish' => $newStatus === ArticleStatus::PUBLISHED->value ? 1 : 0,
-                        'id' => (int) $version['id'],
+                        'id'             => (int) $version['id'],
                     ]);
                 }
 
                 $insert = $connection->prepare(
-                    'INSERT INTO article_review_actions (article_id, article_version_id, language, action, comment, reviewed_by) VALUES (:article_id, :article_version_id, :language, :action, :comment, :reviewed_by)'
+                    'INSERT INTO article_review_actions (article_id, article_version_id, language, action, comment, reviewed_by) VALUES (:article_id, :article_version_id, :language, :action, :comment, :reviewed_by)',
                 );
                 $insert->execute([
-                    'article_id' => $articleIdValue,
+                    'article_id'         => $articleIdValue,
                     'article_version_id' => (int) $version['id'],
-                    'language' => $languageValue,
-                    'action' => $action,
-                    'comment' => $comment !== '' ? $comment : null,
-                    'reviewed_by' => $reviewerId,
+                    'language'           => $languageValue,
+                    'action'             => $action,
+                    'comment'            => $comment !== '' ? $comment : null,
+                    'reviewed_by'        => $reviewerId,
                 ]);
 
                 $connection->commit();
@@ -116,14 +118,14 @@ final class ReviewArticle
                 (string) $articleIdValue,
                 [
                     'article_version_id' => (int) $version['id'],
-                    'language' => $languageValue,
-                    'status' => $currentStatus,
+                    'language'           => $languageValue,
+                    'status'             => $currentStatus,
                 ],
                 [
                     'article_version_id' => (int) $version['id'],
-                    'language' => $languageValue,
-                    'status' => $newStatus,
-                    'review_action' => $action,
+                    'language'           => $languageValue,
+                    'status'             => $newStatus,
+                    'review_action'      => $action,
                     'published_directly' => $publishArticle,
                 ],
                 ['has_comment' => $comment !== null && $comment !== ''],

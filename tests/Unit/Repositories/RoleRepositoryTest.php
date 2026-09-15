@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
+use Naf\CMS\Exceptions\PrivilegedActionDenied;
 use Naf\CMS\Models\Role;
 use Naf\CMS\Repositories\RoleRepository;
 use Naf\ORM\Core\EntityManager;
@@ -42,7 +43,7 @@ final class RoleRepositoryTest extends DatabaseTestCase
         );
 
         $permissionId = $this->insertRow('permissions', ['name' => 'roles.manage']);
-        $roleId = $this->insertRow('roles', ['name' => 'security-admin']);
+        $roleId       = $this->insertRow('roles', ['name' => 'security-admin']);
         $this->insertRow('role_permissions', ['role_id' => $roleId, 'permission_id' => $permissionId]);
         $this->actorId = $this->insertRow('users', ['username' => 'actor']);
         $this->insertRow('user_role', ['user_id' => $this->actorId, 'role_id' => $roleId]);
@@ -60,7 +61,7 @@ final class RoleRepositoryTest extends DatabaseTestCase
 
         self::assertSame(
             ['id' => $role->getId(), 'name' => 'managing editor'],
-            $this->fetchOne('SELECT id, name FROM roles WHERE id = :id', ['id' => $role->getId()])
+            $this->fetchOne('SELECT id, name FROM roles WHERE id = :id', ['id' => $role->getId()]),
         );
     }
 
@@ -76,7 +77,7 @@ final class RoleRepositoryTest extends DatabaseTestCase
     {
         $viewerId = $this->insertRow('users', ['username' => 'viewer']);
 
-        $this->expectException(\Naf\CMS\Exceptions\PrivilegedActionDenied::class);
+        $this->expectException(PrivilegedActionDenied::class);
         $this->repository->createByName($viewerId, 'forbidden');
     }
 }

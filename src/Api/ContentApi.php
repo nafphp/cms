@@ -18,7 +18,8 @@ final class ContentApi
 {
     public function __construct(
         private AbstractRepository $repository,
-    ) {}
+    ) {
+    }
 
     /**
      * @return ?EntityInterface
@@ -27,6 +28,7 @@ final class ContentApi
     {
         /** @var ?EntityInterface $entity */
         $entity = $this->repository->findOneBy('id', $id);
+
         return $entity;
     }
 
@@ -44,6 +46,7 @@ final class ContentApi
     ): array {
         /** @var EntityInterface $entities */
         $entities = $this->repository->findBy($criteria, $value, $orderBy, $limit, $offset);
+
         return $entities;
     }
 
@@ -59,6 +62,7 @@ final class ContentApi
     ): ?EntityInterface {
         /** @var ?EntityInterface $entity */
         $entity = $this->repository->findOneBy($criteria, $value, $orderBy);
+
         return $entity;
     }
 
@@ -69,6 +73,7 @@ final class ContentApi
     {
         /** @var EntityInterface $entities */
         $entities = $this->repository->findAll();
+
         return $entities;
     }
 }

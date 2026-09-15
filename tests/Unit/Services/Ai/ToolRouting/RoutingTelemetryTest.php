@@ -13,7 +13,7 @@ final class RoutingTelemetryTest extends TestCase
     public function testDefaultFallbackMetadataDoesNotContainTheUserQuery(): void
     {
         $query = 'My private unreleased campaign is called Blue Heron.';
-        $meta = (new RoutingTelemetry())->fallback(
+        $meta  = (new RoutingTelemetry())->fallback(
             'embedding_model_missing',
             $query,
             ToolContext::fromArray(['area' => 'articleEditor', 'mode' => 'read']),

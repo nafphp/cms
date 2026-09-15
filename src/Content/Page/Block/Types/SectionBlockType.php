@@ -36,9 +36,9 @@ final class SectionBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'width' => 'default',
-            'padding' => 'medium',
-            'tone' => 'none',
+            'width'    => 'default',
+            'padding'  => 'medium',
+            'tone'     => 'none',
             'children' => [],
         ];
     }

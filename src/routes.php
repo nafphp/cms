@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use function Naf\CMS\cms;
-use function Naf\app;
 
 $packageRoot = dirname(__DIR__);
 

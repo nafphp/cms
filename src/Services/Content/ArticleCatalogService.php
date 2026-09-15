@@ -8,6 +8,7 @@ use Naf\CMS\Enums\ArticleStatus;
 use Naf\CMS\Localization\LanguageRegistry;
 use PDO;
 use Throwable;
+
 use function Naf\Database\database;
 
 final class ArticleCatalogService
@@ -19,9 +20,9 @@ final class ArticleCatalogService
     public function overview(): array
     {
         return [
-            'statuses' => array_map(static fn(ArticleStatus $status) => $status->value, ArticleStatus::cases()),
+            'statuses'  => array_map(static fn(ArticleStatus $status) => $status->value, ArticleStatus::cases()),
             'languages' => (new LanguageRegistry())->enabled(),
-            'articles' => $this->articles(),
+            'articles'  => $this->articles(),
         ];
     }
 
@@ -86,15 +87,15 @@ final class ArticleCatalogService
             }
 
             $articles[$articleId] ??= [
-                'id' => $articleId,
-                'title' => '-',
-                'slug' => '-',
-                'author' => $this->authorName($row),
+                'id'          => $articleId,
+                'title'       => '-',
+                'slug'        => '-',
+                'author'      => $this->authorName($row),
                 'publishedAt' => '',
                 'lastVersion' => 0,
-                'status' => '-',
-                'createdAt' => (string) ($row['article_created_at'] ?? ''),
-                'versions' => [],
+                'status'      => '-',
+                'createdAt'   => (string) ($row['article_created_at'] ?? ''),
+                'versions'    => [],
             ];
 
             $versionId = (int) ($row['version_id'] ?? 0);
@@ -104,23 +105,23 @@ final class ArticleCatalogService
 
             $version = [
                 'articleVersionId' => $versionId,
-                'language' => strtolower(trim((string) ($row['language'] ?? ''))),
-                'version' => (int) ($row['version'] ?? 0),
-                'status' => strtolower(trim((string) ($row['status'] ?? ''))),
-                'slug' => (string) ($row['slug'] ?? ''),
-                'title' => (string) ($row['title'] ?? ''),
-                'publishedAt' => (string) (($row['publishedAt'] ?? '') ?: ($row['scheduledAt'] ?? '')),
-                'createdAt' => (string) ($row['version_created_at'] ?? ''),
+                'language'         => strtolower(trim((string) ($row['language'] ?? ''))),
+                'version'          => (int) ($row['version'] ?? 0),
+                'status'           => strtolower(trim((string) ($row['status'] ?? ''))),
+                'slug'             => (string) ($row['slug'] ?? ''),
+                'title'            => (string) ($row['title'] ?? ''),
+                'publishedAt'      => (string) (($row['publishedAt'] ?? '') ?: ($row['scheduledAt'] ?? '')),
+                'createdAt'        => (string) ($row['version_created_at'] ?? ''),
             ];
 
             $articles[$articleId]['versions'][] = $version;
 
             if ($this->isBetterSummaryVersion($version, $articles[$articleId])) {
-                $articles[$articleId]['title'] = $version['title'] !== '' ? $version['title'] : '-';
-                $articles[$articleId]['slug'] = $version['slug'] !== '' ? $version['slug'] : '-';
+                $articles[$articleId]['title']       = $version['title'] !== '' ? $version['title'] : '-';
+                $articles[$articleId]['slug']        = $version['slug'] !== '' ? $version['slug'] : '-';
                 $articles[$articleId]['publishedAt'] = $version['publishedAt'];
                 $articles[$articleId]['lastVersion'] = $version['version'];
-                $articles[$articleId]['status'] = $version['status'] !== '' ? $version['status'] : '-';
+                $articles[$articleId]['status']      = $version['status'] !== '' ? $version['status'] : '-';
             }
         }
 
@@ -138,6 +139,7 @@ final class ArticleCatalogService
         }
 
         $username = trim((string) ($row['author_username'] ?? ''));
+
         return $username !== '' ? $username : '-';
     }
 
@@ -147,14 +149,14 @@ final class ArticleCatalogService
      */
     private function isBetterSummaryVersion(array $version, array $article): bool
     {
-        $currentVersion = (int) ($article['lastVersion'] ?? 0);
+        $currentVersion   = (int) ($article['lastVersion'] ?? 0);
         $candidateVersion = (int) ($version['version'] ?? 0);
 
         if ($currentVersion === 0) {
             return true;
         }
 
-        $currentStatus = (string) ($article['status'] ?? '');
+        $currentStatus   = (string) ($article['status'] ?? '');
         $candidateStatus = (string) ($version['status'] ?? '');
 
         if ($candidateStatus === ArticleStatus::PUBLISHED->value && $currentStatus !== ArticleStatus::PUBLISHED->value) {

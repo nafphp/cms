@@ -18,7 +18,7 @@ final class LocalAiToolCatalogTest extends TestCase
 
         foreach ($matches[1] as $shortName) {
             $class = 'Naf\\CMS\\Mcp\\Tools\\' . $shortName;
-            $tool = new $class();
+            $tool  = new $class();
             self::assertInstanceOf(LocalAiToolMetadataInterface::class, $tool, $class);
             $metadata = $tool->localAiMetadata();
             self::assertContains($metadata['risk'] ?? null, ['read', 'write'], $class);
@@ -30,10 +30,10 @@ final class LocalAiToolCatalogTest extends TestCase
     {
         $definitions = (new LocalAiToolCatalog())->enrich([
             [
-                'name' => 'cms_article_draft_create',
+                'name'        => 'cms_article_draft_create',
                 'description' => 'Creates an article draft.',
                 'inputSchema' => [
-                    'type' => 'object',
+                    'type'       => 'object',
                     'properties' => [
                         'title' => ['type' => 'string'],
                     ],
@@ -53,16 +53,16 @@ final class LocalAiToolCatalogTest extends TestCase
     public function testPluginMetadataRemainsAuthoritativeWhileMissingValuesAreEnriched(): void
     {
         $definition = (new LocalAiToolCatalog())->enrich([[
-            'name' => 'plugin_report_export',
+            'name'        => 'plugin_report_export',
             'description' => 'Exports a report.',
             'inputSchema' => ['type' => 'object', 'properties' => []],
-            'meta' => [
-                'title' => 'Quarterly report export',
-                'routingText' => 'Use for approved quarterly finance exports.',
+            'meta'        => [
+                'title'        => 'Quarterly report export',
+                'routingText'  => 'Use for approved quarterly finance exports.',
                 'capabilities' => ['reports.export'],
-                'mode' => 'write',
-                'risk' => 'write',
-                'examples' => ['Export the Q2 report.'],
+                'mode'         => 'write',
+                'risk'         => 'write',
+                'examples'     => ['Export the Q2 report.'],
             ],
         ]])[0];
 
@@ -82,12 +82,12 @@ final class LocalAiToolCatalogTest extends TestCase
     {
         $definitions = (new LocalAiToolCatalog())->enrich([
             [
-                'name' => 'cms_system_health',
+                'name'        => 'cms_system_health',
                 'description' => 'Returns current NafCMS system health data. The result includes published asset status and loaded plugins.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'external_public_holidays',
+                'name'        => 'external_public_holidays',
                 'description' => 'Returns public holidays for a country and year so owners can plan campaigns and publishing schedules.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
@@ -104,12 +104,12 @@ final class LocalAiToolCatalogTest extends TestCase
     {
         $definitions = (new LocalAiToolCatalog())->enrich([
             [
-                'name' => 'cms_article_draft_create',
+                'name'        => 'cms_article_draft_create',
                 'description' => 'Creates a new article draft with Editor.js-style content blocks.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_article_draft_append',
+                'name'        => 'cms_article_draft_append',
                 'description' => 'Appends plain text as paragraphs to an existing article draft.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
@@ -125,7 +125,7 @@ final class LocalAiToolCatalogTest extends TestCase
     {
         $definitions = (new LocalAiToolCatalog())->enrich(array_map(
             static fn(string $description): array => [
-                'name' => 'plugin_action_' . md5($description),
+                'name'        => 'plugin_action_' . md5($description),
                 'description' => $description,
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],

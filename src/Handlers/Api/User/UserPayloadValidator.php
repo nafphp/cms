@@ -11,7 +11,8 @@ final class UserPayloadValidator
 {
     public function __construct(
         private readonly PasswordPolicyInterface $passwords = new PasswordPolicy(),
-    ) {}
+    ) {
+    }
 
     /**
      * @param array<string, mixed> $data
@@ -19,12 +20,12 @@ final class UserPayloadValidator
      */
     public function validate(array $data, bool $creating, bool $requireRoles = true): array
     {
-        $errors = [];
-        $username = trim((string) ($data['username'] ?? ''));
-        $email = strtolower(trim((string) ($data['email'] ?? '')));
-        $password = (string) ($data['password'] ?? '');
+        $errors               = [];
+        $username             = trim((string) ($data['username'] ?? ''));
+        $email                = strtolower(trim((string) ($data['email'] ?? '')));
+        $password             = (string) ($data['password'] ?? '');
         $passwordConfirmation = (string) ($data['password_confirmation'] ?? '');
-        $roles = $data['roles'] ?? [];
+        $roles                = $data['roles'] ?? [];
 
         if (mb_strlen($username) < 3) {
             $errors['username'][] = 'Please enter a username with at least 3 characters.';

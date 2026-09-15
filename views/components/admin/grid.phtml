@@ -1,16 +1,16 @@
 <?php
 
-use function Naf\View\s;
 use function Naf\View\asset;
+use function Naf\View\s;
 
-$config = is_array($config ?? null) ? $config : [];
-$attributes = is_array($attributes ?? null) ? $attributes : [];
-$frameAttributes = is_array($frameAttributes ?? null) ? $frameAttributes : [];
+$config            = is_array($config ?? null) ? $config : [];
+$attributes        = is_array($attributes ?? null) ? $attributes : [];
+$frameAttributes   = is_array($frameAttributes ?? null) ? $frameAttributes : [];
 $searchPlaceholder = (string) ($searchPlaceholder ?? 'Search...');
-$actionLabel = trim((string) ($actionLabel ?? ''));
-$actionHref = trim((string) ($actionHref ?? ''));
-$loadingLabel = (string) ($loadingLabel ?? 'Loading...');
-$script = trim((string) ($script ?? ''));
+$actionLabel       = trim((string) ($actionLabel ?? ''));
+$actionHref        = trim((string) ($actionHref ?? ''));
+$loadingLabel      = (string) ($loadingLabel ?? 'Loading...');
+$script            = trim((string) ($script ?? ''));
 if ($script !== '') {
     asset()->add($script, 'module');
 }

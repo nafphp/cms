@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Naf\CMS\Services\Media;
 
 use Naf\CMS\Models\Media;
+use ReflectionClass;
+use ReflectionProperty;
+use Throwable;
 
 final class MediaPayload
 {
@@ -13,15 +16,15 @@ final class MediaPayload
      */
     public static function fromEntity(Media $media): array
     {
-        $row = [];
-        $reflection = new \ReflectionClass($media);
+        $row        = [];
+        $reflection = new ReflectionClass($media);
 
         do {
-            foreach ($reflection->getProperties(\ReflectionProperty::IS_PROTECTED) as $property) {
+            foreach ($reflection->getProperties(ReflectionProperty::IS_PROTECTED) as $property) {
                 $row[$property->getName()] = $property->getValue($media);
             }
             $reflection = $reflection->getParentClass();
-        } while ($reflection instanceof \ReflectionClass);
+        } while ($reflection instanceof ReflectionClass);
 
         return self::fromRow($row);
     }
@@ -32,23 +35,23 @@ final class MediaPayload
      */
     public static function fromRow(array $row): array
     {
-        $size = (int) ($row['size_bytes'] ?? 0);
-        $width = isset($row['width']) ? (int) $row['width'] : null;
+        $size   = (int) ($row['size_bytes'] ?? 0);
+        $width  = isset($row['width']) ? (int) $row['width'] : null;
         $height = isset($row['height']) ? (int) $row['height'] : null;
-        $width = $width !== 0 ? $width : null;
+        $width  = $width !== 0 ? $width : null;
         $height = $height !== 0 ? $height : null;
 
         return [
             ...$row,
-            'id' => (int) ($row['id'] ?? 0),
-            'visibility' => self::normalizeVisibility((string) ($row['visibility'] ?? 'public')),
-            'size_bytes' => $size,
-            'width' => $width,
-            'height' => $height,
-            'uploaded_by' => isset($row['uploaded_by']) ? (int) $row['uploaded_by'] : null,
-            'metadata' => self::decodeJson((string) ($row['metadata_json'] ?? '{}')),
-            'kind' => self::kindFromMime((string) ($row['mime_type'] ?? '')),
-            'size_label' => self::formatBytes($size),
+            'id'               => (int) ($row['id'] ?? 0),
+            'visibility'       => self::normalizeVisibility((string) ($row['visibility'] ?? 'public')),
+            'size_bytes'       => $size,
+            'width'            => $width,
+            'height'           => $height,
+            'uploaded_by'      => isset($row['uploaded_by']) ? (int) $row['uploaded_by'] : null,
+            'metadata'         => self::decodeJson((string) ($row['metadata_json'] ?? '{}')),
+            'kind'             => self::kindFromMime((string) ($row['mime_type'] ?? '')),
+            'size_label'       => self::formatBytes($size),
             'dimensions_label' => $width !== null && $height !== null ? $width . ' x ' . $height : '',
         ];
     }
@@ -113,7 +116,7 @@ final class MediaPayload
     {
         try {
             $decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return [];
         }
 

@@ -19,11 +19,11 @@ final class UserProfileUpdateTest extends DatabaseTestCase
             'CREATE TABLE user_role (user_id INTEGER NOT NULL, role_id INTEGER NOT NULL, PRIMARY KEY (user_id, role_id))',
         );
         $userId = $this->insertRow('users', [
-            'username' => 'before',
-            'password' => 'existing-hash',
-            'email' => null,
+            'username'  => 'before',
+            'password'  => 'existing-hash',
+            'email'     => null,
             'firstname' => null,
-            'lastname' => null,
+            'lastname'  => null,
         ]);
         $roleId = $this->insertRow('roles', ['name' => 'editor']);
         $this->insertRow('user_role', ['user_id' => $userId, 'role_id' => $roleId]);

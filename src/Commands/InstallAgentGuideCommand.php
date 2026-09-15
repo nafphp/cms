@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Commands;
 
-use Naf\CMS\Services\Developer\AgentGuideInstaller;
 use Naf\CLI\Core\AbstractCommand;
 use Naf\CLI\Core\Input;
 use Naf\CLI\Core\Output;
+use Naf\CMS\Services\Developer\AgentGuideInstaller;
+
 use function Naf\app;
 
 final class InstallAgentGuideCommand extends AbstractCommand
@@ -27,6 +28,7 @@ final class InstallAgentGuideCommand extends AbstractCommand
         if ($input->getOption('help') === true) {
             $output->writeLine('  Usage: vendor/bin/naf nafcms:agents:install [--update]');
             $output->writeLine('  Existing unmarked AGENTS.md files are never overwritten.');
+
             return self::SUCCESS;
         }
 
@@ -37,23 +39,25 @@ final class InstallAgentGuideCommand extends AbstractCommand
         $result = $installer->install($input->getOption('update') === true);
 
         return match ($result['status']) {
-            'created' => $this->success($output, 'Created host AGENTS.md.'),
-            'updated' => $this->success($output, 'Updated the NafCMS-managed host AGENTS.md.'),
-            'current' => $this->success($output, 'Host AGENTS.md is current.'),
+            'created'         => $this->success($output, 'Created host AGENTS.md.'),
+            'updated'         => $this->success($output, 'Updated the NafCMS-managed host AGENTS.md.'),
+            'current'         => $this->success($output, 'Host AGENTS.md is current.'),
             'update_required' => $this->failure($output, 'A managed AGENTS.md exists; rerun with --update to refresh it.'),
-            default => $this->failure($output, 'A user-owned AGENTS.md already exists and was not changed.'),
+            default           => $this->failure($output, 'A user-owned AGENTS.md already exists and was not changed.'),
         };
     }
 
     private function success(Output $output, string $message): int
     {
         $output->writeLine($message, 'ok');
+
         return self::SUCCESS;
     }
 
     private function failure(Output $output, string $message): int
     {
         $output->writeLine($message, 'warning');
+
         return self::ERROR;
     }
 }

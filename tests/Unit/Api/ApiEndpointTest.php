@@ -13,7 +13,7 @@ final class ApiEndpointTest extends TestCase
 {
     public function testEndpointStoresRouteAndAccessMetadata(): void
     {
-        $handler = static fn() => null;
+        $handler  = static fn() => null;
         $endpoint = ApiEndpoint::post('api.admin.users.store', 'api/admin/users/store')
             ->requireRole(Role::ADMIN)
             ->requirePermission(Permission::USERS_CREATE)

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Page;
 
-use Naf\CMS\Page\Template;
+use InvalidArgumentException;
 
 /**
  * Block context inside a page layout. Rendering is delegated to its template.
@@ -27,7 +27,7 @@ final class PageBlock
         $id = trim($id);
 
         if ($id === '') {
-            throw new \InvalidArgumentException('Page block id cannot be empty.');
+            throw new InvalidArgumentException('Page block id cannot be empty.');
         }
 
         $this->id = $id;
@@ -49,10 +49,11 @@ final class PageBlock
     {
         $template = is_string($template) ? new Template($template) : $template;
         if ($template->view() === null || $template->view() === '') {
-            throw new \InvalidArgumentException(sprintf('Page block "%s" needs a view.', $this->id));
+            throw new InvalidArgumentException(sprintf('Page block "%s" needs a view.', $this->id));
         }
 
         $this->template = $template;
+
         return $this;
     }
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Support\Docs;
 
-use Naf\CMS\Support\Docs\DocBlockRenderer;
+use RuntimeException;
 
 final class ReadmeDocBlockUpdater
 {
@@ -32,7 +32,7 @@ final class ReadmeDocBlockUpdater
     public function changedBlockNames(string $markdown): array
     {
         $markdown = $this->normalizeLineEndings($markdown);
-        $changed = [];
+        $changed  = [];
 
         foreach ($this->renderers as $renderer) {
             if (trim($this->extractBlockBody($markdown, $renderer->name())) !== trim($this->renderBody($renderer))) {
@@ -45,7 +45,7 @@ final class ReadmeDocBlockUpdater
 
     private function replaceBlock(string $markdown, DocBlockRenderer $renderer): string
     {
-        $name = preg_quote($renderer->name(), '/');
+        $name    = preg_quote($renderer->name(), '/');
         $pattern = sprintf('/(<!-- naf:auto:%s -->).*?(<!-- \/naf:auto:%s -->)/s', $name, $name);
 
         $updated = preg_replace_callback(
@@ -53,15 +53,15 @@ final class ReadmeDocBlockUpdater
             fn(array $matches): string => $matches[1] . "\n" . $this->renderBody($renderer) . "\n" . $matches[2],
             $markdown,
             1,
-            $count
+            $count,
         );
 
         if ($updated === null) {
-            throw new \RuntimeException(sprintf('Could not update docs block "%s".', $renderer->name()));
+            throw new RuntimeException(sprintf('Could not update docs block "%s".', $renderer->name()));
         }
 
         if ($count !== 1) {
-            throw new \RuntimeException(sprintf('README.md is missing docs block marker "%s".', $renderer->name()));
+            throw new RuntimeException(sprintf('README.md is missing docs block marker "%s".', $renderer->name()));
         }
 
         return $updated;
@@ -69,7 +69,7 @@ final class ReadmeDocBlockUpdater
 
     private function extractBlockBody(string $markdown, string $name): string
     {
-        $name = preg_quote($name, '/');
+        $name    = preg_quote($name, '/');
         $pattern = sprintf('/<!-- naf:auto:%s -->(.*?)<!-- \/naf:auto:%s -->/s', $name, $name);
 
         if (preg_match($pattern, $markdown, $matches) !== 1) {

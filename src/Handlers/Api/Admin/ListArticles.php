@@ -6,8 +6,9 @@ namespace Naf\CMS\Handlers\Api\Admin;
 
 use Naf\CMS\Models\Article;
 use Psr\Http\Message\ResponseInterface;
-use function Naf\json;
+
 use function Naf\CMS\cms;
+use function Naf\json;
 
 final class ListArticles
 {

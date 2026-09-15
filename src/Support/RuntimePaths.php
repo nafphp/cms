@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Support;
 
+use InvalidArgumentException;
+
 use function Naf\app;
 use function Naf\config;
 
@@ -89,9 +91,9 @@ final class RuntimePaths
      */
     private static function firstExisting(string $root, array $roots, string $relative): string
     {
-        $root = rtrim($root, '/\\');
+        $root     = rtrim($root, '/\\');
         $relative = trim($relative, '/\\');
-        $suffix = $relative === '' ? '' : '/' . $relative;
+        $suffix   = $relative === '' ? '' : '/' . $relative;
 
         // Prefer the root that already holds the requested path.
         foreach ($roots as $candidate) {
@@ -138,6 +140,7 @@ final class RuntimePaths
     public static function cache(string $name = ''): string
     {
         $path = self::storageRoot() . '/cache';
+
         return $name === '' ? $path : $path . '/' . trim($name, '/\\');
     }
 
@@ -160,7 +163,7 @@ final class RuntimePaths
     {
         $path = trim($path);
         if ($path === '') {
-            throw new \InvalidArgumentException('Runtime path cannot be empty.');
+            throw new InvalidArgumentException('Runtime path cannot be empty.');
         }
 
         if (str_starts_with($path, '/') || preg_match('/^[A-Za-z]:[\\\\\/]/', $path) === 1) {
@@ -169,7 +172,7 @@ final class RuntimePaths
 
         $segments = preg_split('#[\\\\/]#', $path) ?: [];
         if (in_array('..', $segments, true)) {
-            throw new \InvalidArgumentException('Relative runtime paths cannot leave the host root.');
+            throw new InvalidArgumentException('Relative runtime paths cannot leave the host root.');
         }
 
         return self::hostRoot() . '/' . trim($path, '/\\');

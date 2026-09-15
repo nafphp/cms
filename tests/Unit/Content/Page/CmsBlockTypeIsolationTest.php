@@ -6,6 +6,7 @@ namespace Tests\Unit\Content\Page;
 
 use Naf\CMS\Content\Page\Block\AbstractBlockType;
 use Tests\Support\CmsTestCase;
+
 use function Naf\CMS\cms;
 
 final class CmsBlockTypeIsolationTest extends CmsTestCase

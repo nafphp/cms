@@ -6,6 +6,7 @@ if (!defined('BASE_PATH')) {
     define('BASE_PATH', __DIR__);
 }
 
+use Naf\Auth\Session\StateStoreInterface;
 use Naf\CMS\Commands\CheckAssetsCommand;
 use Naf\CMS\Commands\CreateUserCommand;
 use Naf\CMS\Commands\DebugAiToolRoutingCommand;
@@ -79,11 +80,13 @@ use Naf\CMS\Mcp\Tools\ToolSearchTool;
 use Naf\CMS\Mcp\Tools\TrendingTopicsTool;
 use Naf\CMS\Mcp\Tools\UserRoleSummaryTool;
 use Naf\CMS\Mcp\Tools\WeatherForecastTool;
-use Naf\CMS\Repositories\ThemeRepository;
-use Naf\CMS\Repositories\AuditLogRepository;
 use Naf\CMS\Models\Media;
+use Naf\CMS\Repositories\AuditLogRepository;
+use Naf\CMS\Repositories\ThemeRepository;
 use Naf\CMS\Services\Http\OutboundHttpClient;
 use Naf\CMS\Services\Media\MediaStorageService;
+use Naf\CMS\Services\Security\CmsSessionStateStore;
+use Naf\CMS\Services\Security\DatabaseProvider;
 use Naf\CMS\Services\Security\LoginRateLimiter;
 use Naf\CMS\Services\Security\PasswordPolicy;
 use Naf\CMS\Services\Security\UserPrivilegePolicy;
@@ -93,9 +96,10 @@ use Naf\CMS\Storage\EntityStorage;
 use Naf\Core\Event;
 use Naf\Database\Support\MigrationRegistry;
 use Naf\I18n\Core\Translator;
-use function Naf\CMS\cms;
+
 use function Naf\app;
 use function Naf\CLI\command;
+use function Naf\CMS\cms;
 use function Naf\event;
 use function Naf\MCP\tool;
 
@@ -103,11 +107,11 @@ $packageRoot = __DIR__;
 
 // Boot the dependency before registration even when a host lists CMS first.
 app()->getPlugin('naf/auth')->boot();
-app()->container()->set(\Naf\Auth\Session\StateStoreInterface::class, static fn() =>
-    new \Naf\CMS\Services\Security\CmsSessionStateStore(\Naf\Session\session()));
-app()->container()->set(\Naf\CMS\Services\Security\DatabaseProvider::class, static fn() =>
-    app()->container()->make(\Naf\CMS\Services\Security\DatabaseProvider::class));
-\Naf\Auth\auth()->addProvider('database', \Naf\CMS\Services\Security\DatabaseProvider::class);
+app()->container()->set(StateStoreInterface::class, static fn()
+    => new CmsSessionStateStore(\Naf\Session\session()));
+app()->container()->set(DatabaseProvider::class, static fn()
+    => app()->container()->make(DatabaseProvider::class));
+\Naf\Auth\auth()->addProvider('database', DatabaseProvider::class);
 
 app()->container()->set(Translator::class, static fn() => new RuntimeTranslator());
 app()->container()->set(ThemeSourceInterface::class, static fn() => new ThemeRepository());

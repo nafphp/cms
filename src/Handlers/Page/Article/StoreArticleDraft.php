@@ -8,9 +8,10 @@ use Naf\CMS\Handlers\Support\ReadsJsonBody;
 use Naf\CMS\Models\Article;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use function Naf\json;
+
 use function Naf\CMS\cms;
 use function Naf\CMS\user;
+use function Naf\json;
 
 final class StoreArticleDraft
 {
@@ -18,7 +19,7 @@ final class StoreArticleDraft
 
     public function __invoke(): ResponseInterface
     {
-        $data = $this->jsonBody();
+        $data   = $this->jsonBody();
         $errors = $this->validate($data);
         if ($errors !== []) {
             return json(['success' => false, 'errors' => $errors], 400);
@@ -26,16 +27,16 @@ final class StoreArticleDraft
 
         try {
             $articleId = (int) ($data['article_id'] ?? 0);
-            $authorId = user()?->get()?->getId();
-            $articles = cms()->content(Article::class);
+            $authorId  = user()?->get()?->getId();
+            $articles  = cms()->content(Article::class);
 
             $result = $articleId > 0
                 ? $articles->draft($articleId, $data, $authorId)
                 : $articles->create($data, $authorId);
 
             return json([
-                'success' => true,
-                'articleId' => $result['articleId'],
+                'success'          => true,
+                'articleId'        => $result['articleId'],
                 'articleVersionId' => $result['articleVersionId'],
             ]);
         } catch (Throwable $exception) {

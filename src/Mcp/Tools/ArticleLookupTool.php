@@ -4,23 +4,27 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Mcp\Tools;
 
+use DateTimeImmutable;
 use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
 use Naf\CMS\Enums\ToolRisk;
-
 use Naf\MCP\Support\Schema;
 use Naf\MCP\Tools\ScopedToolInterface;
 use Naf\MCP\Tools\ToolInterface;
 use PDO;
 use Throwable;
+
 use function Naf\Database\database;
 
 final class ArticleLookupTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
     use DeclaresLocalAiToolRisk;
 
-    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const ToolRisk AI_RISK    = ToolRisk::READ;
     private const bool AI_DESTRUCTIVE = false;
-    public function __construct(private ?PDO $connection = null) {}
+
+    public function __construct(private ?PDO $connection = null)
+    {
+    }
 
     public function name(): string
     {
@@ -54,32 +58,32 @@ final class ArticleLookupTool implements ToolInterface, ScopedToolInterface, Loc
         $connection = $this->connection();
         if (!$connection instanceof PDO) {
             return [
-                'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
+                'generated_at'       => (new DateTimeImmutable())->format(DATE_ATOM),
                 'database_available' => false,
-                'matches' => [],
+                'matches'            => [],
             ];
         }
 
-        $query = strtolower(trim((string) ($args['query'] ?? '')));
+        $query    = strtolower(trim((string) ($args['query'] ?? '')));
         $language = strtolower(trim((string) ($args['language'] ?? 'all'))) ?: 'all';
-        $status = strtolower(trim((string) ($args['status'] ?? 'all'))) ?: 'all';
-        $limit = max(1, min(50, (int) ($args['limit'] ?? 10)));
+        $status   = strtolower(trim((string) ($args['status'] ?? 'all'))) ?: 'all';
+        $limit    = max(1, min(50, (int) ($args['limit'] ?? 10)));
 
         try {
             return [
-                'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
+                'generated_at'       => (new DateTimeImmutable())->format(DATE_ATOM),
                 'database_available' => true,
-                'query' => $query,
-                'language' => $language,
-                'status' => $status,
-                'matches' => $this->matches($connection, $query, $language, $status, $limit),
+                'query'              => $query,
+                'language'           => $language,
+                'status'             => $status,
+                'matches'            => $this->matches($connection, $query, $language, $status, $limit),
             ];
         } catch (Throwable $throwable) {
             return [
-                'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
+                'generated_at'       => (new DateTimeImmutable())->format(DATE_ATOM),
                 'database_available' => false,
-                'error' => $throwable->getMessage(),
-                'matches' => [],
+                'error'              => $throwable->getMessage(),
+                'matches'            => [],
             ];
         }
     }
@@ -89,21 +93,21 @@ final class ArticleLookupTool implements ToolInterface, ScopedToolInterface, Loc
      */
     private function matches(PDO $connection, string $query, string $language, string $status, int $limit): array
     {
-        $where = [];
+        $where  = [];
         $params = [];
 
         if ($query !== '') {
-            $where[] = '(LOWER(av.title) LIKE :query OR LOWER(av.slug) LIKE :query)';
+            $where[]         = '(LOWER(av.title) LIKE :query OR LOWER(av.slug) LIKE :query)';
             $params['query'] = '%' . $query . '%';
         }
 
         if ($language !== 'all') {
-            $where[] = 'av.language = :language';
+            $where[]            = 'av.language = :language';
             $params['language'] = $language;
         }
 
         if ($status !== 'all') {
-            $where[] = 'av.status = :status';
+            $where[]          = 'av.status = :status';
             $params['status'] = $status;
         }
 
@@ -139,18 +143,18 @@ final class ArticleLookupTool implements ToolInterface, ScopedToolInterface, Loc
 
         return array_map(
             static fn(array $row): array => [
-                'articleId' => (int) ($row['article_id'] ?? 0),
+                'articleId'        => (int) ($row['article_id'] ?? 0),
                 'articleVersionId' => (int) ($row['article_version_id'] ?? 0),
-                'language' => (string) ($row['language'] ?? ''),
-                'version' => (int) ($row['version'] ?? 0),
-                'status' => (string) ($row['status'] ?? ''),
-                'title' => (string) ($row['title'] ?? ''),
-                'slug' => (string) ($row['slug'] ?? ''),
-                'teaser' => (string) ($row['teaser'] ?? ''),
-                'category' => (string) ($row['category'] ?? ''),
-                'created_at' => (string) ($row['created_at'] ?? ''),
+                'language'         => (string) ($row['language'] ?? ''),
+                'version'          => (int) ($row['version'] ?? 0),
+                'status'           => (string) ($row['status'] ?? ''),
+                'title'            => (string) ($row['title'] ?? ''),
+                'slug'             => (string) ($row['slug'] ?? ''),
+                'teaser'           => (string) ($row['teaser'] ?? ''),
+                'category'         => (string) ($row['category'] ?? ''),
+                'created_at'       => (string) ($row['created_at'] ?? ''),
             ],
-            $statement->fetchAll(PDO::FETCH_ASSOC) ?: []
+            $statement->fetchAll(PDO::FETCH_ASSOC) ?: [],
         );
     }
 

@@ -2,10 +2,10 @@
 
 use function Naf\View\s;
 
-$label = (string) ($label ?? 'Content block');
-$size = (string) ($size ?? 'medium');
-$preview = (string) ($preview ?? 'block');
-$thumbnail = (bool) ($thumbnail ?? false);
+$label           = (string) ($label ?? 'Content block');
+$size            = (string) ($size ?? 'medium');
+$preview         = (string) ($preview ?? 'block');
+$thumbnail       = (bool) ($thumbnail ?? false);
 $navigationItems = is_array($navigationItems ?? null) ? $navigationItems : [];
 if ($navigationItems === []) {
     $navigationItems = [
@@ -15,22 +15,22 @@ if ($navigationItems === []) {
     ];
 }
 $heightClass = $thumbnail ? ([
-    'hero' => 'min-h-28',
-    'large' => 'min-h-24',
+    'hero'   => 'min-h-28',
+    'large'  => 'min-h-24',
     'medium' => 'min-h-20',
-    'aside' => 'min-h-24',
-    'small' => 'min-h-14',
+    'aside'  => 'min-h-24',
+    'small'  => 'min-h-14',
 ][$size] ?? 'min-h-20') : ([
-    'hero' => 'min-h-[220px]',
-    'large' => 'min-h-40',
+    'hero'   => 'min-h-[220px]',
+    'large'  => 'min-h-40',
     'medium' => 'min-h-28',
-    'aside' => 'min-h-44',
-    'small' => 'min-h-24',
+    'aside'  => 'min-h-44',
+    'small'  => 'min-h-24',
 ][$size] ?? 'min-h-28');
 $paddingClass = $thumbnail ? 'p-4' : 'p-6';
-$gapClass = $thumbnail ? 'gap-2' : 'gap-3';
-$titleClass = $thumbnail ? 'text-sm' : 'text-lg';
-$lineClass = $thumbnail ? 'h-2' : 'h-2.5';
+$gapClass     = $thumbnail ? 'gap-2' : 'gap-3';
+$titleClass   = $thumbnail ? 'text-sm' : 'text-lg';
+$lineClass    = $thumbnail ? 'h-2' : 'h-2.5';
 
 ?>
 <?php if ($preview === 'navigation'): ?>

@@ -3,17 +3,18 @@
 use Naf\CMS\Repositories\ArticleRepository;
 use Naf\CMS\Security\UrlPolicy;
 use Naf\CMS\Services\Content\ArticleRenderer;
+
+use function Naf\CMS\cms;
 use function Naf\ORM\repo;
 use function Naf\View\s;
-use function Naf\CMS\cms;
 
 /** @var ArticleRenderer|null $article */
-$content = is_array($content ?? null) ? $content : [];
-$props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$limit = max(1, min(12, (int) ($props['limit'] ?? 5)));
-$source = (string) ($props['source'] ?? '');
+$content        = is_array($content ?? null) ? $content : [];
+$props          = is_array($content['props'] ?? null) ? $content['props'] : [];
+$limit          = max(1, min(12, (int) ($props['limit'] ?? 5)));
+$source         = (string) ($props['source'] ?? '');
 $currentArticle = ($article ?? null) instanceof ArticleRenderer ? $article : null;
-$categoryId = $source === 'category' ? (int) ($props['categoryId'] ?? 0) : 0;
+$categoryId     = $source === 'category' ? (int) ($props['categoryId'] ?? 0) : 0;
 if ($source === 'related' && $currentArticle?->categoryId() !== null) {
     $categoryId = $currentArticle->categoryId();
 }

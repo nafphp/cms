@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Naf\CMS\Handlers\Api\Media;
 
 use Psr\Http\Message\ResponseInterface;
+
+use function Naf\CMS\cms;
 use function Naf\json;
 use function Naf\request;
-use function Naf\CMS\cms;
 
 final class ListMedia
 {
@@ -17,7 +18,7 @@ final class ListMedia
         $limit = max(1, min(500, (int) ($query['limit'] ?? 120)));
 
         return json([
-            'rows' => cms()->media()->recent($limit),
+            'rows'    => cms()->media()->recent($limit),
             'summary' => cms()->media()->summary(),
         ]);
     }

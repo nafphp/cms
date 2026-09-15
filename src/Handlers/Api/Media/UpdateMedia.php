@@ -6,9 +6,10 @@ namespace Naf\CMS\Handlers\Api\Media;
 
 use Naf\CMS\Handlers\Support\ReadsJsonBody;
 use Psr\Http\Message\ResponseInterface;
+
+use function Naf\CMS\cms;
 use function Naf\I18n\t;
 use function Naf\json;
-use function Naf\CMS\cms;
 
 final class UpdateMedia
 {

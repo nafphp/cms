@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Security;
 
+use Naf\CMS\Enums\Permission;
 use Naf\CMS\Exceptions\PrivilegedActionDenied;
 use Naf\CMS\Services\Security\UserPrivilegePolicy;
 use Tests\Support\DatabaseTestCase;
@@ -116,7 +117,7 @@ final class UserPrivilegePolicyTest extends DatabaseTestCase
             $this->users['editor'],
             null,
             ['viewer'],
-            \Naf\CMS\Enums\Permission::USERS_CREATE,
+            Permission::USERS_CREATE,
         ));
     }
 
@@ -185,11 +186,11 @@ final class UserPrivilegePolicyTest extends DatabaseTestCase
     /** @param array<int, string> $permissionNames */
     private function addRole(string $name, array $permissionNames): void
     {
-        $roleId = $this->insertRow('roles', ['name' => $name]);
+        $roleId             = $this->insertRow('roles', ['name' => $name]);
         $this->roles[$name] = $roleId;
         foreach ($permissionNames as $permission) {
             $this->insertRow('role_permissions', [
-                'role_id' => $roleId,
+                'role_id'       => $roleId,
                 'permission_id' => $this->permissions[$permission],
             ]);
         }
@@ -198,7 +199,7 @@ final class UserPrivilegePolicyTest extends DatabaseTestCase
     /** @param array<int, string> $roleNames */
     private function addUser(string $username, array $roleNames): void
     {
-        $userId = $this->insertRow('users', ['username' => $username]);
+        $userId                 = $this->insertRow('users', ['username' => $username]);
         $this->users[$username] = $userId;
         foreach ($roleNames as $role) {
             $this->insertRow('user_role', ['user_id' => $userId, 'role_id' => $this->roles[$role]]);

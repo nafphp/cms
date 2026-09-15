@@ -1,15 +1,16 @@
 <?php
 
 use Naf\CMS\Security\UrlPolicy;
-use function Naf\View\s;
+
 use function Naf\I18n\t;
+use function Naf\View\s;
 
 $content = is_array($content ?? null) ? $content : [];
-$props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$url = UrlPolicy::embed((string) ($props['url'] ?? ''));
-$title = trim(t((string) ($props['title'] ?? 'Embedded content')));
+$props   = is_array($content['props'] ?? null) ? $content['props'] : [];
+$url     = UrlPolicy::embed((string) ($props['url'] ?? ''));
+$title   = trim(t((string) ($props['title'] ?? 'Embedded content')));
 $caption = trim(t((string) ($props['caption'] ?? '')));
-$height = max(220, min(900, (int) ($props['height'] ?? 420)));
+$height  = max(220, min(900, (int) ($props['height'] ?? 420)));
 
 ?>
 <section class="grid gap-3">

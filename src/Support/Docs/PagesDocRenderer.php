@@ -6,8 +6,7 @@ namespace Naf\CMS\Support\Docs;
 
 use Naf\CMS\Enums\Permission;
 use Naf\CMS\Page\Page;
-use Naf\CMS\Support\Docs\DocBlockRenderer;
-use Naf\CMS\Support\Docs\MarkdownTable;
+
 use function Naf\CMS\cms;
 
 final class PagesDocRenderer implements DocBlockRenderer
@@ -32,8 +31,8 @@ final class PagesDocRenderer implements DocBlockRenderer
                     $this->permissions($page),
                     $page->dataHandlers() !== [],
                 ],
-                array_values($pages)
-            )
+                array_values($pages),
+            ),
         );
     }
 
@@ -41,7 +40,7 @@ final class PagesDocRenderer implements DocBlockRenderer
     {
         $permissions = array_map(
             static fn(Permission $permission): string => '`' . $permission->value . '`',
-            $page->requiredPermissions()
+            $page->requiredPermissions(),
         );
 
         if ($permissions === []) {
@@ -49,6 +48,7 @@ final class PagesDocRenderer implements DocBlockRenderer
         }
 
         $prefix = $page->requiresAnyPermission() ? 'any of ' : '';
+
         return $prefix . implode(', ', $permissions);
     }
 }

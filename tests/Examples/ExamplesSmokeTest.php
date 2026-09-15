@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace Tests\Examples;
 
 use Naf\CMS\Content\ContentTypeInterface;
-use Naf\CMS\Examples\BlockType\ExampleQuoteBlockType;
 use Naf\CMS\Enums\Permission;
+use Naf\CMS\Examples\BlockType\ExampleQuoteBlockType;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
-use function Naf\MCP\tool;
+
 use function Naf\CMS\cms;
+use function Naf\MCP\tool;
 
 final class ExamplesSmokeTest extends TestCase
 {
@@ -34,7 +35,7 @@ final class ExamplesSmokeTest extends TestCase
 
         $matches = array_values(array_filter(
             cms()->pages()->all(),
-            static fn($page): bool => $page->path() === '/admin/examples/reports'
+            static fn($page): bool => $page->path() === '/admin/examples/reports',
         ));
 
         self::assertCount(1, $matches);
@@ -68,9 +69,9 @@ final class ExamplesSmokeTest extends TestCase
         $this->requireExample(BASE_PATH . '/examples/04-mcp-tool');
 
         $definitions = tool()->definitions();
-        $matches = array_values(array_filter(
+        $matches     = array_values(array_filter(
             $definitions,
-            static fn(array $definition): bool => ($definition['name'] ?? null) === 'cms_example_ping'
+            static fn(array $definition): bool => ($definition['name'] ?? null) === 'cms_example_ping',
         ));
 
         self::assertCount(1, $matches);
@@ -90,7 +91,7 @@ final class ExamplesSmokeTest extends TestCase
 
     private function requireExample(string $directory): void
     {
-        $files = [];
+        $files    = [];
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
 
         foreach ($iterator as $file) {

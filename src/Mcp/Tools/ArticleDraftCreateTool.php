@@ -4,27 +4,32 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Mcp\Tools;
 
+use Closure;
+use DateTimeImmutable;
+use InvalidArgumentException;
 use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
 use Naf\CMS\Enums\ToolRisk;
-
-use Closure;
 use Naf\CMS\Localization\LanguageRegistry;
 use Naf\CMS\Support\Slug;
 use Naf\MCP\Support\Schema;
 use Naf\MCP\Tools\ScopedToolInterface;
 use Naf\MCP\Tools\ToolInterface;
+
 use function Naf\CMS\cms;
 
 final class ArticleDraftCreateTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
     use DeclaresLocalAiToolRisk;
 
-    private const ToolRisk AI_RISK = ToolRisk::WRITE;
+    private const ToolRisk AI_RISK    = ToolRisk::WRITE;
     private const bool AI_DESTRUCTIVE = false;
+
     /**
      * @param Closure(array<string, mixed>, ?int): array{articleId:int,articleVersionId:int}|null $createDraft
      */
-    public function __construct(private ?Closure $createDraft = null) {}
+    public function __construct(private ?Closure $createDraft = null)
+    {
+    }
 
     public function name(): string
     {
@@ -62,19 +67,19 @@ final class ArticleDraftCreateTool implements ToolInterface, ScopedToolInterface
 
     public function handle(array $args): array
     {
-        $payload = $this->payload($args);
+        $payload  = $this->payload($args);
         $authorId = isset($args['author_id']) ? max(1, (int) $args['author_id']) : null;
-        $result = $this->create($payload, $authorId);
+        $result   = $this->create($payload, $authorId);
 
         return [
-            'success' => true,
-            'articleId' => $result['articleId'],
+            'success'          => true,
+            'articleId'        => $result['articleId'],
             'articleVersionId' => $result['articleVersionId'],
-            'status' => 'draft',
-            'language' => $payload['language'],
-            'title' => $payload['title'],
-            'slug' => $payload['slug'],
-            'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
+            'status'           => 'draft',
+            'language'         => $payload['language'],
+            'title'            => $payload['title'],
+            'slug'             => $payload['slug'],
+            'generated_at'     => (new DateTimeImmutable())->format(DATE_ATOM),
         ];
     }
 
@@ -86,7 +91,7 @@ final class ArticleDraftCreateTool implements ToolInterface, ScopedToolInterface
     {
         $title = trim((string) ($args['title'] ?? ''));
         if (mb_strlen($title) < 10) {
-            throw new \InvalidArgumentException('Article title must contain at least 10 characters.');
+            throw new InvalidArgumentException('Article title must contain at least 10 characters.');
         }
 
         $slug = Slug::fromString((string) ($args['slug'] ?? ''));
@@ -95,35 +100,35 @@ final class ArticleDraftCreateTool implements ToolInterface, ScopedToolInterface
         }
 
         if (mb_strlen($slug) < 5) {
-            throw new \InvalidArgumentException('Article slug must contain at least 5 characters.');
+            throw new InvalidArgumentException('Article slug must contain at least 5 characters.');
         }
 
         $language = $this->normalizeLanguage((string) ($args['language'] ?? 'en'));
-        $blocks = $this->blocks($args);
+        $blocks   = $this->blocks($args);
         if ($blocks === []) {
-            throw new \InvalidArgumentException('Article draft content must contain at least one block or a non-empty body.');
+            throw new InvalidArgumentException('Article draft content must contain at least one block or a non-empty body.');
         }
 
         return [
-            'title' => $title,
-            'slug' => $slug,
-            'teaser' => trim((string) ($args['teaser'] ?? '')),
-            'language' => $language,
-            'content' => ['blocks' => $blocks],
-            'category' => trim((string) ($args['category'] ?? '')),
-            'tags' => $this->tags($args['tags'] ?? []),
-            'show_teaser' => filter_var($args['show_teaser'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'title'                      => $title,
+            'slug'                       => $slug,
+            'teaser'                     => trim((string) ($args['teaser'] ?? '')),
+            'language'                   => $language,
+            'content'                    => ['blocks' => $blocks],
+            'category'                   => trim((string) ($args['category'] ?? '')),
+            'tags'                       => $this->tags($args['tags'] ?? []),
+            'show_teaser'                => filter_var($args['show_teaser'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'hide_lead_image_in_content' => filter_var($args['hide_lead_image_in_content'] ?? true, FILTER_VALIDATE_BOOLEAN),
-            'publish_date' => '',
+            'publish_date'               => '',
         ];
     }
 
     private function normalizeLanguage(string $language): string
     {
-        $registry = new LanguageRegistry();
+        $registry   = new LanguageRegistry();
         $normalized = $registry->normalize($language);
         if ($normalized === null || !$registry->isKnown($normalized)) {
-            throw new \InvalidArgumentException('Unknown article language.');
+            throw new InvalidArgumentException('Unknown article language.');
         }
 
         return $normalized;
@@ -138,7 +143,7 @@ final class ArticleDraftCreateTool implements ToolInterface, ScopedToolInterface
         if (isset($args['blocks']) && is_array($args['blocks'])) {
             return array_values(array_filter(
                 $args['blocks'],
-                static fn(mixed $block): bool => is_array($block) && trim((string) ($block['type'] ?? '')) !== ''
+                static fn(mixed $block): bool => is_array($block) && trim((string) ($block['type'] ?? '')) !== '',
             ));
         }
 
@@ -154,7 +159,7 @@ final class ArticleDraftCreateTool implements ToolInterface, ScopedToolInterface
                 'type' => 'paragraph',
                 'data' => ['text' => nl2br(htmlspecialchars(trim($paragraph), ENT_QUOTES, 'UTF-8'), false)],
             ],
-            array_filter($paragraphs, static fn(string $paragraph): bool => trim($paragraph) !== '')
+            array_filter($paragraphs, static fn(string $paragraph): bool => trim($paragraph) !== ''),
         ));
     }
 

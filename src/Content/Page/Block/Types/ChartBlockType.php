@@ -36,14 +36,14 @@ final class ChartBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'title' => 'Useful metrics',
-            'subtitle' => 'A clear visual summary.',
-            'chartType' => 'metric-bars',
+            'title'        => 'Useful metrics',
+            'subtitle'     => 'A clear visual summary.',
+            'chartType'    => 'metric-bars',
             'datasetLabel' => 'Value',
-            'height' => 320,
-            'showLegend' => true,
-            'showLabels' => true,
-            'smoothLine' => true,
+            'height'       => 320,
+            'showLegend'   => true,
+            'showLabels'   => true,
+            'smoothLine'   => true,
             ...$this->surfaceDefaults(),
             'metrics' => [
                 ['label' => 'Draft', 'value' => 12, 'color' => '#3b82f6'],

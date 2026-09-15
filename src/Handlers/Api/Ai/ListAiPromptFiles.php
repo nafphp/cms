@@ -7,6 +7,7 @@ namespace Naf\CMS\Handlers\Api\Ai;
 use Naf\CMS\Services\Ai\LocalAiPromptLibrary;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
+
 use function Naf\json;
 
 final class ListAiPromptFiles
@@ -16,12 +17,12 @@ final class ListAiPromptFiles
         try {
             return json([
                 'success' => true,
-                'files' => (new LocalAiPromptLibrary())->promptFiles(),
+                'files'   => (new LocalAiPromptLibrary())->promptFiles(),
             ]);
         } catch (Throwable $exception) {
             return json([
                 'success' => false,
-                'reason' => $exception->getMessage(),
+                'reason'  => $exception->getMessage(),
             ], 500);
         }
     }

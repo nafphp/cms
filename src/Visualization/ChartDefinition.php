@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Visualization;
 
-use Naf\CMS\Visualization\ChartDataset;
-
 final readonly class ChartDefinition
 {
     /**

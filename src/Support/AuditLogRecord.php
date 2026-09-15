@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Support;
 
-use Naf\CMS\Support\AuditEntry;
+use Throwable;
 
 final class AuditLogRecord
 {
@@ -25,8 +25,8 @@ final class AuditLogRecord
     {
         $document = self::decodeDocument((string) ($row['entry_json'] ?? ''));
         if ($document !== null) {
-            $actor = is_array($document['actor'] ?? null) ? $document['actor'] : [];
-            $event = is_array($document['event'] ?? null) ? $document['event'] : [];
+            $actor   = is_array($document['actor'] ?? null) ? $document['actor'] : [];
+            $event   = is_array($document['event'] ?? null) ? $document['event'] : [];
             $request = is_array($document['request'] ?? null) ? $document['request'] : [];
 
             return new self(
@@ -69,17 +69,17 @@ final class AuditLogRecord
     public function toArray(): array
     {
         return [
-            'id' => $this->id,
+            'id'            => $this->id,
             'actor_user_id' => $this->actorUserId,
-            'actor_label' => $this->actorLabel,
-            'action' => $this->entry->action,
-            'subject_type' => $this->entry->subjectType,
-            'subject_key' => $this->entry->subjectKey,
-            'old_value' => $this->entry->oldValue,
-            'new_value' => $this->entry->newValue,
-            'meta' => $this->entry->meta,
-            'ip_address' => $this->ipAddress,
-            'created_at' => $this->createdAt,
+            'actor_label'   => $this->actorLabel,
+            'action'        => $this->entry->action,
+            'subject_type'  => $this->entry->subjectType,
+            'subject_key'   => $this->entry->subjectKey,
+            'old_value'     => $this->entry->oldValue,
+            'new_value'     => $this->entry->newValue,
+            'meta'          => $this->entry->meta,
+            'ip_address'    => $this->ipAddress,
+            'created_at'    => $this->createdAt,
         ];
     }
 
@@ -97,7 +97,7 @@ final class AuditLogRecord
     {
         try {
             return json_decode($value, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return $value;
         }
     }

@@ -4,24 +4,28 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Mcp\Tools;
 
+use DateTimeImmutable;
 use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
-use Naf\CMS\Enums\ToolRisk;
-
 use Naf\CMS\Enums\ArticleStatus;
+use Naf\CMS\Enums\ToolRisk;
 use Naf\MCP\Support\Schema;
 use Naf\MCP\Tools\ScopedToolInterface;
 use Naf\MCP\Tools\ToolInterface;
 use PDO;
 use Throwable;
+
 use function Naf\Database\database;
 
 final class ArticleStatusCountsTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
     use DeclaresLocalAiToolRisk;
 
-    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const ToolRisk AI_RISK    = ToolRisk::READ;
     private const bool AI_DESTRUCTIVE = false;
-    public function __construct(private ?PDO $connection = null) {}
+
+    public function __construct(private ?PDO $connection = null)
+    {
+    }
 
     public function name(): string
     {
@@ -49,20 +53,20 @@ final class ArticleStatusCountsTool implements ToolInterface, ScopedToolInterfac
 
     public function handle(array $args): array
     {
-        $language = $this->normalizeLanguage($args['language'] ?? 'all');
+        $language     = $this->normalizeLanguage($args['language'] ?? 'all');
         $statusValues = array_map(static fn(ArticleStatus $status): string => $status->value, ArticleStatus::cases());
-        $counts = array_fill_keys($statusValues, 0);
-        $connection = $this->connection();
+        $counts       = array_fill_keys($statusValues, 0);
+        $connection   = $this->connection();
 
         if (!$connection instanceof PDO || !$this->tableExists($connection, 'article_versions')) {
             return [
-                'metric' => 'latest_article_versions_by_status',
-                'language' => $language,
-                'status_values' => $statusValues,
-                'counts' => $counts,
-                'total' => 0,
+                'metric'             => 'latest_article_versions_by_status',
+                'language'           => $language,
+                'status_values'      => $statusValues,
+                'counts'             => $counts,
+                'total'              => 0,
                 'database_available' => false,
-                'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
+                'generated_at'       => (new DateTimeImmutable())->format(DATE_ATOM),
             ];
         }
 
@@ -78,13 +82,13 @@ final class ArticleStatusCountsTool implements ToolInterface, ScopedToolInterfac
         }
 
         return [
-            'metric' => 'latest_article_versions_by_status',
-            'language' => $language,
-            'status_values' => $statusValues,
-            'counts' => $counts,
-            'total' => array_sum($counts),
+            'metric'             => 'latest_article_versions_by_status',
+            'language'           => $language,
+            'status_values'      => $statusValues,
+            'counts'             => $counts,
+            'total'              => array_sum($counts),
             'database_available' => true,
-            'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
+            'generated_at'       => (new DateTimeImmutable())->format(DATE_ATOM),
         ];
     }
 
@@ -101,8 +105,8 @@ final class ArticleStatusCountsTool implements ToolInterface, ScopedToolInterfac
     private function fetchStatusRows(PDO $connection, string $language): array
     {
         $languageFilter = $language !== 'all';
-        $latestWhere = $languageFilter ? 'WHERE language = :language_latest' : '';
-        $outerWhere = $languageFilter ? 'WHERE av.language = :language_filter' : '';
+        $latestWhere    = $languageFilter ? 'WHERE language = :language_latest' : '';
+        $outerWhere     = $languageFilter ? 'WHERE av.language = :language_filter' : '';
 
         $sql = <<<SQL
             SELECT av.status, COUNT(*) AS total
@@ -119,7 +123,7 @@ final class ArticleStatusCountsTool implements ToolInterface, ScopedToolInterfac
             GROUP BY av.status
         SQL;
 
-        $statement = $connection->prepare($sql);
+        $statement  = $connection->prepare($sql);
         $parameters = [];
         if ($languageFilter) {
             $parameters = [
@@ -152,6 +156,7 @@ final class ArticleStatusCountsTool implements ToolInterface, ScopedToolInterfac
     {
         try {
             $connection->query(sprintf('SELECT 1 FROM %s LIMIT 1', $table));
+
             return true;
         } catch (Throwable) {
             return false;

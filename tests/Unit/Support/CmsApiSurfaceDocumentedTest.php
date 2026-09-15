@@ -8,7 +8,6 @@ use Naf\CMS\Support\Cms;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
-use function Naf\CMS\cms;
 
 final class CmsApiSurfaceDocumentedTest extends TestCase
 {

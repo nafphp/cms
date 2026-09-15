@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Naf\CMS\Models;
 
 use Naf\ORM\Model\AbstractModel;
-use Naf\CMS\Models\Permission;
 
 final class Role extends AbstractModel
 {
-    protected ?string $name = null;
+    protected ?string $name      = null;
     protected ?string $createdAt = null;
 
     public array $pivotTables = [

@@ -3,22 +3,23 @@
 use Naf\CMS\Repositories\ArticleRepository;
 use Naf\CMS\Security\UrlPolicy;
 use Naf\CMS\Services\Content\ArticleRenderer;
+
+use function Naf\CMS\cms;
 use function Naf\I18n\t;
 use function Naf\ORM\repo;
 use function Naf\View\s;
-use function Naf\CMS\cms;
 
 /** @var ArticleRenderer|null $article */
-$content = is_array($content ?? null) ? $content : [];
-$props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$title = trim((string) ($title ?? $props['title'] ?? 'Related articles'));
-$source = (string) ($source ?? $props['source'] ?? 'category');
-$limit = max(1, min(12, (int) ($limit ?? $props['limit'] ?? 3)));
+$content           = is_array($content ?? null) ? $content : [];
+$props             = is_array($content['props'] ?? null) ? $content['props'] : [];
+$title             = trim((string) ($title ?? $props['title'] ?? 'Related articles'));
+$source            = (string) ($source ?? $props['source'] ?? 'category');
+$limit             = max(1, min(12, (int) ($limit ?? $props['limit'] ?? 3)));
 $presentationValue = $presentation ?? $props['presentation'] ?? 'cards';
-$presentation = in_array($presentationValue, ['list', 'cards', 'compact'], true) ? (string) $presentationValue : 'cards';
-$detailPath = (string) ($detailPath ?? $props['detailPath'] ?? '/articles/{slug}');
-$currentArticle = ($article ?? null) instanceof ArticleRenderer ? $article : null;
-$categoryId = $source === 'category' ? $currentArticle?->categoryId() : null;
+$presentation      = in_array($presentationValue, ['list', 'cards', 'compact'], true) ? (string) $presentationValue : 'cards';
+$detailPath        = (string) ($detailPath ?? $props['detailPath'] ?? '/articles/{slug}');
+$currentArticle    = ($article ?? null) instanceof ArticleRenderer ? $article : null;
+$categoryId        = $source === 'category' ? $currentArticle?->categoryId() : null;
 
 try {
     $articles = repo(ArticleRepository::class)->findPublishedWithLatestVersionByCategoryAndLanguage(

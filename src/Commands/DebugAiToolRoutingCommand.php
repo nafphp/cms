@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Commands;
 
+use Naf\CLI\Core\AbstractCommand;
+use Naf\CLI\Core\Input;
+use Naf\CLI\Core\Output;
 use Naf\CMS\Services\Ai\LocalAiToolCatalog;
 use Naf\CMS\Services\Ai\ToolRouting\KeywordToolRouter;
 use Naf\CMS\Services\Ai\ToolRouting\SemanticToolRouter;
 use Naf\CMS\Services\Ai\ToolRouting\ToolContext;
-use Naf\CLI\Core\AbstractCommand;
-use Naf\CLI\Core\Input;
-use Naf\CLI\Core\Output;
+
 use function Naf\CMS\cms;
 use function Naf\MCP\tool;
 
@@ -49,19 +50,21 @@ final class DebugAiToolRoutingCommand extends AbstractCommand
             $output->writeLine('    --keyword          Force keyword routing instead of the configured embedding router.');
             $output->writeLine('    --json             Print the selected tool definitions as JSON.');
             $output->writeLine('    --capability       May be passed multiple times.');
+
             return self::SUCCESS;
         }
 
         $phrase = trim((string) $input->getArgument('phrase'));
         if ($phrase === '') {
             $output->writeLine('Phrase is required.', 'error');
+
             return self::ERROR;
         }
 
-        $limit = $this->positiveInt($input->getOption('limit'), 8);
+        $limit       = $this->positiveInt($input->getOption('limit'), 8);
         $definitions = (new LocalAiToolCatalog())->enrich(tool()->definitions());
-        $context = ToolContext::fromArray($this->contextFromInput($input));
-        $router = $input->getOption('keyword') === true
+        $context     = ToolContext::fromArray($this->contextFromInput($input));
+        $router      = $input->getOption('keyword') === true
             ? new KeywordToolRouter($definitions)
             : new SemanticToolRouter($definitions);
 
@@ -69,6 +72,7 @@ final class DebugAiToolRoutingCommand extends AbstractCommand
 
         if ($input->getOption('json') === true) {
             $output->writeLine(json_encode($selected, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '[]');
+
             return self::SUCCESS;
         }
 
@@ -79,7 +83,7 @@ final class DebugAiToolRoutingCommand extends AbstractCommand
             '  Router:          %s',
             $input->getOption('keyword') === true
                 ? 'keyword forced'
-                : ($embeddingModel !== '' ? 'semantic embeddings (' . $embeddingModel . ')' : 'keyword fallback')
+                : ($embeddingModel !== '' ? 'semantic embeddings (' . $embeddingModel . ')' : 'keyword fallback'),
         ));
         $output->writeLine(sprintf('  Tool catalog:    %d visible tools', count($definitions)));
         $this->writeContext($output, $context);
@@ -88,6 +92,7 @@ final class DebugAiToolRoutingCommand extends AbstractCommand
         if ($selected === []) {
             $output->writeLine('No matching tool was selected.', 'error');
             $output->writeLine('If this phrase should trigger a tool, improve that tool description, routing description, examples, or capabilities.');
+
             return self::SUCCESS;
         }
 
@@ -105,12 +110,12 @@ final class DebugAiToolRoutingCommand extends AbstractCommand
     private function contextFromInput(Input $input): array
     {
         return array_filter([
-            'area' => $this->stringOption($input, 'area'),
-            'mode' => $this->stringOption($input, 'mode'),
-            'contentType' => $this->stringOption($input, 'content-type'),
-            'pageId' => $this->stringOption($input, 'page-id'),
-            'layoutId' => $this->stringOption($input, 'layout-id'),
-            'themeId' => $this->stringOption($input, 'theme-id'),
+            'area'         => $this->stringOption($input, 'area'),
+            'mode'         => $this->stringOption($input, 'mode'),
+            'contentType'  => $this->stringOption($input, 'content-type'),
+            'pageId'       => $this->stringOption($input, 'page-id'),
+            'layoutId'     => $this->stringOption($input, 'layout-id'),
+            'themeId'      => $this->stringOption($input, 'theme-id'),
             'capabilities' => $this->listOption($input->getOption('capability')),
         ], static fn(mixed $value): bool => $value !== null && $value !== [] && $value !== '');
     }
@@ -135,24 +140,24 @@ final class DebugAiToolRoutingCommand extends AbstractCommand
      */
     private function writeTool(Output $output, int $position, array $tool): void
     {
-        $meta = is_array($tool['meta'] ?? null) ? $tool['meta'] : [];
-        $route = is_array($tool['route'] ?? null) ? $tool['route'] : [];
-        $name = trim((string) ($tool['name'] ?? ''));
-        $score = is_numeric($route['score'] ?? null) ? (float) $route['score'] : null;
-        $reasons = is_array($route['reasons'] ?? null) ? array_map('strval', $route['reasons']) : [];
+        $meta         = is_array($tool['meta'] ?? null) ? $tool['meta'] : [];
+        $route        = is_array($tool['route'] ?? null) ? $tool['route'] : [];
+        $name         = trim((string) ($tool['name'] ?? ''));
+        $score        = is_numeric($route['score'] ?? null) ? (float) $route['score'] : null;
+        $reasons      = is_array($route['reasons'] ?? null) ? array_map('strval', $route['reasons']) : [];
         $capabilities = is_array($meta['capabilities'] ?? null) ? array_map('strval', $meta['capabilities']) : [];
 
         $output->writeLine(sprintf('  %d. %s (%s)', $position, $this->titleFromName($name), $name));
         $output->writeLine(sprintf(
             '     score: %s  reasons: %s',
             $score === null ? '-' : rtrim(rtrim(number_format($score, 4, '.', ''), '0'), '.'),
-            $reasons === [] ? '-' : implode(', ', $reasons)
+            $reasons === [] ? '-' : implode(', ', $reasons),
         ));
         $output->writeLine(sprintf(
             '     meta:  risk=%s mode=%s category=%s',
             (string) ($meta['risk'] ?? '-'),
             (string) ($meta['mode'] ?? '-'),
-            (string) ($meta['category'] ?? '-')
+            (string) ($meta['category'] ?? '-'),
         ));
         $output->writeLine(sprintf('     caps:  %s', $capabilities === [] ? '-' : implode(', ', $capabilities)));
         $output->writeLine(sprintf('     desc:  %s', $this->oneLine((string) ($tool['description'] ?? '-'))));

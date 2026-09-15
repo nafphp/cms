@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Visualization;
 
-use Naf\CMS\Visualization\ChartDataset;
-use Naf\CMS\Visualization\ChartDefinition;
-
 final class EChartsOptionsFactory
 {
     private const COLORS = [
@@ -27,9 +24,9 @@ final class EChartsOptionsFactory
     {
         return match ($chart->type) {
             'doughnut', 'pie' => $this->makeDoughnut($chart),
-            'line' => $this->makeCartesian($chart, 'line'),
-            'metric-bars' => $this->makeMetricBars($chart),
-            default => $this->makeCartesian($chart, 'bar'),
+            'line'            => $this->makeCartesian($chart, 'line'),
+            'metric-bars'     => $this->makeMetricBars($chart),
+            default           => $this->makeCartesian($chart, 'bar'),
         };
     }
 
@@ -42,11 +39,11 @@ final class EChartsOptionsFactory
         $series = [];
         foreach ($chart->datasets as $index => $dataset) {
             $series[] = [
-                'name' => $dataset->label,
-                'type' => $type,
-                'data' => $dataset->values,
+                'name'      => $dataset->label,
+                'type'      => $type,
+                'data'      => $dataset->values,
                 'itemStyle' => [
-                    'color' => $dataset->color ?? $colors[$index % count($colors)],
+                    'color'        => $dataset->color ?? $colors[$index % count($colors)],
                     'borderRadius' => $type === 'bar' ? [4, 4, 0, 0] : 0,
                 ],
                 ...$dataset->options,
@@ -54,19 +51,19 @@ final class EChartsOptionsFactory
         }
 
         return $this->mergeOptions([
-            'color' => $colors,
+            'color'     => $colors,
             'textStyle' => $this->textStyle(),
-            'tooltip' => ['trigger' => 'axis'],
-            'grid' => ['left' => 0, 'right' => 8, 'top' => 18, 'bottom' => 0, 'containLabel' => true],
-            'xAxis' => [
-                'type' => 'category',
-                'data' => $chart->labels,
-                'axisTick' => ['show' => false],
-                'axisLine' => ['lineStyle' => ['color' => 'rgba(148, 163, 184, .42)']],
+            'tooltip'   => ['trigger' => 'axis'],
+            'grid'      => ['left' => 0, 'right' => 8, 'top' => 18, 'bottom' => 0, 'containLabel' => true],
+            'xAxis'     => [
+                'type'      => 'category',
+                'data'      => $chart->labels,
+                'axisTick'  => ['show' => false],
+                'axisLine'  => ['lineStyle' => ['color' => 'rgba(148, 163, 184, .42)']],
                 'axisLabel' => $this->axisLabelStyle(),
             ],
             'yAxis' => [
-                'type' => 'value',
+                'type'      => 'value',
                 'splitLine' => ['lineStyle' => ['color' => 'rgba(148, 163, 184, .18)']],
                 'axisLabel' => $this->axisLabelStyle(),
             ],
@@ -79,35 +76,35 @@ final class EChartsOptionsFactory
      */
     private function makeDoughnut(ChartDefinition $chart): array
     {
-        $colors = $this->colors($chart);
+        $colors  = $this->colors($chart);
         $dataset = $chart->datasets[0] ?? ChartDataset::make('Value', []);
-        $data = [];
+        $data    = [];
         foreach ($chart->labels as $index => $label) {
             $data[] = [
-                'name' => $label,
-                'value' => $dataset->values[$index] ?? 0,
+                'name'      => $label,
+                'value'     => $dataset->values[$index] ?? 0,
                 'itemStyle' => ['color' => $colors[$index % count($colors)]],
             ];
         }
 
         return $this->mergeOptions([
-            'color' => $colors,
+            'color'     => $colors,
             'textStyle' => $this->textStyle(),
-            'tooltip' => ['trigger' => 'item'],
-            'legend' => [
-                'type' => 'scroll',
-                'bottom' => 0,
-                'left' => 'center',
-                'icon' => 'circle',
+            'tooltip'   => ['trigger' => 'item'],
+            'legend'    => [
+                'type'      => 'scroll',
+                'bottom'    => 0,
+                'left'      => 'center',
+                'icon'      => 'circle',
                 'textStyle' => $this->axisLabelStyle(),
             ],
             'series' => [[
-                'name' => $dataset->label,
-                'type' => 'pie',
-                'radius' => $chart->type === 'pie' ? ['0%', '72%'] : ['48%', '72%'],
-                'center' => ['50%', '43%'],
+                'name'              => $dataset->label,
+                'type'              => 'pie',
+                'radius'            => $chart->type === 'pie' ? ['0%', '72%'] : ['48%', '72%'],
+                'center'            => ['50%', '43%'],
                 'avoidLabelOverlap' => true,
-                'label' => [
+                'label'             => [
                     'formatter' => '{b}: {c}',
                     ...$this->labelStyle(),
                 ],
@@ -122,31 +119,31 @@ final class EChartsOptionsFactory
      */
     private function makeMetricBars(ChartDefinition $chart): array
     {
-        $colors = $this->colors($chart);
+        $colors  = $this->colors($chart);
         $dataset = $chart->datasets[0] ?? ChartDataset::make('Value', []);
 
         $options = [
-            'color' => $colors,
+            'color'     => $colors,
             'textStyle' => $this->textStyle(),
-            'tooltip' => ['trigger' => 'item'],
-            'legend' => ['show' => false, 'selectedMode' => false],
-            'grid' => ['left' => 118, 'right' => 34, 'top' => 8, 'bottom' => 4, 'containLabel' => false],
-            'xAxis' => [
-                'type' => 'value',
-                'show' => false,
+            'tooltip'   => ['trigger' => 'item'],
+            'legend'    => ['show' => false, 'selectedMode' => false],
+            'grid'      => ['left' => 118, 'right' => 34, 'top' => 8, 'bottom' => 4, 'containLabel' => false],
+            'xAxis'     => [
+                'type'      => 'value',
+                'show'      => false,
                 'splitLine' => ['show' => false],
             ],
             'yAxis' => [
-                'type' => 'category',
-                'data' => $chart->labels,
-                'axisTick' => ['show' => false],
-                'axisLine' => ['show' => false],
+                'type'      => 'category',
+                'data'      => $chart->labels,
+                'axisTick'  => ['show' => false],
+                'axisLine'  => ['show' => false],
                 'axisLabel' => [
                     ...$this->axisLabelStyle(13),
-                    'align' => 'right',
-                    'margin' => 16,
+                    'align'    => 'right',
+                    'margin'   => 16,
                     'overflow' => 'truncate',
-                    'width' => 108,
+                    'width'    => 108,
                 ],
             ],
             'series' => [[
@@ -154,24 +151,24 @@ final class EChartsOptionsFactory
                 'type' => 'bar',
                 'data' => array_map(
                     static fn(int|float|null $value, int $index): array => [
-                        'value' => $value ?? 0,
+                        'value'     => $value ?? 0,
                         'itemStyle' => ['color' => $colors[$index % count($colors)]],
                     ],
                     $dataset->values,
                     array_keys($dataset->values),
                 ),
-                'barWidth' => 12,
-                'showBackground' => true,
+                'barWidth'        => 12,
+                'showBackground'  => true,
                 'backgroundStyle' => [
-                    'color' => 'rgba(148, 163, 184, .16)',
+                    'color'        => 'rgba(148, 163, 184, .16)',
                     'borderRadius' => 999,
                 ],
                 'itemStyle' => ['borderRadius' => 999],
-                'emphasis' => [
+                'emphasis'  => [
                     'disabled' => true,
                 ],
                 'label' => [
-                    'show' => true,
+                    'show'     => true,
                     'position' => 'right',
                     ...$this->labelStyle('rgba(148, 163, 184, .92)'),
                 ],
@@ -220,9 +217,9 @@ final class EChartsOptionsFactory
     private function textStyle(): array
     {
         return [
-            'fontFamily' => 'Inter, ui-sans-serif, system-ui, sans-serif',
+            'fontFamily'      => 'Inter, ui-sans-serif, system-ui, sans-serif',
             'textBorderWidth' => 0,
-            'textShadowBlur' => 0,
+            'textShadowBlur'  => 0,
         ];
     }
 
@@ -232,10 +229,10 @@ final class EChartsOptionsFactory
     private function axisLabelStyle(int $fontSize = 12): array
     {
         return [
-            'color' => 'rgba(148, 163, 184, .86)',
-            'fontSize' => $fontSize,
+            'color'           => 'rgba(148, 163, 184, .86)',
+            'fontSize'        => $fontSize,
             'textBorderWidth' => 0,
-            'textShadowBlur' => 0,
+            'textShadowBlur'  => 0,
         ];
     }
 
@@ -245,9 +242,9 @@ final class EChartsOptionsFactory
     private function labelStyle(string $color = 'rgba(226, 232, 240, .92)'): array
     {
         return [
-            'color' => $color,
+            'color'           => $color,
             'textBorderWidth' => 0,
-            'textShadowBlur' => 0,
+            'textShadowBlur'  => 0,
         ];
     }
 }

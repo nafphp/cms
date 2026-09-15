@@ -8,15 +8,18 @@ use Naf\CMS\Api\ApiAuthorization;
 use Naf\CMS\Api\ApiEndpoint;
 use Naf\CMS\Support\HandlerInvoker;
 use Psr\Http\Message\ResponseInterface;
+use RuntimeException;
+
+use function Naf\CMS\cms;
 use function Naf\request;
 use function Naf\route;
-use function Naf\CMS\cms;
 
 final class ApiController
 {
     public function __construct(
         private readonly ApiAuthorization $authorization = new ApiAuthorization(),
-    ) {}
+    ) {
+    }
 
     public function handle(mixed ...$params): ResponseInterface
     {
@@ -28,9 +31,9 @@ final class ApiController
             return $response;
         }
 
-        throw new \RuntimeException(sprintf(
+        throw new RuntimeException(sprintf(
             'API handler for endpoint "%s" must return a PSR response.',
-            $endpoint->id()
+            $endpoint->id(),
         ));
     }
 
@@ -44,13 +47,12 @@ final class ApiController
             }
         }
 
-        $request = request();
+        $request  = request();
         $endpoint = cms()->api()->findByPath($request->getUri()->getPath(), $request->getMethod());
         if ($endpoint instanceof ApiEndpoint) {
             return $endpoint;
         }
 
-        throw new \RuntimeException('No registered API endpoint matches the current request.');
+        throw new RuntimeException('No registered API endpoint matches the current request.');
     }
-
 }

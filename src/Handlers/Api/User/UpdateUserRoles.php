@@ -10,9 +10,10 @@ use Naf\CMS\Handlers\Support\RejectsPrivilegedAction;
 use Naf\CMS\Repositories\UserRepository;
 use Naf\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
+
+use function Naf\CMS\user;
 use function Naf\json;
 use function Naf\ORM\repo;
-use function Naf\CMS\user;
 
 final class UpdateUserRoles
 {
@@ -21,15 +22,15 @@ final class UpdateUserRoles
 
     public function __invoke(): ResponseInterface
     {
-        $data = $this->jsonBody();
+        $data   = $this->jsonBody();
         $userId = (int) ($data['userId'] ?? 0);
-        $roles = is_array($data['roles'] ?? null) ? $data['roles'] : [];
+        $roles  = is_array($data['roles'] ?? null) ? $data['roles'] : [];
         if ($userId <= 0 || $roles === []) {
             return json(['success' => false, 'reason' => 'Please provide a user and at least one role.'], 400);
         }
 
         $repository = repo(UserRepository::class);
-        $oldUser = null;
+        $oldUser    = null;
         foreach ($repository->findAllWithRolesAndPermissions() as $user) {
             if ((int) ($user['id'] ?? 0) === $userId) {
                 $oldUser = $user;

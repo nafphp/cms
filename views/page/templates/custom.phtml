@@ -1,11 +1,15 @@
 <?php
 
-use Naf\CMS\Page\PageBlock;
 use Naf\CMS\Page\CustomLayoutOptions;
+use Naf\CMS\Page\Layout;
+use Naf\CMS\Page\PageBlock;
+use Naf\CMS\Page\Template;
+use Naf\CMS\Theme\Theme;
+
 use function Naf\View\s;
 
-/** @var \Naf\CMS\Page\Template $template */
-/** @var \Naf\CMS\Page\Layout $layout */
+/** @var Template $template */
+/** @var Layout $layout */
 /** @var array<string, string> $blocks */
 
 $slots = $layout->blocks();
@@ -13,20 +17,20 @@ $slots = $layout->blocks();
 $slotsForRegion = static function (string $region) use ($slots): array {
     return array_filter(
         $slots,
-        static fn(PageBlock $slot): bool => (string) ($slot->data()['region'] ?? 'main') === $region
+        static fn(PageBlock $slot): bool => (string) ($slot->data()['region'] ?? 'main') === $region,
     );
 };
 
 $renderSlot = static function (PageBlock $slot) use ($blocks): void {
-    $data = $slot->data();
-    $region = CustomLayoutOptions::choice($data['region'] ?? null, CustomLayoutOptions::REGIONS, 'main');
-    $size = CustomLayoutOptions::choice($data['size'] ?? null, CustomLayoutOptions::SIZES, 'medium');
-    $position = CustomLayoutOptions::choice($data['position'] ?? null, CustomLayoutOptions::POSITIONS, 'stretch');
-    $maxHeight = CustomLayoutOptions::choice($data['maxHeight'] ?? null, CustomLayoutOptions::MAX_HEIGHTS, 'none');
-    $overflow = CustomLayoutOptions::choice($data['overflow'] ?? null, CustomLayoutOptions::OVERFLOWS, 'visible');
-    $surface = \Naf\CMS\Theme\Theme::slug((string) ($data['surface'] ?? 'none')) ?: 'none';
-    $content = is_array($data['content'] ?? null) ? $data['content'] : [];
-    $contentType = \Naf\CMS\Theme\Theme::slug((string) ($content['type'] ?? 'empty')) ?: 'empty';
+    $data        = $slot->data();
+    $region      = CustomLayoutOptions::choice($data['region'] ?? null, CustomLayoutOptions::REGIONS, 'main');
+    $size        = CustomLayoutOptions::choice($data['size'] ?? null, CustomLayoutOptions::SIZES, 'medium');
+    $position    = CustomLayoutOptions::choice($data['position'] ?? null, CustomLayoutOptions::POSITIONS, 'stretch');
+    $maxHeight   = CustomLayoutOptions::choice($data['maxHeight'] ?? null, CustomLayoutOptions::MAX_HEIGHTS, 'none');
+    $overflow    = CustomLayoutOptions::choice($data['overflow'] ?? null, CustomLayoutOptions::OVERFLOWS, 'visible');
+    $surface     = Theme::slug((string) ($data['surface'] ?? 'none')) ?: 'none';
+    $content     = is_array($data['content'] ?? null) ? $data['content'] : [];
+    $contentType = Theme::slug((string) ($content['type'] ?? 'empty')) ?: 'empty';
     ?>
     <section
         class="page-template-region page-template-custom-slot page-template-custom-slot--<?= s($region) ?> page-template-custom-slot--<?= s($size) ?> page-template-custom-slot--content-<?= s($contentType) ?> page-template-custom-slot--position-<?= s($position) ?> page-template-custom-slot--max-<?= s($maxHeight) ?> page-template-custom-slot--overflow-<?= s($overflow) ?> page-template-custom-slot--surface-<?= s($surface) ?>"
@@ -41,8 +45,8 @@ $renderSlot = static function (PageBlock $slot) use ($blocks): void {
 };
 
 $headerSlots = $slotsForRegion('header');
-$mainSlots = $slotsForRegion('main');
-$asideSlots = $slotsForRegion('aside');
+$mainSlots   = $slotsForRegion('main');
+$asideSlots  = $slotsForRegion('aside');
 $footerSlots = $slotsForRegion('footer');
 
 ?>

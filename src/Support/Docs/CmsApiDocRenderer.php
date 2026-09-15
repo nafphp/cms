@@ -7,9 +7,6 @@ namespace Naf\CMS\Support\Docs;
 use Naf\CMS\Support\Cms;
 use ReflectionClass;
 use ReflectionMethod;
-use Naf\CMS\Support\Docs\DocBlockRenderer;
-use Naf\CMS\Support\Docs\MarkdownTable;
-use function Naf\CMS\cms;
 
 final class CmsApiDocRenderer implements DocBlockRenderer
 {
@@ -22,13 +19,13 @@ final class CmsApiDocRenderer implements DocBlockRenderer
     {
         $methods = array_filter(
             (new ReflectionClass(Cms::class))->getMethods(ReflectionMethod::IS_PUBLIC),
-            static fn(ReflectionMethod $method): bool => $method->getName() !== '__construct'
+            static fn(ReflectionMethod $method): bool => $method->getName() !== '__construct',
         );
 
         usort(
             $methods,
             fn(ReflectionMethod $a, ReflectionMethod $b): int => $this->sortRank($a->getName()) <=> $this->sortRank($b->getName())
-                ?: $a->getName() <=> $b->getName()
+                ?: $a->getName() <=> $b->getName(),
         );
 
         return MarkdownTable::render(
@@ -38,8 +35,8 @@ final class CmsApiDocRenderer implements DocBlockRenderer
                     '`' . $this->signature($method->getName()) . '`',
                     $this->description($method->getName()),
                 ],
-                $methods
-            )
+                $methods,
+            ),
         );
     }
 
@@ -47,31 +44,31 @@ final class CmsApiDocRenderer implements DocBlockRenderer
     {
         return match ($method) {
             'content' => 'cms()->content(Model::class)',
-            'scope' => 'cms()->scope(Scope::ADMIN)',
+            'scope'   => 'cms()->scope(Scope::ADMIN)',
             'storage' => 'cms()->storage(Model::class)',
-            default => sprintf('cms()->%s()', $method),
+            default   => sprintf('cms()->%s()', $method),
         };
     }
 
     private function description(string $method): string
     {
         return [
-            'pages' => 'Renderable HTTP pages and page data handlers.',
-            'scope' => 'Scope-bound CMS APIs; defaults to Scope::FRONTEND.',
-            'api' => 'JSON/API/action endpoints.',
-            'contentTypes' => 'Registered CMS content types.',
-            'content' => 'Resolve a content API by model class.',
-            'articles' => 'Convenience API for the Article content type.',
-            'forms' => 'Convenience API for the Form content type.',
-            'media' => 'Convenience API for the Media content type.',
-            'navigation' => 'Site navigation content and navigation metadata registration.',
-            'storage' => 'Criteria-based CRUD for one ORM entity.',
+            'pages'          => 'Renderable HTTP pages and page data handlers.',
+            'scope'          => 'Scope-bound CMS APIs; defaults to Scope::FRONTEND.',
+            'api'            => 'JSON/API/action endpoints.',
+            'contentTypes'   => 'Registered CMS content types.',
+            'content'        => 'Resolve a content API by model class.',
+            'articles'       => 'Convenience API for the Article content type.',
+            'forms'          => 'Convenience API for the Form content type.',
+            'media'          => 'Convenience API for the Media content type.',
+            'navigation'     => 'Site navigation content and navigation metadata registration.',
+            'storage'        => 'Criteria-based CRUD for one ORM entity.',
             'visualizations' => 'Registered chart definitions and rendering.',
-            'blocks' => 'Page-builder block type to view mappings.',
-            'blockTypes' => 'Page-builder block metadata for the admin builder.',
-            'themes' => 'Frontend theme assets and builder-visible surfaces.',
-            'languages' => 'Enabled, available, and discovered language codes.',
-            'settings' => 'Resolved runtime settings and admin-editable setting metadata.',
+            'blocks'         => 'Page-builder block type to view mappings.',
+            'blockTypes'     => 'Page-builder block metadata for the admin builder.',
+            'themes'         => 'Frontend theme assets and builder-visible surfaces.',
+            'languages'      => 'Enabled, available, and discovered language codes.',
+            'settings'       => 'Resolved runtime settings and admin-editable setting metadata.',
         ][$method] ?? 'Public CMS helper entry point.';
     }
 
@@ -97,6 +94,7 @@ final class CmsApiDocRenderer implements DocBlockRenderer
         ];
 
         $rank = array_search($method, $order, true);
+
         return $rank === false ? 999 : (int) $rank;
     }
 }

@@ -19,14 +19,15 @@ final class OllamaEmbeddingClientSecurityTest extends NafTestCase
     public function testLocalOllamaLoopbackRemainsAvailable(): void
     {
         $requests = [];
-        $http = new OutboundHttpClient(
+        $http     = new OutboundHttpClient(
             new OutboundHttpPolicy(),
             static function ($target, string $method, string $body) use (&$requests): array {
                 $requests[] = ['url' => $target->url, 'method' => $method, 'body' => json_decode($body, true)];
+
                 return [
-                    'status' => 200,
+                    'status'  => 200,
                     'headers' => [],
-                    'body' => '{"embeddings":[[0.25,0.75]]}',
+                    'body'    => '{"embeddings":[[0.25,0.75]]}',
                 ];
             },
         );
@@ -46,10 +47,11 @@ final class OllamaEmbeddingClientSecurityTest extends NafTestCase
     public function testBlockedEmbeddingTargetFallsBackToKeywordRouterWithoutTransportCall(): void
     {
         $transportCalled = false;
-        $http = new OutboundHttpClient(
+        $http            = new OutboundHttpClient(
             new OutboundHttpPolicy(),
             static function () use (&$transportCalled): array {
                 $transportCalled = true;
+
                 return ['status' => 200, 'headers' => [], 'body' => '{"embeddings":[[1,0]]}'];
             },
         );
@@ -62,12 +64,12 @@ final class OllamaEmbeddingClientSecurityTest extends NafTestCase
         );
         $tools = (new LocalAiToolCatalog())->enrich([
             [
-                'name' => 'cms_queue_status',
+                'name'        => 'cms_queue_status',
                 'description' => 'Returns queue status and pending jobs.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_article_draft_create',
+                'name'        => 'cms_article_draft_create',
                 'description' => 'Creates an article draft.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],

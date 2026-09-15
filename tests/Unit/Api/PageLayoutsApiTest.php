@@ -17,7 +17,7 @@ final class PageLayoutsApiTest extends TestCase
     public function testPageLayoutEndpointsRequirePermissions(): void
     {
         $endpoints = require dirname(__DIR__, 3) . '/src/Resources/api/pages.php';
-        $byId = [];
+        $byId      = [];
         foreach ($endpoints as $endpoint) {
             $byId[$endpoint->id()] = $endpoint;
         }

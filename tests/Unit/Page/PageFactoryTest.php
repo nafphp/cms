@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Page;
 
 use Naf\CMS\Enums\Permission;
-use Naf\CMS\Page\PageFactory;
 use Naf\CMS\Page\PageBuilderRenderer;
+use Naf\CMS\Page\PageFactory;
 use PHPUnit\Framework\TestCase;
 
 final class PageFactoryTest extends TestCase
@@ -14,26 +14,26 @@ final class PageFactoryTest extends TestCase
     public function testStoredBlocksUseRegisteredProductionViews(): void
     {
         $page = (new PageFactory())->fromStoredRow([
-            'id' => 42,
-            'path' => '/about',
-            'title' => 'About',
+            'id'       => 42,
+            'path'     => '/about',
+            'title'    => 'About',
             'language' => 'en',
-            'status' => 'published',
-            'layout' => 'layouts.page',
-                'blocks' => [
-                    'site_header' => ['type' => 'header', 'props' => []],
-                    'main' => ['type' => 'text', 'props' => ['text' => 'Hello']],
-                    'aside' => ['type' => 'chart', 'props' => ['title' => 'Metrics']],
-                ],
-            ], [
-                'id' => 'default',
-                'view' => 'page.templates.default',
-                'blocks' => [
-                    ['id' => 'site_header', 'label' => 'Header'],
-                    ['id' => 'main', 'label' => 'Main'],
-                    ['id' => 'aside', 'label' => 'Aside'],
-                ],
-            ]);
+            'status'   => 'published',
+            'layout'   => 'layouts.page',
+            'blocks'   => [
+                'site_header' => ['type' => 'header', 'props' => []],
+                'main'        => ['type' => 'text', 'props' => ['text' => 'Hello']],
+                'aside'       => ['type' => 'chart', 'props' => ['title' => 'Metrics']],
+            ],
+        ], [
+            'id'     => 'default',
+            'view'   => 'page.templates.default',
+            'blocks' => [
+                ['id' => 'site_header', 'label' => 'Header'],
+                ['id' => 'main', 'label' => 'Main'],
+                ['id' => 'aside', 'label' => 'Aside'],
+            ],
+        ]);
 
         $blocks = $page->pageLayout()?->blocks() ?? [];
 
@@ -45,15 +45,15 @@ final class PageFactoryTest extends TestCase
     public function testDraftStoredPageRequiresPageViewPermission(): void
     {
         $page = (new PageFactory())->fromStoredRow([
-            'id' => 7,
-            'path' => '/draft',
-            'title' => 'Draft',
+            'id'       => 7,
+            'path'     => '/draft',
+            'title'    => 'Draft',
             'language' => 'en',
-            'status' => 'draft',
-            'blocks' => [],
+            'status'   => 'draft',
+            'blocks'   => [],
         ], [
-            'id' => 'default',
-            'view' => 'page.templates.default',
+            'id'     => 'default',
+            'view'   => 'page.templates.default',
             'blocks' => [],
         ]);
 
@@ -63,18 +63,18 @@ final class PageFactoryTest extends TestCase
     public function testEmptyStoredBlocksDoNotRenderBuilderPlaceholder(): void
     {
         $page = (new PageFactory())->fromStoredRow([
-            'id' => 9,
-            'path' => '/landing',
-            'title' => 'Landing',
+            'id'       => 9,
+            'path'     => '/landing',
+            'title'    => 'Landing',
             'language' => 'de',
-            'status' => 'published',
-            'blocks' => [
+            'status'   => 'published',
+            'blocks'   => [
                 'hero' => null,
                 'main' => null,
             ],
         ], [
-            'id' => 'landing',
-            'view' => 'page.templates.landing',
+            'id'     => 'landing',
+            'view'   => 'page.templates.landing',
             'blocks' => [
                 ['id' => 'site_header', 'label' => 'Site header', 'preview' => 'navigation'],
                 ['id' => 'hero', 'label' => 'Hero', 'preview' => 'hero'],
@@ -94,14 +94,14 @@ final class PageFactoryTest extends TestCase
     public function testCustomTemplateUsesStoredMetaLayoutBlocks(): void
     {
         $page = (new PageFactory())->fromStoredRow([
-            'id' => 15,
-            'path' => '/custom',
-            'title' => 'Custom',
+            'id'       => 15,
+            'path'     => '/custom',
+            'title'    => 'Custom',
             'language' => 'en',
-            'status' => 'published',
-            'blocks' => [
+            'status'   => 'published',
+            'blocks'   => [
                 'slot_intro' => ['type' => 'heading', 'props' => ['text' => 'Hello']],
-                'slot_body' => ['type' => 'text', 'props' => ['text' => 'Body']],
+                'slot_body'  => ['type' => 'text', 'props' => ['text' => 'Body']],
             ],
             'meta' => [
                 'custom_layout' => [
@@ -110,9 +110,9 @@ final class PageFactoryTest extends TestCase
                 ],
             ],
         ], [
-            'id' => 'custom',
-            'kind' => 'custom',
-            'view' => 'page.templates.custom',
+            'id'     => 'custom',
+            'kind'   => 'custom',
+            'view'   => 'page.templates.custom',
             'blocks' => [],
         ]);
 
@@ -131,14 +131,14 @@ final class PageFactoryTest extends TestCase
     public function testStaticTemplateCanUseStoredCustomLayoutBlocks(): void
     {
         $page = (new PageFactory())->fromStoredRow([
-            'id' => 16,
-            'path' => '/landing',
-            'title' => 'Landing',
+            'id'       => 16,
+            'path'     => '/landing',
+            'title'    => 'Landing',
             'language' => 'en',
-            'status' => 'published',
-            'blocks' => [
+            'status'   => 'published',
+            'blocks'   => [
                 'site_header' => ['type' => 'header', 'props' => []],
-                'slot_extra' => ['type' => 'text', 'props' => ['text' => 'Extra']],
+                'slot_extra'  => ['type' => 'text', 'props' => ['text' => 'Extra']],
             ],
             'meta' => [
                 'custom_layout' => [
@@ -147,9 +147,9 @@ final class PageFactoryTest extends TestCase
                 ],
             ],
         ], [
-            'id' => 'landing',
-            'kind' => 'static',
-            'view' => 'page.templates.landing',
+            'id'     => 'landing',
+            'kind'   => 'static',
+            'view'   => 'page.templates.landing',
             'blocks' => [
                 ['id' => 'site_header', 'label' => 'Site header'],
                 ['id' => 'hero', 'label' => 'Hero'],
@@ -166,24 +166,24 @@ final class PageFactoryTest extends TestCase
     public function testPublishedRenderUsesTheSameNormalizedNestedPayloadAsPreviewLoading(): void
     {
         $page = (new PageFactory())->fromStoredRow([
-            'id' => 17,
-            'path' => '/nested',
-            'title' => 'Nested',
+            'id'       => 17,
+            'path'     => '/nested',
+            'title'    => 'Nested',
             'language' => 'en',
-            'status' => 'published',
-            'blocks' => [
+            'status'   => 'published',
+            'blocks'   => [
                 'main' => [
-                    'type' => 'section',
+                    'type'  => 'section',
                     'props' => [
-                        'width' => 'default',
-                        'padding' => 'medium',
-                        'tone' => 'none',
+                        'width'    => 'default',
+                        'padding'  => 'medium',
+                        'tone'     => 'none',
                         'children' => [[
-                            'type' => 'text',
+                            'type'  => 'text',
                             'props' => [
-                                'text' => 'Normalized public copy',
-                                'tone' => 'body',
-                                'align' => 'left',
+                                'text'          => 'Normalized public copy',
+                                'tone'          => 'body',
+                                'align'         => 'left',
                                 'verticalAlign' => 'top',
                             ],
                         ]],
@@ -191,20 +191,20 @@ final class PageFactoryTest extends TestCase
                 ],
             ],
             'meta' => [
-                'version' => 1,
+                'version'       => 1,
                 'custom_layout' => [[
-                    'id' => 'main',
-                    'label' => 'Main',
-                    'region' => 'main',
-                    'size' => 'large',
-                    'accepts' => ['section'],
+                    'id'                 => 'main',
+                    'label'              => 'Main',
+                    'region'             => 'main',
+                    'size'               => 'large',
+                    'accepts'            => ['section'],
                     'defaultContentType' => 'section',
                 ]],
             ],
         ], [
-            'id' => 'custom',
-            'kind' => 'custom',
-            'view' => 'page.templates.custom',
+            'id'     => 'custom',
+            'kind'   => 'custom',
+            'view'   => 'page.templates.custom',
             'blocks' => [],
         ]);
 

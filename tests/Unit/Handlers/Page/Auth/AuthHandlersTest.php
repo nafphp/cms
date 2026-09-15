@@ -55,6 +55,7 @@ final class AuthRateLimiterSpy implements RateLimiterInterface
     public function inspect(string $username, string $ipAddress): RateLimitDecision
     {
         $this->inspections++;
+
         return new RateLimitDecision(true, 5, 0);
     }
 

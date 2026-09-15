@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Naf\CMS\Handlers\Api\Article;
 
 use Psr\Http\Message\ResponseInterface;
+
 use function Naf\json;
 
 final class EnqueueArticleTranslation
@@ -15,8 +16,8 @@ final class EnqueueArticleTranslation
 
         return json([
             'success' => $id > 0,
-            'queued' => $id > 0,
-            'reason' => $id > 0 ? null : 'Invalid article id.',
+            'queued'  => $id > 0,
+            'reason'  => $id > 0 ? null : 'Invalid article id.',
         ]);
     }
 }

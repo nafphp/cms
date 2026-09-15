@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Api;
 
+use LogicException;
 use Naf\CMS\Api\ApiEndpoint;
 use Naf\CMS\Api\ApiRegistry;
 use PHPUnit\Framework\TestCase;
@@ -27,7 +28,7 @@ final class ApiRegistryTest extends TestCase
         $registry = new ApiRegistry();
         $registry->add(ApiEndpoint::get('api.admin.summary', '/api/admin/summary')->setHandler(static fn() => null));
 
-        self::expectException(\LogicException::class);
+        self::expectException(LogicException::class);
         self::expectExceptionMessage('API endpoint "api.admin.summary" is already registered.');
 
         $registry->add(ApiEndpoint::get('api.admin.summary', '/api/admin/other')->setHandler(static fn() => null));

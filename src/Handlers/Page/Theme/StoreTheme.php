@@ -9,6 +9,7 @@ use Naf\CMS\Services\Theme\ThemeAssetWriter;
 use Naf\CMS\Theme\Theme;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
+
 use function Naf\redirect;
 use function Naf\request;
 use function Naf\route;
@@ -17,30 +18,30 @@ final class StoreTheme
 {
     public function __invoke(): ResponseInterface
     {
-        $data = request()->getParsedBody() ?? [];
-        $data = is_array($data) ? $data : [];
-        $label = trim((string) ($data['label'] ?? ''));
+        $data       = request()->getParsedBody() ?? [];
+        $data       = is_array($data) ? $data : [];
+        $label      = trim((string) ($data['label'] ?? ''));
         $identifier = Theme::slug((string) ($data['identifier'] ?? $label));
-        $css = (string) ($data['css'] ?? '');
-        $surfaces = $this->surfaces(is_array($data['surfaces'] ?? null) ? $data['surfaces'] : []);
+        $css        = (string) ($data['css'] ?? '');
+        $surfaces   = $this->surfaces(is_array($data['surfaces'] ?? null) ? $data['surfaces'] : []);
 
         if ($surfaces === []) {
             $surfaces = [
-                'none' => 'None',
-                'soft' => 'Soft',
-                'card' => 'Card',
+                'none'   => 'None',
+                'soft'   => 'Soft',
+                'card'   => 'Card',
                 'accent' => 'Accent',
             ];
         }
 
         try {
             $id = (new ThemeRepository())->save([
-                'id' => (int) ($data['id'] ?? 0),
+                'id'         => (int) ($data['id'] ?? 0),
                 'identifier' => $identifier,
-                'label' => $label,
-                'surfaces' => $surfaces,
-                'css' => $css,
-                'js' => '',
+                'label'      => $label,
+                'surfaces'   => $surfaces,
+                'css'        => $css,
+                'js'         => '',
             ]);
 
             (new ThemeAssetWriter())->write($identifier, $css);
@@ -63,7 +64,7 @@ final class StoreTheme
             }
 
             $label = trim((string) ($row['label'] ?? ''));
-            $id = Theme::slug((string) ($row['key'] ?? $label));
+            $id    = Theme::slug((string) ($row['key'] ?? $label));
             if ($id !== '') {
                 $surfaces[$id] = $label === '' ? ucwords(str_replace('-', ' ', $id)) : $label;
             }

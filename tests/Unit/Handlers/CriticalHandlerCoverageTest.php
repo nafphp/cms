@@ -76,7 +76,7 @@ final class CriticalHandlerCoverageTest extends TestCase
 
     public function testCriticalHandlerInventoryCannotGrowSilently(): void
     {
-        $root = BASE_PATH . '/src/Handlers';
+        $root   = BASE_PATH . '/src/Handlers';
         $actual = [];
         foreach ([
             'Api/Ai',

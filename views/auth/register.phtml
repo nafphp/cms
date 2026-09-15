@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
+use function Naf\CMS\cms;
 use function Naf\Form\csrf;
 use function Naf\I18n\t;
 use function Naf\route;
 use function Naf\View\s;
-use function Naf\CMS\cms;
 
 $this->setLayout('layouts.auth');
 
-$invite = is_array($invite ?? null) ? $invite : null;
-$inviteEmail = (string) ($invite['email'] ?? '');
-$inviteRoles = is_array($invite['roles'] ?? null) ? $invite['roles'] : [];
+$invite          = is_array($invite ?? null) ? $invite : null;
+$inviteEmail     = (string) ($invite['email'] ?? '');
+$inviteRoles     = is_array($invite['roles'] ?? null) ? $invite['roles'] : [];
 $inviteExpiresAt = (string) ($invite['expires_at'] ?? '');
-$isUsable = $invite !== null && empty($error);
+$isUsable        = $invite !== null && empty($error);
 
 ?>
 <?php $this->block('content') ?>

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Support;
 
-use Naf\CMS\Support\AuditActorInfo;
 use function Naf\CMS\user;
 
 class AuditActorResolver
@@ -12,7 +11,7 @@ class AuditActorResolver
     public function resolve(): ?AuditActorInfo
     {
         $helper = user();
-        $actor = $helper?->get();
+        $actor  = $helper?->get();
         if ($actor === null) {
             return new AuditActorInfo(
                 null,

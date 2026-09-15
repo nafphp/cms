@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Visualization;
 
+use InvalidArgumentException;
 use Naf\CMS\Visualization\ChartDefinition;
 use Naf\CMS\Visualization\VisualizationRegistry;
 use PHPUnit\Framework\TestCase;
@@ -33,7 +34,7 @@ final class VisualizationRegistryTest extends TestCase
         $registry = new VisualizationRegistry();
         $registry->add(ChartDefinition::bar('status', ['Draft' => 1]));
 
-        self::expectException(\InvalidArgumentException::class);
+        self::expectException(InvalidArgumentException::class);
         self::expectExceptionMessage('Chart "status" is already registered.');
 
         $registry->add(ChartDefinition::bar('status', ['Draft' => 2]));
@@ -41,7 +42,7 @@ final class VisualizationRegistryTest extends TestCase
 
     public function testRegistryThrowsForUnknownChartId(): void
     {
-        self::expectException(\InvalidArgumentException::class);
+        self::expectException(InvalidArgumentException::class);
         self::expectExceptionMessage('Chart "missing" is not registered.');
 
         (new VisualizationRegistry())->render('missing');

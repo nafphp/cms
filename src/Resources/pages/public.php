@@ -8,10 +8,12 @@ use Naf\CMS\Page\Page;
 use Naf\CMS\Page\PageBuilderRenderer;
 use Naf\CMS\Page\Template;
 use Naf\CMS\Repositories\ArticleRepository;
+use Psr\Http\Message\ResponseInterface;
+
+use function Naf\CMS\cms;
 use function Naf\I18n\lang;
 use function Naf\ORM\repo;
 use function Naf\response;
-use function Naf\CMS\cms;
 
 $publicLayout = Layout::create(Template::create('default')
     ->setParent('page')
@@ -28,8 +30,8 @@ $articleLayout = Layout::create(Template::create('article_detail')
     ->addStylesheet('/css/nafcms.css')
     ->addBodyClass('min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50'))
     ->addBlock('site_header', 'page.blocks.placeholder', [
-        'label' => 'Site header',
-        'size' => 'small',
+        'label'   => 'Site header',
+        'size'    => 'small',
         'preview' => 'navigation',
     ])
     ->addBlock('header', 'page.blocks.article_title')
@@ -37,8 +39,8 @@ $articleLayout = Layout::create(Template::create('article_detail')
     ->addBlock('aside', 'page.blocks.article_meta')
     ->addBlock('related', 'page.blocks.article_related')
     ->addBlock('site_footer', 'page.blocks.placeholder', [
-        'label' => 'Site footer',
-        'size' => 'small',
+        'label'   => 'Site footer',
+        'size'    => 'small',
         'preview' => 'footer',
     ]);
 
@@ -47,7 +49,7 @@ $articleDetailPage = Page::create('frontend.article.detail')
     ->setTitle('Article')
     ->setLayout($articleLayout);
 
-$articleDetailPage->setContent(static function (string $slug) use ($articleDetailPage): string|\Psr\Http\Message\ResponseInterface {
+$articleDetailPage->setContent(static function (string $slug) use ($articleDetailPage): string|ResponseInterface {
     $article = repo(ArticleRepository::class)->findPublishedVisibleBySlug($slug, lang());
     if ($article === null) {
         return response('Article not found')->withStatus(404);
@@ -55,7 +57,7 @@ $articleDetailPage->setContent(static function (string $slug) use ($articleDetai
 
     $articleType = cms()->contentTypes()->require('article');
     if (!$articleType instanceof ArticleContentType) {
-        throw new \RuntimeException('Registered article content type must be an ArticleContentType.');
+        throw new RuntimeException('Registered article content type must be an ArticleContentType.');
     }
 
     return (new PageBuilderRenderer())->render($articleDetailPage, [

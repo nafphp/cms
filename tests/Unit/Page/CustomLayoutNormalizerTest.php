@@ -61,9 +61,9 @@ final class CustomLayoutNormalizerTest extends TestCase
 
         $result = $this->normalizer->normalize([
             [
-                'id' => 'hero',
-                'label' => 'Hero',
-                'accepts' => ['hero', 'InvalidCaps', '../path', 'text', 'hero'],
+                'id'                 => 'hero',
+                'label'              => 'Hero',
+                'accepts'            => ['hero', 'InvalidCaps', '../path', 'text', 'hero'],
                 'defaultContentType' => '../path',
             ],
         ], $errors);
@@ -83,14 +83,14 @@ final class CustomLayoutNormalizerTest extends TestCase
 
         self::assertSame([], $errors);
         self::assertSame([
-            'id' => 'hero',
-            'label' => 'Hero',
-            'region' => 'main',
-            'size' => 'medium',
-            'position' => 'stretch',
+            'id'        => 'hero',
+            'label'     => 'Hero',
+            'region'    => 'main',
+            'size'      => 'medium',
+            'position'  => 'stretch',
             'maxHeight' => 'none',
-            'overflow' => 'visible',
-            'surface' => 'none',
+            'overflow'  => 'visible',
+            'surface'   => 'none',
         ], $result[0]);
     }
 
@@ -100,12 +100,12 @@ final class CustomLayoutNormalizerTest extends TestCase
 
         $result = $this->normalizer->normalize([
             [
-                'id' => 'hero',
-                'label' => 'Hero',
-                'region' => 'header',
-                'size' => 'hero',
+                'id'      => 'hero',
+                'label'   => 'Hero',
+                'region'  => 'header',
+                'size'    => 'hero',
                 'unknown' => 'drop-me',
-                'style' => ['background' => 'red'],
+                'style'   => ['background' => 'red'],
             ],
         ], $errors);
 

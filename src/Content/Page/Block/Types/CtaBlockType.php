@@ -36,10 +36,10 @@ final class CtaBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'title' => 'Ready to move?',
-            'text' => 'Give visitors a direct next step.',
+            'title'       => 'Ready to move?',
+            'text'        => 'Give visitors a direct next step.',
             'buttonLabel' => 'Continue',
-            'buttonUrl' => '#',
+            'buttonUrl'   => '#',
             ...$this->surfaceDefaults(),
         ];
     }

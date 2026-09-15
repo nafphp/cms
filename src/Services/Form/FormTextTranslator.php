@@ -28,7 +28,7 @@ final class FormTextTranslator
     {
         return $this->translate(
             is_string($settings[$name . 'Key'] ?? null) ? $settings[$name . 'Key'] : null,
-            (string) ($settings[$name] ?? $fallback)
+            (string) ($settings[$name] ?? $fallback),
         );
     }
 
@@ -37,7 +37,7 @@ final class FormTextTranslator
     {
         return $this->translate(
             is_string($field['labelKey'] ?? null) ? $field['labelKey'] : null,
-            (string) ($field['label'] ?? $field['name'] ?? '')
+            (string) ($field['label'] ?? $field['name'] ?? ''),
         );
     }
 
@@ -46,7 +46,7 @@ final class FormTextTranslator
     {
         return $this->translate(
             is_string($field['placeholderKey'] ?? null) ? $field['placeholderKey'] : null,
-            (string) ($field['placeholder'] ?? '')
+            (string) ($field['placeholder'] ?? ''),
         );
     }
 }

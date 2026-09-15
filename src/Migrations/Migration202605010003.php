@@ -6,13 +6,12 @@ namespace Naf\CMS\Migrations;
 
 use Naf\Database\Core\AbstractMigration;
 use PDO;
-use function Naf\CMS\audit_log;
 
 final class Migration202605010003 extends AbstractMigration
 {
     public function up(PDO $connection): void
     {
-        $driver = strtolower((string) $connection->getAttribute(PDO::ATTR_DRIVER_NAME));
+        $driver   = strtolower((string) $connection->getAttribute(PDO::ATTR_DRIVER_NAME));
         $idColumn = $driver === 'sqlite'
             ? 'id INTEGER PRIMARY KEY AUTOINCREMENT'
             : 'id INT AUTO_INCREMENT PRIMARY KEY';
@@ -36,6 +35,7 @@ final class Migration202605010003 extends AbstractMigration
             $connection->exec('CREATE INDEX IF NOT EXISTS idx_audit_log_subject ON audit_log (subject_type, subject_key)');
             $connection->exec('CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log (created_at)');
             $connection->exec('CREATE INDEX IF NOT EXISTS idx_audit_log_actor_user_id ON audit_log (actor_user_id)');
+
             return;
         }
 

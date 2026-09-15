@@ -7,9 +7,10 @@ namespace Naf\CMS\Repositories;
 use Naf\CMS\Contracts\AuditSinkInterface;
 use Naf\CMS\Support\AuditLogRecord;
 use PDO;
+use Throwable;
+
 use function Naf\Database\database;
 use function Naf\log;
-use function Naf\CMS\audit_log;
 
 final class AuditLogRepository implements AuditSinkInterface
 {
@@ -28,10 +29,10 @@ final class AuditLogRepository implements AuditSinkInterface
         }
 
         try {
-            $hasEntryJson = $this->columnExists($connection, 'audit_log', 'entry_json');
-            $entryJsonColumn = $hasEntryJson ? "entry_json,\n                    " : '';
+            $hasEntryJson         = $this->columnExists($connection, 'audit_log', 'entry_json');
+            $entryJsonColumn      = $hasEntryJson ? "entry_json,\n                    " : '';
             $entryJsonPlaceholder = $hasEntryJson ? ":entry_json,\n                    " : '';
-            $statement = $connection->prepare(<<<SQL
+            $statement            = $connection->prepare(<<<SQL
                 INSERT INTO audit_log (
                     {$entryJsonColumn}
                     actor_user_id,
@@ -61,14 +62,14 @@ final class AuditLogRepository implements AuditSinkInterface
 
             $parameters = [
                 'actor_user_id' => $entry['actor_user_id'] ?? null,
-                'actor_label' => (string) ($entry['actor_label'] ?? ''),
-                'action' => (string) ($entry['action'] ?? ''),
-                'subject_type' => (string) ($entry['subject_type'] ?? ''),
-                'subject_key' => (string) ($entry['subject_key'] ?? ''),
-                'old_value' => $this->encodeValue($entry['old_value'] ?? null),
-                'new_value' => $this->encodeValue($entry['new_value'] ?? null),
-                'meta_json' => $this->encodeValue($entry['meta'] ?? []),
-                'ip_address' => (string) ($entry['ip_address'] ?? ''),
+                'actor_label'   => (string) ($entry['actor_label'] ?? ''),
+                'action'        => (string) ($entry['action'] ?? ''),
+                'subject_type'  => (string) ($entry['subject_type'] ?? ''),
+                'subject_key'   => (string) ($entry['subject_key'] ?? ''),
+                'old_value'     => $this->encodeValue($entry['old_value'] ?? null),
+                'new_value'     => $this->encodeValue($entry['new_value'] ?? null),
+                'meta_json'     => $this->encodeValue($entry['meta'] ?? []),
+                'ip_address'    => (string) ($entry['ip_address'] ?? ''),
             ];
 
             if ($hasEntryJson) {
@@ -76,8 +77,9 @@ final class AuditLogRepository implements AuditSinkInterface
             }
 
             return $statement->execute($parameters);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('AuditLogRepository.record failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return false;
         }
     }
@@ -90,11 +92,11 @@ final class AuditLogRepository implements AuditSinkInterface
             return [];
         }
 
-        $limit = max(1, min(250, $limit));
-        $where = '';
+        $limit  = max(1, min(250, $limit));
+        $where  = '';
         $params = [];
         if ($subjectType !== null && trim($subjectType) !== '') {
-            $where = 'WHERE subject_type = :subject_type';
+            $where                  = 'WHERE subject_type = :subject_type';
             $params['subject_type'] = trim($subjectType);
         }
 
@@ -124,8 +126,9 @@ final class AuditLogRepository implements AuditSinkInterface
             SQL);
             $statement->execute($params);
             $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('AuditLogRepository.latestRecords failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return [];
         }
 
@@ -152,17 +155,17 @@ final class AuditLogRepository implements AuditSinkInterface
     {
         return [
             'schema' => 'nafcms.audit.v1',
-            'actor' => [
+            'actor'  => [
                 'user_id' => $entry['actor_user_id'] ?? null,
-                'label' => (string) ($entry['actor_label'] ?? ''),
+                'label'   => (string) ($entry['actor_label'] ?? ''),
             ],
             'event' => [
-                'action' => (string) ($entry['action'] ?? ''),
+                'action'       => (string) ($entry['action'] ?? ''),
                 'subject_type' => (string) ($entry['subject_type'] ?? ''),
-                'subject_key' => (string) ($entry['subject_key'] ?? ''),
-                'old_value' => $entry['old_value'] ?? null,
-                'new_value' => $entry['new_value'] ?? null,
-                'meta' => $entry['meta'] ?? [],
+                'subject_key'  => (string) ($entry['subject_key'] ?? ''),
+                'old_value'    => $entry['old_value'] ?? null,
+                'new_value'    => $entry['new_value'] ?? null,
+                'meta'         => $entry['meta'] ?? [],
             ],
             'request' => [
                 'ip_address' => (string) ($entry['ip_address'] ?? ''),
@@ -179,8 +182,9 @@ final class AuditLogRepository implements AuditSinkInterface
     {
         try {
             return json_decode($value, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->warning(sprintf('AuditLogRepository.decodeValue failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return $value;
         }
     }
@@ -193,8 +197,9 @@ final class AuditLogRepository implements AuditSinkInterface
 
         try {
             $connection = database();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('AuditLogRepository.connection failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return null;
         }
 
@@ -217,6 +222,7 @@ final class AuditLogRepository implements AuditSinkInterface
 
         $statement = $connection->prepare('SHOW COLUMNS FROM ' . $table . ' LIKE :column');
         $statement->execute(['column' => $column]);
+
         return (bool) $statement->fetchColumn();
     }
 }

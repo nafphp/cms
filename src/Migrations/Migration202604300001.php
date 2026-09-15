@@ -101,7 +101,7 @@ final class Migration202604300001 extends AbstractMigration
 
     private function createInviteSchema(PDO $connection): void
     {
-        $id = $this->idColumn($connection);
+        $id   = $this->idColumn($connection);
         $json = $this->jsonColumn($connection);
 
         $connection->exec(<<<SQL
@@ -151,7 +151,7 @@ final class Migration202604300001 extends AbstractMigration
 
     private function createArticleSchema(PDO $connection): void
     {
-        $id = $this->idColumn($connection);
+        $id   = $this->idColumn($connection);
         $json = $this->jsonColumn($connection);
 
         $connection->exec(<<<SQL
@@ -227,7 +227,7 @@ final class Migration202604300001 extends AbstractMigration
 
     private function seedRolesAndPermissions(PDO $connection): void
     {
-        $insert = $this->isSqlite($connection) ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
+        $insert     = $this->isSqlite($connection) ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
         $insertRole = $connection->prepare($insert . ' INTO roles (name) VALUES (:name)');
         foreach (Role::cases() as $role) {
             $insertRole->execute(['name' => $role->value]);

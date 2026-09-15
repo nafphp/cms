@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Handlers\Page\Navigation;
 
+use InvalidArgumentException;
 use Naf\CMS\Handlers\Support\ReadsJsonBody;
 use Naf\CMS\Navigation\Navigation;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use function Naf\json;
+
 use function Naf\CMS\cms;
+use function Naf\json;
 
 final class StoreNavigation
 {
@@ -17,31 +19,31 @@ final class StoreNavigation
 
     public function __invoke(): ResponseInterface
     {
-        $data = $this->jsonBody();
+        $data   = $this->jsonBody();
         $errors = $this->validate($data);
         if ($errors !== []) {
             return json(['success' => false, 'errors' => $errors], 400);
         }
 
         try {
-            $ids = is_array($data['ids'] ?? null) ? $data['ids'] : [];
+            $ids      = is_array($data['ids'] ?? null) ? $data['ids'] : [];
             $targetId = (int) ($ids[''] ?? ($data['id'] ?? 0));
             if ($targetId <= 0) {
                 $targetId = (int) (reset($ids) ?: 0);
             }
 
-            $identifier = (string) ($data['identifier'] ?? '');
+            $identifier         = (string) ($data['identifier'] ?? '');
             $originalIdentifier = (string) ($data['originalIdentifier'] ?? $identifier);
-            $status = $this->normalizeStatus((string) ($data['status'] ?? 'draft'));
+            $status             = $this->normalizeStatus((string) ($data['status'] ?? 'draft'));
 
             $savedId = cms()->navigation()->save([
-                'id' => $targetId,
+                'id'         => $targetId,
                 'identifier' => $identifier,
-                'title' => (string) ($data['title'] ?? ''),
-                'scope' => 'frontend',
-                'language' => '',
-                'status' => $status,
-                'items' => $this->normalizeItems(is_array($data['items'] ?? null) ? $data['items'] : []),
+                'title'      => (string) ($data['title'] ?? ''),
+                'scope'      => 'frontend',
+                'language'   => '',
+                'status'     => $status,
+                'items'      => $this->normalizeItems(is_array($data['items'] ?? null) ? $data['items'] : []),
             ]);
 
             cms()->navigation()->deleteTranslationsExcept($identifier, 'frontend', $savedId);
@@ -62,9 +64,10 @@ final class StoreNavigation
     private function validate(array $data): array
     {
         $errors = [];
+
         try {
             Navigation::normalizeIdentifier((string) ($data['identifier'] ?? ''));
-        } catch (\InvalidArgumentException) {
+        } catch (InvalidArgumentException) {
             $errors['identifier'][] = 'Please enter an identifier such as main, footer, or legal.';
         }
 
@@ -94,25 +97,25 @@ final class StoreNavigation
                 continue;
             }
 
-            $key = trim((string) ($item['key'] ?? ''));
+            $key   = trim((string) ($item['key'] ?? ''));
             $label = trim((string) ($item['label'] ?? ''));
             if ($key === '') {
                 $key = 'item-' . ($index + 1);
             }
 
             $normalized[] = [
-                'key' => Navigation::normalizeIdentifier($key),
-                'label' => $label,
-                'href' => trim((string) ($item['href'] ?? '')),
-                'type' => trim((string) ($item['type'] ?? 'url')) ?: 'url',
-                'target' => trim((string) ($item['target'] ?? '')),
-                'icon' => trim((string) ($item['icon'] ?? '')),
-                'order' => (int) ($item['order'] ?? (($index + 1) * 10)),
-                'visible' => (bool) ($item['visible'] ?? true),
-                'scope' => 'frontend',
+                'key'        => Navigation::normalizeIdentifier($key),
+                'label'      => $label,
+                'href'       => trim((string) ($item['href'] ?? '')),
+                'type'       => trim((string) ($item['type'] ?? 'url')) ?: 'url',
+                'target'     => trim((string) ($item['target'] ?? '')),
+                'icon'       => trim((string) ($item['icon'] ?? '')),
+                'order'      => (int) ($item['order'] ?? (($index + 1) * 10)),
+                'visible'    => (bool) ($item['visible'] ?? true),
+                'scope'      => 'frontend',
                 'routeNames' => [],
-                'meta' => is_array($item['meta'] ?? null) ? $item['meta'] : [],
-                'children' => $this->normalizeItems(is_array($item['children'] ?? null) ? $item['children'] : []),
+                'meta'       => is_array($item['meta'] ?? null) ? $item['meta'] : [],
+                'children'   => $this->normalizeItems(is_array($item['children'] ?? null) ? $item['children'] : []),
             ];
         }
 

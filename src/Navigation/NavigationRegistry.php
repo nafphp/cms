@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Navigation;
 
-use Naf\CMS\Navigation\Navigation;
-use Naf\CMS\Navigation\NavigationItem;
+use InvalidArgumentException;
+use LogicException;
 
 final class NavigationRegistry
 {
@@ -18,14 +18,15 @@ final class NavigationRegistry
     {
         $item = is_array($item) ? NavigationItem::fromArray($item) : $item;
         if ($item->key() === '') {
-            throw new \InvalidArgumentException('Navigation items require a non-empty key.');
+            throw new InvalidArgumentException('Navigation items require a non-empty key.');
         }
 
         if (isset($this->items[$item->key()]) && !$replace) {
-            throw new \LogicException(sprintf('Navigation item "%s" is already registered.', $item->key()));
+            throw new LogicException(sprintf('Navigation item "%s" is already registered.', $item->key()));
         }
 
         $this->items[$item->key()] = $item;
+
         return $this;
     }
 
@@ -47,12 +48,13 @@ final class NavigationRegistry
     public function addNavigation(Navigation|array $navigation, bool $replace = false): self
     {
         $navigation = is_array($navigation) ? Navigation::fromArray($navigation) : $navigation;
-        $key = $this->navigationKey($navigation->identifier(), $navigation->scope(), $navigation->language());
+        $key        = $this->navigationKey($navigation->identifier(), $navigation->scope(), $navigation->language());
         if (isset($this->navigations[$key]) && !$replace) {
-            throw new \LogicException(sprintf('Navigation "%s" is already registered.', $key));
+            throw new LogicException(sprintf('Navigation "%s" is already registered.', $key));
         }
 
         $this->navigations[$key] = $navigation;
+
         return $this;
     }
 
@@ -79,7 +81,7 @@ final class NavigationRegistry
 
         return array_filter(
             $this->navigations,
-            static fn(Navigation $navigation): bool => $navigation->scope() === $scope
+            static fn(Navigation $navigation): bool => $navigation->scope() === $scope,
         );
     }
 
@@ -100,7 +102,7 @@ final class NavigationRegistry
 
         return array_filter(
             $this->items,
-            static fn(NavigationItem $item): bool => $item->scope() === $scope
+            static fn(NavigationItem $item): bool => $item->scope() === $scope,
         );
     }
 
@@ -112,7 +114,7 @@ final class NavigationRegistry
 
     private function navigationKey(string $identifier, string $scope, ?string $language): string
     {
-        $scope = trim($scope) ?: 'frontend';
+        $scope    = trim($scope) ?: 'frontend';
         $language = $language === null ? '' : strtolower(trim($language));
 
         return $scope . ':' . Navigation::normalizeIdentifier($identifier) . ':' . $language;

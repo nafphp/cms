@@ -34,3 +34,7 @@ The actual Composer checks are `composer test` (`tests/run.php`), `composer anal
 also run `npm run test:builder`. Follow the relevant testing guidance in `CMS_GUIDE.md`. Keep registry-derived
 reference material current with `vendor/bin/naf docs:sync` from an installed host when public
 CMS registrations change. The detailed guide remains authoritative for the CMS-specific conventions.
+
+Follow the shared [PHP code style](https://github.com/nafphp/docs/blob/main/CODE_STYLE.md)
+and `.php-cs-fixer.dist.php`. Run `composer style:check`; `composer style:fix` applies the rules.
+Keep logical steps and local names readable, preserving public signatures and template output.

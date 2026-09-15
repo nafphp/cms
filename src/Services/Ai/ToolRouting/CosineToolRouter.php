@@ -4,13 +4,6 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Services\Ai\ToolRouting;
 
-use Naf\CMS\Services\Ai\ToolRouting\EmbeddingClientInterface;
-use Naf\CMS\Services\Ai\ToolRouting\KeywordToolRouter;
-use Naf\CMS\Services\Ai\ToolRouting\RoutingTelemetry;
-use Naf\CMS\Services\Ai\ToolRouting\ToolContext;
-use Naf\CMS\Services\Ai\ToolRouting\ToolHardFilter;
-use Naf\CMS\Services\Ai\ToolRouting\ToolRoute;
-use Naf\CMS\Services\Ai\ToolRouting\ToolRouterInterface;
 use function Naf\CMS\audit_log;
 use function Naf\CMS\cms;
 use function Naf\log;
@@ -28,27 +21,30 @@ final class CosineToolRouter implements ToolRouterInterface
         private EmbeddingClientInterface $embeddings,
         private ToolHardFilter $hardFilter = new ToolHardFilter(),
         private ?ToolRouterInterface $fallback = null,
-    ) {}
+    ) {
+    }
 
     /**
      * @return array<int, array<string, mixed>>
      */
     public function select(string $input, ToolContext $context, int $limit = 8): array
     {
-        $limit = max(1, min(32, $limit));
-        $candidates = $this->hardFilter->filter($this->tools, $input, $context);
-        $queryText = $this->queryText($input, $context);
+        $limit          = max(1, min(32, $limit));
+        $candidates     = $this->hardFilter->filter($this->tools, $input, $context);
+        $queryText      = $this->queryText($input, $context);
         $queryEmbedding = $this->embeddings->embed($queryText);
         if ($queryEmbedding === null) {
             $this->recordFallback('query_embedding_failed', $input, $context);
+
             return $this->fallback()->select($input, $context, $limit);
         }
         if ($candidates === []) {
             $this->recordFallback('no_candidates_after_hard_filter', $input, $context);
+
             return $this->fallback()->select($input, $context, $limit);
         }
 
-        $toolTexts = array_map(fn(array $tool): string => $this->toolText($tool), $candidates);
+        $toolTexts      = array_map(fn(array $tool): string => $this->toolText($tool), $candidates);
         $toolEmbeddings = $this->embeddings->embedMany($toolTexts);
 
         $routes = [];
@@ -56,6 +52,7 @@ final class CosineToolRouter implements ToolRouterInterface
             $toolEmbedding = $toolEmbeddings[$index] ?? null;
             if ($toolEmbedding === null) {
                 $this->recordFallback('tool_embedding_failed', $input, $context);
+
                 return $this->fallback()->select($input, $context, $limit);
             }
 
@@ -72,7 +69,7 @@ final class CosineToolRouter implements ToolRouterInterface
         $selected = array_map(static fn(ToolRoute $route): array => [
             ...$route->tool,
             'route' => [
-                'score' => $route->score,
+                'score'   => $route->score,
                 'reasons' => $route->reasons,
             ],
         ], array_slice($routes, 0, $limit));
@@ -125,8 +122,8 @@ final class CosineToolRouter implements ToolRouterInterface
             return 0.0;
         }
 
-        $dot = 0.0;
-        $leftMagnitude = 0.0;
+        $dot            = 0.0;
+        $leftMagnitude  = 0.0;
         $rightMagnitude = 0.0;
         for ($index = 0; $index < $size; $index++) {
             $dot += $left[$index] * $right[$index];
@@ -165,7 +162,7 @@ final class CosineToolRouter implements ToolRouterInterface
             $selected[] = [
                 ...$candidate,
                 'route' => [
-                    'score' => 0.1,
+                    'score'   => 0.1,
                     'reasons' => ['fallback-search'],
                 ],
             ];

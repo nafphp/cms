@@ -45,7 +45,7 @@ final class Migration202605020002 extends AbstractMigration
         foreach ($permissions as $permission) {
             $link->execute([
                 'role_id' => $adminRoleId,
-                'name' => $permission->value,
+                'name'    => $permission->value,
             ]);
         }
     }

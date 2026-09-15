@@ -4,23 +4,27 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Mcp\Tools;
 
+use DateTimeImmutable;
 use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
 use Naf\CMS\Enums\ToolRisk;
-
 use Naf\MCP\Support\Schema;
 use Naf\MCP\Tools\ScopedToolInterface;
 use Naf\MCP\Tools\ToolInterface;
 use PDO;
 use Throwable;
+
 use function Naf\Database\database;
 
 final class UserRoleSummaryTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
     use DeclaresLocalAiToolRisk;
 
-    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const ToolRisk AI_RISK    = ToolRisk::READ;
     private const bool AI_DESTRUCTIVE = false;
-    public function __construct(private ?PDO $connection = null) {}
+
+    public function __construct(private ?PDO $connection = null)
+    {
+    }
 
     public function name(): string
     {
@@ -47,33 +51,33 @@ final class UserRoleSummaryTool implements ToolInterface, ScopedToolInterface, L
 
     public function handle(array $args): array
     {
-        $connection = $this->connection();
+        $connection     = $this->connection();
         $requiredTables = ['users', 'roles', 'permissions', 'user_role', 'role_permissions'];
 
         if (!$connection instanceof PDO || !$this->tablesExist($connection, $requiredTables)) {
             return [
-                'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
-                'database_available' => false,
-                'users' => 0,
-                'roles' => 0,
-                'permissions' => 0,
-                'user_role_assignments' => 0,
+                'generated_at'                => (new DateTimeImmutable())->format(DATE_ATOM),
+                'database_available'          => false,
+                'users'                       => 0,
+                'roles'                       => 0,
+                'permissions'                 => 0,
+                'user_role_assignments'       => 0,
                 'role_permission_assignments' => 0,
-                'roles_detail' => [],
-                'permissions_by_area' => [],
+                'roles_detail'                => [],
+                'permissions_by_area'         => [],
             ];
         }
 
         return [
-            'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
-            'database_available' => true,
-            'users' => $this->countTable($connection, 'users'),
-            'roles' => $this->countTable($connection, 'roles'),
-            'permissions' => $this->countTable($connection, 'permissions'),
-            'user_role_assignments' => $this->countTable($connection, 'user_role'),
+            'generated_at'                => (new DateTimeImmutable())->format(DATE_ATOM),
+            'database_available'          => true,
+            'users'                       => $this->countTable($connection, 'users'),
+            'roles'                       => $this->countTable($connection, 'roles'),
+            'permissions'                 => $this->countTable($connection, 'permissions'),
+            'user_role_assignments'       => $this->countTable($connection, 'user_role'),
             'role_permission_assignments' => $this->countTable($connection, 'role_permissions'),
-            'roles_detail' => $this->roleDetails($connection),
-            'permissions_by_area' => $this->permissionsByArea($connection),
+            'roles_detail'                => $this->roleDetails($connection),
+            'permissions_by_area'         => $this->permissionsByArea($connection),
         ];
     }
 
@@ -110,6 +114,7 @@ final class UserRoleSummaryTool implements ToolInterface, ScopedToolInterface, L
     {
         try {
             $connection->query(sprintf('SELECT 1 FROM %s LIMIT 1', $table));
+
             return true;
         } catch (Throwable) {
             return false;
@@ -140,11 +145,11 @@ final class UserRoleSummaryTool implements ToolInterface, ScopedToolInterface, L
 
         return array_map(
             static fn(array $row): array => [
-                'name' => (string) ($row['name'] ?? ''),
-                'user_count' => (int) ($row['user_count'] ?? 0),
+                'name'             => (string) ($row['name'] ?? ''),
+                'user_count'       => (int) ($row['user_count'] ?? 0),
                 'permission_count' => (int) ($row['permission_count'] ?? 0),
             ],
-            $statement->fetchAll(PDO::FETCH_ASSOC) ?: []
+            $statement->fetchAll(PDO::FETCH_ASSOC) ?: [],
         );
     }
 
@@ -154,12 +159,12 @@ final class UserRoleSummaryTool implements ToolInterface, ScopedToolInterface, L
     private function permissionsByArea(PDO $connection): array
     {
         $statement = $connection->query('SELECT name FROM permissions ORDER BY name ASC');
-        $areas = [];
+        $areas     = [];
 
         foreach ($statement->fetchAll(PDO::FETCH_COLUMN) ?: [] as $permission) {
-            $name = (string) $permission;
-            $area = str_contains($name, '.') ? strstr($name, '.', true) : $name;
-            $area = $area === false || $area === '' ? 'other' : $area;
+            $name         = (string) $permission;
+            $area         = str_contains($name, '.') ? strstr($name, '.', true) : $name;
+            $area         = $area === false || $area === '' ? 'other' : $area;
             $areas[$area] = ($areas[$area] ?? 0) + 1;
         }
 

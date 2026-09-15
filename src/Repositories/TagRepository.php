@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Repositories;
 
+use InvalidArgumentException;
 use Naf\CMS\Models\Tag;
 use Naf\CMS\Support\Slug;
 use Naf\ORM\Repository\AbstractRepository;
+
 use function Naf\ORM\em;
 
 class TagRepository extends AbstractRepository
@@ -34,7 +36,7 @@ class TagRepository extends AbstractRepository
     {
         $normalizedName = $this->normalizeName($name);
         if ($normalizedName === '') {
-            throw new \InvalidArgumentException('Tag name cannot be empty.');
+            throw new InvalidArgumentException('Tag name cannot be empty.');
         }
 
         $existing = $this->findOneByNormalizedName($normalizedName);
@@ -59,7 +61,7 @@ class TagRepository extends AbstractRepository
         }
 
         $stmt = $this->pdo->prepare(
-            'SELECT id FROM tags WHERE LOWER(TRIM(name)) = LOWER(:name) ORDER BY id ASC LIMIT 1'
+            'SELECT id FROM tags WHERE LOWER(TRIM(name)) = LOWER(:name) ORDER BY id ASC LIMIT 1',
         );
         $stmt->execute(['name' => $normalizedName]);
         $tagId = $stmt->fetchColumn();
@@ -81,7 +83,7 @@ class TagRepository extends AbstractRepository
     private function normalizeNames(array $names): array
     {
         $normalized = [];
-        $seen = [];
+        $seen       = [];
         foreach ($names as $name) {
             $value = $this->normalizeName($name);
             if ($value === '') {
@@ -93,7 +95,7 @@ class TagRepository extends AbstractRepository
                 continue;
             }
 
-            $seen[$key] = true;
+            $seen[$key]   = true;
             $normalized[] = $value;
         }
 
@@ -113,7 +115,7 @@ class TagRepository extends AbstractRepository
         }
 
         $candidate = $base;
-        $suffix = 1;
+        $suffix    = 1;
         while ($this->slugExists($candidate)) {
             $suffix++;
             $candidate = $base . '-' . $suffix;
@@ -126,6 +128,7 @@ class TagRepository extends AbstractRepository
     {
         $stmt = $this->pdo->prepare('SELECT 1 FROM tags WHERE slug = :slug LIMIT 1');
         $stmt->execute(['slug' => $slug]);
+
         return $stmt->fetchColumn() !== false;
     }
 }

@@ -21,11 +21,11 @@ abstract class NafTestCase extends TestCase
         unset($overrides['tags']);
 
         $data = array_replace([
-            'id' => 1,
-            'author' => null,
-            'category_id' => null,
+            'id'                         => 1,
+            'author'                     => null,
+            'category_id'                => null,
             'hide_lead_image_in_content' => 1,
-            'createdAt' => '2026-05-01 10:00:00',
+            'createdAt'                  => '2026-05-01 10:00:00',
         ], $overrides);
 
         $article = new Article($data);
@@ -49,11 +49,11 @@ abstract class NafTestCase extends TestCase
         unset($overrides['tags']);
 
         $article = new Article(array_replace([
-            'id' => 1,
-            'author' => null,
-            'category_id' => null,
+            'id'                         => 1,
+            'author'                     => null,
+            'category_id'                => null,
             'hide_lead_image_in_content' => 1,
-            'createdAt' => '2026-05-01 10:00:00',
+            'createdAt'                  => '2026-05-01 10:00:00',
         ], $overrides));
 
         if (is_array($tags)) {
@@ -69,21 +69,21 @@ abstract class NafTestCase extends TestCase
     protected function mockArticleVersion(array $overrides = []): ArticleVersion
     {
         $data = array_replace([
-            'id' => 10,
+            'id'         => 10,
             'article_id' => 1,
-            'language' => Language::DE->value,
-            'version' => 1,
-            'status' => ArticleStatus::DRAFT->value,
-            'slug' => 'test-article',
-            'title' => 'Test Article',
-            'teaser' => 'Short teaser',
-            'content' => $this->mockEditorContent([
+            'language'   => Language::DE->value,
+            'version'    => 1,
+            'status'     => ArticleStatus::DRAFT->value,
+            'slug'       => 'test-article',
+            'title'      => 'Test Article',
+            'teaser'     => 'Short teaser',
+            'content'    => $this->mockEditorContent([
                 $this->mockParagraphBlock('Hello from NafCMS'),
             ]),
             'publishedAt' => null,
             'scheduledAt' => null,
             'show_teaser' => 1,
-            'createdAt' => '2026-05-01 10:30:00',
+            'createdAt'   => '2026-05-01 10:30:00',
         ], $this->normalizeArticleVersionOverrides($overrides));
 
         return new ArticleVersion($data);
@@ -116,7 +116,7 @@ abstract class NafTestCase extends TestCase
         return [
             'type' => 'image',
             'data' => [
-                'file' => ['url' => $url],
+                'file'    => ['url' => $url],
                 'caption' => $caption,
             ],
         ];

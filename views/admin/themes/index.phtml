@@ -6,9 +6,9 @@ use function Naf\View\view;
 
 $themes = is_array($themes ?? null) ? $themes : [];
 $config = [
-    'rows' => array_map(static fn(array $theme): array => $theme + ['kind' => 'Theme'], $themes),
-    'sort' => ['key' => 'label', 'direction' => 'asc'],
-    'search' => ['label', 'identifier', 'surfaces', 'cssPath', 'updated'],
+    'rows'    => array_map(static fn(array $theme): array => $theme + ['kind' => 'Theme'], $themes),
+    'sort'    => ['key' => 'label', 'direction' => 'asc'],
+    'search'  => ['label', 'identifier', 'surfaces', 'cssPath', 'updated'],
     'columns' => [
         ['key' => 'label', 'labelKey' => 'title', 'type' => 'title', 'subtitle' => 'identifier', 'colClass' => 'w-[24%]'],
         ['key' => 'surfaces', 'labelKey' => 'surfaces', 'cellClass' => 'text-slate-600 dark:text-slate-300', 'colClass' => 'w-[28%]'],
@@ -18,21 +18,21 @@ $config = [
     ],
     'urls' => [
         'create' => route('admin.themes.create'),
-        'edit' => '/admin/themes/{id}/edit',
+        'edit'   => '/admin/themes/{id}/edit',
     ],
     'labels' => [
-        'actions' => t('Actions'),
+        'actions'    => t('Actions'),
         'createPage' => t('New theme'),
-        'edit' => t('Edit'),
-        'empty' => t('No themes found.'),
-        'error' => t('Action failed.'),
-        'loading' => t('Loading themes...'),
-        'noResults' => t('No matching themes found.'),
-        'search' => t('Search themes'),
+        'edit'       => t('Edit'),
+        'empty'      => t('No themes found.'),
+        'error'      => t('Action failed.'),
+        'loading'    => t('Loading themes...'),
+        'noResults'  => t('No matching themes found.'),
+        'search'     => t('Search themes'),
         'stylesheet' => t('Stylesheet'),
-        'surfaces' => t('Surfaces'),
-        'title' => t('Title'),
-        'updated' => t('Updated'),
+        'surfaces'   => t('Surfaces'),
+        'title'      => t('Title'),
+        'updated'    => t('Updated'),
     ],
 ];
 
@@ -41,13 +41,13 @@ $config = [
 
 <?php $this->block('content'); ?>
 <?= view('components.admin.grid', [
-    'attributes' => ['data-page-grid' => true],
-    'frameAttributes' => ['data-page-grid-frame' => true],
-    'config' => $config,
+    'attributes'        => ['data-page-grid' => true],
+    'frameAttributes'   => ['data-page-grid-frame' => true],
+    'config'            => $config,
     'searchPlaceholder' => t('Search themes'),
-    'actionLabel' => t('New theme'),
-    'actionHref' => route('admin.themes.create'),
-    'loadingLabel' => t('Loading themes...'),
-    'script' => '/js/admin/page-grid.js',
+    'actionLabel'       => t('New theme'),
+    'actionHref'        => route('admin.themes.create'),
+    'loadingLabel'      => t('Loading themes...'),
+    'script'            => '/js/admin/page-grid.js',
 ]) ?>
 <?php $this->endBlock('content'); ?>

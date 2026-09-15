@@ -7,10 +7,8 @@ namespace Naf\CMS\Services\Http;
 use Closure;
 use Naf\CMS\Contracts\OutboundHttpClientInterface;
 use Naf\CMS\Exceptions\OutboundHttpDenied;
-use Naf\CMS\Services\Http\OutboundHttpPolicy;
-use Naf\CMS\Services\Http\OutboundHttpProfile;
-use Naf\CMS\Services\Http\OutboundHttpResponse;
-use Naf\CMS\Services\Http\OutboundHttpTarget;
+use RuntimeException;
+
 use function Naf\log;
 
 final class OutboundHttpClient implements OutboundHttpClientInterface
@@ -38,8 +36,9 @@ final class OutboundHttpClient implements OutboundHttpClientInterface
         array $headers = [],
     ): OutboundHttpResponse {
         $body = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
         return $this->request($url, 'POST', $body, $profile, $timeout, [
-            'Accept' => 'application/json',
+            'Accept'       => 'application/json',
             'Content-Type' => 'application/json',
             ...$headers,
         ]);
@@ -54,17 +53,17 @@ final class OutboundHttpClient implements OutboundHttpClientInterface
         float $timeout = 5.0,
         array $headers = [],
     ): OutboundHttpResponse {
-        $method = strtoupper($method);
+        $method     = strtoupper($method);
         $currentUrl = $url;
 
         for ($redirect = 0; $redirect <= $this->maxRedirects; $redirect++) {
             $target = $this->policy->authorize($currentUrl, $profile);
-            $raw = $this->transport instanceof Closure
+            $raw    = $this->transport instanceof Closure
                 ? ($this->transport)($target, $method, $body, $headers, $timeout, $this->maxResponseBytes)
                 : $this->curl($target, $method, $body, $headers, $timeout);
             $responseBody = (string) ($raw['body'] ?? '');
             if (strlen($responseBody) > $this->maxResponseBytes) {
-                throw new \RuntimeException('Outbound response exceeded the configured size limit.');
+                throw new RuntimeException('Outbound response exceeded the configured size limit.');
             }
             $response = new OutboundHttpResponse(
                 (int) ($raw['status'] ?? 0),
@@ -83,7 +82,7 @@ final class OutboundHttpClient implements OutboundHttpClientInterface
             $currentUrl = $this->resolveRedirect($currentUrl, $location);
             if ($response->status === 303) {
                 $method = 'GET';
-                $body = '';
+                $body   = '';
             }
         }
 
@@ -94,64 +93,67 @@ final class OutboundHttpClient implements OutboundHttpClientInterface
     private function curl(OutboundHttpTarget $target, string $method, string $body, array $headers, float $timeout): array
     {
         if (!function_exists('curl_init')) {
-            throw new \RuntimeException('The curl extension is required for outbound HTTP requests.');
+            throw new RuntimeException('The curl extension is required for outbound HTTP requests.');
         }
 
         $handle = curl_init($target->url);
         if ($handle === false) {
-            throw new \RuntimeException('Outbound HTTP client could not be initialized.');
+            throw new RuntimeException('Outbound HTTP client could not be initialized.');
         }
 
         $responseHeaders = [];
-        $responseBody = '';
-        $tooLarge = false;
-        $headerLines = array_map(static fn(string $name, string $value): string => $name . ': ' . $value, array_keys($headers), $headers);
-        $address = $target->addresses[0];
+        $responseBody    = '';
+        $tooLarge        = false;
+        $headerLines     = array_map(static fn(string $name, string $value): string => $name . ': ' . $value, array_keys($headers), $headers);
+        $address         = $target->addresses[0];
         if (str_contains($address, ':')) {
             $address = '[' . $address . ']';
         }
 
         curl_setopt_array($handle, [
-            CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_POSTFIELDS => $body !== '' ? $body : null,
-            CURLOPT_HTTPHEADER => $headerLines,
-            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_CUSTOMREQUEST     => $method,
+            CURLOPT_POSTFIELDS        => $body !== '' ? $body : null,
+            CURLOPT_HTTPHEADER        => $headerLines,
+            CURLOPT_FOLLOWLOCATION    => false,
             CURLOPT_CONNECTTIMEOUT_MS => max(100, (int) ($timeout * 500)),
-            CURLOPT_TIMEOUT_MS => max(100, (int) ($timeout * 1000)),
-            CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
-            CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
-            CURLOPT_PROXY => '',
-            CURLOPT_NOPROXY => '*',
-            CURLOPT_RESOLVE => [$target->host . ':' . $target->port . ':' . $address],
-            CURLOPT_HEADERFUNCTION => static function ($curl, string $line) use (&$responseHeaders): int {
+            CURLOPT_TIMEOUT_MS        => max(100, (int) ($timeout * 1000)),
+            CURLOPT_PROTOCOLS         => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            CURLOPT_REDIR_PROTOCOLS   => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            CURLOPT_PROXY             => '',
+            CURLOPT_NOPROXY           => '*',
+            CURLOPT_RESOLVE           => [$target->host . ':' . $target->port . ':' . $address],
+            CURLOPT_HEADERFUNCTION    => static function ($curl, string $line) use (&$responseHeaders): int {
                 $separator = strpos($line, ':');
                 if ($separator !== false) {
                     $responseHeaders[strtolower(trim(substr($line, 0, $separator)))] = trim(substr($line, $separator + 1));
                 }
+
                 return strlen($line);
             },
             CURLOPT_WRITEFUNCTION => function ($curl, string $chunk) use (&$responseBody, &$tooLarge): int {
                 if (strlen($responseBody) + strlen($chunk) > $this->maxResponseBytes) {
                     $tooLarge = true;
+
                     return 0;
                 }
                 $responseBody .= $chunk;
+
                 return strlen($chunk);
             },
         ]);
 
         $success = curl_exec($handle);
-        $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
-        $error = curl_error($handle);
+        $status  = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
+        $error   = curl_error($handle);
 
         if ($tooLarge) {
-            throw new \RuntimeException('Outbound response exceeded the configured size limit.');
+            throw new RuntimeException('Outbound response exceeded the configured size limit.');
         }
         if ($success === false) {
             // curl details can expose resolved hostnames and IP addresses. Keep
             // them in operational logs instead of user-facing exceptions.
             log()->warning('Outbound request failed.', ['error' => $error, 'host' => $target->host]);
-            throw new \RuntimeException('Outbound request failed.');
+            throw new RuntimeException('Outbound request failed.');
         }
 
         return ['status' => $status, 'headers' => $responseHeaders, 'body' => $responseBody];
@@ -179,6 +181,7 @@ final class OutboundHttpClient implements OutboundHttpClientInterface
         }
 
         $path = (string) ($parts['path'] ?? '/');
+
         return $authority . rtrim(str_replace('\\', '/', dirname($path)), '/') . '/' . $location;
     }
 }

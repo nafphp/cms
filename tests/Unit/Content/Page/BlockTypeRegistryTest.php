@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Content\Page;
 
+use LogicException;
 use Naf\CMS\Content\Page\Block\AbstractBlockType;
 use Naf\CMS\Content\Page\Block\BlockTypeRegistry;
 use PHPUnit\Framework\TestCase;
@@ -22,10 +23,10 @@ final class BlockTypeRegistryTest extends TestCase
         self::assertSame(['hero', 'header', 'main', 'aside', 'footer'], $registry->require('stack')->regions());
         self::assertSame(['header', 'main', 'aside', 'footer'], $registry->require('navigation')->regions());
 
-        $builderTypes = $registry->builderTypes();
-        $section = $this->findBuilderType($builderTypes, 'section');
-        $hero = $this->findBuilderType($builderTypes, 'hero');
-        $columns = $this->findBuilderType($builderTypes, 'columns');
+        $builderTypes   = $registry->builderTypes();
+        $section        = $this->findBuilderType($builderTypes, 'section');
+        $hero           = $this->findBuilderType($builderTypes, 'hero');
+        $columns        = $this->findBuilderType($builderTypes, 'columns');
         $articleContent = $this->findBuilderType($builderTypes, 'article-content');
 
         self::assertSame([], $section['defaults']['children']);
@@ -69,7 +70,7 @@ final class BlockTypeRegistryTest extends TestCase
     public function testDuplicateBlockTypesRequireExplicitReplacement(): void
     {
         $registry = new BlockTypeRegistry();
-        $type = new class extends AbstractBlockType {
+        $type     = new class extends AbstractBlockType {
             public function id(): string
             {
                 return 'duplicate';
@@ -88,7 +89,7 @@ final class BlockTypeRegistryTest extends TestCase
 
         $registry->add($type);
 
-        self::expectException(\LogicException::class);
+        self::expectException(LogicException::class);
         $registry->add($type);
     }
 

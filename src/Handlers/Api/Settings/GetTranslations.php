@@ -6,12 +6,15 @@ namespace Naf\CMS\Handlers\Api\Settings;
 
 use Naf\CMS\Contracts\TranslationServiceInterface;
 use Psr\Http\Message\ResponseInterface;
-use function Naf\json;
+
 use function Naf\CMS\cms;
+use function Naf\json;
 
 final class GetTranslations
 {
-    public function __construct(private readonly TranslationServiceInterface $translations) {}
+    public function __construct(private readonly TranslationServiceInterface $translations)
+    {
+    }
 
     public function __invoke(string $language): ResponseInterface
     {
@@ -21,9 +24,9 @@ final class GetTranslations
         }
 
         return json([
-            'success' => true,
+            'success'  => true,
             'language' => $language,
-            'entries' => $this->translations->entries($language),
+            'entries'  => $this->translations->entries($language),
         ]);
     }
 }

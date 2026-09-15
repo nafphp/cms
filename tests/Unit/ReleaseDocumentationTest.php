@@ -28,7 +28,7 @@ final class ReleaseDocumentationTest extends TestCase
         }
 
         $composer = json_decode((string) file_get_contents(BASE_PATH . '/composer.json'), true, 512, JSON_THROW_ON_ERROR);
-        $package = json_decode((string) file_get_contents(BASE_PATH . '/package.json'), true, 512, JSON_THROW_ON_ERROR);
+        $package  = json_decode((string) file_get_contents(BASE_PATH . '/package.json'), true, 512, JSON_THROW_ON_ERROR);
         self::assertArrayNotHasKey('version', $composer);
         self::assertSame('0.0.1', $package['version']);
         self::assertTrue($package['private']);

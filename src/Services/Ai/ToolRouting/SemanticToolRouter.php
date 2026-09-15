@@ -3,12 +3,7 @@
 declare(strict_types=1);
 
 namespace Naf\CMS\Services\Ai\ToolRouting;
-use Naf\CMS\Services\Ai\ToolRouting\CosineToolRouter;
-use Naf\CMS\Services\Ai\ToolRouting\KeywordToolRouter;
-use Naf\CMS\Services\Ai\ToolRouting\OllamaEmbeddingClient;
-use Naf\CMS\Services\Ai\ToolRouting\RoutingTelemetry;
-use Naf\CMS\Services\Ai\ToolRouting\ToolContext;
-use Naf\CMS\Services\Ai\ToolRouting\ToolRouterInterface;
+
 use function Naf\CMS\audit_log;
 use function Naf\CMS\cms;
 use function Naf\log;
@@ -21,14 +16,15 @@ final class SemanticToolRouter implements ToolRouterInterface
     public function __construct(
         private array $tools,
         private ?ToolRouterInterface $fallback = null,
-    ) {}
+    ) {
+    }
 
     /**
      * @return array<int, array<string, mixed>>
      */
     public function select(string $input, ToolContext $context, int $limit = 8): array
     {
-        $fallback = $this->fallback ?? new KeywordToolRouter($this->tools);
+        $fallback       = $this->fallback ?? new KeywordToolRouter($this->tools);
         $embeddingModel = trim((string) cms()->settings()->value('ai.embedding_model', ''));
         if ($embeddingModel !== '') {
             $router = new CosineToolRouter(
@@ -45,6 +41,7 @@ final class SemanticToolRouter implements ToolRouterInterface
         }
 
         $this->recordFallback('embedding_model_missing', $input, $context);
+
         return $fallback->select($input, $context, $limit);
     }
 

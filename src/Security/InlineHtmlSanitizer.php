@@ -9,7 +9,7 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMText;
-use Naf\CMS\Security\UrlPolicy;
+
 use function Naf\View\s;
 
 /**
@@ -19,15 +19,15 @@ final class InlineHtmlSanitizer
 {
     /** @var array<string, true> */
     private const ALLOWED_TAGS = [
-        'a' => true,
-        'b' => true,
-        'br' => true,
-        'code' => true,
-        'em' => true,
-        'i' => true,
-        'mark' => true,
+        'a'      => true,
+        'b'      => true,
+        'br'     => true,
+        'code'   => true,
+        'em'     => true,
+        'i'      => true,
+        'mark'   => true,
         'strong' => true,
-        'u' => true,
+        'u'      => true,
     ];
 
     public function sanitize(string $html): string
@@ -38,6 +38,7 @@ final class InlineHtmlSanitizer
 
         $document = new DOMDocument('1.0', 'UTF-8');
         $previous = libxml_use_internal_errors(true);
+
         try {
             $document->loadHTML(
                 '<?xml encoding="UTF-8"><div id="nafcms-inline-root">' . $html . '</div>',
@@ -89,10 +90,10 @@ final class InlineHtmlSanitizer
             return '<' . $tag . '>' . $content . '</' . $tag . '>';
         }
 
-        $href = $tag === 'a' ? UrlPolicy::link($node->getAttribute('href')) : null;
-        $title = trim($node->getAttribute('title'));
+        $href        = $tag === 'a' ? UrlPolicy::link($node->getAttribute('href')) : null;
+        $title       = trim($node->getAttribute('title'));
         $targetBlank = strtolower(trim($node->getAttribute('target'))) === '_blank';
-        $attributes = '';
+        $attributes  = '';
 
         if ($href !== null) {
             $attributes .= ' href="' . s($href) . '"';

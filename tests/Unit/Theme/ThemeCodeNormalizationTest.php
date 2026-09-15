@@ -31,11 +31,11 @@ final class ThemeCodeNormalizationTest extends DatabaseTestCase
         SQL);
 
         $id = (new ThemeRepository($this->pdo))->save([
-            'label' => 'Brand',
+            'label'      => 'Brand',
             'identifier' => 'brand',
-            'surfaces' => ['card' => 'Card'],
-            'css' => ".theme-brand {\r\n    color: red;\r\n}\r\n",
-            'js' => "export default {\r\n    mounted() {}\r\n};\r\n",
+            'surfaces'   => ['card' => 'Card'],
+            'css'        => ".theme-brand {\r\n    color: red;\r\n}\r\n",
+            'js'         => "export default {\r\n    mounted() {}\r\n};\r\n",
         ]);
 
         $row = $this->fetchOne('SELECT css, js FROM themes WHERE id = :id', ['id' => $id]);

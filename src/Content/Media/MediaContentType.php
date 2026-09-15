@@ -9,6 +9,7 @@ use Naf\CMS\Content\ContentTypeInterface;
 use Naf\CMS\Contracts\MediaStorageInterface;
 use Naf\CMS\Models\Media;
 use Naf\CMS\Storage\EntityStorage;
+
 use function Naf\app;
 
 final class MediaContentType implements ContentTypeInterface
@@ -36,7 +37,7 @@ final class MediaContentType implements ContentTypeInterface
             $storage = new EntityStorage(Media::class);
             /** @var MediaStorageInterface $fileStorage */
             $fileStorage = app()->container()->get(MediaStorageInterface::class);
-            $this->api = new MediaApi($fileStorage, $storage);
+            $this->api   = new MediaApi($fileStorage, $storage);
         }
 
         return $this->api;

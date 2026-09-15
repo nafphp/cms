@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Services\Theme;
 
+use InvalidArgumentException;
 use Naf\CMS\Support\AtomicFileWriter;
 use Naf\CMS\Support\RuntimePaths;
 use Naf\CMS\Theme\Theme;
-use Naf\CMS\Services\Theme\ThemeCodeNormalizer;
 
 final class ThemeAssetWriter
 {
@@ -23,7 +23,7 @@ final class ThemeAssetWriter
     {
         $identifier = Theme::slug($identifier);
         if ($identifier === '') {
-            throw new \InvalidArgumentException('Theme identifier cannot be empty.');
+            throw new InvalidArgumentException('Theme identifier cannot be empty.');
         }
 
         $root = rtrim($this->publicRoot ?? RuntimePaths::publicRoot(), '/\\');

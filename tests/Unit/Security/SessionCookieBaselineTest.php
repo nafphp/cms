@@ -15,8 +15,8 @@ final class SessionCookieBaselineTest extends TestCase
     #[PreserveGlobalState(false)]
     public function testHttpsSessionCookieUsesSecureHttpOnlyAndSameSiteDefaults(): void
     {
-        $_SERVER['HTTPS'] = 'on';
-        $_SERVER['HTTP_HOST'] = 'cms.example.test';
+        $_SERVER['HTTPS']       = 'on';
+        $_SERVER['HTTP_HOST']   = 'cms.example.test';
         $_SERVER['REMOTE_ADDR'] = '203.0.113.10';
 
         $session = new Session();
@@ -33,10 +33,10 @@ final class SessionCookieBaselineTest extends TestCase
     #[PreserveGlobalState(false)]
     public function testForwardedHttpsIsIgnoredUnlessProxyIsExplicitlyTrusted(): void
     {
-        $_SERVER['HTTPS'] = 'off';
+        $_SERVER['HTTPS']                  = 'off';
         $_SERVER['HTTP_X_FORWARDED_PROTO'] = 'https';
-        $_SERVER['HTTP_HOST'] = 'cms.example.test';
-        $_SERVER['REMOTE_ADDR'] = '203.0.113.10';
+        $_SERVER['HTTP_HOST']              = 'cms.example.test';
+        $_SERVER['REMOTE_ADDR']            = '203.0.113.10';
 
         $session = new Session();
         $session->configureProxyTrust(true, ['203.0.113.11']);

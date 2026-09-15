@@ -23,10 +23,10 @@ final class PasswordPolicyTest extends TestCase
     public function testAdminUserValidationUsesSharedPolicy(): void
     {
         $errors = (new UserPayloadValidator())->validate([
-            'username' => 'admin',
-            'password' => 'short',
+            'username'              => 'admin',
+            'password'              => 'short',
             'password_confirmation' => 'short',
-            'roles' => ['admin'],
+            'roles'                 => ['admin'],
         ], true);
 
         self::assertSame([(new PasswordPolicy())->message()], $errors['password']);

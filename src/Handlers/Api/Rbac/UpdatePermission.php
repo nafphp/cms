@@ -11,9 +11,10 @@ use Naf\CMS\Models\Permission;
 use Naf\CMS\Repositories\PermissionRepository;
 use Naf\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
+
+use function Naf\CMS\user;
 use function Naf\json;
 use function Naf\ORM\repo;
-use function Naf\CMS\user;
 
 final class UpdatePermission
 {
@@ -22,11 +23,12 @@ final class UpdatePermission
 
     public function __invoke(): ResponseInterface
     {
-        $payload = $this->jsonBody();
+        $payload      = $this->jsonBody();
         $permissionId = (int) ($payload['id'] ?? 0);
-        $repository = repo(PermissionRepository::class);
+        $repository   = repo(PermissionRepository::class);
         /** @var Permission|null $old */
         $old = $repository->findOneBy('id', $permissionId);
+
         try {
             $updated = $repository->renameById(
                 (int) user()?->get()?->getId(),

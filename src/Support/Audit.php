@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Naf\CMS\Support;
 
 use Naf\CMS\Contracts\AuditSinkInterface;
-use Naf\CMS\Support\AuditActorResolver;
-use Naf\CMS\Support\AuditEntry;
-use Naf\CMS\Support\AuditRedactor;
+use Throwable;
+
 use function Naf\request;
 
 final class Audit
@@ -45,8 +44,8 @@ final class Audit
 
         return $this->repository()->record($this->redactEntry($entry) + [
             'actor_user_id' => $actor?->id,
-            'actor_label' => $actor?->label ?? 'System',
-            'ip_address' => $this->ipAddress(),
+            'actor_label'   => $actor?->label ?? 'System',
+            'ip_address'    => $this->ipAddress(),
         ]);
     }
 
@@ -58,12 +57,12 @@ final class Audit
         $redactor = $this->redactor();
 
         return [
-            'action' => $entry->action,
+            'action'       => $entry->action,
             'subject_type' => $entry->subjectType,
-            'subject_key' => $entry->subjectKey,
-            'old_value' => $redactor->redact($entry->oldValue),
-            'new_value' => $redactor->redact($entry->newValue),
-            'meta' => $redactor->redact($entry->meta),
+            'subject_key'  => $entry->subjectKey,
+            'old_value'    => $redactor->redact($entry->oldValue),
+            'new_value'    => $redactor->redact($entry->newValue),
+            'meta'         => $redactor->redact($entry->meta),
         ];
     }
 
@@ -71,7 +70,7 @@ final class Audit
     {
         try {
             return (string) (request()->getServerParams()['REMOTE_ADDR'] ?? '');
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return '';
         }
     }
@@ -84,6 +83,7 @@ final class Audit
 
         /** @var AuditSinkInterface $repository */
         $repository = \Naf\app()->container()->get(AuditSinkInterface::class);
+
         return $repository;
     }
 

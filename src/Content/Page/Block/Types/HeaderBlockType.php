@@ -42,14 +42,14 @@ final class HeaderBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'logoText' => '',
-            'logoImage' => '',
+            'logoText'             => '',
+            'logoImage'            => '',
             'navigationIdentifier' => '',
-            'presentation' => 'horizontal',
-            'linkStyle' => 'blank',
-            'linkTheme' => 'default',
-            'showLogoMark' => false,
-            'showDivider' => false,
+            'presentation'         => 'horizontal',
+            'linkStyle'            => 'blank',
+            'linkTheme'            => 'default',
+            'showLogoMark'         => false,
+            'showDivider'          => false,
         ];
     }
 

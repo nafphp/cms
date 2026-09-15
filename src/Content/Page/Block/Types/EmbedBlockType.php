@@ -36,10 +36,10 @@ final class EmbedBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'url' => 'https://example.com',
-            'title' => 'External content',
+            'url'     => 'https://example.com',
+            'title'   => 'External content',
             'caption' => '',
-            'height' => 420,
+            'height'  => 420,
         ];
     }
 

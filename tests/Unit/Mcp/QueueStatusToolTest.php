@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mcp;
 
+use FilesystemIterator;
+use InvalidArgumentException;
 use Naf\CMS\Mcp\Tools\QueueStatusTool;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 
 final class QueueStatusToolTest extends TestCase
 {
@@ -57,7 +62,7 @@ final class QueueStatusToolTest extends TestCase
 
     public function testRejectsUnsafeChannelNames(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         (new QueueStatusTool($this->queuePath))->handle(['channel' => '../storage']);
     }
@@ -68,13 +73,13 @@ final class QueueStatusToolTest extends TestCase
             return;
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
 
         foreach ($iterator as $item) {
-            if (!$item instanceof \SplFileInfo) {
+            if (!$item instanceof SplFileInfo) {
                 continue;
             }
 

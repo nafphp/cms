@@ -6,6 +6,7 @@ namespace Tests\Unit\Handlers\Api\Media;
 
 use Naf\CMS\Handlers\Api\Media\ServeMedia;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
 
 final class ServeMediaTest extends TestCase
 {
@@ -21,9 +22,9 @@ final class ServeMediaTest extends TestCase
 
     public function testPrivateMediaIsAvailableToUploaderOrMediaAdministrator(): void
     {
-        $method = new \ReflectionMethod(ServeMedia::class, 'canAccessPrivate');
+        $method  = new ReflectionMethod(ServeMedia::class, 'canAccessPrivate');
         $handler = new ServeMedia();
-        $media = ['visibility' => 'private', 'uploaded_by' => 17];
+        $media   = ['visibility' => 'private', 'uploaded_by' => 17];
 
         self::assertTrue($method->invoke($handler, $media, 17, false));
         self::assertTrue($method->invoke($handler, $media, 42, true));
@@ -35,7 +36,8 @@ final class ServeMediaTest extends TestCase
      */
     private function canAccess(array $media): bool
     {
-        $method = new \ReflectionMethod(ServeMedia::class, 'canAccess');
+        $method = new ReflectionMethod(ServeMedia::class, 'canAccess');
+
         return (bool) $method->invoke(new ServeMedia(), $media);
     }
 }

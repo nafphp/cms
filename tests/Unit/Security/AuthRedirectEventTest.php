@@ -12,6 +12,8 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use RuntimeException;
+
 use function Naf\app;
 use function Naf\Session\session;
 
@@ -21,7 +23,7 @@ final class AuthRedirectEventTest extends TestCase
 {
     public function testOtherExceptionsAreIgnored(): void
     {
-        self::assertNull((new AuthRedirectEvent())->onException(new \RuntimeException('probe')));
+        self::assertNull((new AuthRedirectEvent())->onException(new RuntimeException('probe')));
     }
 
     public function testAnonymousAuthFailureRedirectsToLoginAndRemembersTarget(): void

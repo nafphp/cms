@@ -66,7 +66,7 @@ function remembered_values(string $name, mixed $fallback = [], bool $useMemory =
 
     if ($useMemory && $name !== '') {
         $normalizedName = str_ends_with($name, '[]') ? substr($name, 0, -2) : $name;
-        $remembered = param()->get($normalizedName);
+        $remembered     = param()->get($normalizedName);
         if ($remembered !== null) {
             $values = $remembered;
         }

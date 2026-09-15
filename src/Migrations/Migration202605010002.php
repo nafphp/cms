@@ -11,7 +11,7 @@ final class Migration202605010002 extends AbstractMigration
 {
     public function up(PDO $connection): void
     {
-        $driver = strtolower((string) $connection->getAttribute(PDO::ATTR_DRIVER_NAME));
+        $driver   = strtolower((string) $connection->getAttribute(PDO::ATTR_DRIVER_NAME));
         $idColumn = $driver === 'sqlite'
             ? 'id INTEGER PRIMARY KEY AUTOINCREMENT'
             : 'id INT AUTO_INCREMENT PRIMARY KEY';

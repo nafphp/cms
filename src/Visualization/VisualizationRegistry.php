@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Visualization;
 
-use Naf\CMS\Visualization\ChartDefinition;
-use Naf\CMS\Visualization\ChartRenderer;
+use InvalidArgumentException;
 
 final class VisualizationRegistry
 {
@@ -24,10 +23,11 @@ final class VisualizationRegistry
     public function add(ChartDefinition $chart, bool $replace = false): self
     {
         if (!$replace && isset($this->charts[$chart->id])) {
-            throw new \InvalidArgumentException(sprintf('Chart "%s" is already registered.', $chart->id));
+            throw new InvalidArgumentException(sprintf('Chart "%s" is already registered.', $chart->id));
         }
 
         $this->charts[$chart->id] = $chart;
+
         return $this;
     }
 
@@ -39,7 +39,7 @@ final class VisualizationRegistry
     public function render(ChartDefinition|string $chart): string
     {
         if (is_string($chart)) {
-            $chart = $this->find($chart) ?? throw new \InvalidArgumentException(sprintf('Chart "%s" is not registered.', $chart));
+            $chart = $this->find($chart) ?? throw new InvalidArgumentException(sprintf('Chart "%s" is not registered.', $chart));
         }
 
         return $this->renderer->render($chart);

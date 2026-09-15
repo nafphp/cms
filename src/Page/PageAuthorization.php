@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Page;
 
-use Naf\CMS\Services\Security\ResourceAuthorization;
-use Naf\Auth\Exceptions\{ForbiddenException, UnauthenticatedException};
-use Naf\CMS\Exceptions\AuthException;
+use Naf\Auth\Exceptions\ForbiddenException;
+use Naf\Auth\Exceptions\UnauthenticatedException;
 use Naf\CMS\Enums\Permission;
+use Naf\CMS\Exceptions\AuthException;
+use Naf\CMS\Services\Security\ResourceAuthorization;
+
 use function Naf\CMS\user;
 
 final class PageAuthorization
@@ -15,11 +17,17 @@ final class PageAuthorization
     public function authorize(Page $page, ?Permission $extraPermission = null): void
     {
         $helper = user();
-        $actor = $helper?->isLoggedIn() === true ? $helper : null;
+        $actor  = $helper?->isLoggedIn() === true ? $helper : null;
         $access = new ResourceAuthorization();
+
         try {
-            $access->authorize($actor, $page->requiresAuthentication(), $page->requiredRoles(),
-                $page->requiredPermissions(), $page->requiresAnyPermission());
+            $access->authorize(
+                $actor,
+                $page->requiresAuthentication(),
+                $page->requiredRoles(),
+                $page->requiredPermissions(),
+                $page->requiresAnyPermission(),
+            );
             if ($extraPermission !== null) {
                 $access->authorize($actor, permissions: [$extraPermission]);
             }

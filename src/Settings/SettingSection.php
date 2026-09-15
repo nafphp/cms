@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Settings;
 
-use Naf\CMS\Settings\SettingField;
+use BackedEnum;
+use LogicException;
 
 final class SettingSection
 {
     /** @var array<string, SettingField> */
-    private array $fields = [];
+    private array $fields        = [];
     private ?string $description = null;
-    private string $group = 'general';
-    private string $icon = 'settings';
-    private int $order = 100;
-    private ?string $permission = null;
-    private ?string $view = null;
+    private string $group        = 'general';
+    private string $icon         = 'settings';
+    private int $order           = 100;
+    private ?string $permission  = null;
+    private ?string $view        = null;
 
     private function __construct(
         private readonly string $id,
@@ -46,6 +47,7 @@ final class SettingSection
     public function setDescription(string $description): self
     {
         $this->description = trim($description);
+
         return $this;
     }
 
@@ -56,8 +58,9 @@ final class SettingSection
 
     public function setGroup(string $group): self
     {
-        $group = trim($group);
+        $group       = trim($group);
         $this->group = $group !== '' ? $group : 'general';
+
         return $this;
     }
 
@@ -68,8 +71,9 @@ final class SettingSection
 
     public function setIcon(string $icon): self
     {
-        $icon = trim($icon);
+        $icon       = trim($icon);
         $this->icon = $icon !== '' ? $icon : 'settings';
+
         return $this;
     }
 
@@ -81,6 +85,7 @@ final class SettingSection
     public function setOrder(int $order): self
     {
         $this->order = $order;
+
         return $this;
     }
 
@@ -89,14 +94,15 @@ final class SettingSection
         return $this->permission;
     }
 
-    public function setPermission(string|\BackedEnum|null $permission): self
+    public function setPermission(string|BackedEnum|null $permission): self
     {
-        if ($permission instanceof \BackedEnum) {
+        if ($permission instanceof BackedEnum) {
             $permission = (string) $permission->value;
         }
 
-        $permission = $permission !== null ? trim($permission) : '';
+        $permission       = $permission !== null ? trim($permission) : '';
         $this->permission = $permission !== '' ? $permission : null;
+
         return $this;
     }
 
@@ -107,18 +113,20 @@ final class SettingSection
 
     public function setView(?string $view): self
     {
-        $view = $view !== null ? trim($view) : '';
+        $view       = $view !== null ? trim($view) : '';
         $this->view = $view !== '' ? $view : null;
+
         return $this;
     }
 
     public function addField(SettingField $field, bool $replace = false): self
     {
         if (isset($this->fields[$field->key()]) && !$replace) {
-            throw new \LogicException(sprintf('Setting field "%s" is already registered.', $field->key()));
+            throw new LogicException(sprintf('Setting field "%s" is already registered.', $field->key()));
         }
 
         $this->fields[$field->key()] = $field;
+
         return $this;
     }
 

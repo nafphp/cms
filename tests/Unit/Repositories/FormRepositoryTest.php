@@ -46,33 +46,33 @@ final class FormRepositoryTest extends DatabaseTestCase
     {
         $id = $this->repository->save([
             'identifier' => 'contact',
-            'title' => 'Contact form',
-            'status' => 'published',
-            'settings' => [
-                'titleKey' => 'Forms Contact Title',
-                'submitLabel' => 'Send message',
-                'submitLabelKey' => 'Forms Contact Submit',
-                'successMessage' => 'Thank you.',
+            'title'      => 'Contact form',
+            'status'     => 'published',
+            'settings'   => [
+                'titleKey'          => 'Forms Contact Title',
+                'submitLabel'       => 'Send message',
+                'submitLabelKey'    => 'Forms Contact Submit',
+                'successMessage'    => 'Thank you.',
                 'successMessageKey' => 'Forms Contact Success',
-                'actions' => [
+                'actions'           => [
                     ['type' => 'store'],
                     [
-                        'type' => 'webhook',
-                        'url' => 'https://example.test/leads',
-                        'method' => 'patch',
+                        'type'        => 'webhook',
+                        'url'         => 'https://example.test/leads',
+                        'method'      => 'patch',
                         'failOnError' => true,
                     ],
                 ],
             ],
             'fields' => [
                 [
-                    'label' => 'Email address',
-                    'labelKey' => 'Forms Contact Email Label',
-                    'name' => '',
-                    'type' => 'email',
-                    'placeholder' => 'jane@example.com',
+                    'label'          => 'Email address',
+                    'labelKey'       => 'Forms Contact Email Label',
+                    'name'           => '',
+                    'type'           => 'email',
+                    'placeholder'    => 'jane@example.com',
                     'placeholderKey' => 'Forms Contact Email Placeholder',
-                    'validators' => [
+                    'validators'     => [
                         ['rule' => 'required'],
                         ['rule' => 'email'],
                     ],

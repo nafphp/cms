@@ -36,7 +36,7 @@ final class QuoteBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'quote' => 'A focused quote or testimonial belongs here.',
+            'quote'  => 'A focused quote or testimonial belongs here.',
             'source' => '',
             ...$this->surfaceDefaults(),
         ];

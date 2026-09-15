@@ -4,25 +4,29 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Mcp\Tools;
 
-use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
-use Naf\CMS\Enums\ToolRisk;
-
 use Closure;
+use DateTimeImmutable;
+use InvalidArgumentException;
+use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
 use Naf\CMS\Enums\ArticleStatus;
+use Naf\CMS\Enums\ToolRisk;
 use Naf\CMS\Models\Article;
 use Naf\CMS\Models\ArticleVersion;
 use Naf\MCP\Support\Schema;
 use Naf\MCP\Tools\ScopedToolInterface;
 use Naf\MCP\Tools\ToolInterface;
-use Naf\CMS\Mcp\Tools\ArticleLookupTool;
+use RuntimeException;
+use Throwable;
+
 use function Naf\CMS\cms;
 
 final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
     use DeclaresLocalAiToolRisk;
 
-    private const ToolRisk AI_RISK = ToolRisk::WRITE;
+    private const ToolRisk AI_RISK    = ToolRisk::WRITE;
     private const bool AI_DESTRUCTIVE = false;
+
     /**
      * @param Closure(int, string): ?Article|null $findArticle
      * @param Closure(int, array<string, mixed>, ?int): array{articleId:int,articleVersionId:int}|null $saveDraft
@@ -32,7 +36,8 @@ final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface
         private ?Closure $findArticle = null,
         private ?Closure $saveDraft = null,
         private ?Closure $resolveArticleId = null,
-    ) {}
+    ) {
+    }
 
     public function name(): string
     {
@@ -65,31 +70,31 @@ final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface
 
     public function handle(array $args): array
     {
-        $language = strtolower(trim((string) ($args['language'] ?? 'de'))) ?: 'de';
+        $language  = strtolower(trim((string) ($args['language'] ?? 'de'))) ?: 'de';
         $articleId = $this->resolveTargetArticleId($args, $language);
-        $body = trim((string) ($args['body'] ?? ''));
+        $body      = trim((string) ($args['body'] ?? ''));
         if ($body === '') {
-            throw new \InvalidArgumentException('Body must not be empty.');
+            throw new InvalidArgumentException('Body must not be empty.');
         }
 
         $article = $this->find($articleId, $language);
         if (!$article instanceof Article || !$article->getVersion() instanceof ArticleVersion) {
-            throw new \RuntimeException('Article not found for append operation.');
+            throw new RuntimeException('Article not found for append operation.');
         }
 
-        $payload = $this->payload($article, $language, $body);
+        $payload  = $this->payload($article, $language, $body);
         $authorId = isset($args['author_id']) ? max(1, (int) $args['author_id']) : null;
-        $result = $this->save($articleId, $payload, $authorId);
+        $result   = $this->save($articleId, $payload, $authorId);
 
         return [
-            'success' => true,
-            'articleId' => $result['articleId'],
+            'success'          => true,
+            'articleId'        => $result['articleId'],
             'articleVersionId' => $result['articleVersionId'],
-            'language' => $language,
-            'title' => $payload['title'],
-            'slug' => $payload['slug'],
-            'appended_blocks' => count($payload['content']['blocks']) - count($this->existingBlocks($article)),
-            'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
+            'language'         => $language,
+            'title'            => $payload['title'],
+            'slug'             => $payload['slug'],
+            'appended_blocks'  => count($payload['content']['blocks']) - count($this->existingBlocks($article)),
+            'generated_at'     => (new DateTimeImmutable())->format(DATE_ATOM),
         ];
     }
 
@@ -105,12 +110,12 @@ final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface
 
         $reference = trim((string) ($args['reference'] ?? ''));
         if ($reference === '') {
-            throw new \InvalidArgumentException('Provide either article_id or reference.');
+            throw new InvalidArgumentException('Provide either article_id or reference.');
         }
 
         $resolved = $this->resolveByReference($reference, $language);
         if ($resolved === null || $resolved <= 0) {
-            throw new \RuntimeException('No article matched the given reference.');
+            throw new RuntimeException('No article matched the given reference.');
         }
 
         return $resolved;
@@ -132,13 +137,13 @@ final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface
         }
 
         $lookup = (new ArticleLookupTool())->handle([
-            'query' => $reference,
+            'query'    => $reference,
             'language' => $language,
-            'limit' => 5,
+            'limit'    => 5,
         ]);
         $matches = is_array($lookup['matches'] ?? null) ? $lookup['matches'] : [];
         if (count($matches) !== 1) {
-            throw new \RuntimeException(count($matches) > 1
+            throw new RuntimeException(count($matches) > 1
                 ? 'Reference matched multiple articles; retry with article_id.'
                 : 'No article matched the given reference.');
         }
@@ -152,22 +157,22 @@ final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface
     private function payload(Article $article, string $language, string $body): array
     {
         $version = $article->getVersion();
-        $blocks = [
+        $blocks  = [
             ...$this->existingBlocks($article),
             ...$this->bodyBlocks($body),
         ];
 
         $payload = [
-            'title' => $article->getTitle() ?? '',
-            'slug' => $article->getSlug() ?? '',
-            'teaser' => $article->getTeaser() ?? '',
-            'language' => $language,
-            'content' => ['blocks' => $blocks],
-            'category' => $article->getCategory()?->getName() ?? '',
-            'tags' => $article->getTagNames(),
-            'show_teaser' => $article->shouldShowTeaser(),
+            'title'                      => $article->getTitle() ?? '',
+            'slug'                       => $article->getSlug() ?? '',
+            'teaser'                     => $article->getTeaser() ?? '',
+            'language'                   => $language,
+            'content'                    => ['blocks' => $blocks],
+            'category'                   => $article->getCategory()?->getName() ?? '',
+            'tags'                       => $article->getTagNames(),
+            'show_teaser'                => $article->shouldShowTeaser(),
             'hide_lead_image_in_content' => $article->shouldHideLeadImageInContent(),
-            'publish_date' => $version?->getPublishedAt()?->format('Y-m-d H:i:s') ?? '',
+            'publish_date'               => $version?->getPublishedAt()?->format('Y-m-d H:i:s') ?? '',
         ];
 
         if ($version instanceof ArticleVersion && in_array($version->getStatus(), [ArticleStatus::DRAFT, ArticleStatus::DECLINED], true)) {
@@ -189,13 +194,13 @@ final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface
 
         try {
             $decoded = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return [];
         }
 
         return array_values(array_filter(
             is_array($decoded['blocks'] ?? null) ? $decoded['blocks'] : [],
-            static fn(mixed $block): bool => is_array($block)
+            static fn(mixed $block): bool => is_array($block),
         ));
     }
 
@@ -211,7 +216,7 @@ final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface
                 'type' => 'paragraph',
                 'data' => ['text' => nl2br(htmlspecialchars(trim($paragraph), ENT_QUOTES, 'UTF-8'), false)],
             ],
-            array_filter($paragraphs, static fn(string $paragraph): bool => trim($paragraph) !== '')
+            array_filter($paragraphs, static fn(string $paragraph): bool => trim($paragraph) !== ''),
         ));
     }
 

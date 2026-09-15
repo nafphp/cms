@@ -11,7 +11,7 @@ $items = is_array($items ?? null) ? $items : [];
         <div class="grid gap-1">
             <?php foreach ($items as $item): ?>
                 <?php
-                $routeNames = is_array($item['routeNames'] ?? null) ? $item['routeNames'] : [];
+                $routeNames  = is_array($item['routeNames'] ?? null) ? $item['routeNames'] : [];
                 $activeClass = $routeNames !== [] ? route()->active($routeNames) : '';
                 ?>
                 <a href="<?= s((string) ($item['href'] ?? '#')) ?>" class="flex min-h-11 items-center gap-3 rounded-lg border-l-[3px] px-3 text-slate-300 transition hover:bg-[rgba(86,119,164,.10)] hover:text-slate-100 <?= $activeClass ? 'border-l-blue-300 bg-[linear-gradient(90deg,rgba(96,165,250,.18),rgba(86,119,164,.08))] text-slate-50' : 'border-l-transparent' ?>" title="<?= s((string) ($item['label'] ?? '')) ?>" aria-label="<?= s((string) ($item['label'] ?? '')) ?>">

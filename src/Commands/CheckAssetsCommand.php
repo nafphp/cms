@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Commands;
 
-use Naf\CMS\Services\Assets\AssetPublisher;
 use Naf\CLI\Core\AbstractCommand;
 use Naf\CLI\Core\Input;
 use Naf\CLI\Core\Output;
+use Naf\CMS\Services\Assets\AssetPublisher;
 
 final class CheckAssetsCommand extends AbstractCommand
 {
@@ -24,6 +24,7 @@ final class CheckAssetsCommand extends AbstractCommand
         $status = (new AssetPublisher())->status();
         if ($status['current']) {
             $output->writeLine('Published NafCMS assets are current.', 'ok');
+
             return self::SUCCESS;
         }
 

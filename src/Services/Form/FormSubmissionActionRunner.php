@@ -9,6 +9,8 @@ use Naf\CMS\Exceptions\OutboundHttpDenied;
 use Naf\CMS\Services\Http\OutboundHttpClient;
 use Naf\CMS\Services\Http\OutboundHttpPolicy;
 use Naf\CMS\Services\Http\OutboundHttpProfile;
+use Throwable;
+
 use function Naf\CMS\cms;
 use function Naf\config;
 
@@ -53,7 +55,7 @@ final class FormSubmissionActionRunner
     public function run(array $form, array $values, array $meta): array
     {
         $actions = $this->actions($form);
-        $errors = [];
+        $errors  = [];
         $results = [];
 
         foreach ($actions as $action) {
@@ -64,7 +66,7 @@ final class FormSubmissionActionRunner
             }
 
             if ($type === 'webhook') {
-                $result = $this->webhook($action, $form, $values, $meta);
+                $result    = $this->webhook($action, $form, $values, $meta);
                 $results[] = $result;
                 if (($result['success'] ?? false) !== true && ($action['failOnError'] ?? false) === true) {
                     $errors[] = (string) ($result['reason'] ?? 'Webhook action failed.');
@@ -74,7 +76,7 @@ final class FormSubmissionActionRunner
 
         return [
             'success' => $errors === [],
-            'errors' => $errors,
+            'errors'  => $errors,
             'results' => $results,
         ];
     }
@@ -86,8 +88,8 @@ final class FormSubmissionActionRunner
     private function actions(array $form): array
     {
         $settings = is_array($form['settings'] ?? null) ? $form['settings'] : [];
-        $actions = is_array($settings['actions'] ?? null) ? $settings['actions'] : [];
-        $actions = array_values(array_filter($actions, static fn(mixed $action): bool => is_array($action)
+        $actions  = is_array($settings['actions'] ?? null) ? $settings['actions'] : [];
+        $actions  = array_values(array_filter($actions, static fn(mixed $action): bool => is_array($action)
             && ($action['enabled'] ?? true) !== false));
 
         return $actions !== [] ? $actions : [['type' => 'store', 'enabled' => true]];
@@ -124,12 +126,12 @@ final class FormSubmissionActionRunner
 
         $payload = [
             'form' => [
-                'id' => (int) ($form['id'] ?? 0),
+                'id'         => (int) ($form['id'] ?? 0),
                 'identifier' => (string) ($form['identifier'] ?? ''),
-                'title' => (string) ($form['title'] ?? ''),
+                'title'      => (string) ($form['title'] ?? ''),
             ],
             'values' => $values,
-            'meta' => $meta,
+            'meta'   => $meta,
         ];
 
         try {
@@ -138,7 +140,7 @@ final class FormSubmissionActionRunner
             $result = $sender($url, $method, $payload);
         } catch (OutboundHttpDenied) {
             $result = ['success' => false, 'status' => 0, 'reason' => 'Webhook target is not allowed.'];
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $result = ['success' => false, 'status' => 0, 'reason' => 'Webhook request failed.'];
         }
 
@@ -165,8 +167,8 @@ final class FormSubmissionActionRunner
 
         return [
             'success' => $response->successful(),
-            'status' => $status,
-            'reason' => $status >= 200 && $status < 300 ? '' : ('Webhook returned HTTP ' . ($status > 0 ? $status : '0')),
+            'status'  => $status,
+            'reason'  => $status >= 200 && $status < 300 ? '' : ('Webhook returned HTTP ' . ($status > 0 ? $status : '0')),
         ];
     }
 }

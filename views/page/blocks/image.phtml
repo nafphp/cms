@@ -1,21 +1,22 @@
 <?php
 
 use Naf\CMS\Security\UrlPolicy;
-use function Naf\View\s;
-use function Naf\I18n\t;
 
-$content = is_array($content ?? null) ? $content : [];
-$props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$src = UrlPolicy::media((string) ($props['src'] ?? ''));
-$alt = t((string) ($props['alt'] ?? ''));
-$caption = trim(t((string) ($props['caption'] ?? '')));
-$aspect = (string) ($props['aspect'] ?? 'wide');
-$fit = (string) ($props['fit'] ?? 'cover');
+use function Naf\I18n\t;
+use function Naf\View\s;
+
+$content     = is_array($content ?? null) ? $content : [];
+$props       = is_array($content['props'] ?? null) ? $content['props'] : [];
+$src         = UrlPolicy::media((string) ($props['src'] ?? ''));
+$alt         = t((string) ($props['alt'] ?? ''));
+$caption     = trim(t((string) ($props['caption'] ?? '')));
+$aspect      = (string) ($props['aspect'] ?? 'wide');
+$fit         = (string) ($props['fit'] ?? 'cover');
 $aspectClass = match ($aspect) {
-    'square' => 'aspect-square',
+    'square'   => 'aspect-square',
     'portrait' => 'aspect-[4/5]',
     'original' => '',
-    default => 'aspect-video',
+    default    => 'aspect-video',
 };
 $fitClass = $fit === 'contain' ? 'object-contain bg-[var(--page-card-bg)]' : 'object-cover';
 

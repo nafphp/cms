@@ -12,6 +12,7 @@ use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
+
 use function Naf\CMS\cms_reset;
 use function Naf\CMS\user;
 

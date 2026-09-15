@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Page;
 
+use LogicException;
 use Naf\I18n\Core\Translator;
-use Naf\CMS\Page\Layout;
-use Naf\CMS\Page\Page;
+use Throwable;
+
 use function Naf\app;
 use function Naf\I18n\t;
 use function Naf\log;
@@ -32,7 +33,7 @@ final class PageBuilderRenderer
     public function render(Page $page, array $context = [], ?string $language = null): string
     {
         $translator = $this->translator();
-        $language = strtolower(trim((string) $language));
+        $language   = strtolower(trim((string) $language));
 
         if (!$translator instanceof Translator || $language === '') {
             return $this->renderWithCurrentLanguage($page, $context);
@@ -55,28 +56,28 @@ final class PageBuilderRenderer
      */
     private function renderWithCurrentLanguage(Page $page, array $context = []): string
     {
-        $layout = $page->pageLayout() ?? new Layout('default');
+        $layout   = $page->pageLayout() ?? new Layout('default');
         $template = $layout->template();
-        $view = $layout->templateView() ?? 'page.templates.default';
-        $blocks = [];
+        $view     = $layout->templateView() ?? 'page.templates.default';
+        $blocks   = [];
 
         foreach ($layout->blocks() as $block) {
             $blocks[$block->id()] = view($block->template()->view() ?? '', [
                 ...$context,
                 ...$block->data(),
-                'page' => $page,
-                'layout' => $layout,
+                'page'     => $page,
+                'layout'   => $layout,
                 'template' => $template,
-                'block' => $block,
+                'block'    => $block,
             ]);
         }
 
         $block = static function (string $id, string $default = '') use ($layout, $blocks): string {
             if (!array_key_exists($id, $layout->blocks())) {
-                throw new \LogicException(sprintf(
+                throw new LogicException(sprintf(
                     'Layout template "%s" tried to render undefined block "%s".',
                     $layout->templateView() ?? 'page.templates.default',
-                    $id
+                    $id,
                 ));
             }
 
@@ -85,14 +86,14 @@ final class PageBuilderRenderer
 
         $variables = [
             ...$context,
-            'page' => $page,
-            'layout' => $layout,
-            'template' => $template,
-            'title' => t($page->title()),
-            'pageTitle' => t($page->title()),
-            'blocks' => $blocks,
-            'blockOutput' => implode("\n", $blocks),
-            'block' => $block,
+            'page'         => $page,
+            'layout'       => $layout,
+            'template'     => $template,
+            'title'        => t($page->title()),
+            'pageTitle'    => t($page->title()),
+            'blocks'       => $blocks,
+            'blockOutput'  => implode("\n", $blocks),
+            'block'        => $block,
             'templateView' => $view,
         ];
 
@@ -103,11 +104,13 @@ final class PageBuilderRenderer
     {
         try {
             $translator = app()->container()->get(Translator::class);
+
             return $translator instanceof Translator ? $translator : null;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->warning('PageBuilderRenderer.translator unavailable', [
                 'exception' => $e,
             ]);
+
             return null;
         }
     }

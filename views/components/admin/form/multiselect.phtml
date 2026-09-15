@@ -1,28 +1,28 @@
 <?php
 
-use function Naf\View\s;
 use function Naf\CMS\View\Admin\Form\attributes as renderAttributes;
 use function Naf\CMS\View\Admin\Form\classes;
 use function Naf\CMS\View\Admin\Form\field_id;
 use function Naf\CMS\View\Admin\Form\remembered_values;
+use function Naf\View\s;
 
 require_once __DIR__ . '/_helpers.php';
 
-$name = (string) ($name ?? '');
-$label = (string) ($label ?? $name);
-$id = ($id ?? null) === false ? '' : field_id($name, isset($id) ? (string) $id : null);
-$options = is_array($options ?? null) ? $options : [];
-$selectedValues = remembered_values($name, $selected ?? ($value ?? []), (bool) ($useMemory ?? true));
-$selectedLookup = array_flip($selectedValues);
-$attributes = is_array($attributes ?? null) ? $attributes : [];
-$hideLabel = (bool) ($hideLabel ?? true);
-$placeholder = (string) ($placeholder ?? $label);
+$name              = (string) ($name ?? '');
+$label             = (string) ($label ?? $name);
+$id                = ($id ?? null) === false ? '' : field_id($name, isset($id) ? (string) $id : null);
+$options           = is_array($options ?? null) ? $options : [];
+$selectedValues    = remembered_values($name, $selected ?? ($value ?? []), (bool) ($useMemory ?? true));
+$selectedLookup    = array_flip($selectedValues);
+$attributes        = is_array($attributes ?? null) ? $attributes : [];
+$hideLabel         = (bool) ($hideLabel ?? true);
+$placeholder       = (string) ($placeholder ?? $label);
 $searchPlaceholder = (string) ($searchPlaceholder ?? 'Search...');
-$className = classes('block min-h-11 w-full rounded-lg border border-[var(--border)] bg-admin-field px-3 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-slate-400 focus:border-accent focus:bg-admin-field-focus focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)]', (string) ($class ?? ''));
-$attributes = [
-    'multiple' => true,
-    'data-multiselect' => true,
-    'data-placeholder' => $placeholder,
+$className         = classes('block min-h-11 w-full rounded-lg border border-[var(--border)] bg-admin-field px-3 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-slate-400 focus:border-accent focus:bg-admin-field-focus focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)]', (string) ($class ?? ''));
+$attributes        = [
+    'multiple'                => true,
+    'data-multiselect'        => true,
+    'data-placeholder'        => $placeholder,
     'data-search-placeholder' => $searchPlaceholder,
     ...$attributes,
 ];

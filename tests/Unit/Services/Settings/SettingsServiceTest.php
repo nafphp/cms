@@ -6,6 +6,7 @@ namespace Tests\Unit\Services\Settings;
 
 use Naf\CMS\Repositories\SettingRepository;
 use Naf\CMS\Services\Settings\SettingsService;
+use Naf\Support\CoreFileLoader;
 use Tests\Support\DatabaseTestCase;
 
 final class SettingsServiceTest extends DatabaseTestCase
@@ -30,11 +31,11 @@ final class SettingsServiceTest extends DatabaseTestCase
     public function testSavePersistsOnlyRegisteredSettingsWithNormalizedValues(): void
     {
         $result = $this->service->save([
-            'app.name' => ' Customer CMS ',
-            'language' => 'de',
-            'cms.languages' => ['DE', 'en', 'xx', 'de', 'FR'],
-            'ai.enabled' => '1',
-            'ai.type' => 'local',
+            'app.name'        => ' Customer CMS ',
+            'language'        => 'de',
+            'cms.languages'   => ['DE', 'en', 'xx', 'de', 'FR'],
+            'ai.enabled'      => '1',
+            'ai.type'         => 'local',
             'unknown.setting' => 'ignored',
         ]);
 
@@ -51,8 +52,8 @@ final class SettingsServiceTest extends DatabaseTestCase
     public function testInvalidPayloadReturnsFieldErrorsAndDoesNotPersistPartialValues(): void
     {
         $result = $this->service->save([
-            'app.name' => ' ',
-            'language' => 'klingon',
+            'app.name'      => ' ',
+            'language'      => 'klingon',
             'cms.languages' => ['xx'],
         ]);
 
@@ -65,7 +66,7 @@ final class SettingsServiceTest extends DatabaseTestCase
 
     public function testSectionsExposeStoredConfigAndDefaultSources(): void
     {
-        if (!class_exists(\Naf\Support\CoreFileLoader::class)) {
+        if (!class_exists(CoreFileLoader::class)) {
             // Distinguishing 'config' from 'default' requires the framework to
             // merge this package's src/config.php, added in 0.1.6.
             self::markTestSkipped('Reading src/config.php needs naf/framework >= 0.1.6.');
@@ -74,13 +75,13 @@ final class SettingsServiceTest extends DatabaseTestCase
 
         $this->insertRow('cms_settings', [
             'setting_key' => 'app.name',
-            'value' => 'Stored CMS',
-            'updated_at' => '2026-05-05 10:00:00',
+            'value'       => 'Stored CMS',
+            'updated_at'  => '2026-05-05 10:00:00',
         ]);
 
-        $sections = $this->service->sections('general');
+        $sections    = $this->service->sections('general');
         $application = $sections[0];
-        $fields = [];
+        $fields      = [];
         foreach ($application['fields'] as $field) {
             $fields[$field['key']] = $field;
         }

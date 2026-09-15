@@ -6,11 +6,12 @@ use Naf\CMS\Handlers\Page\Auth\LoginUser;
 use Naf\CMS\Handlers\Page\Auth\RegisterInvitedUser;
 use Naf\CMS\Page\Page;
 use Naf\CMS\Repositories\UserRepository;
+
+use function Naf\CMS\user;
 use function Naf\ORM\repo;
 use function Naf\redirect;
 use function Naf\Session\session;
 use function Naf\View\render;
-use function Naf\CMS\user;
 
 $inviteStateError = static function (array $invite): ?string {
     if ($invite['used_at'] !== null) {
@@ -36,10 +37,10 @@ return [
             }
 
             return render('auth.login', [
-                'title' => 'Login',
+                'title'       => 'Login',
                 'redirectUri' => (string) (session()->getFlash('redirectUri') ?? ''),
-                'error' => null,
-                'username' => '',
+                'error'       => null,
+                'username'    => '',
             ]);
         }),
 
@@ -51,6 +52,7 @@ return [
         ->setContent(static function () {
             \Naf\Auth\auth()->logout();
             session()->clear();
+
             return redirect('/admin/login');
         }),
 
@@ -63,10 +65,10 @@ return [
             $invite = repo(UserRepository::class)->findInviteByToken($token);
 
             return render('auth.register', [
-                'title' => 'Register',
-                'token' => $token,
+                'title'  => 'Register',
+                'token'  => $token,
                 'invite' => $invite,
-                'error' => $invite !== null ? $inviteStateError($invite) : 'Invite link is invalid.',
+                'error'  => $invite !== null ? $inviteStateError($invite) : 'Invite link is invalid.',
             ]);
         }),
 ];

@@ -6,24 +6,25 @@ namespace Naf\CMS\Handlers\Api\Form;
 
 use Naf\CMS\Services\Form\FormSubmissionActionRunner;
 use Naf\CMS\Services\Form\FormSubmissionGuard;
-use Naf\CMS\Services\Form\FormTextTranslator;
 use Naf\CMS\Services\Form\FormSubmissionValidator;
+use Naf\CMS\Services\Form\FormTextTranslator;
 use Psr\Http\Message\ResponseInterface;
+
+use function Naf\CMS\cms;
 use function Naf\I18n\t;
 use function Naf\json;
 use function Naf\request;
-use function Naf\CMS\cms;
 
 final class SubmitForm
 {
     public function __invoke(string $identifier): ResponseInterface
     {
-        $rawBody = (string) request()->getBody();
-        $payload = json_decode($rawBody, true);
-        $payload = is_array($payload) ? $payload : [];
+        $rawBody   = (string) request()->getBody();
+        $payload   = json_decode($rawBody, true);
+        $payload   = is_array($payload) ? $payload : [];
         $ipAddress = (string) (request()->getServerParams()['REMOTE_ADDR'] ?? 'unknown');
-        $guard = new FormSubmissionGuard();
-        $limit = $guard->consume($identifier, $ipAddress);
+        $guard     = new FormSubmissionGuard();
+        $limit     = $guard->consume($identifier, $ipAddress);
         if (!$limit->allowed) {
             return json(['success' => false, 'reason' => 'Too many form submissions. Please try again later.'], 429)
                 ->withHeader('Retry-After', (string) max(1, $limit->retryAfter));
@@ -61,7 +62,7 @@ final class SubmitForm
         }
 
         $meta = [
-            'ip' => $ipAddress,
+            'ip'        => $ipAddress,
             'userAgent' => mb_substr((string) (request()->getServerParams()['HTTP_USER_AGENT'] ?? ''), 0, 500),
         ];
 
@@ -69,7 +70,7 @@ final class SubmitForm
         if ($actionResult['success'] !== true) {
             return json([
                 'success' => false,
-                'reason' => implode(' ', $actionResult['errors']) ?: 'Form action failed.',
+                'reason'  => implode(' ', $actionResult['errors']) ?: 'Form action failed.',
             ], 502);
         }
 
@@ -80,5 +81,4 @@ final class SubmitForm
             'message' => (new FormTextTranslator())->setting($settings, 'successMessage', t('Thank you.')),
         ]);
     }
-
 }

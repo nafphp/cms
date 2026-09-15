@@ -8,6 +8,7 @@ use Naf\CMS\Api\ScopedNavigationApi;
 use Naf\CMS\Enums\Scope;
 use Naf\CMS\Page\Page;
 use Naf\CMS\Page\PageRegistry;
+
 use function Naf\CMS\cms;
 use function Naf\config;
 
@@ -19,7 +20,8 @@ final class AdminNavigationItemCollector
         private ?ScopedNavigationApi $navigation = null,
         private ?PageRegistry $pages = null,
         private bool $includeConfiguredItems = true,
-    ) {}
+    ) {
+    }
 
     /**
      * @return array<string, array<string, mixed>>
@@ -28,7 +30,7 @@ final class AdminNavigationItemCollector
     {
         $items = [];
         foreach ($this->navigation()->all() as $item) {
-            $data = $item->toArray();
+            $data                = $item->toArray();
             $items[$data['key']] = $this->normalizeItem($data);
         }
 
@@ -77,23 +79,23 @@ final class AdminNavigationItemCollector
             }
 
             $parent = $navigation->parentKey();
-            $key = $navigation->key ?? $page->id();
+            $key    = $navigation->key ?? $page->id();
 
             if ($navigation->visible && $navigation->label !== null) {
                 $existingRouteNames = is_array($items[$key]['routeNames'] ?? null) ? $items[$key]['routeNames'] : [];
-                $item = array_replace($items[$key] ?? [], $this->normalizeItem([
-                    'key' => $key,
-                    'label' => $navigation->label,
-                    'href' => $navigation->href ?? $this->hrefForPage($page),
-                    'parent' => $parent,
-                    'icon' => $navigation->icon,
-                    'order' => $navigation->order,
-                    'visible' => true,
-                    'scope' => $navigation->scope,
+                $item               = array_replace($items[$key] ?? [], $this->normalizeItem([
+                    'key'        => $key,
+                    'label'      => $navigation->label,
+                    'href'       => $navigation->href ?? $this->hrefForPage($page),
+                    'parent'     => $parent,
+                    'icon'       => $navigation->icon,
+                    'order'      => $navigation->order,
+                    'visible'    => true,
+                    'scope'      => $navigation->scope,
                     'routeNames' => [$page->id()],
                 ]));
                 $item['routeNames'] = self::routeNames([...$existingRouteNames, ...$item['routeNames']]);
-                $items[$key] = $item;
+                $items[$key]        = $item;
                 continue;
             }
 
@@ -105,10 +107,10 @@ final class AdminNavigationItemCollector
         foreach ($routeNameAttachments as $parent => $routeNames) {
             if (!isset($items[$parent])) {
                 $items[$parent] = $this->normalizeItem([
-                    'key' => $parent,
-                    'label' => self::labelFromKey((string) $parent),
-                    'href' => '#',
-                    'parent' => self::parentFromKey((string) $parent),
+                    'key'     => $parent,
+                    'label'   => self::labelFromKey((string) $parent),
+                    'href'    => '#',
+                    'parent'  => self::parentFromKey((string) $parent),
                     'visible' => true,
                 ]);
             }
@@ -129,22 +131,22 @@ final class AdminNavigationItemCollector
         $key = (string) ($item['key'] ?? '');
 
         return [
-            'key' => $key,
-            'label' => (string) ($item['label'] ?? self::labelFromKey($key)),
-            'href' => (string) ($item['href'] ?? '#'),
+            'key'    => $key,
+            'label'  => (string) ($item['label'] ?? self::labelFromKey($key)),
+            'href'   => (string) ($item['href'] ?? '#'),
             'parent' => isset($item['parent']) && trim((string) $item['parent']) !== ''
                 ? trim((string) $item['parent'])
                 : null,
-            'icon' => (string) ($item['icon'] ?? 'dot'),
-            'order' => (int) ($item['order'] ?? 100),
+            'icon'    => (string) ($item['icon'] ?? 'dot'),
+            'order'   => (int) ($item['order'] ?? 100),
             'visible' => (bool) ($item['visible'] ?? true),
-            'scope' => (string) ($item['scope'] ?? self::SCOPE),
-            'meta' => is_array($item['meta'] ?? null) ? $item['meta'] : [],
-            'accent' => isset($item['accent']) && trim((string) $item['accent']) !== ''
+            'scope'   => (string) ($item['scope'] ?? self::SCOPE),
+            'meta'    => is_array($item['meta'] ?? null) ? $item['meta'] : [],
+            'accent'  => isset($item['accent']) && trim((string) $item['accent']) !== ''
                 ? trim((string) $item['accent'])
                 : null,
             'routeNames' => self::routeNames(is_array($item['routeNames'] ?? null) ? $item['routeNames'] : []),
-            'children' => [],
+            'children'   => [],
         ];
     }
 
@@ -185,6 +187,7 @@ final class AdminNavigationItemCollector
     private function hrefForPage(Page $page): string
     {
         $path = $page->path();
+
         return str_contains($path, '{') ? '#' : $path;
     }
 

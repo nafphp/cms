@@ -36,12 +36,12 @@ final class HeroBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'eyebrow' => 'NafCMS',
-            'title' => 'A clear page hero',
-            'text' => 'Use this area for the main promise of the page.',
+            'eyebrow'     => 'NafCMS',
+            'title'       => 'A clear page hero',
+            'text'        => 'Use this area for the main promise of the page.',
             'buttonLabel' => 'Get started',
-            'buttonUrl' => '#',
-            'image' => '',
+            'buttonUrl'   => '#',
+            'image'       => '',
             ...$this->surfaceDefaults('card'),
         ];
     }

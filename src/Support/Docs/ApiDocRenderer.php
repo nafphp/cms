@@ -6,8 +6,7 @@ namespace Naf\CMS\Support\Docs;
 
 use Naf\CMS\Api\ApiEndpoint;
 use Naf\CMS\Enums\Permission;
-use Naf\CMS\Support\Docs\DocBlockRenderer;
-use Naf\CMS\Support\Docs\MarkdownTable;
+
 use function Naf\CMS\cms;
 
 final class ApiDocRenderer implements DocBlockRenderer
@@ -31,8 +30,8 @@ final class ApiDocRenderer implements DocBlockRenderer
                     '`' . $endpoint->path() . '`',
                     $this->permissions($endpoint),
                 ],
-                array_values($endpoints)
-            )
+                array_values($endpoints),
+            ),
         );
     }
 
@@ -40,7 +39,7 @@ final class ApiDocRenderer implements DocBlockRenderer
     {
         $permissions = array_map(
             static fn(Permission $permission): string => '`' . $permission->value . '`',
-            $endpoint->requiredPermissions()
+            $endpoint->requiredPermissions(),
         );
 
         if ($permissions === []) {
@@ -48,6 +47,7 @@ final class ApiDocRenderer implements DocBlockRenderer
         }
 
         $prefix = $endpoint->requiresAnyPermission() ? 'any of ' : '';
+
         return $prefix . implode(', ', $permissions);
     }
 }

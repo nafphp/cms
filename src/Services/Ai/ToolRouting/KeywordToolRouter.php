@@ -4,11 +4,6 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Services\Ai\ToolRouting;
 
-use Naf\CMS\Services\Ai\ToolRouting\ToolContext;
-use Naf\CMS\Services\Ai\ToolRouting\ToolHardFilter;
-use Naf\CMS\Services\Ai\ToolRouting\ToolRoute;
-use Naf\CMS\Services\Ai\ToolRouting\ToolRouterInterface;
-
 final class KeywordToolRouter implements ToolRouterInterface
 {
     /**
@@ -20,50 +15,50 @@ final class KeywordToolRouter implements ToolRouterInterface
      * @var array<string, array<int, string>>
      */
     private const QUERY_ALIASES = [
-        'benutzer' => ['user', 'users', 'account', 'role'],
-        'nutzer' => ['user', 'users', 'account'],
-        'konto' => ['user', 'account'],
-        'rolle' => ['role', 'roles', 'permission', 'user'],
-        'berechtigung' => ['permission', 'permissions', 'role', 'user'],
-        'recht' => ['permission', 'role', 'user'],
-        'seite' => ['page', 'pages'],
-        'artikel' => ['article', 'articles', 'content'],
-        'beitrag' => ['article', 'articles', 'content'],
-        'beiträge' => ['article', 'articles', 'content'],
-        'entwurf' => ['draft', 'article'],
-        'entwürfe' => ['draft', 'article'],
-        'inhalt' => ['content'],
-        'medien' => ['media', 'image', 'file'],
-        'bild' => ['media', 'image'],
-        'datei' => ['media', 'file'],
-        'formular' => ['form', 'forms'],
-        'einstellung' => ['settings', 'configuration'],
-        'design' => ['theme', 'design'],
-        'farbe' => ['theme', 'color'],
-        'gesundheit' => ['health', 'system', 'status'],
-        'zustand' => ['health', 'system', 'status'],
-        'system' => ['system', 'health', 'status'],
-        'warteschlange' => ['queue'],
-        'protokoll' => ['audit', 'log', 'activity'],
-        'verlauf' => ['audit', 'log', 'activity'],
-        'aktivität' => ['audit', 'log', 'activity'],
-        'erweiterung' => ['plugin', 'plugins'],
-        'übersicht' => ['overview', 'summary'],
+        'benutzer'        => ['user', 'users', 'account', 'role'],
+        'nutzer'          => ['user', 'users', 'account'],
+        'konto'           => ['user', 'account'],
+        'rolle'           => ['role', 'roles', 'permission', 'user'],
+        'berechtigung'    => ['permission', 'permissions', 'role', 'user'],
+        'recht'           => ['permission', 'role', 'user'],
+        'seite'           => ['page', 'pages'],
+        'artikel'         => ['article', 'articles', 'content'],
+        'beitrag'         => ['article', 'articles', 'content'],
+        'beiträge'        => ['article', 'articles', 'content'],
+        'entwurf'         => ['draft', 'article'],
+        'entwürfe'        => ['draft', 'article'],
+        'inhalt'          => ['content'],
+        'medien'          => ['media', 'image', 'file'],
+        'bild'            => ['media', 'image'],
+        'datei'           => ['media', 'file'],
+        'formular'        => ['form', 'forms'],
+        'einstellung'     => ['settings', 'configuration'],
+        'design'          => ['theme', 'design'],
+        'farbe'           => ['theme', 'color'],
+        'gesundheit'      => ['health', 'system', 'status'],
+        'zustand'         => ['health', 'system', 'status'],
+        'system'          => ['system', 'health', 'status'],
+        'warteschlange'   => ['queue'],
+        'protokoll'       => ['audit', 'log', 'activity'],
+        'verlauf'         => ['audit', 'log', 'activity'],
+        'aktivität'       => ['audit', 'log', 'activity'],
+        'erweiterung'     => ['plugin', 'plugins'],
+        'übersicht'       => ['overview', 'summary'],
         'zusammenfassung' => ['overview', 'summary'],
-        'wetter' => ['weather', 'forecast'],
-        'feiertag' => ['holiday', 'holidays'],
-        'wechselkurs' => ['exchange', 'currency', 'rates'],
-        'währung' => ['exchange', 'currency', 'rates'],
-        'navigiere' => ['navigate', 'admin'],
-        'navigation' => ['navigate', 'navigation', 'admin'],
-        'bringe' => ['navigate', 'admin'],
-        'gehe' => ['navigate', 'admin'],
-        'wechsle' => ['navigate', 'admin'],
-        'springe' => ['navigate', 'admin'],
-        'öffne' => ['navigate', 'open', 'admin'],
-        'oeffne' => ['navigate', 'open', 'admin'],
-        'zeige' => ['navigate', 'overview', 'admin'],
-        'bereich' => ['area', 'admin'],
+        'wetter'          => ['weather', 'forecast'],
+        'feiertag'        => ['holiday', 'holidays'],
+        'wechselkurs'     => ['exchange', 'currency', 'rates'],
+        'währung'         => ['exchange', 'currency', 'rates'],
+        'navigiere'       => ['navigate', 'admin'],
+        'navigation'      => ['navigate', 'navigation', 'admin'],
+        'bringe'          => ['navigate', 'admin'],
+        'gehe'            => ['navigate', 'admin'],
+        'wechsle'         => ['navigate', 'admin'],
+        'springe'         => ['navigate', 'admin'],
+        'öffne'           => ['navigate', 'open', 'admin'],
+        'oeffne'          => ['navigate', 'open', 'admin'],
+        'zeige'           => ['navigate', 'overview', 'admin'],
+        'bereich'         => ['area', 'admin'],
     ];
 
     /**
@@ -72,7 +67,8 @@ final class KeywordToolRouter implements ToolRouterInterface
     public function __construct(
         private array $tools,
         private ToolHardFilter $hardFilter = new ToolHardFilter(),
-    ) {}
+    ) {
+    }
 
     /**
      * @return array<int, array<string, mixed>>
@@ -86,11 +82,11 @@ final class KeywordToolRouter implements ToolRouterInterface
             return array_slice($this->tools, 0, $limit);
         }
 
-        $candidates = $this->hardFilter->filter($this->tools, $input, $context);
-        $query = strtolower($this->queryText($input, $context));
+        $candidates  = $this->hardFilter->filter($this->tools, $input, $context);
+        $query       = strtolower($this->queryText($input, $context));
         $queryTokens = $this->tokens($query);
         $writeIntent = $this->hasWriteIntent($query);
-        $routes = [];
+        $routes      = [];
 
         foreach ($candidates as $tool) {
             $route = $this->route($tool, $query, $queryTokens, $context, $writeIntent);
@@ -104,7 +100,7 @@ final class KeywordToolRouter implements ToolRouterInterface
         $selected = array_map(static fn(ToolRoute $route): array => [
             ...$route->tool,
             'route' => [
-                'score' => $route->score,
+                'score'   => $route->score,
                 'reasons' => $route->reasons,
             ],
         ], array_slice($routes, 0, $limit));
@@ -139,7 +135,7 @@ final class KeywordToolRouter implements ToolRouterInterface
             $selected[] = [
                 ...$candidate,
                 'route' => [
-                    'score' => 0.1,
+                    'score'   => 0.1,
                     'reasons' => ['fallback-search'],
                 ],
             ];
@@ -163,7 +159,7 @@ final class KeywordToolRouter implements ToolRouterInterface
             return [[
                 ...$candidate,
                 'route' => [
-                    'score' => 0.1,
+                    'score'   => 0.1,
                     'reasons' => [$reason],
                 ],
             ]];
@@ -178,7 +174,7 @@ final class KeywordToolRouter implements ToolRouterInterface
      */
     private function route(array $tool, string $query, array $queryTokens, ToolContext $context, bool $writeIntent): ToolRoute
     {
-        $meta = $this->meta($tool);
+        $meta     = $this->meta($tool);
         $toolText = strtolower(trim(implode(' ', [
             (string) ($tool['name'] ?? ''),
             (string) ($tool['description'] ?? ''),
@@ -188,7 +184,7 @@ final class KeywordToolRouter implements ToolRouterInterface
             implode(' ', $this->capabilities($meta)),
         ])));
 
-        $score = 0.0;
+        $score   = 0.0;
         $reasons = [];
 
         $tokenScore = $this->tokenScore($queryTokens, $toolText);
@@ -243,7 +239,7 @@ final class KeywordToolRouter implements ToolRouterInterface
     private function tokens(string $text): array
     {
         $words = preg_split('/[^a-zA-Z0-9\x{00C0}-\x{017F}]+/u', strtolower($text)) ?: [];
-        $stop = array_flip([
+        $stop  = array_flip([
             'und', 'oder', 'der', 'die', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem',
             'ist', 'sind', 'war', 'wie', 'was', 'wer', 'wen', 'wem', 'wann', 'wo', 'mir', 'mal',
             'dazu', 'etwas', 'bitte', 'hier', 'mit', 'ohne', 'für', 'fuer', 'kann', 'kannst',
@@ -252,7 +248,7 @@ final class KeywordToolRouter implements ToolRouterInterface
 
         $tokens = array_values(array_filter(
             $words,
-            static fn(string $word): bool => mb_strlen($word) >= 3 && !isset($stop[$word])
+            static fn(string $word): bool => mb_strlen($word) >= 3 && !isset($stop[$word]),
         ));
 
         return array_values(array_unique([...$tokens, ...$this->aliasTokens($tokens)]));
@@ -307,11 +303,11 @@ final class KeywordToolRouter implements ToolRouterInterface
         $capabilities = $this->capabilities($meta);
 
         return match ($area) {
-            'pagebuilder' => $this->hasAny($capabilities, ['layout.read', 'layout.write', 'block.create', 'block.update', 'pages.read', 'pages.write']) || str_contains($toolText, 'page') ? 3.0 : 0.0,
-            'themeeditor' => $this->hasAny($capabilities, ['theme.read', 'theme.write', 'themes.write']) || str_contains($toolText, 'theme') ? 3.0 : 0.0,
-            'articleeditor' => $this->hasAny($capabilities, ['content.read', 'content.write', 'articles.write']) || str_contains($toolText, 'article') ? 3.0 : 0.0,
+            'pagebuilder'               => $this->hasAny($capabilities, ['layout.read', 'layout.write', 'block.create', 'block.update', 'pages.read', 'pages.write']) || str_contains($toolText, 'page') ? 3.0 : 0.0,
+            'themeeditor'               => $this->hasAny($capabilities, ['theme.read', 'theme.write', 'themes.write']) || str_contains($toolText, 'theme') ? 3.0 : 0.0,
+            'articleeditor'             => $this->hasAny($capabilities, ['content.read', 'content.write', 'articles.write']) || str_contains($toolText, 'article') ? 3.0 : 0.0,
             'formeditor', 'formbuilder' => $this->hasAny($capabilities, ['content.read', 'content.write', 'forms.write']) || str_contains($toolText, 'form') ? 3.0 : 0.0,
-            default => 0.0,
+            default                     => 0.0,
         };
     }
 
@@ -321,20 +317,20 @@ final class KeywordToolRouter implements ToolRouterInterface
     private function capabilityScore(string $query, array $meta): float
     {
         $capabilities = $this->capabilities($meta);
-        $score = 0.0;
+        $score        = 0.0;
 
         $map = [
-            'block.create' => ['block', 'textblock', 'bildblock', 'füge', 'fuege', 'add'],
-            'block.update' => ['block', 'ändere', 'aendere', 'update'],
-            'layout.write' => ['layout', 'slot', 'region', 'verschiebe'],
-            'pages.read' => ['pagebuilder', 'builder', 'zeigemodus', 'zeige', 'klick', 'anklicken', 'inspect', 'beschreibe'],
-            'theme.write' => ['theme', 'farbe', 'color', 'css', 'hintergrund'],
-            'content.read' => ['artikel', 'article', 'inhalt', 'content', 'draft', 'entwurf'],
-            'content.write' => ['erstelle', 'create', 'append', 'ergänze', 'aendere', 'ändere', 'draft'],
+            'block.create'   => ['block', 'textblock', 'bildblock', 'füge', 'fuege', 'add'],
+            'block.update'   => ['block', 'ändere', 'aendere', 'update'],
+            'layout.write'   => ['layout', 'slot', 'region', 'verschiebe'],
+            'pages.read'     => ['pagebuilder', 'builder', 'zeigemodus', 'zeige', 'klick', 'anklicken', 'inspect', 'beschreibe'],
+            'theme.write'    => ['theme', 'farbe', 'color', 'css', 'hintergrund'],
+            'content.read'   => ['artikel', 'article', 'inhalt', 'content', 'draft', 'entwurf'],
+            'content.write'  => ['erstelle', 'create', 'append', 'ergänze', 'aendere', 'ändere', 'draft'],
             'articles.write' => ['artikel', 'article', 'draft', 'entwurf'],
-            'media.read' => ['media', 'bild', 'image', 'datei'],
-            'system.read' => ['system', 'status', 'queue', 'health', 'plugin', 'gesundheit', 'zustand'],
-            'users.read' => ['benutzer', 'nutzer', 'user', 'konto', 'account', 'rolle', 'rollen', 'role', 'permission', 'berechtigung'],
+            'media.read'     => ['media', 'bild', 'image', 'datei'],
+            'system.read'    => ['system', 'status', 'queue', 'health', 'plugin', 'gesundheit', 'zustand'],
+            'users.read'     => ['benutzer', 'nutzer', 'user', 'konto', 'account', 'rolle', 'rollen', 'role', 'permission', 'berechtigung'],
             'external.fetch' => ['wetter', 'weather', 'trend', 'holiday', 'wechselkurs', 'news'],
             'admin.navigate' => [
                 'navigiere', 'navigate', 'gehe', 'öffne', 'oeffne', 'open', 'pagebuilder', 'builder', 'editor',
@@ -366,7 +362,7 @@ final class KeywordToolRouter implements ToolRouterInterface
         $queryTokens = $this->tokens($query);
         foreach ($examples as $example) {
             $exampleText = strtolower((string) $example);
-            $hits = 0;
+            $hits        = 0;
             foreach ($queryTokens as $token) {
                 if (str_contains($exampleText, $token)) {
                     $hits++;

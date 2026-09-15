@@ -1,6 +1,7 @@
 <?php
 
 use Naf\CMS\Services\Content\ArticleRenderer;
+
 use function Naf\Form\csrf;
 use function Naf\I18n\t;
 use function Naf\route;
@@ -9,12 +10,12 @@ use function Naf\View\view;
 
 /** @var ArticleRenderer $article */
 $reviewActions = is_array($reviewActions ?? null) ? $reviewActions : [];
-$csrfToken = csrf()->generate();
+$csrfToken     = csrf()->generate();
 
 ?>
 <?php $this->setLayout('layouts.admin') ?>
 
-<?php $pageTitle = t('Preview article'); ?>
+<?php $pageTitle    = t('Preview article'); ?>
 <?php $pageSubtitle = t('Review the article exactly before publishing decisions.'); ?>
 
 <?php $this->block('adminTop'); ?>
@@ -22,7 +23,7 @@ $csrfToken = csrf()->generate();
     <a class="inline-flex min-h-12 items-center justify-center rounded-lg border border-[rgba(169,201,247,.38)] bg-[linear-gradient(180deg,#6895d4,#4f7fbd)] px-4 text-sm font-bold text-white" href="<?= s(route('admin.articles')) ?>"><?= s(t('Back to articles')) ?></a>
     <a class="inline-flex min-h-11 items-center justify-center rounded-lg border border-[var(--border)] bg-surface-soft px-4 font-bold text-inherit hover:bg-surface-strong" href="<?= s(route('admin.articles.edit', [
         'articleId' => $article->articleId(),
-        'language' => $article->language(),
+        'language'  => $article->language(),
     ])) ?>"><?= s(t('Edit draft')) ?></a>
 </div>
 <?php $this->endBlock('adminTop'); ?>
@@ -53,27 +54,27 @@ $csrfToken = csrf()->generate();
             <form id="articleReviewForm" class="grid gap-3">
                 <input type="hidden" name="_csrf" value="<?= s($csrfToken) ?>">
                 <?= view('components.admin.form.text', [
-                    'name' => 'comment',
+                    'name'  => 'comment',
                     'label' => t('Review comment'),
-                    'rows' => 4,
+                    'rows'  => 4,
                 ]) ?>
                 <?= view('components.admin.form.checkbox', [
-                    'name' => 'publish_article',
-                    'label' => t('Publish directly on approval'),
-                    'class' => 'article-toggle',
+                    'name'       => 'publish_article',
+                    'label'      => t('Publish directly on approval'),
+                    'class'      => 'article-toggle',
                     'attributes' => ['disabled' => !($canDirectPublish ?? false)],
-                    'useMemory' => false,
+                    'useMemory'  => false,
                 ]) ?>
                 <div class="flex flex-wrap gap-2">
                     <?= view('components.admin.form.button', [
-                        'label' => t('Approve'),
-                        'type' => 'button',
+                        'label'      => t('Approve'),
+                        'type'       => 'button',
                         'attributes' => ['data-review-action' => 'approve'],
                     ]) ?>
                     <?= view('components.admin.form.button', [
-                        'label' => t('Decline'),
-                        'type' => 'button',
-                        'variant' => 'secondary',
+                        'label'      => t('Decline'),
+                        'type'       => 'button',
+                        'variant'    => 'secondary',
                         'attributes' => ['data-review-action' => 'decline'],
                     ]) ?>
                 </div>
@@ -116,7 +117,7 @@ $csrfToken = csrf()->generate();
 
         const response = await (window.NafCMS?.fetch || fetch)(<?= json_encode(route('api.admin.articles.review', [
             'articleId' => $article->articleId(),
-            'language' => $article->language(),
+            'language'  => $article->language(),
         ])) ?>, {
             method: 'POST',
             headers: {

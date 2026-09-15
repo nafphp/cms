@@ -34,9 +34,9 @@ final class RuntimePermissionContractTest extends TestCase
 
     public function testLocalPreviewHasNoPersistedApiKeySetting(): void
     {
-        $config = require BASE_PATH . '/src/config.php';
+        $config   = require BASE_PATH . '/src/config.php';
         $sections = require BASE_PATH . '/src/settings.php';
-        $keys = [];
+        $keys     = [];
         foreach ($sections as $section) {
             $keys = [...$keys, ...array_keys($section->fields())];
         }

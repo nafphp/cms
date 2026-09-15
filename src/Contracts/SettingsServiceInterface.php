@@ -8,6 +8,7 @@ interface SettingsServiceInterface
 {
     /** @return array<int, array<string, mixed>> */
     public function sections(?string $group = null): array;
+
     /**
      * @param array<string, mixed> $payload
      * @return array{success: bool, errors: array<string, list<string>>}

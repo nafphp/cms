@@ -23,6 +23,7 @@ use Naf\CMS\Handlers\Api\Navigation\PublishNavigation;
 use Naf\CMS\Handlers\Api\Page\DeletePage;
 use Naf\CMS\Handlers\Api\Page\DeletePageLayout;
 use Naf\CMS\Handlers\Api\Page\StorePageLayout;
+use Psr\Http\Message\ResponseInterface;
 use Tests\Support\DatabaseTestCase;
 use Tests\Support\JsonRequest;
 
@@ -139,7 +140,7 @@ final class ContentWriteHandlersTest extends DatabaseTestCase
     }
 
     /** @return array<string, mixed> */
-    private function json(\Psr\Http\Message\ResponseInterface $response): array
+    private function json(ResponseInterface $response): array
     {
         return json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
     }

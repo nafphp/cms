@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Naf\CMS\Examples\CustomContentType;
 
 use Naf\CMS\Content\ContentTypeInterface;
+
 use function Naf\CMS\cms;
 
 final class ExampleProductContentType implements ContentTypeInterface

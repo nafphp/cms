@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use function Naf\View\s;
-use function Naf\View\asset;
-use function Naf\I18n\t;
 use function Naf\CMS\cms;
+use function Naf\I18n\t;
+use function Naf\View\asset;
+use function Naf\View\s;
 
-$settings = cms()->settings();
+$settings        = cms()->settings();
 $currentLanguage = $settings->currentLanguage();
 asset()->add('/css/nafcms.css');
 

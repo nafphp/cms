@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Page;
 
+use InvalidArgumentException;
+
 /**
  * Render description for a concrete .phtml template and its optional parent.
  */
 final class Template
 {
-    private ?string $view = null;
-    private ?string $parent = null;
+    private ?string $view    = null;
+    private ?string $parent  = null;
     private ?string $themeId = null;
     /** @var array<string, string> */
     private array $bodyClasses = [];
@@ -38,10 +40,11 @@ final class Template
     {
         if ($view === null || trim($view) === '') {
             $this->view = null;
+
             return $this;
         }
 
-        $view = trim($view);
+        $view       = trim($view);
         $this->view = str_contains($view, '.') || str_contains($view, '/')
             ? $view
             : 'page.templates.' . $view;
@@ -61,8 +64,9 @@ final class Template
 
     public function setTheme(?string $themeId): self
     {
-        $themeId = $themeId === null ? null : trim($themeId);
+        $themeId       = $themeId === null ? null : trim($themeId);
         $this->themeId = $themeId === '' ? null : $themeId;
+
         return $this;
     }
 
@@ -70,10 +74,11 @@ final class Template
     {
         if ($parent === null || trim($parent) === '') {
             $this->parent = null;
+
             return $this;
         }
 
-        $parent = trim($parent);
+        $parent       = trim($parent);
         $this->parent = str_contains($parent, '.') || str_contains($parent, '/')
             ? $parent
             : 'layouts.' . $parent;
@@ -107,11 +112,11 @@ final class Template
     {
         $href = trim($href);
         if ($href === '') {
-            throw new \InvalidArgumentException('Stylesheet href cannot be empty.');
+            throw new InvalidArgumentException('Stylesheet href cannot be empty.');
         }
 
         $this->stylesheets[] = [
-            'href' => $href,
+            'href'       => $href,
             'attributes' => $this->cleanAttributes($attributes),
         ];
 
@@ -133,11 +138,11 @@ final class Template
     {
         $src = trim($src);
         if ($src === '') {
-            throw new \InvalidArgumentException('Script src cannot be empty.');
+            throw new InvalidArgumentException('Script src cannot be empty.');
         }
 
         $this->scripts[] = [
-            'src' => $src,
+            'src'        => $src,
             'attributes' => $this->cleanAttributes($attributes),
         ];
 

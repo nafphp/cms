@@ -8,6 +8,7 @@ use Naf\CMS\Handlers\Support\ReadsJsonBody;
 use Naf\CMS\Services\Ai\LocalAiToolBridge;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
+
 use function Naf\json;
 
 final class CallAiTool
@@ -19,17 +20,17 @@ final class CallAiTool
         // Tool failures deliberately remain HTTP 200: the assistant consumes
         // them as tool results and needs the model turn to continue. Server
         // authorization still happens in LocalAiToolBridge/MCP scopes.
-        $body = $this->jsonBody();
-        $name = trim((string) ($body['name'] ?? ''));
+        $body      = $this->jsonBody();
+        $name      = trim((string) ($body['name'] ?? ''));
         $arguments = $body['arguments'] ?? $body['args'] ?? [];
 
         if ($name === '') {
             return json([
                 'success' => true,
-                'tool' => '',
-                'result' => [
+                'tool'    => '',
+                'result'  => [
                     'success' => false,
-                    'error' => 'Tool name is required.',
+                    'error'   => 'Tool name is required.',
                 ],
             ]);
         }
@@ -37,10 +38,10 @@ final class CallAiTool
         if (!is_array($arguments)) {
             return json([
                 'success' => true,
-                'tool' => $name,
-                'result' => [
+                'tool'    => $name,
+                'result'  => [
                     'success' => false,
-                    'error' => 'Tool arguments must be an object.',
+                    'error'   => 'Tool arguments must be an object.',
                 ],
             ]);
         }
@@ -48,16 +49,16 @@ final class CallAiTool
         try {
             return json([
                 'success' => true,
-                'tool' => $name,
-                'result' => (new LocalAiToolBridge())->call($name, $arguments),
+                'tool'    => $name,
+                'result'  => (new LocalAiToolBridge())->call($name, $arguments),
             ]);
         } catch (Throwable $exception) {
             return json([
                 'success' => true,
-                'tool' => $name,
-                'result' => [
+                'tool'    => $name,
+                'result'  => [
                     'success' => false,
-                    'error' => $exception->getMessage(),
+                    'error'   => $exception->getMessage(),
                 ],
             ]);
         }

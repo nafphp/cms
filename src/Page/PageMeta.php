@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Page;
 
-use Naf\CMS\Page\PageNavigationMeta;
-use Naf\CMS\Page\PageSeoMeta;
-use Naf\CMS\Page\PageThemeMeta;
-
 final class PageMeta
 {
     public function __construct(
@@ -33,11 +29,11 @@ final class PageMeta
     public function toArray(): array
     {
         return [
-            'version' => $this->version,
-            'seo' => $this->seo->toArray(),
+            'version'    => $this->version,
+            'seo'        => $this->seo->toArray(),
             'navigation' => $this->navigation->toArray(),
-            'theme' => $this->theme->toArray(),
-            'extra' => $this->extra,
+            'theme'      => $this->theme->toArray(),
+            'extra'      => $this->extra,
         ];
     }
 

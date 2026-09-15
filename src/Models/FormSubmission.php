@@ -8,10 +8,10 @@ use Naf\ORM\Model\AbstractModel;
 
 class FormSubmission extends AbstractModel
 {
-    protected ?int $form_id = null;
+    protected ?int $form_id         = null;
     protected ?string $payload_json = null;
-    protected ?string $meta_json = null;
-    protected ?string $created_at = null;
+    protected ?string $meta_json    = null;
+    protected ?string $created_at   = null;
 
     public function getFormId(): ?int
     {

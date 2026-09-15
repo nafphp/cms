@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Page;
 
-use Naf\CMS\Page\CustomLayoutOptions;
+use Naf\CMS\Theme\Theme;
 
 final class CustomLayoutNormalizer
 {
@@ -19,11 +19,11 @@ final class CustomLayoutNormalizer
     {
         if (count($layout) > self::MAX_SLOTS) {
             $errors[] = sprintf('Custom layout exceeds the limit of %d slots.', self::MAX_SLOTS);
-            $layout = array_slice($layout, 0, self::MAX_SLOTS);
+            $layout   = array_slice($layout, 0, self::MAX_SLOTS);
         }
 
         $normalized = [];
-        $seen = [];
+        $seen       = [];
 
         foreach (array_values($layout) as $index => $slot) {
             if (!is_array($slot)) {
@@ -31,14 +31,14 @@ final class CustomLayoutNormalizer
                 continue;
             }
 
-            $id = trim((string) ($slot['id'] ?? ''));
-            $label = trim((string) ($slot['label'] ?? ''));
-            $region = trim((string) ($slot['region'] ?? 'main'));
-            $size = trim((string) ($slot['size'] ?? 'medium'));
-            $position = trim((string) ($slot['position'] ?? 'stretch'));
+            $id        = trim((string) ($slot['id'] ?? ''));
+            $label     = trim((string) ($slot['label'] ?? ''));
+            $region    = trim((string) ($slot['region'] ?? 'main'));
+            $size      = trim((string) ($slot['size'] ?? 'medium'));
+            $position  = trim((string) ($slot['position'] ?? 'stretch'));
             $maxHeight = trim((string) ($slot['maxHeight'] ?? 'none'));
-            $overflow = trim((string) ($slot['overflow'] ?? 'visible'));
-            $surface = \Naf\CMS\Theme\Theme::slug((string) ($slot['surface'] ?? 'none')) ?: 'none';
+            $overflow  = trim((string) ($slot['overflow'] ?? 'visible'));
+            $surface   = Theme::slug((string) ($slot['surface'] ?? 'none')) ?: 'none';
 
             if ($id === '' || !preg_match('/^[A-Za-z][A-Za-z0-9_-]{0,63}$/', $id)) {
                 $errors[] = sprintf('Custom layout slot %d needs a valid id.', $index + 1);
@@ -61,10 +61,10 @@ final class CustomLayoutNormalizer
             }
 
             $invalidOption = $this->invalidOption([
-                'region' => [$region, CustomLayoutOptions::REGIONS],
-                'size' => [$size, CustomLayoutOptions::SIZES],
-                'position' => [$position, CustomLayoutOptions::POSITIONS],
-                'max height' => [$maxHeight, CustomLayoutOptions::MAX_HEIGHTS],
+                'region'        => [$region, CustomLayoutOptions::REGIONS],
+                'size'          => [$size, CustomLayoutOptions::SIZES],
+                'position'      => [$position, CustomLayoutOptions::POSITIONS],
+                'max height'    => [$maxHeight, CustomLayoutOptions::MAX_HEIGHTS],
                 'overflow mode' => [$overflow, CustomLayoutOptions::OVERFLOWS],
             ]);
             if ($invalidOption !== null) {
@@ -73,14 +73,14 @@ final class CustomLayoutNormalizer
             }
 
             $definition = [
-                'id' => $id,
-                'label' => $label,
-                'region' => $region,
-                'size' => $size,
-                'position' => $position,
+                'id'        => $id,
+                'label'     => $label,
+                'region'    => $region,
+                'size'      => $size,
+                'position'  => $position,
                 'maxHeight' => $maxHeight,
-                'overflow' => $overflow,
-                'surface' => $surface,
+                'overflow'  => $overflow,
+                'surface'   => $surface,
             ];
 
             $accepts = [];

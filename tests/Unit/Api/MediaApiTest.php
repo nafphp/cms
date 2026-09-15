@@ -44,7 +44,7 @@ final class MediaApiTest extends DatabaseTestCase
         SQL);
 
         $this->storage = new EntityStorage(Media::class, $this->pdo);
-        $this->api = new MediaApi(
+        $this->api     = new MediaApi(
             new MediaStorageService($this->storage, sys_get_temp_dir(), '/media'),
             $this->storage,
         );
@@ -53,44 +53,44 @@ final class MediaApiTest extends DatabaseTestCase
     public function testRecentSummaryAndLookupUseStorage(): void
     {
         $this->insertMedia([
-            'public_id' => 'aaaaaaaaaaaaaaaaaaaaaaaa',
+            'public_id'     => 'aaaaaaaaaaaaaaaaaaaaaaaa',
             'original_name' => 'Old document.pdf',
-            'mime_type' => 'application/pdf',
-            'extension' => 'pdf',
-            'size_bytes' => 2048,
-            'created_at' => '2026-05-01 10:00:00',
+            'mime_type'     => 'application/pdf',
+            'extension'     => 'pdf',
+            'size_bytes'    => 2048,
+            'created_at'    => '2026-05-01 10:00:00',
         ]);
         $this->insertMedia([
-            'public_id' => 'bbbbbbbbbbbbbbbbbbbbbbbb',
+            'public_id'     => 'bbbbbbbbbbbbbbbbbbbbbbbb',
             'original_name' => 'Fresh image.png',
-            'mime_type' => 'image/png',
-            'extension' => 'png',
-            'size_bytes' => 512,
-            'width' => 320,
-            'height' => 240,
+            'mime_type'     => 'image/png',
+            'extension'     => 'png',
+            'size_bytes'    => 512,
+            'width'         => 320,
+            'height'        => 240,
             'metadata_json' => '{"collection":"dashboard"}',
-            'created_at' => '2026-05-02 10:00:00',
+            'created_at'    => '2026-05-02 10:00:00',
         ]);
         $this->insertMedia([
-            'public_id' => 'eeeeeeeeeeeeeeeeeeeeeeee',
+            'public_id'     => 'eeeeeeeeeeeeeeeeeeeeeeee',
             'original_name' => 'Archive.zip',
-            'mime_type' => 'application/zip',
-            'extension' => 'zip',
-            'size_bytes' => 4096,
-            'created_at' => '2026-04-30 10:00:00',
+            'mime_type'     => 'application/zip',
+            'extension'     => 'zip',
+            'size_bytes'    => 4096,
+            'created_at'    => '2026-04-30 10:00:00',
         ]);
         $this->insertMedia([
-            'public_id' => 'ffffffffffffffffffffffff',
+            'public_id'     => 'ffffffffffffffffffffffff',
             'original_name' => 'Payload.bin',
-            'mime_type' => 'application/octet-stream',
-            'extension' => 'bin',
-            'size_bytes' => 128,
-            'created_at' => '2026-04-29 10:00:00',
+            'mime_type'     => 'application/octet-stream',
+            'extension'     => 'bin',
+            'size_bytes'    => 128,
+            'created_at'    => '2026-04-29 10:00:00',
         ]);
 
-        $recent = $this->api->recent(2);
+        $recent  = $this->api->recent(2);
         $summary = $this->api->summary();
-        $found = $this->api->findByPublicId('bbbbbbbbbbbbbbbbbbbbbbbb');
+        $found   = $this->api->findByPublicId('bbbbbbbbbbbbbbbbbbbbbbbb');
 
         self::assertSame('bbbbbbbbbbbbbbbbbbbbbbbb', $recent[0]['public_id']);
         self::assertSame('image', $recent[0]['kind']);
@@ -109,13 +109,13 @@ final class MediaApiTest extends DatabaseTestCase
     public function testUpdateUsesStorageAndKeepsExistingAltTextByDefault(): void
     {
         $id = $this->insertMedia([
-            'public_id' => 'cccccccccccccccccccccccc',
+            'public_id'     => 'cccccccccccccccccccccccc',
             'original_name' => 'Preview.jpg',
-            'mime_type' => 'image/jpeg',
-            'extension' => 'jpg',
-            'size_bytes' => 1024,
-            'alt_text' => 'Preview',
-            'created_at' => '2026-05-03 10:00:00',
+            'mime_type'     => 'image/jpeg',
+            'extension'     => 'jpg',
+            'size_bytes'    => 1024,
+            'alt_text'      => 'Preview',
+            'created_at'    => '2026-05-03 10:00:00',
         ]);
 
         $updated = $this->api->update($id, ['visibility' => 'private']);
@@ -131,24 +131,24 @@ final class MediaApiTest extends DatabaseTestCase
     private function insertMedia(array $overrides): int
     {
         return $this->insertRow('media', array_replace([
-            'public_id' => 'dddddddddddddddddddddddd',
-            'disk' => 'public',
-            'visibility' => 'public',
+            'public_id'     => 'dddddddddddddddddddddddd',
+            'disk'          => 'public',
+            'visibility'    => 'public',
             'original_name' => 'File.bin',
-            'stored_name' => 'file.bin',
-            'storage_path' => 'media/file.bin',
-            'file_path' => '/tmp/file.bin',
-            'public_url' => '/media/file.bin',
-            'mime_type' => 'application/octet-stream',
-            'extension' => 'bin',
-            'size_bytes' => 1,
-            'width' => null,
-            'height' => null,
-            'alt_text' => null,
-            'uploaded_by' => null,
+            'stored_name'   => 'file.bin',
+            'storage_path'  => 'media/file.bin',
+            'file_path'     => '/tmp/file.bin',
+            'public_url'    => '/media/file.bin',
+            'mime_type'     => 'application/octet-stream',
+            'extension'     => 'bin',
+            'size_bytes'    => 1,
+            'width'         => null,
+            'height'        => null,
+            'alt_text'      => null,
+            'uploaded_by'   => null,
             'metadata_json' => '{}',
-            'created_at' => '2026-05-01 10:00:00',
-            'updated_at' => null,
+            'created_at'    => '2026-05-01 10:00:00',
+            'updated_at'    => null,
         ], $overrides));
     }
 }

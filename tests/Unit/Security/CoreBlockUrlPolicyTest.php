@@ -6,6 +6,7 @@ namespace Tests\Unit\Security;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+
 use function Naf\View\s;
 
 final class CoreBlockUrlPolicyTest extends TestCase
@@ -63,6 +64,7 @@ final class CoreBlockUrlPolicyTest extends TestCase
         extract($variables, EXTR_SKIP);
         ob_start();
         require BASE_PATH . '/views/page/blocks/' . $view . '.phtml';
+
         return (string) ob_get_clean();
     }
 }

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use Naf\CMS\Services\Developer\AgentGuideInstaller;
 use Naf\CLI\Support\CommandRegistry;
+use Naf\CMS\Services\Developer\AgentGuideInstaller;
 use PHPUnit\Framework\TestCase;
+
 use function Naf\app;
 
 final class DeveloperExperienceIntegrityTest extends TestCase

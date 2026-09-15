@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Enums;
 
+use InvalidArgumentException;
+
 enum Scope: string
 {
     case FRONTEND = 'frontend';
-    case ADMIN = 'admin';
+    case ADMIN    = 'admin';
 
     public static function normalize(self|string $scope): self
     {
@@ -16,9 +18,10 @@ enum Scope: string
         }
 
         $scope = strtolower(trim($scope));
-        return self::tryFrom($scope) ?? throw new \InvalidArgumentException(sprintf(
+
+        return self::tryFrom($scope) ?? throw new InvalidArgumentException(sprintf(
             'Unsupported CMS scope "%s".',
-            $scope
+            $scope,
         ));
     }
 }

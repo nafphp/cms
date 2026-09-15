@@ -492,3 +492,10 @@ For architecture principles, audit rules, testing expectations, and contributor 
 ## Authentication migration
 
 Generic identity, provider and permission mechanics use `naf/auth`. See [the migration guide](docs/auth-migration.md) for the local pre-release Composer setup, existing-session compatibility and application boundaries.
+
+## PHP code style
+
+Source, tests and PHP templates follow the shared [NAF code style](https://github.com/nafphp/docs/blob/main/CODE_STYLE.md)
+(PER Coding Style 3.0 with the Nafinity readability rules). After `composer install`, run
+`composer style:check` to verify formatting or `composer style:fix` to apply it. The formatter
+is a development dependency. Review template output and run the package checks after changes.

@@ -18,18 +18,18 @@ final class SemanticToolRouterTest extends TestCase
         $tools = [];
         for ($i = 0; $i < 120; $i++) {
             $tools[] = [
-                'name' => 'plugin_misc_tool_' . $i,
+                'name'        => 'plugin_misc_tool_' . $i,
                 'description' => 'Generic plugin utility for unrelated maintenance task ' . $i,
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ];
         }
         $tools[] = [
-            'name' => 'cms_page_overview',
+            'name'        => 'cms_page_overview',
             'description' => 'Returns page and layout block overview for the PageBuilder.',
             'inputSchema' => ['type' => 'object', 'properties' => ['pageId' => ['type' => 'string']]],
         ];
         $tools[] = [
-            'name' => 'cms_tools_search',
+            'name'        => 'cms_tools_search',
             'description' => 'Searches the registered CMS tools for the current request and UI context.',
             'inputSchema' => ['type' => 'object', 'properties' => ['query' => ['type' => 'string']]],
         ];
@@ -37,8 +37,8 @@ final class SemanticToolRouterTest extends TestCase
         $selected = (new SemanticToolRouter((new LocalAiToolCatalog())->enrich($tools)))->select(
             'Welche Bloecke sind in diesem Layout?',
             ToolContext::fromArray([
-                'area' => 'pageBuilder',
-                'selectedRegion' => 'content',
+                'area'                  => 'pageBuilder',
+                'selectedRegion'        => 'content',
                 'availableBlockModules' => ['text', 'image'],
             ]),
             8,
@@ -53,12 +53,12 @@ final class SemanticToolRouterTest extends TestCase
     {
         $tools = (new LocalAiToolCatalog())->enrich([
             [
-                'name' => 'cms_article_draft_create',
+                'name'        => 'cms_article_draft_create',
                 'description' => 'Creates an article draft.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_article_status_counts',
+                'name'        => 'cms_article_status_counts',
                 'description' => 'Returns article status counts.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
@@ -77,17 +77,17 @@ final class SemanticToolRouterTest extends TestCase
     {
         $tools = (new LocalAiToolCatalog())->enrich([
             [
-                'name' => 'cms_queue_status',
+                'name'        => 'cms_queue_status',
                 'description' => 'Returns queue status.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_page_overview',
+                'name'        => 'cms_page_overview',
                 'description' => 'Returns page overview.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_tools_search',
+                'name'        => 'cms_tools_search',
                 'description' => 'Searches the registered CMS tools for the current request and UI context.',
                 'inputSchema' => ['type' => 'object', 'properties' => ['query' => ['type' => 'string']]],
             ],
@@ -107,12 +107,12 @@ final class SemanticToolRouterTest extends TestCase
     {
         $tools = (new LocalAiToolCatalog())->enrich([
             [
-                'name' => 'cms_queue_status',
+                'name'        => 'cms_queue_status',
                 'description' => 'Returns queue status.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_article_draft_create',
+                'name'        => 'cms_article_draft_create',
                 'description' => 'Creates an article draft.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
@@ -121,8 +121,8 @@ final class SemanticToolRouterTest extends TestCase
         $selected = (new SemanticToolRouter($tools))->select(
             'Erstelle einen Artikelentwurf',
             ToolContext::fromArray([
-                'area' => 'articleEditor',
-                'mode' => 'write',
+                'area'         => 'articleEditor',
+                'mode'         => 'write',
                 'capabilities' => ['articles.write'],
             ]),
             5,
@@ -135,12 +135,12 @@ final class SemanticToolRouterTest extends TestCase
     {
         $tools = (new LocalAiToolCatalog())->enrich([
             [
-                'name' => 'cms_article_draft_create',
+                'name'        => 'cms_article_draft_create',
                 'description' => 'Creates an article draft.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_article_status_counts',
+                'name'        => 'cms_article_status_counts',
                 'description' => 'Returns article status counts.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
@@ -164,36 +164,36 @@ final class SemanticToolRouterTest extends TestCase
     {
         $tools = (new LocalAiToolCatalog())->enrich([
             [
-                'name' => 'cms_admin_navigate',
+                'name'        => 'cms_admin_navigate',
                 'description' => 'Navigates the current admin UI to a safe registered NafCMS admin area such as PageBuilder, articles, forms, themes, media, users, roles, navigation, or settings.',
                 'inputSchema' => ['type' => 'object', 'properties' => ['target' => ['type' => 'string']]],
             ],
             [
-                'name' => 'cms_user_role_summary',
+                'name'        => 'cms_user_role_summary',
                 'description' => 'Returns a summary of users, roles and permissions.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_system_health',
+                'name'        => 'cms_system_health',
                 'description' => 'Returns current NafCMS system health data.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_tools_search',
+                'name'        => 'cms_tools_search',
                 'description' => 'Searches the registered CMS tools for the current request and UI context.',
                 'inputSchema' => ['type' => 'object', 'properties' => ['query' => ['type' => 'string']]],
             ],
         ]);
 
         $expectations = [
-            'Bringe mich zu den Benutzern' => 'cms_admin_navigate',
-            'Bringe mich zu den Rollen' => 'cms_admin_navigate',
+            'Bringe mich zu den Benutzern'  => 'cms_admin_navigate',
+            'Bringe mich zu den Rollen'     => 'cms_admin_navigate',
             'Wie ist die Systemgesundheit?' => 'cms_system_health',
         ];
 
         foreach ($expectations as $phrase => $expected) {
             $selected = (new KeywordToolRouter($tools))->select($phrase, ToolContext::fromArray([]), 5);
-            $names = array_column($selected, 'name');
+            $names    = array_column($selected, 'name');
 
             self::assertSame($expected, $names[0] ?? '', $phrase);
             self::assertNotSame(['cms_tools_search'], $names, $phrase);
@@ -204,12 +204,12 @@ final class SemanticToolRouterTest extends TestCase
     {
         $tools = (new LocalAiToolCatalog())->enrich([
             [
-                'name' => 'cms_user_role_summary',
+                'name'        => 'cms_user_role_summary',
                 'description' => 'Returns a summary of users, roles and permissions.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_queue_status',
+                'name'        => 'cms_queue_status',
                 'description' => 'Returns the current queue status.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],

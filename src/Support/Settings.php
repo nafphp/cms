@@ -4,27 +4,30 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Support;
 
+use Naf\CMS\Contracts\TranslationServiceInterface;
 use Naf\CMS\Repositories\SettingRepository;
 use Naf\CMS\Settings\SettingField;
 use Naf\CMS\Settings\SettingSection;
 use Naf\CMS\Settings\SettingsRegistry;
-use Naf\CMS\Contracts\TranslationServiceInterface;
 use Naf\I18n\Core\Translator;
+use Throwable;
+
 use function Naf\app;
+use function Naf\CMS\cms;
 use function Naf\config;
 use function Naf\request;
-use function Naf\CMS\cms;
 
 final class Settings
 {
     private ?SettingRepository $settings = null;
-    private ?SettingsRegistry $registry = null;
+    private ?SettingsRegistry $registry  = null;
     /** @var array<string, string|null> */
     private array $cache = [];
 
     public function name(): string
     {
         $configured = trim((string) $this->value('app.name', 'NafCMS'));
+
         return $configured !== '' ? $configured : 'NafCMS';
     }
 
@@ -40,6 +43,7 @@ final class Settings
     public function add(SettingSection $section, bool $replace = false): self
     {
         $this->registry()->add($section, $replace);
+
         return $this;
     }
 
@@ -49,18 +53,21 @@ final class Settings
     public function addMany(iterable $sections, bool $replace = false): self
     {
         $this->registry()->addMany($sections, $replace);
+
         return $this;
     }
 
     public function addSection(SettingSection $section, bool $replace = false): self
     {
         $this->registry()->addSection($section, $replace);
+
         return $this;
     }
 
     public function addField(string $sectionId, SettingField $field, bool $replace = false): self
     {
         $this->registry()->addField($sectionId, $field, $replace);
+
         return $this;
     }
 
@@ -100,7 +107,7 @@ final class Settings
             return strtoupper(substr($configured, 0, 3));
         }
 
-        $name = preg_replace('/[^a-z0-9]+/i', ' ', $this->name()) ?: 'NafCMS';
+        $name  = preg_replace('/[^a-z0-9]+/i', ' ', $this->name()) ?: 'NafCMS';
         $parts = array_values(array_filter(explode(' ', trim($name))));
         if (count($parts) >= 2) {
             return strtoupper(substr($parts[0], 0, 1) . substr($parts[1], 0, 1));
@@ -112,6 +119,7 @@ final class Settings
     public function logoText(): string
     {
         $configured = trim((string) $this->value('branding.logoText', ''));
+
         return $configured !== '' ? $configured : $this->name();
     }
 
@@ -160,12 +168,12 @@ final class Settings
 
         try {
             /** @var Translator $translator */
-            $translator = app()->container()->get(Translator::class);
+            $translator         = app()->container()->get(Translator::class);
             $translatorLanguage = strtolower(trim((string) ($translator->getLanguage() ?? '')));
             if ($translatorLanguage !== '' && in_array($translatorLanguage, $this->languages(), true)) {
                 return $translatorLanguage;
             }
-        } catch (\Throwable) {
+        } catch (Throwable) {
         }
 
         return $this->language();
@@ -182,7 +190,7 @@ final class Settings
     {
         try {
             $requested = strtolower(trim((string) (request()->getQueryParams()['lang'] ?? '')));
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
 
@@ -192,6 +200,7 @@ final class Settings
     public function language(): string
     {
         $configured = strtolower(trim((string) $this->value('language', 'en')));
+
         return in_array($configured, $this->languages(), true) ? $configured : $this->fallbackLanguage();
     }
 
@@ -207,10 +216,10 @@ final class Settings
 
     public function languageUrl(string $language): string
     {
-        $query = request()->getQueryParams();
+        $query         = request()->getQueryParams();
         $query['lang'] = strtolower(trim($language));
-        $queryString = http_build_query($query);
-        $path = request()->getUri()->getPath();
+        $queryString   = http_build_query($query);
+        $path          = request()->getUri()->getPath();
 
         return $queryString === '' ? $path : $path . '?' . $queryString;
     }
@@ -242,6 +251,7 @@ final class Settings
         }
 
         $this->settings ??= new SettingRepository();
+
         return $this->cache[$key] = $this->settings->value($key);
     }
 

@@ -11,11 +11,11 @@ final class Migration202605030004 extends AbstractMigration
 {
     public function up(PDO $connection): void
     {
-        $driver = strtolower((string) $connection->getAttribute(PDO::ATTR_DRIVER_NAME));
+        $driver   = strtolower((string) $connection->getAttribute(PDO::ATTR_DRIVER_NAME));
         $idColumn = $driver === 'sqlite'
             ? 'id INTEGER PRIMARY KEY AUTOINCREMENT'
             : 'id INT AUTO_INCREMENT PRIMARY KEY';
-        $jsonType = $driver === 'sqlite' ? 'TEXT' : 'JSON';
+        $jsonType     = $driver === 'sqlite' ? 'TEXT' : 'JSON';
         $uniqueSyntax = $driver === 'sqlite' ? 'IF NOT EXISTS ' : '';
 
         if ($this->tableExists($connection, 'page_layouts')) {
@@ -52,11 +52,13 @@ final class Migration202605030004 extends AbstractMigration
         if ($driver === 'sqlite') {
             $statement = $connection->prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = :table");
             $statement->execute(['table' => $table]);
+
             return (bool) $statement->fetchColumn();
         }
 
         $statement = $connection->prepare('SHOW TABLES LIKE :table');
         $statement->execute(['table' => $table]);
+
         return (bool) $statement->fetchColumn();
     }
 }

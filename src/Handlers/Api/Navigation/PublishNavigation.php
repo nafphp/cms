@@ -6,8 +6,9 @@ namespace Naf\CMS\Handlers\Api\Navigation;
 
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use function Naf\json;
+
 use function Naf\CMS\cms;
+use function Naf\json;
 
 final class PublishNavigation
 {

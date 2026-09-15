@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Api;
 
+use LogicException;
 use Naf\CMS\Controllers\Api\ApiController;
-use Naf\CMS\Api\ApiEndpoint;
+use RuntimeException;
+
 use function Naf\route;
 
 final class ApiRegistry
@@ -16,10 +18,11 @@ final class ApiRegistry
     public function add(ApiEndpoint $endpoint, bool $replace = false): self
     {
         if (isset($this->endpoints[$endpoint->id()]) && !$replace) {
-            throw new \LogicException(sprintf('API endpoint "%s" is already registered.', $endpoint->id()));
+            throw new LogicException(sprintf('API endpoint "%s" is already registered.', $endpoint->id()));
         }
 
         $this->endpoints[$endpoint->id()] = $endpoint;
+
         return $this;
     }
 
@@ -40,12 +43,12 @@ final class ApiRegistry
 
     public function require(string $id): ApiEndpoint
     {
-        return $this->get($id) ?? throw new \RuntimeException(sprintf('API endpoint "%s" is not registered.', $id));
+        return $this->get($id) ?? throw new RuntimeException(sprintf('API endpoint "%s" is not registered.', $id));
     }
 
     public function findByPath(string $path, string $method): ?ApiEndpoint
     {
-        $normalizedPath = $this->normalizePath($path);
+        $normalizedPath   = $this->normalizePath($path);
         $normalizedMethod = strtoupper(trim($method));
 
         foreach ($this->endpoints as $endpoint) {
@@ -73,6 +76,7 @@ final class ApiRegistry
     private function normalizePath(string $path): string
     {
         $path = '/' . ltrim(trim($path), '/');
+
         return $path === '/' ? '/' : rtrim($path, '/');
     }
 }
