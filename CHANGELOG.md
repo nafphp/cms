@@ -7,10 +7,14 @@ All notable changes to NafCMS are documented here. This project follows [Keep a 
 ### Changed
 
 - Apply the shared NAF PHP code style to source, tests, examples and templates, with Composer commands and a CI check.
+- Require Framework 0.2.9 for CLI rendering guards, CLI 0.2.2 for Composer binary bootstrap paths, and explicitly declare the CMS's PDO dependency.
 
 ### Fixed
 
 - Standalone page charts now call the host's global translation fallback when NAF's translator is not loaded; the previous import targeted a nonexistent namespaced function.
+- Keep static analysis free of application boot side effects and remove an environment-dependent baseline entry.
+- Build Tailwind from explicit package sources and verify both starter-owned and CMS-managed guides in the fresh-host smoke test.
+- Update the build-only source-map-js dependency to the patched 1.2.2 release and keep MCP fixtures compatible with published input validation.
 
 ## [0.0.1] - 2026-07-21
 

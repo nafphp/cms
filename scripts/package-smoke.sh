@@ -5,7 +5,7 @@ set -euo pipefail
 PACKAGE_ROOT="${1:-$(pwd)}"
 FIXTURE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/nafcms-host.XXXXXX")"
 PORT="${NAFCMS_SMOKE_PORT:-18089}"
-PHP_RUN=(php -d error_reporting=8191)
+PHP_RUN=(php)
 SERVER_PID=""
 
 cleanup() {
@@ -78,8 +78,27 @@ BEFORE_HASH="$(package_hash)"
 
 (cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/naf nafcms:assets:publish)
 (cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/naf nafcms:assets:check)
+# The starter ships its own guide. Verify that CMS preserves it, then exercise
+# installation and update of a CMS-managed guide in this disposable host.
+cp "$FIXTURE_ROOT/AGENTS.md" "$FIXTURE_ROOT/starter-AGENTS.md"
+for GUIDE_OPTION in "" "--update"; do
+    GUIDE_ARGS=(nafcms:agents:install)
+    if [[ -n "$GUIDE_OPTION" ]]; then
+        GUIDE_ARGS+=("$GUIDE_OPTION")
+    fi
+    GUIDE_STATUS=0
+    (cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/naf "${GUIDE_ARGS[@]}") > "$FIXTURE_ROOT/guide.log" 2>&1 || GUIDE_STATUS=$?
+    cat "$FIXTURE_ROOT/guide.log"
+    if [[ "$GUIDE_STATUS" -ne 1 ]] || ! grep -q 'A user-owned AGENTS.md already exists' "$FIXTURE_ROOT/guide.log"; then
+        echo "Expected the installer to refuse a user-owned guide." >&2
+        exit 1
+    fi
+    cmp "$FIXTURE_ROOT/AGENTS.md" "$FIXTURE_ROOT/starter-AGENTS.md"
+done
+rm "$FIXTURE_ROOT/AGENTS.md"
 (cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/naf nafcms:agents:install)
 grep -q 'managed-by: naf/cms agent-guide' "$FIXTURE_ROOT/AGENTS.md"
+(cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/naf nafcms:agents:install --update)
 (cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/naf db:migrate up)
 
 (cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" -r '

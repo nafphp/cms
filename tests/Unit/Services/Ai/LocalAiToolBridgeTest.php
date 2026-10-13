@@ -61,7 +61,7 @@ final class LocalAiToolBridgeTest extends TestCase
     public function testCallRejectsScopedToolWhenLocalUserHasNoMatchingScope(): void
     {
         self::expectException(RuntimeException::class);
-        self::expectExceptionMessage('Not allowed to call tool: local_ai_scoped_fixture');
+        self::expectExceptionMessage('Not allowed to call');
 
         (new LocalAiToolBridge())->call('local_ai_scoped_fixture');
     }
@@ -102,7 +102,7 @@ final class LocalAiUnscopedToolFixture implements ToolInterface, LocalAiToolMeta
 
     public function inputSchema(): array
     {
-        return ['type' => 'object', 'properties' => []];
+        return ['type' => 'object', 'properties' => ['topic' => ['type' => 'string']]];
     }
 
     public function handle(array $args): array

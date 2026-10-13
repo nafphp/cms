@@ -7,6 +7,9 @@ on:
 permissions:
   contents: read
 
+env:
+  APP_ENV: test
+
 jobs:
   static-analysis:
     name: Static analysis
@@ -22,7 +25,7 @@ jobs:
       - run: composer analyse
 
   php:
-    name: PHP ${{ matrix.php }}
+    name: PHP ${{ matrix.php }} (${{ matrix.dependencies }})
     runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.experimental }}
     strategy:
@@ -30,10 +33,16 @@ jobs:
       matrix:
         include:
           - php: '8.3'
+            dependencies: locked
+            experimental: false
+          - php: '8.3'
+            dependencies: lowest
             experimental: false
           - php: '8.4'
+            dependencies: locked
             experimental: false
           - php: '8.5'
+            dependencies: locked
             experimental: true
     steps:
       - uses: actions/checkout@v4
@@ -43,6 +52,8 @@ jobs:
           extensions: curl, dom, pdo_sqlite
           coverage: none
       - uses: ramsey/composer-install@v3
+      - if: matrix.dependencies == 'lowest'
+        run: composer update 'naf/*' --prefer-lowest --with-all-dependencies --no-interaction --no-progress
       - run: composer validate --strict
       - run: composer test
       - run: vendor/bin/naf docs:check
@@ -57,6 +68,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm audit --audit-level=high
       - run: npm run test:builder
       - run: npm run build
       - run: git diff --exit-code -- public/css/nafcms.css
@@ -101,7 +113,7 @@ jobs:
           --health-timeout=5s
           --health-retries=10
     env:
-      APP_ENV: testing
+      APP_ENV: test
       DB_DRIVER: mysql
       DB_HOST: 127.0.0.1
       DB_PORT: 3306

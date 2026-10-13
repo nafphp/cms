@@ -1,6 +1,6 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
 
-@source "../../../views/**/*.phtml";
+@source "../../views/**/*.phtml";
 @source "../../../src/**/*.php";
 @source "../../../public/js/**/*.js";
 
