@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Handlers\Api\User;
 
-use Naf\CMS\Handlers\Api\User\UserPayloadValidator;
 use Naf\CMS\Handlers\Support\ReadsJsonBody;
 use Naf\CMS\Repositories\UserRepository;
 use Naf\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
+
 use function Naf\json;
 use function Naf\ORM\repo;
 use function Naf\route;
@@ -19,11 +19,12 @@ final class UpdateUser
 
     public function __construct(
         private readonly UserPayloadValidator $validator = new UserPayloadValidator(),
-    ) {}
+    ) {
+    }
 
     public function __invoke(): ResponseInterface
     {
-        $data = $this->jsonBody();
+        $data   = $this->jsonBody();
         $userId = (int) ($data['user_id'] ?? 0);
         $errors = $this->validator->validate($data, false, false);
         if ($userId <= 0) {
@@ -35,13 +36,13 @@ final class UpdateUser
         }
 
         $repository = repo(UserRepository::class);
-        $old = $repository->findOneForForm($userId);
+        $old        = $repository->findOneForForm($userId);
         if ($old === null) {
             return json(['success' => false, 'reason' => 'User not found.'], 404);
         }
 
         $username = trim((string) ($data['username'] ?? ''));
-        $email = strtolower(trim((string) ($data['email'] ?? '')));
+        $email    = strtolower(trim((string) ($data['email'] ?? '')));
         if ($repository->usernameExistsForAnotherUser($username, $userId)) {
             return json(['success' => false, 'reason' => 'Username already exists.'], 409);
         }
@@ -71,8 +72,8 @@ final class UpdateUser
         )->record();
 
         return json([
-            'success' => true,
-            'userId' => $userId,
+            'success'  => true,
+            'userId'   => $userId,
             'redirect' => route('admin.users'),
         ]);
     }
@@ -88,12 +89,12 @@ final class UpdateUser
         }
 
         return [
-            'id' => (int) ($user['id'] ?? 0),
-            'username' => (string) ($user['username'] ?? ''),
-            'email' => $user['email'] ?? null,
+            'id'        => (int) ($user['id'] ?? 0),
+            'username'  => (string) ($user['username'] ?? ''),
+            'email'     => $user['email'] ?? null,
             'firstname' => (string) ($user['firstname'] ?? ''),
-            'lastname' => (string) ($user['lastname'] ?? ''),
-            'roles' => $user['roles'] ?? [],
+            'lastname'  => (string) ($user['lastname'] ?? ''),
+            'roles'     => $user['roles'] ?? [],
         ];
     }
 }

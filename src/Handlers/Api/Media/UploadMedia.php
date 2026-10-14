@@ -6,11 +6,13 @@ namespace Naf\CMS\Handlers\Api\Media;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UploadedFileInterface;
+use Throwable;
+
+use function Naf\CMS\cms;
+use function Naf\CMS\user;
 use function Naf\I18n\t;
 use function Naf\json;
 use function Naf\request;
-use function Naf\CMS\cms;
-use function Naf\CMS\user;
 
 final class UploadMedia
 {
@@ -21,12 +23,12 @@ final class UploadMedia
             return json(['success' => false, 'reason' => t('No file was uploaded.')], 400);
         }
 
-        $stored = [];
+        $stored     = [];
         $uploadedBy = user()?->get()?->getId();
-        $body = request()->getParsedBody();
-        $context = [
+        $body       = request()->getParsedBody();
+        $context    = [
             'visibility' => is_array($body) ? (string) ($body['visibility'] ?? 'public') : 'public',
-            'alt_text' => is_array($body) ? (string) ($body['alt_text'] ?? '') : '',
+            'alt_text'   => is_array($body) ? (string) ($body['alt_text'] ?? '') : '',
             'collection' => is_array($body) ? (string) ($body['collection'] ?? '') : '',
         ];
 
@@ -34,7 +36,7 @@ final class UploadMedia
             foreach ($files as $file) {
                 $stored[] = cms()->media()->storeUploadedFile($file, $uploadedBy, $context);
             }
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             return json(['success' => false, 'reason' => $exception->getMessage()], 400);
         }
 
@@ -42,9 +44,9 @@ final class UploadMedia
 
         return json([
             'success' => true,
-            'media' => $first,
-            'files' => $stored,
-            'file' => ['url' => (string) ($first['public_url'] ?? '')],
+            'media'   => $first,
+            'files'   => $stored,
+            'file'    => ['url' => (string) ($first['public_url'] ?? '')],
         ], 201);
     }
 
@@ -54,7 +56,7 @@ final class UploadMedia
     private function uploadedFiles(): array
     {
         $uploadedFiles = request()->getUploadedFiles();
-        $candidates = [];
+        $candidates    = [];
 
         foreach (['file', 'files', 'media', 'image'] as $field) {
             if (array_key_exists($field, $uploadedFiles)) {
@@ -81,6 +83,7 @@ final class UploadMedia
     {
         if ($candidate instanceof UploadedFileInterface) {
             $files[] = $candidate;
+
             return;
         }
 

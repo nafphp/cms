@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace Naf\CMS\Services\Security;
 
 use Naf\CMS\Contracts\RateLimiterInterface;
-use Naf\CMS\Services\Security\FileRateLimiter;
-use Naf\CMS\Services\Security\RateLimitDecision;
 
 final class LoginRateLimiter implements RateLimiterInterface
 {
-    private const int PAIR_ATTEMPTS = 5;
-    private const int IP_ATTEMPTS = 30;
+    private const int PAIR_ATTEMPTS  = 5;
+    private const int IP_ATTEMPTS    = 30;
     private const int WINDOW_SECONDS = 300;
 
     public function __construct(private readonly FileRateLimiter $limiter = new FileRateLimiter())
@@ -21,14 +19,16 @@ final class LoginRateLimiter implements RateLimiterInterface
     public function inspect(string $username, string $ipAddress): RateLimitDecision
     {
         $pair = $this->limiter->inspect($this->pairKey($username, $ipAddress), self::PAIR_ATTEMPTS, self::WINDOW_SECONDS);
-        $ip = $this->limiter->inspect($this->ipKey($ipAddress), self::IP_ATTEMPTS, self::WINDOW_SECONDS);
+        $ip   = $this->limiter->inspect($this->ipKey($ipAddress), self::IP_ATTEMPTS, self::WINDOW_SECONDS);
+
         return $this->strictest($pair, $ip);
     }
 
     public function recordFailure(string $username, string $ipAddress): RateLimitDecision
     {
         $pair = $this->limiter->hit($this->pairKey($username, $ipAddress), self::PAIR_ATTEMPTS, self::WINDOW_SECONDS);
-        $ip = $this->limiter->hit($this->ipKey($ipAddress), self::IP_ATTEMPTS, self::WINDOW_SECONDS);
+        $ip   = $this->limiter->hit($this->ipKey($ipAddress), self::IP_ATTEMPTS, self::WINDOW_SECONDS);
+
         return $this->strictest($pair, $ip);
     }
 

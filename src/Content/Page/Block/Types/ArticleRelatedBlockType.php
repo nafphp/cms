@@ -36,11 +36,11 @@ final class ArticleRelatedBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'title' => 'Related articles',
-            'source' => 'category',
-            'limit' => 3,
+            'title'        => 'Related articles',
+            'source'       => 'category',
+            'limit'        => 3,
             'presentation' => 'cards',
-            'detailPath' => '/articles/{slug}',
+            'detailPath'   => '/articles/{slug}',
         ];
     }
 

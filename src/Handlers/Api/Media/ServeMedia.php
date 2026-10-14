@@ -7,10 +7,11 @@ namespace Naf\CMS\Handlers\Api\Media;
 use Naf\CMS\Enums\Permission;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\ResponseInterface;
-use function Naf\I18n\t;
-use function Naf\response;
+
 use function Naf\CMS\cms;
 use function Naf\CMS\user;
+use function Naf\I18n\t;
+use function Naf\response;
 
 final class ServeMedia
 {
@@ -41,10 +42,10 @@ final class ServeMedia
         }
 
         return response(Stream::create($handle), 200, [
-            'Content-Type' => (string) ($media['mime_type'] ?? 'application/octet-stream'),
-            'Content-Length' => (string) filesize($path),
-            'Content-Disposition' => 'inline; filename="' . $this->headerFilename($storedName) . '"',
-            'Cache-Control' => $this->cacheControl($media),
+            'Content-Type'           => (string) ($media['mime_type'] ?? 'application/octet-stream'),
+            'Content-Length'         => (string) filesize($path),
+            'Content-Disposition'    => 'inline; filename="' . $this->headerFilename($storedName) . '"',
+            'Cache-Control'          => $this->cacheControl($media),
             'X-Content-Type-Options' => 'nosniff',
         ]);
     }

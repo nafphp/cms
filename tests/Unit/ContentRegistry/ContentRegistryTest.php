@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\ContentRegistry;
 
+use LogicException;
 use Naf\CMS\Content\Article\ArticleContentType;
 use Naf\CMS\Content\ContentRegistry;
 use Naf\CMS\Models\Article;
@@ -13,7 +14,7 @@ final class ContentRegistryTest extends TestCase
 {
     public function testRegistryFindsContentTypeByIdAndModel(): void
     {
-        $type = new ArticleContentType();
+        $type     = new ArticleContentType();
         $registry = new ContentRegistry();
         $registry->add($type);
 
@@ -27,7 +28,7 @@ final class ContentRegistryTest extends TestCase
         $registry = new ContentRegistry();
         $registry->add(new ArticleContentType());
 
-        self::expectException(\LogicException::class);
+        self::expectException(LogicException::class);
         self::expectExceptionMessage('Content type "article" is already registered.');
 
         $registry->add(new ArticleContentType());

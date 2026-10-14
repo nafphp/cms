@@ -1,12 +1,12 @@
 <?php
 
-use function Naf\View\s;
 use function Naf\I18n\t;
+use function Naf\View\s;
 
 $content = is_array($content ?? null) ? $content : [];
-$props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$level = (string) ($props['level'] ?? 'h2');
-$level = in_array($level, ['h1', 'h2', 'h3'], true) ? $level : 'h2';
+$props   = is_array($content['props'] ?? null) ? $content['props'] : [];
+$level   = (string) ($props['level'] ?? 'h2');
+$level   = in_array($level, ['h1', 'h2', 'h3'], true) ? $level : 'h2';
 
 ?>
 <<?= s($level) ?> class="text-3xl font-extrabold leading-tight text-[var(--page-text)]">

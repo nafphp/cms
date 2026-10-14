@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Page;
 
-use Naf\Database\Core\Database;
 use Naf\CMS\Handlers\Page\Pages\StorePage;
+use Naf\CMS\Page\PageBuilderPayloadNormalizer;
+use Naf\Database\Core\Database;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use Tests\Support\JsonRequest;
+
 use function Naf\app;
 
 final class StorePageTest extends TestCase
@@ -23,7 +25,7 @@ final class StorePageTest extends TestCase
     {
         JsonRequest::bind([]);
         $response = (new StorePage())();
-        $payload = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
+        $payload  = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
 
         self::assertSame(400, $response->getStatusCode());
         self::assertFalse($payload['success']);
@@ -35,36 +37,36 @@ final class StorePageTest extends TestCase
     public function testCustomLayoutDefinitionsAreNormalizedForPersistence(): void
     {
         $handler = new StorePage();
-        $method = new ReflectionMethod($handler, 'normalizeCustomLayout');
-        $errors = [];
+        $method  = new ReflectionMethod($handler, 'normalizeCustomLayout');
+        $errors  = [];
 
         $normalized = $method->invokeArgs($handler, [[
             [
-                'id' => 'slot_hero',
-                'label' => 'Hero',
-                'region' => 'header',
-                'size' => 'hero',
-                'position' => 'center',
-                'maxHeight' => '640',
-                'overflow' => 'auto',
-                'surface' => 'card',
-                'accepts' => ['hero', 'hero', 'Bad Type'],
+                'id'                 => 'slot_hero',
+                'label'              => 'Hero',
+                'region'             => 'header',
+                'size'               => 'hero',
+                'position'           => 'center',
+                'maxHeight'          => '640',
+                'overflow'           => 'auto',
+                'surface'            => 'card',
+                'accepts'            => ['hero', 'hero', 'Bad Type'],
                 'defaultContentType' => 'hero',
-                'unexpected' => 'ignored',
+                'unexpected'         => 'ignored',
             ],
         ], &$errors]);
 
         self::assertSame([], $errors);
         self::assertSame([[
-            'id' => 'slot_hero',
-            'label' => 'Hero',
-            'region' => 'header',
-            'size' => 'hero',
-            'position' => 'center',
-            'maxHeight' => '640',
-            'overflow' => 'auto',
-            'surface' => 'card',
-            'accepts' => ['hero'],
+            'id'                 => 'slot_hero',
+            'label'              => 'Hero',
+            'region'             => 'header',
+            'size'               => 'hero',
+            'position'           => 'center',
+            'maxHeight'          => '640',
+            'overflow'           => 'auto',
+            'surface'            => 'card',
+            'accepts'            => ['hero'],
             'defaultContentType' => 'hero',
         ]], $normalized);
     }
@@ -72,8 +74,8 @@ final class StorePageTest extends TestCase
     public function testCustomLayoutRejectsDuplicateSlotIds(): void
     {
         $handler = new StorePage();
-        $method = new ReflectionMethod($handler, 'normalizeCustomLayout');
-        $errors = [];
+        $method  = new ReflectionMethod($handler, 'normalizeCustomLayout');
+        $errors  = [];
 
         $normalized = $method->invokeArgs($handler, [[
             ['id' => 'slot_text', 'label' => 'Text', 'region' => 'main', 'size' => 'medium'],
@@ -81,14 +83,14 @@ final class StorePageTest extends TestCase
         ], &$errors]);
 
         self::assertSame([[
-            'id' => 'slot_text',
-            'label' => 'Text',
-            'region' => 'main',
-            'size' => 'medium',
-            'position' => 'stretch',
+            'id'        => 'slot_text',
+            'label'     => 'Text',
+            'region'    => 'main',
+            'size'      => 'medium',
+            'position'  => 'stretch',
             'maxHeight' => 'none',
-            'overflow' => 'visible',
-            'surface' => 'none',
+            'overflow'  => 'visible',
+            'surface'   => 'none',
         ]], $normalized);
         self::assertStringContainsString('duplicate slot id "slot_text"', implode("\n", $errors));
     }
@@ -96,10 +98,10 @@ final class StorePageTest extends TestCase
     public function testNormalizeBlocksAllowsCustomLayoutSlotIds(): void
     {
         $handler = new StorePage();
-        $method = new ReflectionMethod($handler, 'normalizeBlocks');
+        $method  = new ReflectionMethod($handler, 'normalizeBlocks');
 
         $normalized = $method->invoke($handler, [
-            'slot_text' => ['type' => 'text', 'props' => ['text' => 'Hello']],
+            'slot_text'     => ['type' => 'text', 'props' => ['text' => 'Hello']],
             'not_in_layout' => ['type' => 'text', 'props' => []],
         ], [
             ['id' => 'slot_text', 'label' => 'Text', 'region' => 'main', 'size' => 'medium'],
@@ -107,31 +109,31 @@ final class StorePageTest extends TestCase
 
         self::assertSame([
             'slot_text' => [
-                'type' => 'text',
-                'label' => 'Text block',
+                'type'         => 'text',
+                'label'        => 'Text block',
                 'previewTitle' => 'Short text',
-                'props' => ['text' => 'Hello'],
+                'props'        => ['text' => 'Hello'],
             ],
         ], $normalized);
     }
 
     public function testValidationRejectsUnsafeCanonicalUrl(): void
     {
-        $handler = new StorePage();
+        $handler         = new StorePage();
         $templatesMethod = new ReflectionMethod($handler, 'templates');
-        $templates = $templatesMethod->invoke($handler);
+        $templates       = $templatesMethod->invoke($handler);
         self::assertNotSame([], $templates);
         $templateId = (string) array_key_first($templates);
 
         $validate = new ReflectionMethod($handler, 'validate');
-        $errors = $validate->invoke($handler, [
-            'builderVersion' => \Naf\CMS\Page\PageBuilderPayloadNormalizer::VERSION,
-            'title' => 'Safe page title',
-            'path' => '/canonical-policy-probe',
-            'language' => 'en',
-            'templateId' => $templateId,
-            'blocks' => [],
-            'meta' => ['seo' => ['canonicalUrl' => 'javascript:alert(1)']],
+        $errors   = $validate->invoke($handler, [
+            'builderVersion' => PageBuilderPayloadNormalizer::VERSION,
+            'title'          => 'Safe page title',
+            'path'           => '/canonical-policy-probe',
+            'language'       => 'en',
+            'templateId'     => $templateId,
+            'blocks'         => [],
+            'meta'           => ['seo' => ['canonicalUrl' => 'javascript:alert(1)']],
         ], $templates);
 
         self::assertArrayHasKey('meta.seo.canonicalUrl', $errors);

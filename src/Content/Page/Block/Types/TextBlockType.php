@@ -36,9 +36,9 @@ final class TextBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'text' => 'A short text block for this position.',
-            'tone' => 'body',
-            'align' => 'left',
+            'text'          => 'A short text block for this position.',
+            'tone'          => 'body',
+            'align'         => 'left',
             'verticalAlign' => 'top',
         ];
     }

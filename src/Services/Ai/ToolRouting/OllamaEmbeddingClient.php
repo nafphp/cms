@@ -7,9 +7,10 @@ namespace Naf\CMS\Services\Ai\ToolRouting;
 use Naf\CMS\Exceptions\OutboundHttpDenied;
 use Naf\CMS\Services\Http\OutboundHttpClient;
 use Naf\CMS\Services\Http\OutboundHttpPolicy;
-use Naf\CMS\Services\Ai\ToolRouting\EmbeddingClientInterface;
 use Naf\CMS\Services\Http\OutboundHttpProfile;
 use Naf\CMS\Support\RuntimePaths;
+use Throwable;
+
 use function Naf\config;
 use function Naf\log;
 
@@ -29,11 +30,11 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
         ?OutboundHttpClient $httpClient = null,
         ?OutboundHttpProfile $httpProfile = null,
     ) {
-        $this->baseUrl = rtrim(trim($baseUrl), '/');
-        $this->model = trim($model);
-        $this->timeout = $timeout > 0.0 ? $timeout : 1.5;
+        $this->baseUrl        = rtrim(trim($baseUrl), '/');
+        $this->model          = trim($model);
+        $this->timeout        = $timeout > 0.0 ? $timeout : 1.5;
         $this->cacheDirectory = $cacheDirectory ?? $this->defaultCacheDirectory();
-        $this->httpClient = $httpClient ?? new OutboundHttpClient(
+        $this->httpClient     = $httpClient ?? new OutboundHttpClient(
             new OutboundHttpPolicy(),
             maxResponseBytes: (int) config('cms:outbound_http:ollama:max_response_bytes', 1048576),
         );
@@ -76,8 +77,8 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
      */
     public function embedMany(array $texts): array
     {
-        $results = [];
-        $missingTexts = [];
+        $results        = [];
+        $missingTexts   = [];
         $missingIndexes = [];
 
         foreach ($texts as $index => $text) {
@@ -98,7 +99,7 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
             }
 
             $missingIndexes[] = $index;
-            $missingTexts[] = $text;
+            $missingTexts[]   = $text;
         }
 
         if ($missingTexts !== []) {
@@ -106,7 +107,7 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
             foreach ($missingIndexes as $offset => $index) {
                 $embedding = $batch[$offset] ?? null;
                 if ($embedding !== null) {
-                    $cacheKey = hash('sha256', $this->model . "\n" . $missingTexts[$offset]);
+                    $cacheKey               = hash('sha256', $this->model . "\n" . $missingTexts[$offset]);
                     $this->cache[$cacheKey] = $embedding;
                     $this->writeCached($cacheKey, $embedding);
                 }
@@ -130,7 +131,7 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
             'input' => $text,
         ]);
         $embeddings = is_array($payload['embeddings'] ?? null) ? $payload['embeddings'] : [];
-        $embedding = is_array($embeddings[0] ?? null) ? $embeddings[0] : null;
+        $embedding  = is_array($embeddings[0] ?? null) ? $embeddings[0] : null;
 
         return $this->normalizeEmbedding($embedding);
     }
@@ -159,7 +160,7 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
     private function embedViaApiEmbeddings(string $text): ?array
     {
         $payload = $this->request('/api/embeddings', [
-            'model' => $this->model,
+            'model'  => $this->model,
             'prompt' => $text,
         ]);
 
@@ -173,6 +174,7 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
     private function request(string $path, array $payload): array
     {
         $body = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
         return $this->requestWithTimeout($path, $body, $this->timeout, 1);
     }
 
@@ -193,15 +195,16 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
             $raw = $response->successful() ? $response->body : '';
         } catch (OutboundHttpDenied) {
             log()->warning('ollama.embed.target_denied', ['path' => $path]);
+
             return [];
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $raw = '';
         }
         if (!is_string($raw) || trim($raw) === '') {
             if ($attempt === 1) {
                 log()->warning('ollama.embed.retry', [
                     'attempt' => $attempt,
-                    'path' => $path,
+                    'path'    => $path,
                     'timeout' => $timeout,
                 ]);
 
@@ -210,7 +213,7 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
 
             log()->error('ollama.embed.failed', [
                 'attempt' => $attempt,
-                'path' => $path,
+                'path'    => $path,
                 'timeout' => $timeout,
             ]);
 
@@ -219,11 +222,12 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
 
         try {
             $decoded = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error('ollama.embed.decode_failed', [
                 'exception' => $e,
-                'path' => $path,
+                'path'      => $path,
             ]);
+
             return [];
         }
 
@@ -283,12 +287,13 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
 
         try {
             $payload = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->warning('OllamaEmbeddingClient.readCached corrupt cache ignored', [
                 'exception' => $e,
                 'cache_key' => $cacheKey,
-                'path' => $path,
+                'path'      => $path,
             ]);
+
             return null;
         }
 
@@ -316,14 +321,15 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
 
         try {
             $payload = json_encode([
-                'model' => $this->model,
+                'model'     => $this->model,
                 'embedding' => $embedding,
             ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->warning('OllamaEmbeddingClient.writeCached encode failed', [
                 'exception' => $e,
                 'cache_key' => $cacheKey,
             ]);
+
             return;
         }
 

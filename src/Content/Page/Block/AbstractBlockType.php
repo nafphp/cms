@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Content\Page\Block;
 
-use Naf\CMS\Content\Page\Block\BlockTypeInterface;
-
 abstract class AbstractBlockType implements BlockTypeInterface
 {
     public function description(): string
@@ -62,13 +60,13 @@ abstract class AbstractBlockType implements BlockTypeInterface
     public function toBuilderArray(): array
     {
         $data = [
-            'type' => $this->id(),
-            'label' => $this->label(),
-            'description' => $this->description(),
-            'regions' => $this->regions(),
+            'type'         => $this->id(),
+            'label'        => $this->label(),
+            'description'  => $this->description(),
+            'regions'      => $this->regions(),
             'previewTitle' => $this->previewTitle(),
-            'defaults' => $this->defaults(),
-            'unique' => $this->unique(),
+            'defaults'     => $this->defaults(),
+            'unique'       => $this->unique(),
         ];
 
         if ($this->fields() !== []) {

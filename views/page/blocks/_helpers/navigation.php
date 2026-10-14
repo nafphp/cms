@@ -1,10 +1,11 @@
 <?php
 
 use Naf\CMS\Security\UrlPolicy;
-use function Naf\View\s;
+
+use function Naf\CMS\cms;
 use function Naf\I18n\lang;
 use function Naf\I18n\t;
-use function Naf\CMS\cms;
+use function Naf\View\s;
 
 if (!function_exists('nafcms_page_block_nav_items')) {
     function nafcms_page_block_nav_items(?string $identifier, ?string $language = null, ?string $fallbackIdentifier = 'main'): array
@@ -21,7 +22,7 @@ if (!function_exists('nafcms_page_block_nav_items')) {
         $language = $language === null ? lang() : $language;
         $language = $language === '' ? null : $language;
 
-        $items = cms()->navigation()->tree($identifier, $language);
+        $items              = cms()->navigation()->tree($identifier, $language);
         $fallbackIdentifier = trim((string) $fallbackIdentifier);
         if ($items === [] && $fallbackIdentifier !== '' && $fallbackIdentifier !== $identifier) {
             return cms()->navigation()->tree($fallbackIdentifier, $language);
@@ -36,7 +37,7 @@ if (!function_exists('nafcms_page_block_nav')) {
     {
         $linkStyle = in_array($linkStyle, ['blank', 'underline', 'pill', 'rounded-pill', 'filled', 'filled-rounded'], true) ? $linkStyle : 'blank';
         $linkTheme = in_array($linkTheme, ['default', 'accent', 'surface'], true) ? $linkTheme : 'default';
-        $class = $presentation === 'vertical'
+        $class     = $presentation === 'vertical'
             ? 'page-navigation page-navigation--vertical grid gap-2'
             : 'page-navigation page-navigation--horizontal flex flex-wrap items-center gap-4';
         $class .= ' page-navigation--style-' . $linkStyle . ' page-navigation--theme-' . $linkTheme;

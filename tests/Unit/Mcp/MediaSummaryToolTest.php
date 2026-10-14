@@ -40,27 +40,27 @@ final class MediaSummaryToolTest extends DatabaseTestCase
         SQL);
 
         $this->insertMedia([
-            'public_id' => 'aaaaaaaaaaaaaaaaaaaaaaaa',
+            'public_id'     => 'aaaaaaaaaaaaaaaaaaaaaaaa',
             'original_name' => 'Document.pdf',
-            'mime_type' => 'application/pdf',
-            'extension' => 'pdf',
-            'size_bytes' => 2048,
-            'created_at' => '2026-05-01 10:00:00',
+            'mime_type'     => 'application/pdf',
+            'extension'     => 'pdf',
+            'size_bytes'    => 2048,
+            'created_at'    => '2026-05-01 10:00:00',
         ]);
         $this->insertMedia([
-            'public_id' => 'bbbbbbbbbbbbbbbbbbbbbbbb',
+            'public_id'     => 'bbbbbbbbbbbbbbbbbbbbbbbb',
             'original_name' => 'Image.png',
-            'mime_type' => 'image/png',
-            'extension' => 'png',
-            'size_bytes' => 512,
-            'width' => 320,
-            'height' => 240,
-            'created_at' => '2026-05-02 10:00:00',
+            'mime_type'     => 'image/png',
+            'extension'     => 'png',
+            'size_bytes'    => 512,
+            'width'         => 320,
+            'height'        => 240,
+            'created_at'    => '2026-05-02 10:00:00',
         ]);
 
         $storage = new EntityStorage(Media::class, $this->pdo);
-        $api = new MediaApi(new MediaStorageService($storage, sys_get_temp_dir(), '/media'), $storage);
-        $result = (new MediaSummaryTool($api))->handle(['include_recent' => true, 'limit' => 1]);
+        $api     = new MediaApi(new MediaStorageService($storage, sys_get_temp_dir(), '/media'), $storage);
+        $result  = (new MediaSummaryTool($api))->handle(['include_recent' => true, 'limit' => 1]);
 
         self::assertTrue($result['database_available']);
         self::assertSame(2, $result['total']);
@@ -80,24 +80,24 @@ final class MediaSummaryToolTest extends DatabaseTestCase
     private function insertMedia(array $overrides): int
     {
         return $this->insertRow('media', array_replace([
-            'public_id' => 'dddddddddddddddddddddddd',
-            'disk' => 'public',
-            'visibility' => 'public',
+            'public_id'     => 'dddddddddddddddddddddddd',
+            'disk'          => 'public',
+            'visibility'    => 'public',
             'original_name' => 'File.bin',
-            'stored_name' => 'file.bin',
-            'storage_path' => 'media/file.bin',
-            'file_path' => '/tmp/file.bin',
-            'public_url' => '/media/file.bin',
-            'mime_type' => 'application/octet-stream',
-            'extension' => 'bin',
-            'size_bytes' => 1,
-            'width' => null,
-            'height' => null,
-            'alt_text' => null,
-            'uploaded_by' => null,
+            'stored_name'   => 'file.bin',
+            'storage_path'  => 'media/file.bin',
+            'file_path'     => '/tmp/file.bin',
+            'public_url'    => '/media/file.bin',
+            'mime_type'     => 'application/octet-stream',
+            'extension'     => 'bin',
+            'size_bytes'    => 1,
+            'width'         => null,
+            'height'        => null,
+            'alt_text'      => null,
+            'uploaded_by'   => null,
             'metadata_json' => '{}',
-            'created_at' => '2026-05-01 10:00:00',
-            'updated_at' => null,
+            'created_at'    => '2026-05-01 10:00:00',
+            'updated_at'    => null,
         ], $overrides));
     }
 }

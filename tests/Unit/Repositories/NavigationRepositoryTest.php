@@ -37,13 +37,13 @@ final class NavigationRepositoryTest extends DatabaseTestCase
     {
         $id = $this->repository->save([
             'identifier' => 'main',
-            'title' => 'Main navigation',
-            'status' => 'published',
-            'items' => [
+            'title'      => 'Main navigation',
+            'status'     => 'published',
+            'items'      => [
                 [
-                    'key' => 'home',
-                    'label' => 'Home',
-                    'href' => '/',
+                    'key'      => 'home',
+                    'label'    => 'Home',
+                    'href'     => '/',
                     'children' => [
                         ['key' => 'docs', 'label' => 'Docs', 'href' => '/docs'],
                     ],
@@ -64,8 +64,8 @@ final class NavigationRepositoryTest extends DatabaseTestCase
     {
         $this->repository->save([
             'identifier' => 'footer',
-            'title' => 'Footer',
-            'items' => [],
+            'title'      => 'Footer',
+            'items'      => [],
         ]);
 
         self::assertSame('Footer', $this->repository->findByIdentifier('footer', language: 'de')?->title());
@@ -75,10 +75,10 @@ final class NavigationRepositoryTest extends DatabaseTestCase
     {
         $this->repository->save([
             'identifier' => 'main',
-            'title' => 'Hauptnavigation',
-            'language' => 'de',
-            'status' => 'published',
-            'items' => [
+            'title'      => 'Hauptnavigation',
+            'language'   => 'de',
+            'status'     => 'published',
+            'items'      => [
                 ['key' => 'home', 'label' => 'Startseite', 'href' => '/'],
             ],
         ]);
@@ -94,18 +94,18 @@ final class NavigationRepositoryTest extends DatabaseTestCase
     {
         $id = $this->repository->save([
             'identifier' => 'main',
-            'title' => 'Main',
-            'language' => 'de',
-            'status' => 'published',
-            'items' => [],
+            'title'      => 'Main',
+            'language'   => 'de',
+            'status'     => 'published',
+            'items'      => [],
         ]);
 
         $updatedId = $this->repository->save([
             'identifier' => 'main',
-            'title' => 'Main updated',
-            'language' => 'de',
-            'status' => 'draft',
-            'items' => [],
+            'title'      => 'Main updated',
+            'language'   => 'de',
+            'status'     => 'draft',
+            'items'      => [],
         ]);
 
         self::assertSame($id, $updatedId);
@@ -117,20 +117,20 @@ final class NavigationRepositoryTest extends DatabaseTestCase
     {
         $keepId = $this->repository->save([
             'identifier' => 'main',
-            'title' => 'Main',
-            'items' => [],
+            'title'      => 'Main',
+            'items'      => [],
         ]);
         $this->repository->save([
             'identifier' => 'main',
-            'title' => 'Main DE',
-            'language' => 'de',
-            'items' => [],
+            'title'      => 'Main DE',
+            'language'   => 'de',
+            'items'      => [],
         ]);
         $this->repository->save([
             'identifier' => 'main',
-            'title' => 'Main EN',
-            'language' => 'en',
-            'items' => [],
+            'title'      => 'Main EN',
+            'language'   => 'en',
+            'items'      => [],
         ]);
 
         self::assertSame(2, $this->repository->deleteTranslationsExcept('main', keepId: $keepId));
@@ -142,9 +142,9 @@ final class NavigationRepositoryTest extends DatabaseTestCase
     {
         $id = $this->repository->save([
             'identifier' => 'main',
-            'title' => 'Main',
-            'language' => 'en',
-            'items' => [],
+            'title'      => 'Main',
+            'language'   => 'en',
+            'items'      => [],
         ]);
 
         self::assertTrue($this->repository->publish($id));
@@ -155,9 +155,9 @@ final class NavigationRepositoryTest extends DatabaseTestCase
     {
         $id = $this->repository->save([
             'identifier' => 'main',
-            'title' => 'Main',
-            'language' => 'en',
-            'items' => [],
+            'title'      => 'Main',
+            'language'   => 'en',
+            'items'      => [],
         ]);
 
         self::assertTrue($this->repository->delete($id));

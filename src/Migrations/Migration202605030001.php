@@ -13,12 +13,12 @@ final class Migration202605030001 extends AbstractMigration
 {
     public function up(PDO $connection): void
     {
-        $driver = strtolower((string) $connection->getAttribute(PDO::ATTR_DRIVER_NAME));
+        $driver   = strtolower((string) $connection->getAttribute(PDO::ATTR_DRIVER_NAME));
         $idColumn = $driver === 'sqlite'
             ? 'id INTEGER PRIMARY KEY AUTOINCREMENT'
             : 'id INT AUTO_INCREMENT PRIMARY KEY';
-        $jsonType = $driver === 'sqlite' ? 'TEXT' : 'JSON';
-        $integerType = $driver === 'sqlite' ? 'INTEGER' : 'INT';
+        $jsonType       = $driver === 'sqlite' ? 'TEXT' : 'JSON';
+        $integerType    = $driver === 'sqlite' ? 'INTEGER' : 'INT';
         $bigIntegerType = $driver === 'sqlite' ? 'INTEGER' : 'BIGINT';
 
         $connection->exec(<<<SQL
@@ -96,7 +96,7 @@ final class Migration202605030001 extends AbstractMigration
         foreach ($permissions as $permission) {
             $link->execute([
                 'role_id' => $adminRoleId,
-                'name' => $permission->value,
+                'name'    => $permission->value,
             ]);
         }
 
@@ -130,7 +130,7 @@ final class Migration202605030001 extends AbstractMigration
             foreach ($grantedPermissions as $permission) {
                 $link->execute([
                     'role_id' => $roleId,
-                    'name' => $permission->value,
+                    'name'    => $permission->value,
                 ]);
             }
         }

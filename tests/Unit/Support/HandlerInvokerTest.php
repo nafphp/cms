@@ -42,7 +42,7 @@ final class HandlerInvokerTest extends TestCase
     {
         $result = HandlerInvoker::call(
             static fn(string $navigationId): string => 'navigation ' . $navigationId,
-            ['navigationId' => '12', 'ignored' => true]
+            ['navigationId' => '12', 'ignored' => true],
         );
 
         self::assertSame('navigation 12', $result);

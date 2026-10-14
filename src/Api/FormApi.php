@@ -66,8 +66,8 @@ final class FormApi
     /** @param array<string, mixed> $payload */
     public function save(array $payload): int
     {
-        $id = (int) ($payload['id'] ?? 0);
-        $old = $id > 0 ? $this->repository->find($id) : null;
+        $id      = (int) ($payload['id'] ?? 0);
+        $old     = $id > 0 ? $this->repository->find($id) : null;
         $savedId = $this->repository->save($payload);
 
         AuditEntry::create(
@@ -83,7 +83,7 @@ final class FormApi
 
     public function delete(int $id): bool
     {
-        $old = $this->repository->find($id);
+        $old     = $this->repository->find($id);
         $deleted = $this->repository->delete($id);
         if ($deleted) {
             AuditEntry::create(
@@ -120,13 +120,12 @@ final class FormApi
         }
 
         return [
-            'id' => (int) ($form['id'] ?? 0),
+            'id'         => (int) ($form['id'] ?? 0),
             'identifier' => (string) ($form['identifier'] ?? ''),
-            'title' => (string) ($form['title'] ?? ''),
-            'status' => (string) ($form['status'] ?? ''),
-            'fields' => $form['fields'] ?? [],
-            'settings' => $form['settings'] ?? [],
+            'title'      => (string) ($form['title'] ?? ''),
+            'status'     => (string) ($form['status'] ?? ''),
+            'fields'     => $form['fields'] ?? [],
+            'settings'   => $form['settings'] ?? [],
         ];
     }
-
 }

@@ -10,10 +10,11 @@ use Naf\CMS\Handlers\Support\RejectsPrivilegedAction;
 use Naf\CMS\Repositories\UserRepository;
 use Naf\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
+
+use function Naf\CMS\user;
 use function Naf\json;
 use function Naf\ORM\repo;
 use function Naf\route;
-use function Naf\CMS\user;
 
 final class CreateInvite
 {
@@ -22,9 +23,9 @@ final class CreateInvite
 
     public function __invoke(): ResponseInterface
     {
-        $data = $this->jsonBody();
-        $email = strtolower(trim((string) ($data['email'] ?? '')));
-        $roles = is_array($data['roles'] ?? null) ? $data['roles'] : [];
+        $data          = $this->jsonBody();
+        $email         = strtolower(trim((string) ($data['email'] ?? '')));
+        $roles         = is_array($data['roles'] ?? null) ? $data['roles'] : [];
         $expiresInDays = (int) ($data['expiresInDays'] ?? 7);
 
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -65,18 +66,18 @@ final class CreateInvite
             (string) ($invite['email'] ?? $email),
             null,
             [
-                'email' => $invite['email'] ?? $email,
-                'roles' => $invite['roles'] ?? $roles,
+                'email'      => $invite['email'] ?? $email,
+                'roles'      => $invite['roles'] ?? $roles,
                 'expires_at' => $invite['expiresAt'] ?? null,
             ],
         )->record();
 
         return json([
-            'success' => true,
+            'success'    => true,
             'inviteLink' => route('auth.register', ['token' => $invite['token']]),
-            'expiresAt' => $invite['expiresAt'],
-            'email' => $invite['email'],
-            'roles' => $invite['roles'],
+            'expiresAt'  => $invite['expiresAt'],
+            'email'      => $invite['email'],
+            'roles'      => $invite['roles'],
         ]);
     }
 }

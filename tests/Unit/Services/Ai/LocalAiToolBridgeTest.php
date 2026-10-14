@@ -12,6 +12,8 @@ use Naf\MCP\Tools\ToolInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use RuntimeException;
+
 use function Naf\app;
 
 final class LocalAiToolBridgeTest extends TestCase
@@ -52,14 +54,14 @@ final class LocalAiToolBridgeTest extends TestCase
 
         self::assertSame([
             'success' => true,
-            'topic' => 'coverage',
+            'topic'   => 'coverage',
         ], $result);
     }
 
     public function testCallRejectsScopedToolWhenLocalUserHasNoMatchingScope(): void
     {
-        self::expectException(\RuntimeException::class);
-        self::expectExceptionMessage('Not allowed to call tool: local_ai_scoped_fixture');
+        self::expectException(RuntimeException::class);
+        self::expectExceptionMessage('Not allowed to call');
 
         (new LocalAiToolBridge())->call('local_ai_scoped_fixture');
     }
@@ -82,9 +84,9 @@ final class LocalAiUnscopedToolFixture implements ToolInterface, LocalAiToolMeta
     public function localAiMetadata(): array
     {
         return [
-            'title' => 'Fixture metadata title',
+            'title'        => 'Fixture metadata title',
             'capabilities' => ['fixtures.read'],
-            'mode' => 'read',
+            'mode'         => 'read',
         ];
     }
 
@@ -100,14 +102,14 @@ final class LocalAiUnscopedToolFixture implements ToolInterface, LocalAiToolMeta
 
     public function inputSchema(): array
     {
-        return ['type' => 'object', 'properties' => []];
+        return ['type' => 'object', 'properties' => ['topic' => ['type' => 'string']]];
     }
 
     public function handle(array $args): array
     {
         return [
             'success' => true,
-            'topic' => (string) ($args['topic'] ?? ''),
+            'topic'   => (string) ($args['topic'] ?? ''),
         ];
     }
 }

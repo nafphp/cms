@@ -2,21 +2,22 @@
 
 declare(strict_types=1);
 
-use Naf\CMS\Enums\Permission;
 use Naf\CMS\Contracts\TranslationServiceInterface;
+use Naf\CMS\Enums\Permission;
 use Naf\CMS\Handlers\Page\Navigation\StoreNavigation;
 use Naf\CMS\Page\Page;
+
 use function Naf\app;
+use function Naf\CMS\cms;
 use function Naf\I18n\t;
 use function Naf\log;
 use function Naf\redirect;
 use function Naf\route;
 use function Naf\View\render;
-use function Naf\CMS\cms;
 
-$navigationApi = static fn() => cms()->navigation();
+$navigationApi          = static fn() => cms()->navigation();
 $translationSuggestions = static function (): array {
-    $service = app()->container()->get(TranslationServiceInterface::class);
+    $service   = app()->container()->get(TranslationServiceInterface::class);
     $languages = array_values(array_unique([
         ...cms()->settings()->languages(),
         ...array_map(
@@ -32,7 +33,7 @@ $translationSuggestions = static function (): array {
             continue;
         }
 
-        $entries = $service->entries($language);
+        $entries               = $service->entries($language);
         $byLanguage[$language] = array_map(
             static fn(string $key, string $value): array => ['key' => $key, 'value' => $value],
             array_keys($entries),
@@ -49,8 +50,8 @@ $pageChoices = static function (): array {
             $path = $page->path();
         } catch (Throwable $e) {
             log()->warning('navigation.pageChoices.path failed', [
-                'exception' => $e,
-                'page_id' => $page->id(),
+                'exception'  => $e,
+                'page_id'    => $page->id(),
                 'page_title' => $page->title(),
             ]);
             continue;
@@ -61,9 +62,9 @@ $pageChoices = static function (): array {
         }
 
         $choices[] = [
-            'id' => $page->id(),
+            'id'    => $page->id(),
             'title' => $page->title(),
-            'path' => $path,
+            'path'  => $path,
         ];
     }
 
@@ -78,10 +79,10 @@ return [
         ->requirePermission(Permission::NAVIGATION_VIEW)
         ->setAdminNavigation('Navigation', parent: 'content', icon: 'navigation', order: 8, key: 'navigation')
         ->setContent(static fn() => render('admin.navigation.index', [
-            'title' => t('Navigation'),
-            'pageTitle' => t('Navigation'),
+            'title'        => t('Navigation'),
+            'pageTitle'    => t('Navigation'),
             'pageSubtitle' => t('Manage frontend navigation trees for headers, footers, landing pages, and PageBuilder blocks.'),
-            'navigations' => $navigationApi()->summaries('frontend'),
+            'navigations'  => $navigationApi()->summaries('frontend'),
         ])),
 
     Page::create('admin.navigation.create')
@@ -92,14 +93,14 @@ return [
         ->setDataHandler(StoreNavigation::class, 'POST', Permission::NAVIGATION_CREATE)
         ->hideFromAdminNavigation('navigation')
         ->setContent(static fn() => render('admin.navigation.form', [
-            'title' => t('Create navigation'),
-            'pageTitle' => t('Create navigation'),
-            'pageSubtitle' => t('Build a scoped frontend navigation tree.'),
-            'mode' => 'create',
-            'navigation' => null,
-            'translations' => [],
-            'languages' => cms()->settings()->languages(),
-            'pageChoices' => $pageChoices(),
+            'title'                  => t('Create navigation'),
+            'pageTitle'              => t('Create navigation'),
+            'pageSubtitle'           => t('Build a scoped frontend navigation tree.'),
+            'mode'                   => 'create',
+            'navigation'             => null,
+            'translations'           => [],
+            'languages'              => cms()->settings()->languages(),
+            'pageChoices'            => $pageChoices(),
             'translationSuggestions' => $translationSuggestions(),
         ])),
 
@@ -117,17 +118,17 @@ return [
             }
 
             return render('admin.navigation.form', [
-                'title' => t('Edit navigation'),
-                'pageTitle' => t('Edit navigation'),
+                'title'        => t('Edit navigation'),
+                'pageTitle'    => t('Edit navigation'),
                 'pageSubtitle' => t('Build a scoped frontend navigation tree.'),
-                'mode' => 'edit',
-                'navigation' => $navigation->toArray(),
+                'mode'         => 'edit',
+                'navigation'   => $navigation->toArray(),
                 'translations' => array_map(
                     static fn($translation): array => $translation->toArray(),
-                    $navigationApi()->translations($navigation->identifier())
+                    $navigationApi()->translations($navigation->identifier()),
                 ),
-                'languages' => cms()->settings()->languages(),
-                'pageChoices' => $pageChoices(),
+                'languages'              => cms()->settings()->languages(),
+                'pageChoices'            => $pageChoices(),
                 'translationSuggestions' => $translationSuggestions(),
             ]);
         }),

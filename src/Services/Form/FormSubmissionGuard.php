@@ -9,8 +9,8 @@ use Naf\CMS\Services\Security\RateLimitDecision;
 
 final class FormSubmissionGuard
 {
-    public const int MAXIMUM_BODY_BYTES = 65536;
-    public const int MAXIMUM_FIELDS = 100;
+    public const int MAXIMUM_BODY_BYTES  = 65536;
+    public const int MAXIMUM_FIELDS      = 100;
     public const int MAXIMUM_FIELD_BYTES = 16384;
 
     public function __construct(private readonly FileRateLimiter $limiter = new FileRateLimiter())
@@ -20,6 +20,7 @@ final class FormSubmissionGuard
     public function consume(string $identifier, string $ipAddress): RateLimitDecision
     {
         $key = 'form:' . hash('sha256', strtolower(trim($identifier))) . ':' . hash('sha256', trim($ipAddress));
+
         return $this->limiter->hit($key, 10, 60);
     }
 
@@ -55,7 +56,8 @@ final class FormSubmissionGuard
         }
 
         $startedAt = (int) ($payload['_nafcms_started_at'] ?? 0);
-        $now = $now > 0 ? $now : time();
+        $now       = $now > 0 ? $now : time();
+
         return $startedAt <= 0 || $startedAt > $now || ($now - $startedAt) < 2;
     }
 }

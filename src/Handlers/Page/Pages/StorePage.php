@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Handlers\Page\Pages;
 
+use DomainException;
 use Naf\CMS\Handlers\Support\ReadsJsonBody;
 use Naf\CMS\Page\CustomLayoutNormalizer;
 use Naf\CMS\Page\PageBuilderPayloadNormalizer;
@@ -12,8 +13,9 @@ use Naf\CMS\Repositories\PageLayoutRepository;
 use Naf\CMS\Security\UrlPolicy;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use function Naf\json;
+
 use function Naf\CMS\cms;
+use function Naf\json;
 
 final class StorePage
 {
@@ -21,15 +23,15 @@ final class StorePage
 
     public function __invoke(): ResponseInterface
     {
-        $data = $this->jsonBody();
+        $data      = $this->jsonBody();
         $templates = $this->templates();
-        $errors = $this->validate($data, $templates);
+        $errors    = $this->validate($data, $templates);
         if ($errors !== []) {
             return json(['success' => false, 'errors' => $errors], 400);
         }
 
         $template = $templates[(string) ($data['templateId'] ?? '')];
-        $meta = $this->normalizeMeta(is_array($data['meta'] ?? null) ? $data['meta'] : []);
+        $meta     = $this->normalizeMeta(is_array($data['meta'] ?? null) ? $data['meta'] : []);
         if ($this->isCustomTemplate($template) && !array_key_exists('custom_layout', $meta)) {
             $meta['custom_layout'] = [];
         }
@@ -39,27 +41,27 @@ final class StorePage
 
         try {
             $id = cms()->pages()->save([
-                'id' => (int) ($data['id'] ?? 0),
-                'identifier' => $this->identifier($data),
-                'path' => (string) ($data['path'] ?? ''),
-                'title' => (string) ($data['title'] ?? ''),
-                'language' => (string) ($data['language'] ?? ''),
-                'status' => (string) ($data['status'] ?? 'draft'),
+                'id'          => (int) ($data['id'] ?? 0),
+                'identifier'  => $this->identifier($data),
+                'path'        => (string) ($data['path'] ?? ''),
+                'title'       => (string) ($data['title'] ?? ''),
+                'language'    => (string) ($data['language'] ?? ''),
+                'status'      => (string) ($data['status'] ?? 'draft'),
                 'template_id' => (string) ($data['templateId'] ?? ''),
-                'theme_id' => (string) ($data['themeId'] ?? ''),
-                'layout' => (string) ($template['layout'] ?? 'layouts.page'),
-                'blocks' => $this->normalizeBlocks(
+                'theme_id'    => (string) ($data['themeId'] ?? ''),
+                'layout'      => (string) ($template['layout'] ?? 'layouts.page'),
+                'blocks'      => $this->normalizeBlocks(
                     is_array($data['blocks'] ?? null) ? $data['blocks'] : [],
-                    $blockDefinitions
+                    $blockDefinitions,
                 ),
                 'meta' => $meta,
             ]);
 
             return json(['success' => true, 'id' => $id]);
-        } catch (\DomainException $exception) {
+        } catch (DomainException $exception) {
             return json([
                 'success' => false,
-                'errors' => ['path' => [$exception->getMessage()]],
+                'errors'  => ['path' => [$exception->getMessage()]],
             ], 409);
         } catch (Throwable $exception) {
             return json(['success' => false, 'reason' => $exception->getMessage()], 500);
@@ -141,13 +143,13 @@ final class StorePage
         if (!is_array($data['blocks'] ?? null)) {
             $errors['blocks'][] = 'Blocks must be an object keyed by template block id.';
         } elseif (isset($templates[$templateId])) {
-            $template = $templates[$templateId];
+            $template       = $templates[$templateId];
             $templateBlocks = is_array($template['blocks'] ?? null) ? $template['blocks'] : [];
             if ($this->isCustomTemplate($template) || is_array($data['meta']['custom_layout'] ?? null)) {
-                $layoutErrors = [];
+                $layoutErrors   = [];
                 $templateBlocks = $this->normalizeCustomLayout(
                     is_array($data['meta']['custom_layout'] ?? null) ? $data['meta']['custom_layout'] : [],
-                    $layoutErrors
+                    $layoutErrors,
                 );
                 foreach ($layoutErrors as $message) {
                     $errors['meta.custom_layout'][] = $message;
@@ -156,7 +158,7 @@ final class StorePage
 
             $allowed = array_flip(array_values(array_filter(array_map(
                 static fn(mixed $block): string => is_array($block) ? (string) ($block['id'] ?? '') : '',
-                $templateBlocks
+                $templateBlocks,
             ))));
 
             foreach (array_keys($data['blocks']) as $blockId) {
@@ -183,10 +185,10 @@ final class StorePage
     {
         $meta['version'] = PageBuilderPayloadNormalizer::VERSION;
         if (array_key_exists('custom_layout', $meta)) {
-            $layoutErrors = [];
+            $layoutErrors          = [];
             $meta['custom_layout'] = $this->normalizeCustomLayout(
                 is_array($meta['custom_layout']) ? $meta['custom_layout'] : [],
-                $layoutErrors
+                $layoutErrors,
             );
         }
 
@@ -201,6 +203,7 @@ final class StorePage
     private function normalizeBlocks(array $blocks, array $templateBlocks): array
     {
         $errors = [];
+
         return (new PageBuilderPayloadNormalizer())->normalize($blocks, $templateBlocks, $errors);
     }
 
@@ -282,6 +285,7 @@ final class StorePage
     private function normalizePath(string $path): string
     {
         $path = '/' . ltrim(trim($path), '/');
+
         return $path === '/' ? '/' : rtrim($path, '/');
     }
 }

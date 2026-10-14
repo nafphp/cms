@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Admin;
 
-use Naf\CMS\Enums\Permission;
-use Naf\CMS\Navigation\NavigationItem;
 use Naf\CMS\Api\NavigationApi;
 use Naf\CMS\Api\ScopedNavigationApi;
+use Naf\CMS\Enums\Permission;
 use Naf\CMS\Enums\Scope;
-use Naf\CMS\Repositories\NavigationRepository;
+use Naf\CMS\Navigation\NavigationItem;
 use Naf\CMS\Page\Page;
 use Naf\CMS\Page\PageRegistry;
+use Naf\CMS\Repositories\NavigationRepository;
 use Naf\CMS\Services\Admin\AdminNavigationService;
 use Naf\CMS\Support\UserHelper;
 use PHPUnit\Framework\TestCase;
@@ -59,7 +59,7 @@ final class AdminNavigationServiceTest extends TestCase
         $pages->add(
             Page::create('admin.plugin')
                 ->setPath('/admin/plugin')
-                ->setAdminNavigation('Plugin Home', parent: 'plugins.analytics', key: 'plugins.analytics.home')
+                ->setAdminNavigation('Plugin Home', parent: 'plugins.analytics', key: 'plugins.analytics.home'),
         );
 
         $items = (new AdminNavigationService(new ScopedNavigationApi(new NavigationApi(new NavigationRepository(), false), Scope::ADMIN), $pages, includeConfiguredItems: false))->items();
@@ -126,10 +126,10 @@ final class AdminNavigationServiceTest extends TestCase
                 ->setAdminNavigation('Monthly', parent: 'plugins.analytics.reports', order: 20, key: 'plugins.analytics.reports.monthly'),
         ]);
 
-        $tree = (new AdminNavigationService($navigation, $pages, includeConfiguredItems: false))->items();
+        $tree    = (new AdminNavigationService($navigation, $pages, includeConfiguredItems: false))->items();
         $plugins = $this->findNode($tree, 'plugins');
         $reports = $this->findNode($tree, 'plugins.analytics.reports');
-        $daily = $this->findNode($tree, 'plugins.analytics.reports.daily');
+        $daily   = $this->findNode($tree, 'plugins.analytics.reports.daily');
 
         self::assertNotNull($plugins);
         self::assertNotNull($reports);
@@ -224,7 +224,7 @@ final class AdminNavigationServiceTest extends TestCase
                 ->setAdminNavigation('Users', parent: 'system', key: 'users'),
         ]);
 
-        $user = new UserHelper(null, [Permission::PAGES_VIEW], [], true);
+        $user  = new UserHelper(null, [Permission::PAGES_VIEW], [], true);
         $items = (new AdminNavigationService(
             new ScopedNavigationApi(new NavigationApi(new NavigationRepository(), false), Scope::ADMIN),
             $pages,
@@ -243,7 +243,7 @@ final class AdminNavigationServiceTest extends TestCase
             NavigationItem::create('content')
                 ->setLabel('Content')
                 ->setScope('admin')
-                ->addRouteName('admin.articles')
+                ->addRouteName('admin.articles'),
         );
 
         $pages = new PageRegistry();
@@ -257,7 +257,7 @@ final class AdminNavigationServiceTest extends TestCase
                 ->setAdminNavigation('Pages', parent: 'content', key: 'pages'),
         ]);
 
-        $user = new UserHelper(null, [Permission::PAGES_VIEW], [], true);
+        $user  = new UserHelper(null, [Permission::PAGES_VIEW], [], true);
         $items = (new AdminNavigationService(
             $navigation,
             $pages,
@@ -278,7 +278,7 @@ final class AdminNavigationServiceTest extends TestCase
         $navigation->add(
             NavigationItem::create('content')
                 ->setLabel('Content')
-                ->setScope('admin')
+                ->setScope('admin'),
         );
 
         $pages = new PageRegistry();
@@ -299,8 +299,8 @@ final class AdminNavigationServiceTest extends TestCase
             $pages,
             includeConfiguredItems: false,
             accentColors: [
-                'content' => '#3f7fbd',
-                'forms' => '#ef4444',
+                'content'  => '#3f7fbd',
+                'forms'    => '#ef4444',
                 'settings' => '#8b5cf6',
             ],
         );
@@ -332,7 +332,7 @@ final class AdminNavigationServiceTest extends TestCase
         $pages->add(
             Page::create('admin.plugins.forms')
                 ->setPath('/admin/plugins/forms')
-                ->setAdminNavigation('Forms', parent: 'plugins.forms', key: 'plugins.forms.home')
+                ->setAdminNavigation('Forms', parent: 'plugins.forms', key: 'plugins.forms.home'),
         );
 
         $service = new AdminNavigationService(

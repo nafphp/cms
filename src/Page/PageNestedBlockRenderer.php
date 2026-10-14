@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Naf\CMS\Page;
 
 use Naf\CMS\Content\BlockViewRegistry;
+
+use function Naf\CMS\cms;
 use function Naf\View\s;
 use function Naf\View\view;
-use function Naf\CMS\cms;
 
 final class PageNestedBlockRenderer
 {
@@ -49,18 +50,18 @@ final class PageNestedBlockRenderer
             return view('page.blocks.placeholder', [
                 ...$context,
                 'content' => ['type' => 'placeholder', 'props' => []],
-                'label' => 'Nested block depth limit reached',
+                'label'   => 'Nested block depth limit reached',
                 'preview' => 'block',
             ]);
         }
 
         return view($this->blockViews()->viewFor($type), [
             ...$context,
-            'content' => $payload,
-            'label' => (string) ($payload['label'] ?? $payload['previewTitle'] ?? $type),
-            'preview' => (string) ($payload['previewTitle'] ?? $type),
+            'content'        => $payload,
+            'label'          => (string) ($payload['label'] ?? $payload['previewTitle'] ?? $type),
+            'preview'        => (string) ($payload['previewTitle'] ?? $type),
             'nestedRenderer' => $this,
-            'nestedDepth' => $depth + 1,
+            'nestedDepth'    => $depth + 1,
         ]);
     }
 

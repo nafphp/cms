@@ -36,9 +36,9 @@ final class PageOverviewToolTest extends DatabaseTestCase
         $this->insertPage('draft', '/draft', 'Draft', 'de', 'draft', 'editorial', '2026-05-03 09:00:00', null);
 
         $result = (new PageOverviewTool($this->pdo))->handle([
-            'status' => 'PUBLISHED',
+            'status'   => 'PUBLISHED',
             'language' => 'EN',
-            'limit' => 1,
+            'limit'    => 1,
         ]);
 
         self::assertTrue($result['database_available']);
@@ -73,15 +73,15 @@ final class PageOverviewToolTest extends DatabaseTestCase
         ?string $updatedAt,
     ): void {
         $this->insertRow('pages', [
-            'identifier' => $identifier,
-            'path' => $path,
-            'title' => $title,
-            'language' => $language,
-            'status' => $status,
+            'identifier'  => $identifier,
+            'path'        => $path,
+            'title'       => $title,
+            'language'    => $language,
+            'status'      => $status,
             'template_id' => $templateId,
-            'layout' => 'layouts.page',
-            'created_at' => $createdAt,
-            'updated_at' => $updatedAt,
+            'layout'      => 'layouts.page',
+            'created_at'  => $createdAt,
+            'updated_at'  => $updatedAt,
         ]);
     }
 }

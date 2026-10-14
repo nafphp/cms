@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Support;
 
-use Naf\CMS\Contracts\ScopeAwareInterface;
+use BadMethodCallException;
 use Naf\CMS\Api\ScopedNavigationApi;
+use Naf\CMS\Contracts\ScopeAwareInterface;
 use Naf\CMS\Enums\Scope;
-use Naf\CMS\Support\Cms;
 
 final class ScopedCms
 {
@@ -29,6 +29,7 @@ final class ScopedCms
     {
         /** @var ScopedNavigationApi $navigation */
         $navigation = $this->__call('navigation', []);
+
         return $navigation;
     }
 
@@ -38,7 +39,7 @@ final class ScopedCms
     public function __call(string $method, array $arguments): mixed
     {
         if (!method_exists($this->cms, $method)) {
-            throw new \BadMethodCallException(sprintf('Undefined scoped CMS method "%s".', $method));
+            throw new BadMethodCallException(sprintf('Undefined scoped CMS method "%s".', $method));
         }
 
         $result = $this->cms->{$method}(...$arguments);
@@ -47,6 +48,7 @@ final class ScopedCms
         }
 
         $cacheKey = $this->cacheKey($method, $arguments);
+
         return $this->scopedApis[$cacheKey] ??= $result->forScope($this->scope);
     }
 

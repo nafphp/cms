@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Content\Page\Block;
 
-use Naf\CMS\Content\Page\Block\BlockTypeInterface;
+use InvalidArgumentException;
+use LogicException;
+use RuntimeException;
 
 final class BlockTypeRegistry
 {
@@ -15,14 +17,15 @@ final class BlockTypeRegistry
     {
         $id = $this->normalize($type->id());
         if ($id === '') {
-            throw new \InvalidArgumentException('Block type id cannot be empty.');
+            throw new InvalidArgumentException('Block type id cannot be empty.');
         }
 
         if (isset($this->types[$id]) && !$replace) {
-            throw new \LogicException(sprintf('Block type "%s" is already registered.', $id));
+            throw new LogicException(sprintf('Block type "%s" is already registered.', $id));
         }
 
         $this->types[$id] = $type;
+
         return $this;
     }
 
@@ -45,7 +48,7 @@ final class BlockTypeRegistry
 
     public function require(string $id): BlockTypeInterface
     {
-        return $this->get($id) ?? throw new \RuntimeException(sprintf('Block type "%s" is not registered.', $id));
+        return $this->get($id) ?? throw new RuntimeException(sprintf('Block type "%s" is not registered.', $id));
     }
 
     /**

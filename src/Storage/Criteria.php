@@ -12,7 +12,6 @@ use Naf\CMS\Storage\Filter\FilterInterface;
 use Naf\CMS\Storage\Filter\InFilter;
 use Naf\CMS\Storage\Filter\NotEqualsFilter;
 use Naf\CMS\Storage\Filter\RangeFilter;
-use Naf\CMS\Storage\Sort;
 
 final class Criteria
 {
@@ -26,7 +25,7 @@ final class Criteria
      */
     private array $sorts = [];
 
-    private ?int $limit = null;
+    private ?int $limit  = null;
     private ?int $offset = null;
 
     public static function create(): self
@@ -101,31 +100,35 @@ final class Criteria
     public function addFilter(FilterInterface $filter): self
     {
         $this->filters[] = $filter;
+
         return $this;
     }
 
     public function sort(string $field, string $direction = 'ASC'): self
     {
         $this->sorts[] = new Sort($field, $direction);
+
         return $this;
     }
 
     public function limit(int $limit): self
     {
         $this->limit = max(0, $limit);
+
         return $this;
     }
 
     public function offset(int $offset): self
     {
         $this->offset = max(0, $offset);
+
         return $this;
     }
 
     public function page(int $page, int $perPage = 20): self
     {
         $perPage = max(1, $perPage);
-        $page = max(1, $page);
+        $page    = max(1, $page);
 
         return $this
             ->limit($perPage)

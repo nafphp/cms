@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Mcp\Tools;
 
-use Naf\CMS\Enums\ToolRisk;
-
 /**
  * Shared implementation for tools that only need to declare risk metadata.
  *
@@ -17,9 +15,9 @@ trait DeclaresLocalAiToolRisk
     public function localAiMetadata(): array
     {
         return [
-            'risk' => self::AI_RISK->value,
+            'risk'        => self::AI_RISK->value,
             'destructive' => self::AI_DESTRUCTIVE,
-            'autoRun' => false,
+            'autoRun'     => false,
         ];
     }
 }

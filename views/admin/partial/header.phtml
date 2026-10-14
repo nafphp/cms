@@ -2,9 +2,9 @@
 
 use function Naf\View\s;
 
-$title = trim((string) ($title ?? ''));
+$title    = trim((string) ($title ?? ''));
 $subtitle = trim((string) ($subtitle ?? ''));
-$variant = trim((string) ($variant ?? 'default'));
+$variant  = trim((string) ($variant ?? 'default'));
 
 ?>
 <div class="grid gap-1 <?= $variant === 'compact' ? 'py-1' : '' ?>">

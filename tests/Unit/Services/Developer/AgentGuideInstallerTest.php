@@ -27,7 +27,7 @@ final class AgentGuideInstallerTest extends TestCase
 
     public function testCreatesAndUpdatesOnlyTheManagedGuide(): void
     {
-        $source = $this->directory . '/template.md';
+        $source      = $this->directory . '/template.md';
         $destination = $this->directory . '/AGENTS.md';
         file_put_contents($source, AgentGuideInstaller::MARKER . "\n# Version one\n");
         $installer = new AgentGuideInstaller($source, $destination);
@@ -42,7 +42,7 @@ final class AgentGuideInstallerTest extends TestCase
 
     public function testNeverOverwritesUserOwnedInstructions(): void
     {
-        $source = $this->directory . '/template.md';
+        $source      = $this->directory . '/template.md';
         $destination = $this->directory . '/AGENTS.md';
         file_put_contents($source, AgentGuideInstaller::MARKER . "\n# Managed\n");
         file_put_contents($destination, "# User instructions\n");

@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Repositories;
 
+use InvalidArgumentException;
 use Naf\CMS\Navigation\Navigation;
 use PDO;
+use RuntimeException;
+use Throwable;
+
 use function Naf\Database\database;
 use function Naf\log;
 
@@ -34,11 +38,12 @@ final class NavigationRepository
             SQL);
             $statement->execute(['scope' => trim($scope) ?: 'frontend']);
             $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error('NavigationRepository.summaries failed', [
                 'exception' => $e,
-                'scope' => $scope,
+                'scope'     => $scope,
             ]);
+
             return [];
         }
 
@@ -56,11 +61,12 @@ final class NavigationRepository
             $statement = $connection->prepare('SELECT * FROM navigations WHERE id = :id LIMIT 1');
             $statement->execute(['id' => $id]);
             $row = $statement->fetch(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error('NavigationRepository.find failed', [
                 'exception' => $e,
-                'id' => $id,
+                'id'        => $id,
             ]);
+
             return null;
         }
 
@@ -79,28 +85,29 @@ final class NavigationRepository
 
         try {
             $identifier = Navigation::normalizeIdentifier($identifier);
-            $statement = $connection->prepare(<<<SQL
+            $statement  = $connection->prepare(<<<SQL
                 SELECT * FROM navigations
                 WHERE identifier = :identifier AND scope = :scope
                 ORDER BY language ASC
             SQL);
             $statement->execute([
                 'identifier' => $identifier,
-                'scope' => trim($scope) ?: 'frontend',
+                'scope'      => trim($scope) ?: 'frontend',
             ]);
             $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error('NavigationRepository.findTranslations failed', [
-                'exception' => $e,
+                'exception'  => $e,
                 'identifier' => $identifier,
-                'scope' => $scope,
+                'scope'      => $scope,
             ]);
+
             return [];
         }
 
         $translations = [];
         foreach (is_array($rows) ? $rows : [] as $row) {
-            $navigation = $this->navigationFromRow($row);
+            $navigation                                  = $this->navigationFromRow($row);
             $translations[$navigation->language() ?? ''] = $navigation;
         }
 
@@ -116,11 +123,11 @@ final class NavigationRepository
 
         try {
             $identifier = Navigation::normalizeIdentifier($identifier);
-        } catch (\InvalidArgumentException) {
+        } catch (InvalidArgumentException) {
             return null;
         }
 
-        $scope = trim($scope) ?: 'frontend';
+        $scope    = trim($scope) ?: 'frontend';
         $language = $language === null ? null : strtolower(trim($language));
 
         try {
@@ -132,8 +139,8 @@ final class NavigationRepository
                 SQL);
                 $statement->execute([
                     'identifier' => $identifier,
-                    'scope' => $scope,
-                    'language' => $language,
+                    'scope'      => $scope,
+                    'language'   => $language,
                 ]);
                 $row = $statement->fetch(PDO::FETCH_ASSOC);
                 if (is_array($row)) {
@@ -148,7 +155,7 @@ final class NavigationRepository
             SQL);
             $statement->execute([
                 'identifier' => $identifier,
-                'scope' => $scope,
+                'scope'      => $scope,
             ]);
             $row = $statement->fetch(PDO::FETCH_ASSOC);
             if (is_array($row)) {
@@ -171,16 +178,17 @@ final class NavigationRepository
             SQL);
             $statement->execute([
                 'identifier' => $identifier,
-                'scope' => $scope,
+                'scope'      => $scope,
             ]);
             $row = $statement->fetch(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error('NavigationRepository.findByIdentifier failed', [
-                'exception' => $e,
+                'exception'  => $e,
                 'identifier' => $identifier,
-                'scope' => $scope,
-                'language' => $language,
+                'scope'      => $scope,
+                'language'   => $language,
             ]);
+
             return null;
         }
 
@@ -194,28 +202,28 @@ final class NavigationRepository
     {
         $connection = $this->connection();
         if (!$connection instanceof PDO) {
-            throw new \RuntimeException('No database connection available.');
+            throw new RuntimeException('No database connection available.');
         }
 
-        $id = (int) ($payload['id'] ?? 0);
+        $id         = (int) ($payload['id'] ?? 0);
         $identifier = Navigation::normalizeIdentifier((string) ($payload['identifier'] ?? ''));
-        $title = trim((string) ($payload['title'] ?? ''));
-        $scope = trim((string) ($payload['scope'] ?? 'frontend')) ?: 'frontend';
-        $language = strtolower(trim((string) ($payload['language'] ?? '')));
-        $status = trim((string) ($payload['status'] ?? 'draft')) ?: 'draft';
-        $items = is_array($payload['items'] ?? null) ? $payload['items'] : [];
+        $title      = trim((string) ($payload['title'] ?? ''));
+        $scope      = trim((string) ($payload['scope'] ?? 'frontend')) ?: 'frontend';
+        $language   = strtolower(trim((string) ($payload['language'] ?? '')));
+        $status     = trim((string) ($payload['status'] ?? 'draft')) ?: 'draft';
+        $items      = is_array($payload['items'] ?? null) ? $payload['items'] : [];
 
         if ($title === '') {
             $title = ucwords(str_replace(['-', '_', '.'], ' ', $identifier));
         }
 
         $itemsJson = json_encode(array_values($items), JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $params = [
+        $params    = [
             'identifier' => $identifier,
-            'title' => $title,
-            'scope' => $scope,
-            'language' => $language,
-            'status' => $status,
+            'title'      => $title,
+            'scope'      => $scope,
+            'language'   => $language,
+            'status'     => $status,
             'items_json' => $itemsJson,
         ];
 
@@ -243,8 +251,8 @@ final class NavigationRepository
         SQL);
         $existingStatement->execute([
             'identifier' => $identifier,
-            'scope' => $scope,
-            'language' => $language,
+            'scope'      => $scope,
+            'language'   => $language,
         ]);
         $existingId = (int) ($existingStatement->fetchColumn() ?: 0);
         if ($existingId > 0) {
@@ -299,7 +307,7 @@ final class NavigationRepository
 
         try {
             $identifier = Navigation::normalizeIdentifier($identifier);
-        } catch (\InvalidArgumentException) {
+        } catch (InvalidArgumentException) {
             return 0;
         }
 
@@ -311,8 +319,8 @@ final class NavigationRepository
         SQL);
         $statement->execute([
             'identifier' => $identifier,
-            'scope' => trim($scope) ?: 'frontend',
-            'keep_id' => $keepId,
+            'scope'      => trim($scope) ?: 'frontend',
+            'keep_id'    => $keepId,
         ]);
 
         return $statement->rowCount();
@@ -327,14 +335,14 @@ final class NavigationRepository
         $items = $this->decodeItems((string) ($row['items_json'] ?? '[]'));
 
         return [
-            'id' => (int) ($row['id'] ?? 0),
+            'id'         => (int) ($row['id'] ?? 0),
             'identifier' => (string) ($row['identifier'] ?? ''),
-            'title' => (string) ($row['title'] ?? ''),
-            'scope' => (string) ($row['scope'] ?? 'frontend'),
-            'language' => (string) ($row['language'] ?? ''),
-            'status' => (string) ($row['status'] ?? 'draft'),
+            'title'      => (string) ($row['title'] ?? ''),
+            'scope'      => (string) ($row['scope'] ?? 'frontend'),
+            'language'   => (string) ($row['language'] ?? ''),
+            'status'     => (string) ($row['status'] ?? 'draft'),
             'item_count' => $this->countItems($items),
-            'updated' => (string) (($row['updated_at'] ?? null) ?: ($row['created_at'] ?? '')),
+            'updated'    => (string) (($row['updated_at'] ?? null) ?: ($row['created_at'] ?? '')),
         ];
     }
 
@@ -344,13 +352,13 @@ final class NavigationRepository
     private function navigationFromRow(array $row): Navigation
     {
         return Navigation::fromArray([
-            'id' => (int) ($row['id'] ?? 0),
+            'id'         => (int) ($row['id'] ?? 0),
             'identifier' => (string) ($row['identifier'] ?? ''),
-            'title' => (string) ($row['title'] ?? ''),
-            'scope' => (string) ($row['scope'] ?? 'frontend'),
-            'language' => $row['language'] ?? null,
-            'status' => (string) ($row['status'] ?? 'draft'),
-            'items' => $this->decodeItems((string) ($row['items_json'] ?? '[]')),
+            'title'      => (string) ($row['title'] ?? ''),
+            'scope'      => (string) ($row['scope'] ?? 'frontend'),
+            'language'   => $row['language'] ?? null,
+            'status'     => (string) ($row['status'] ?? 'draft'),
+            'items'      => $this->decodeItems((string) ($row['items_json'] ?? '[]')),
         ]);
     }
 
@@ -361,10 +369,11 @@ final class NavigationRepository
     {
         try {
             $decoded = json_decode($itemsJson, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->warning('NavigationRepository.decodeItems failed', [
                 'exception' => $e,
             ]);
+
             return [];
         }
 
@@ -393,10 +402,11 @@ final class NavigationRepository
 
         try {
             $connection = database();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error('NavigationRepository.connection failed', [
                 'exception' => $e,
             ]);
+
             return null;
         }
 

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Services\Security;
 
-use Naf\Auth\Exceptions\{ForbiddenException, UnauthenticatedException};
-use Naf\CMS\Enums\{Permission, Role};
+use Naf\Auth\Exceptions\ForbiddenException;
+use Naf\Auth\Exceptions\UnauthenticatedException;
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Enums\Role;
 use Naf\CMS\Support\UserHelper;
 
 /** Apply page/API requirements with the same rules in guards and navigation. */

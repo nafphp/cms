@@ -57,7 +57,7 @@ final class LanguagePackParityTest extends TestCase
     {
         $keys = [];
         foreach ($values as $key => $value) {
-            $path = $prefix === '' ? (string) $key : $prefix . '.' . (string) $key;
+            $path   = $prefix === '' ? (string) $key : $prefix . '.' . (string) $key;
             $keys[] = $path;
 
             if (is_array($value)) {
@@ -66,6 +66,7 @@ final class LanguagePackParityTest extends TestCase
         }
 
         sort($keys);
+
         return $keys;
     }
 

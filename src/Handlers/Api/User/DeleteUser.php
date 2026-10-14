@@ -10,9 +10,10 @@ use Naf\CMS\Handlers\Support\RejectsPrivilegedAction;
 use Naf\CMS\Repositories\UserRepository;
 use Naf\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
+
+use function Naf\CMS\user;
 use function Naf\json;
 use function Naf\ORM\repo;
-use function Naf\CMS\user;
 
 final class DeleteUser
 {
@@ -21,14 +22,15 @@ final class DeleteUser
 
     public function __invoke(): ResponseInterface
     {
-        $data = $this->jsonBody();
+        $data   = $this->jsonBody();
         $userId = (int) ($data['userId'] ?? 0);
         if ($userId <= 0) {
             return json(['success' => false, 'reason' => 'Invalid user id.'], 400);
         }
 
         $repository = repo(UserRepository::class);
-        $old = $repository->findOneForForm($userId);
+        $old        = $repository->findOneForForm($userId);
+
         try {
             $deleted = $repository->deleteById((int) user()?->get()?->getId(), $userId);
         } catch (PrivilegedActionDenied $exception) {

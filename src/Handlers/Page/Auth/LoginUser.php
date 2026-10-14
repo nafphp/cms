@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Handlers\Page\Auth;
 
-use Naf\CMS\Contracts\RateLimiterInterface;
 use Naf\Auth\Credentials\PasswordCredentials;
-use function Naf\Auth\auth;
+use Naf\CMS\Contracts\RateLimiterInterface;
 use Naf\CMS\Services\Security\RateLimitDecision;
 use Psr\Http\Message\ResponseInterface;
+
+use function Naf\Auth\auth;
 use function Naf\Form\validator;
 use function Naf\redirect;
 use function Naf\request;
@@ -24,9 +25,9 @@ final class LoginUser
 
     public function __invoke(): ResponseInterface
     {
-        $data = request()->getParsedBody() ?? [];
-        $username = trim((string) ($data['username'] ?? ''));
-        $password = (string) ($data['password'] ?? '');
+        $data      = request()->getParsedBody() ?? [];
+        $username  = trim((string) ($data['username'] ?? ''));
+        $password  = (string) ($data['password'] ?? '');
         $ipAddress = (string) (request()->getServerParams()['REMOTE_ADDR'] ?? 'unknown');
 
         $validator = validator()->validate($data, [
@@ -48,6 +49,7 @@ final class LoginUser
             if (!$limit->allowed) {
                 return $this->limitedLoginView($data, $username, $limit);
             }
+
             return $this->loginView($data, 'Invalid username or password.', $username);
         }
 
@@ -89,10 +91,10 @@ final class LoginUser
     private function loginView(array $payload, string $error, string $username): ResponseInterface
     {
         return render('auth.login', [
-            'title' => 'Login',
+            'title'       => 'Login',
             'redirectUri' => (string) ($payload['redirectUri'] ?? ''),
-            'error' => $error,
-            'username' => $username,
+            'error'       => $error,
+            'username'    => $username,
         ]);
     }
 

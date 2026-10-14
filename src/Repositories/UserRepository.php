@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Repositories;
 
+use DateInterval;
+use DateTimeImmutable;
 use Naf\CMS\Contracts\PasswordPolicyInterface;
 use Naf\CMS\Contracts\UserPrivilegePolicyInterface;
 use Naf\CMS\Enums\Permission as PermissionEnum;
@@ -11,11 +13,11 @@ use Naf\CMS\Models\User;
 use Naf\CMS\Services\Security\CredentialService;
 use Naf\CMS\Services\Security\PasswordPolicy;
 use Naf\CMS\Services\Security\UserPrivilegePolicy;
-use DateInterval;
-use DateTimeImmutable;
 use Naf\ORM\Core\EntityManager;
 use Naf\ORM\Repository\AbstractRepository;
 use PDO;
+use Throwable;
+
 use function Naf\log;
 
 class UserRepository extends AbstractRepository
@@ -108,17 +110,17 @@ class UserRepository extends AbstractRepository
         return array_map(
             static function (array $row): array {
                 return [
-                    'id' => (int) ($row['id'] ?? 0),
-                    'username' => (string) ($row['username'] ?? ''),
-                    'email' => (string) ($row['email'] ?? ''),
-                    'firstname' => (string) ($row['firstname'] ?? ''),
-                    'lastname' => (string) ($row['lastname'] ?? ''),
-                    'createdAt' => (string) ($row['createdAt'] ?? ''),
-                    'roles' => self::csvList((string) ($row['role_names'] ?? '')),
+                    'id'          => (int) ($row['id'] ?? 0),
+                    'username'    => (string) ($row['username'] ?? ''),
+                    'email'       => (string) ($row['email'] ?? ''),
+                    'firstname'   => (string) ($row['firstname'] ?? ''),
+                    'lastname'    => (string) ($row['lastname'] ?? ''),
+                    'createdAt'   => (string) ($row['createdAt'] ?? ''),
+                    'roles'       => self::csvList((string) ($row['role_names'] ?? '')),
                     'permissions' => self::csvList((string) ($row['permission_names'] ?? '')),
                 ];
             },
-            $stmt->fetchAll(PDO::FETCH_ASSOC)
+            $stmt->fetchAll(PDO::FETCH_ASSOC),
         );
     }
 
@@ -152,12 +154,12 @@ class UserRepository extends AbstractRepository
         }
 
         return [
-            'id' => (int) ($row['id'] ?? 0),
-            'username' => (string) ($row['username'] ?? ''),
-            'email' => (string) ($row['email'] ?? ''),
+            'id'        => (int) ($row['id'] ?? 0),
+            'username'  => (string) ($row['username'] ?? ''),
+            'email'     => (string) ($row['email'] ?? ''),
             'firstname' => (string) ($row['firstname'] ?? ''),
-            'lastname' => (string) ($row['lastname'] ?? ''),
-            'roles' => self::csvList((string) ($row['role_names'] ?? '')),
+            'lastname'  => (string) ($row['lastname'] ?? ''),
+            'roles'     => self::csvList((string) ($row['role_names'] ?? '')),
         ];
     }
 
@@ -179,6 +181,7 @@ class UserRepository extends AbstractRepository
         }
 
         $this->pdo->beginTransaction();
+
         try {
             $this->pdo->prepare('DELETE FROM user_role WHERE user_id = :userId')->execute(['userId' => $userId]);
 
@@ -191,11 +194,12 @@ class UserRepository extends AbstractRepository
             }
 
             $this->pdo->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('UserRepository.updateRolesByUserId failed: %s', $e->getMessage()), ['exception' => $e]);
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
+
             return [];
         }
 
@@ -230,9 +234,10 @@ class UserRepository extends AbstractRepository
         }
 
         $update = $this->pdo->prepare('UPDATE users SET password = :password WHERE id = :userId');
+
         return $update->execute([
             'password' => $this->credentialService->hashPassword($newPassword),
-            'userId' => $userId,
+            'userId'   => $userId,
         ]);
     }
 
@@ -271,16 +276,18 @@ class UserRepository extends AbstractRepository
     public function revokeSession(string $sessionId): bool
     {
         $stmt = $this->pdo->prepare('DELETE FROM sessions WHERE id = :sessionId');
+
         return $stmt->execute(['sessionId' => $sessionId]);
     }
 
     public function revokeAllOtherSessions(int $userId, string $currentSessionId): bool
     {
         $stmt = $this->pdo->prepare(
-            'DELETE FROM sessions WHERE user_id = :userId AND id != :currentSessionId'
+            'DELETE FROM sessions WHERE user_id = :userId AND id != :currentSessionId',
         );
+
         return $stmt->execute([
-            'userId' => $userId,
+            'userId'           => $userId,
             'currentSessionId' => $currentSessionId,
         ]);
     }
@@ -340,10 +347,10 @@ class UserRepository extends AbstractRepository
         array $roleNames,
         ?string $email = null,
     ): ?User {
-        $username = trim($username);
-        $email = $email !== null ? strtolower(trim($email)) : null;
+        $username  = trim($username);
+        $email     = $email !== null ? strtolower(trim($email)) : null;
         $firstname = $firstname !== null ? trim($firstname) : null;
-        $lastname = $lastname !== null ? trim($lastname) : null;
+        $lastname  = $lastname !== null ? trim($lastname) : null;
 
         if ($username === '' || !$this->passwords()->accepts($password)) {
             return null;
@@ -355,7 +362,7 @@ class UserRepository extends AbstractRepository
 
         $roleNames = array_values(array_unique(array_filter(array_map(
             static fn(mixed $role): string => trim((string) $role),
-            $roleNames
+            $roleNames,
         ))));
 
         if ($roleNames === []) {
@@ -363,7 +370,7 @@ class UserRepository extends AbstractRepository
         }
 
         $placeholders = implode(',', array_fill(0, count($roleNames), '?'));
-        $roleStmt = $this->pdo->prepare("SELECT id FROM roles WHERE name IN ($placeholders)");
+        $roleStmt     = $this->pdo->prepare("SELECT id FROM roles WHERE name IN ($placeholders)");
         $roleStmt->execute($roleNames);
         $roleRows = $roleStmt->fetchAll(PDO::FETCH_ASSOC);
         if ($roleRows === []) {
@@ -371,27 +378,29 @@ class UserRepository extends AbstractRepository
         }
 
         $this->pdo->beginTransaction();
+
         try {
             $insertUser = $this->pdo->prepare(<<<SQL
                 INSERT INTO users (username, password, email, firstname, lastname)
                 VALUES (:username, :password, :email, :firstname, :lastname)
             SQL);
             $insertUser->execute([
-                'username' => $username,
-                'password' => $this->credentialService->hashPassword($password),
-                'email' => $email !== null && $email !== '' ? $email : null,
+                'username'  => $username,
+                'password'  => $this->credentialService->hashPassword($password),
+                'email'     => $email !== null && $email !== '' ? $email : null,
                 'firstname' => $firstname !== null && $firstname !== '' ? $firstname : null,
-                'lastname' => $lastname !== null && $lastname !== '' ? $lastname : null,
+                'lastname'  => $lastname !== null && $lastname !== '' ? $lastname : null,
             ]);
 
             $userId = (int) $this->pdo->lastInsertId();
             if ($userId <= 0) {
                 $this->pdo->rollBack();
+
                 return null;
             }
 
             $insertRole = $this->pdo->prepare(
-                'INSERT INTO user_role (user_id, role_id) VALUES (:userId, :roleId)'
+                'INSERT INTO user_role (user_id, role_id) VALUES (:userId, :roleId)',
             );
             foreach ($roleRows as $row) {
                 $insertRole->execute([
@@ -404,12 +413,14 @@ class UserRepository extends AbstractRepository
 
             /** @var User|null $user */
             $user = $this->findOneBy('id', $userId);
+
             return $user;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('UserRepository.insertWithRoles failed: %s', $e->getMessage()), ['exception' => $e]);
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
+
             return null;
         }
     }
@@ -421,10 +432,10 @@ class UserRepository extends AbstractRepository
         ?string $lastname,
         ?string $email = null,
     ): bool {
-        $username = trim($username);
-        $email = $email !== null ? strtolower(trim($email)) : null;
+        $username  = trim($username);
+        $email     = $email !== null ? strtolower(trim($email)) : null;
         $firstname = $firstname !== null ? trim($firstname) : null;
-        $lastname = $lastname !== null ? trim($lastname) : null;
+        $lastname  = $lastname !== null ? trim($lastname) : null;
 
         if ($userId <= 0 || $username === '') {
             return false;
@@ -444,11 +455,11 @@ class UserRepository extends AbstractRepository
         SQL);
 
         return $statement->execute([
-            'username' => $username,
-            'email' => $email !== null && $email !== '' ? $email : null,
+            'username'  => $username,
+            'email'     => $email !== null && $email !== '' ? $email : null,
             'firstname' => $firstname !== null && $firstname !== '' ? $firstname : null,
-            'lastname' => $lastname !== null && $lastname !== '' ? $lastname : null,
-            'userId' => $userId,
+            'lastname'  => $lastname !== null && $lastname !== '' ? $lastname : null,
+            'userId'    => $userId,
         ]);
     }
 
@@ -459,9 +470,10 @@ class UserRepository extends AbstractRepository
         }
 
         $stmt = $this->pdo->prepare('UPDATE users SET password = :password WHERE id = :userId');
+
         return $stmt->execute([
             'password' => $this->credentialService->hashPassword($plainPassword),
-            'userId' => $userId,
+            'userId'   => $userId,
         ]);
     }
 
@@ -474,6 +486,7 @@ class UserRepository extends AbstractRepository
         }
 
         $this->pdo->beginTransaction();
+
         try {
             $this->pdo->prepare('DELETE FROM user_role WHERE user_id = :userId')->execute(['userId' => $userId]);
             $this->pdo->prepare('DELETE FROM sessions WHERE user_id = :userId')->execute(['userId' => $userId]);
@@ -481,12 +494,14 @@ class UserRepository extends AbstractRepository
             $stmt->execute(['userId' => $userId]);
 
             $this->pdo->commit();
+
             return $stmt->rowCount() > 0;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('UserRepository.deleteById failed: %s', $e->getMessage()), ['exception' => $e]);
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
+
             return false;
         }
     }
@@ -514,7 +529,7 @@ class UserRepository extends AbstractRepository
         }
 
         $roleNames = $this->normalizeInviteRoles($roles, true);
-        $roleRows = $this->findRoleRowsByNames($roleNames);
+        $roleRows  = $this->findRoleRowsByNames($roleNames);
         if ($roleNames === [] || count($roleRows) !== count($roleNames)) {
             return null;
         }
@@ -522,9 +537,9 @@ class UserRepository extends AbstractRepository
         sort($roleNames);
 
         $expiresInDays = max(1, min(30, $expiresInDays));
-        $expiresAt = (new DateTimeImmutable('now'))->add(new DateInterval('P' . $expiresInDays . 'D'));
-        $token = bin2hex(random_bytes(32));
-        $rolesJson = json_encode($roleNames);
+        $expiresAt     = (new DateTimeImmutable('now'))->add(new DateInterval('P' . $expiresInDays . 'D'));
+        $token         = bin2hex(random_bytes(32));
+        $rolesJson     = json_encode($roleNames);
         if ($rolesJson === false) {
             return null;
         }
@@ -534,17 +549,17 @@ class UserRepository extends AbstractRepository
             VALUES (:tokenHash, :email, :rolesJson, :createdByUserId, :expiresAt)
         SQL);
         $stmt->execute([
-            'tokenHash' => hash('sha256', $token),
-            'email' => $email,
-            'rolesJson' => $rolesJson,
+            'tokenHash'       => hash('sha256', $token),
+            'email'           => $email,
+            'rolesJson'       => $rolesJson,
             'createdByUserId' => $createdByUserId,
-            'expiresAt' => $expiresAt->format('Y-m-d H:i:s'),
+            'expiresAt'       => $expiresAt->format('Y-m-d H:i:s'),
         ]);
 
         return [
-            'token' => $token,
-            'email' => $email,
-            'roles' => $roleNames,
+            'token'     => $token,
+            'email'     => $email,
+            'roles'     => $roleNames,
             'expiresAt' => $expiresAt->format('Y-m-d H:i:s'),
         ];
     }
@@ -578,11 +593,11 @@ class UserRepository extends AbstractRepository
         }
 
         return [
-            'id' => (int) ($row['id'] ?? 0),
-            'email' => strtolower(trim((string) ($row['email'] ?? ''))),
-            'roles' => $roles,
+            'id'         => (int) ($row['id'] ?? 0),
+            'email'      => strtolower(trim((string) ($row['email'] ?? ''))),
+            'roles'      => $roles,
             'expires_at' => (string) ($row['expires_at'] ?? ''),
-            'used_at' => $row['used_at'] !== null ? (string) $row['used_at'] : null,
+            'used_at'    => $row['used_at'] !== null ? (string) $row['used_at'] : null,
         ];
     }
 
@@ -597,11 +612,11 @@ class UserRepository extends AbstractRepository
         ?string $firstname,
         ?string $lastname,
     ): array {
-        $token = trim($token);
-        $email = strtolower(trim($email));
-        $username = trim($username);
+        $token     = trim($token);
+        $email     = strtolower(trim($email));
+        $username  = trim($username);
         $firstname = $firstname !== null ? trim($firstname) : null;
-        $lastname = $lastname !== null ? trim($lastname) : null;
+        $lastname  = $lastname !== null ? trim($lastname) : null;
 
         if ($token === '' || $email === '' || $username === '') {
             return ['user' => null, 'reason' => 'invalid_input'];
@@ -611,6 +626,7 @@ class UserRepository extends AbstractRepository
         }
 
         $this->pdo->beginTransaction();
+
         try {
             $inviteStmt = $this->pdo->prepare(<<<SQL
                 SELECT id, email, roles_json, expires_at, used_at
@@ -623,40 +639,47 @@ class UserRepository extends AbstractRepository
             $invite = $inviteStmt->fetch(PDO::FETCH_ASSOC);
             if (!is_array($invite)) {
                 $this->pdo->rollBack();
+
                 return ['user' => null, 'reason' => 'invalid_invite'];
             }
 
             if (!empty($invite['used_at'])) {
                 $this->pdo->rollBack();
+
                 return ['user' => null, 'reason' => 'invite_used'];
             }
 
             $expiresAt = strtotime((string) ($invite['expires_at'] ?? ''));
             if ($expiresAt === false || $expiresAt < time()) {
                 $this->pdo->rollBack();
+
                 return ['user' => null, 'reason' => 'invite_expired'];
             }
 
             if (strtolower(trim((string) ($invite['email'] ?? ''))) !== $email) {
                 $this->pdo->rollBack();
+
                 return ['user' => null, 'reason' => 'invite_email_mismatch'];
             }
 
             if ($this->usernameExistsForAnotherUser($username)) {
                 $this->pdo->rollBack();
+
                 return ['user' => null, 'reason' => 'username_exists'];
             }
 
             if ($this->emailExistsForAnotherUser($email)) {
                 $this->pdo->rollBack();
+
                 return ['user' => null, 'reason' => 'email_exists'];
             }
 
             $decodedRoles = json_decode((string) ($invite['roles_json'] ?? '[]'), true);
-            $roles = is_array($decodedRoles) ? $this->normalizeInviteRoles($decodedRoles, true) : [];
-            $roleRows = $this->findRoleRowsByNames($roles);
+            $roles        = is_array($decodedRoles) ? $this->normalizeInviteRoles($decodedRoles, true) : [];
+            $roleRows     = $this->findRoleRowsByNames($roles);
             if ($roleRows === []) {
                 $this->pdo->rollBack();
+
                 return ['user' => null, 'reason' => 'invalid_roles'];
             }
 
@@ -665,16 +688,17 @@ class UserRepository extends AbstractRepository
                 VALUES (:username, :password, :email, :firstname, :lastname)
             SQL);
             $insertUser->execute([
-                'username' => $username,
-                'password' => $this->credentialService->hashPassword($password),
-                'email' => $email,
+                'username'  => $username,
+                'password'  => $this->credentialService->hashPassword($password),
+                'email'     => $email,
                 'firstname' => $firstname !== null && $firstname !== '' ? $firstname : null,
-                'lastname' => $lastname !== null && $lastname !== '' ? $lastname : null,
+                'lastname'  => $lastname !== null && $lastname !== '' ? $lastname : null,
             ]);
 
             $userId = (int) $this->pdo->lastInsertId();
             if ($userId <= 0) {
                 $this->pdo->rollBack();
+
                 return ['user' => null, 'reason' => 'create_failed'];
             }
 
@@ -695,6 +719,7 @@ class UserRepository extends AbstractRepository
             $consumeInvite->execute(['inviteId' => (int) ($invite['id'] ?? 0)]);
             if ($consumeInvite->rowCount() !== 1) {
                 $this->pdo->rollBack();
+
                 return ['user' => null, 'reason' => 'invite_used'];
             }
 
@@ -702,12 +727,14 @@ class UserRepository extends AbstractRepository
 
             /** @var User|null $user */
             $user = $this->findOneBy('id', $userId);
+
             return ['user' => $user, 'reason' => null];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('UserRepository.registerUserWithInvite failed: %s', $e->getMessage()), ['exception' => $e]);
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
+
             return ['user' => null, 'reason' => 'create_failed'];
         }
     }
@@ -743,7 +770,7 @@ class UserRepository extends AbstractRepository
     {
         $roleNames = array_values(array_unique(array_filter(array_map(
             static fn(mixed $role): string => trim((string) $role),
-            $roleNames
+            $roleNames,
         ))));
 
         if ($roleNames === []) {
@@ -751,7 +778,7 @@ class UserRepository extends AbstractRepository
         }
 
         $placeholders = implode(',', array_fill(0, count($roleNames), '?'));
-        $stmt = $this->pdo->prepare("SELECT id, name FROM roles WHERE name IN ($placeholders)");
+        $stmt         = $this->pdo->prepare("SELECT id, name FROM roles WHERE name IN ($placeholders)");
         $stmt->execute($roleNames);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -765,13 +792,13 @@ class UserRepository extends AbstractRepository
     {
         $normalized = array_values(array_unique(array_filter(array_map(
             static fn(mixed $role): string => strtolower(trim((string) $role)),
-            $roles
+            $roles,
         ))));
 
         if (!$canAssignAdminRole) {
             $normalized = array_values(array_filter(
                 $normalized,
-                static fn(string $role): bool => $role !== 'admin'
+                static fn(string $role): bool => $role !== 'admin',
             ));
         }
 
@@ -787,7 +814,7 @@ class UserRepository extends AbstractRepository
     {
         return array_values(array_filter(array_map(
             static fn(string $item): string => trim($item),
-            explode(',', $value)
+            explode(',', $value),
         )));
     }
 }

@@ -25,7 +25,7 @@ final class AdminHandlersTest extends DatabaseTestCase
             'CREATE TABLE permissions (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL)',
         );
         $response = (new GetSummary())();
-        $payload = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
+        $payload  = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
 
         self::assertSame(200, $response->getStatusCode());
         self::assertIsArray($payload);

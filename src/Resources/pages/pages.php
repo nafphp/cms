@@ -4,22 +4,23 @@ declare(strict_types=1);
 
 use Naf\CMS\Content\Page\Block\PageBuilderBlockOptions;
 use Naf\CMS\Enums\Permission;
+use Naf\CMS\Handlers\Page\Pages\StorePage;
 use Naf\CMS\Page\Layout;
 use Naf\CMS\Page\Page;
 use Naf\CMS\Page\PageBuilderRenderer;
-use Naf\CMS\Handlers\Page\Pages\StorePage;
 use Naf\CMS\Page\Template;
 use Naf\CMS\Repositories\PageLayoutRepository;
+use Psr\Http\Message\ResponseInterface;
+
+use function Naf\CMS\cms;
 use function Naf\I18n\t;
 use function Naf\request;
 use function Naf\View\render;
-use Psr\Http\Message\ResponseInterface;
-use function Naf\CMS\cms;
 
 $templateDefinitions = Layout::definitions(require __DIR__ . '/page_templates.php');
 
-$navigationChoices = PageBuilderBlockOptions::navigationChoices();
-$pageLanguages = cms()->settings()->languages();
+$navigationChoices   = PageBuilderBlockOptions::navigationChoices();
+$pageLanguages       = cms()->settings()->languages();
 $defaultPageLanguage = cms()->settings()->language();
 
 $renderPreview = static function (array $definition, ?string $layout, bool $thumbnail = false) use ($navigationChoices): string {
@@ -28,19 +29,20 @@ $renderPreview = static function (array $definition, ?string $layout, bool $thum
     $template = Template::create($definition['view'])
         ->setParent('layouts.page_preview')
         ->addStylesheet('/css/nafcms.css')
-        ->addBodyClass($thumbnail
+        ->addBodyClass(
+            $thumbnail
             ? 'dark h-screen overflow-hidden bg-slate-950 text-slate-100'
-            : 'dark bg-slate-950 text-slate-100 page-builder-live-preview'
+            : 'dark bg-slate-950 text-slate-100 page-builder-live-preview',
         );
     $layout = Layout::create($template);
 
     foreach ($definition['blocks'] ?? [] as $block) {
         $layout->addBlock((string) $block['id'], 'page.blocks.placeholder', [
             ...$block,
-            'label' => (string) $block['label'],
-            'size' => (string) ($block['size'] ?? 'medium'),
-            'preview' => (string) ($block['preview'] ?? 'block'),
-            'thumbnail' => $thumbnail,
+            'label'           => (string) $block['label'],
+            'size'            => (string) ($block['size'] ?? 'medium'),
+            'preview'         => (string) ($block['preview'] ?? 'block'),
+            'thumbnail'       => $thumbnail,
             'navigationItems' => $navigationItems,
         ]);
     }
@@ -69,33 +71,33 @@ $navigationOptions = PageBuilderBlockOptions::navigationOptions();
 $pages = static fn(): array => cms()->pages()->summaries($builderTemplateDefinitions());
 
 $persistedValuesForBuilder = static function (array $page): array {
-    $meta = is_array($page['meta'] ?? null) ? $page['meta'] : [];
-    $seo = is_array($meta['seo'] ?? null) ? $meta['seo'] : [];
+    $meta  = is_array($page['meta'] ?? null) ? $page['meta'] : [];
+    $seo   = is_array($meta['seo'] ?? null) ? $meta['seo'] : [];
     $theme = is_array($meta['theme'] ?? null) ? $meta['theme'] : [];
     $extra = is_array($meta['extra'] ?? null) ? $meta['extra'] : [];
 
     return [
-        'title' => (string) ($page['title'] ?? ''),
-        'identifier' => (string) ($page['identifier'] ?? ''),
-        'path' => (string) ($page['path'] ?? ''),
-        'language' => (string) ($page['language'] ?? ''),
-        'status' => (string) ($page['status'] ?? 'draft'),
-        'themeId' => (string) ($page['themeId'] ?? ''),
-        'seo.description' => (string) ($seo['description'] ?? ''),
-        'seo.robots' => (string) ($seo['robots'] ?? 'index,follow'),
-        'seo.canonicalUrl' => (string) ($seo['canonicalUrl'] ?? ''),
-        'theme.accent' => (string) ($theme['accent'] ?? ''),
-        'theme.headerBackground' => (string) ($theme['headerBackground'] ?? '#020617'),
-        'theme.headerBackgroundTransparent' => filter_var($theme['headerBackgroundTransparent'] ?? true, FILTER_VALIDATE_BOOLEAN),
-        'theme.footerBackground' => (string) ($theme['footerBackground'] ?? '#020617'),
-        'theme.footerBackgroundTransparent' => filter_var($theme['footerBackgroundTransparent'] ?? false, FILTER_VALIDATE_BOOLEAN),
-        'theme.contentWidth' => (string) ($theme['contentWidth'] ?? 'template'),
-        'theme.headerContentWidthIncludesChrome' => filter_var($theme['headerContentWidthIncludesChrome'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'title'                                     => (string) ($page['title'] ?? ''),
+        'identifier'                                => (string) ($page['identifier'] ?? ''),
+        'path'                                      => (string) ($page['path'] ?? ''),
+        'language'                                  => (string) ($page['language'] ?? ''),
+        'status'                                    => (string) ($page['status'] ?? 'draft'),
+        'themeId'                                   => (string) ($page['themeId'] ?? ''),
+        'seo.description'                           => (string) ($seo['description'] ?? ''),
+        'seo.robots'                                => (string) ($seo['robots'] ?? 'index,follow'),
+        'seo.canonicalUrl'                          => (string) ($seo['canonicalUrl'] ?? ''),
+        'theme.accent'                              => (string) ($theme['accent'] ?? ''),
+        'theme.headerBackground'                    => (string) ($theme['headerBackground'] ?? '#020617'),
+        'theme.headerBackgroundTransparent'         => filter_var($theme['headerBackgroundTransparent'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'theme.footerBackground'                    => (string) ($theme['footerBackground'] ?? '#020617'),
+        'theme.footerBackgroundTransparent'         => filter_var($theme['footerBackgroundTransparent'] ?? false, FILTER_VALIDATE_BOOLEAN),
+        'theme.contentWidth'                        => (string) ($theme['contentWidth'] ?? 'template'),
+        'theme.headerContentWidthIncludesChrome'    => filter_var($theme['headerContentWidthIncludesChrome'] ?? true, FILTER_VALIDATE_BOOLEAN),
         'theme.headerBackgroundWidthIncludesChrome' => filter_var($theme['headerBackgroundWidthIncludesChrome'] ?? false, FILTER_VALIDATE_BOOLEAN),
-        'theme.footerContentWidthIncludesChrome' => filter_var($theme['footerContentWidthIncludesChrome'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'theme.footerContentWidthIncludesChrome'    => filter_var($theme['footerContentWidthIncludesChrome'] ?? true, FILTER_VALIDATE_BOOLEAN),
         'theme.footerBackgroundWidthIncludesChrome' => filter_var($theme['footerBackgroundWidthIncludesChrome'] ?? false, FILTER_VALIDATE_BOOLEAN),
-        'defaultNavigationIdentifier' => (string) ($extra['defaultNavigationIdentifier'] ?? ''),
-        'defaultFooterNavigationIdentifier' => (string) ($extra['defaultFooterNavigationIdentifier'] ?? ''),
+        'defaultNavigationIdentifier'               => (string) ($extra['defaultNavigationIdentifier'] ?? ''),
+        'defaultFooterNavigationIdentifier'         => (string) ($extra['defaultFooterNavigationIdentifier'] ?? ''),
     ];
 };
 
@@ -108,10 +110,10 @@ return [
         ->setDataHandler(StorePage::class, 'POST', Permission::PAGES_CREATE)
         ->setAdminNavigation('Pages', parent: 'content', icon: 'page', order: 5, key: 'pages')
         ->setContent(static fn() => render('admin.pages.index', [
-            'title' => t('Pages'),
-            'pageTitle' => t('Pages'),
+            'title'        => t('Pages'),
+            'pageTitle'    => t('Pages'),
             'pageSubtitle' => t('Manage URL-addressable pages, templates, workflow state, and content blocks.'),
-            'pages' => $pages(),
+            'pages'        => $pages(),
         ])),
 
     Page::create('admin.pages.create')
@@ -122,39 +124,39 @@ return [
         ->hideFromAdminNavigation('pages')
         ->setContent(static function () use ($templatesForBuilder, $navigationChoices, $navigationOptions, $pageLanguages, $defaultPageLanguage, $persistedValuesForBuilder): string|ResponseInterface {
             $page = null;
-            $id = (int) (request()->getQueryParams()['id'] ?? 0);
+            $id   = (int) (request()->getQueryParams()['id'] ?? 0);
             if ($id > 0) {
                 $page = cms()->pages()->find($id);
             }
 
             $initialState = is_array($page) ? [
-                'id' => (int) ($page['id'] ?? 0),
-                'templateId' => (string) ($page['template_id'] ?? ''),
-                'blockContent' => is_array($page['blocks'] ?? null) ? $page['blocks'] : [],
-                'customLayout' => is_array($page['meta']['custom_layout'] ?? null) ? $page['meta']['custom_layout'] : [],
+                'id'              => (int) ($page['id'] ?? 0),
+                'templateId'      => (string) ($page['template_id'] ?? ''),
+                'blockContent'    => is_array($page['blocks'] ?? null) ? $page['blocks'] : [],
+                'customLayout'    => is_array($page['meta']['custom_layout'] ?? null) ? $page['meta']['custom_layout'] : [],
                 'persistedValues' => $persistedValuesForBuilder($page),
             ] : [];
 
-            $isEdit = $initialState !== [];
+            $isEdit            = $initialState !== [];
             $builderBlockTypes = cms()->blockTypes()->builderTypes();
-            $themeRegistry = cms()->themes();
+            $themeRegistry     = cms()->themes();
 
             return render('admin.pages.builder', [
-                'title' => $isEdit ? t('Edit page') : t('Create page'),
-                'pageTitle' => $isEdit ? t('Edit page') : t('Create page'),
-                'pageSubtitle' => $isEdit ? t('Update metadata, template blocks, and workflow state.') : t('Choose a template, then connect content to its blocks.'),
-                'templates' => $templatesForBuilder(),
-                'contentTypes' => $builderBlockTypes,
-                'navigationChoices' => $navigationChoices,
+                'title'                       => $isEdit ? t('Edit page') : t('Create page'),
+                'pageTitle'                   => $isEdit ? t('Edit page') : t('Create page'),
+                'pageSubtitle'                => $isEdit ? t('Update metadata, template blocks, and workflow state.') : t('Choose a template, then connect content to its blocks.'),
+                'templates'                   => $templatesForBuilder(),
+                'contentTypes'                => $builderBlockTypes,
+                'navigationChoices'           => $navigationChoices,
                 'defaultNavigationIdentifier' => (string) ($navigationOptions[0]['value'] ?? 'main'),
-                'languages' => $pageLanguages,
-                'defaultLanguage' => $defaultPageLanguage,
-                'themes' => $themeRegistry->options(),
-                'themeSurfaces' => $themeRegistry->surfaceOptionsByTheme(),
-                'saveUrl' => '/admin/pages',
-                'overviewUrl' => '/admin/pages',
-                'initialState' => $initialState,
-                'mode' => $isEdit ? 'edit' : 'create',
+                'languages'                   => $pageLanguages,
+                'defaultLanguage'             => $defaultPageLanguage,
+                'themes'                      => $themeRegistry->options(),
+                'themeSurfaces'               => $themeRegistry->surfaceOptionsByTheme(),
+                'saveUrl'                     => '/admin/pages',
+                'overviewUrl'                 => '/admin/pages',
+                'initialState'                => $initialState,
+                'mode'                        => $isEdit ? 'edit' : 'create',
             ]);
         }),
 ];

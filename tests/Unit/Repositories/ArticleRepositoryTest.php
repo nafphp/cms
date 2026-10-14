@@ -63,9 +63,9 @@ final class ArticleRepositoryTest extends DatabaseTestCase
 
     public function testStatusOverviewCountsOnlyLatestVersionForAuthorAndLanguage(): void
     {
-        $firstArticle = $this->insertArticle(7);
+        $firstArticle  = $this->insertArticle(7);
         $secondArticle = $this->insertArticle(7);
-        $thirdArticle = $this->insertArticle(8);
+        $thirdArticle  = $this->insertArticle(8);
 
         $this->insertVersion($firstArticle, 'en', 1, ArticleStatus::DRAFT, 'First old');
         $this->insertVersion($firstArticle, 'en', 2, ArticleStatus::PUBLISHED, 'First latest');
@@ -85,12 +85,12 @@ final class ArticleRepositoryTest extends DatabaseTestCase
 
     public function testDraftReviewQueueReturnsOnlyLatestDraftOrDeclinedVersionsWithLatestReviewAction(): void
     {
-        $authorId = $this->insertRow('users', ['firstname' => 'Ada', 'lastname' => 'Editor']);
+        $authorId   = $this->insertRow('users', ['firstname' => 'Ada', 'lastname' => 'Editor']);
         $reviewerId = $this->insertRow('users', ['firstname' => 'Ruth', 'lastname' => 'Reviewer']);
 
-        $reviewArticle = $this->insertArticle($authorId);
+        $reviewArticle   = $this->insertArticle($authorId);
         $declinedArticle = $this->insertArticle($authorId);
-        $draftArticle = $this->insertArticle(null);
+        $draftArticle    = $this->insertArticle(null);
 
         $this->insertVersion($reviewArticle, 'en', 1, ArticleStatus::DRAFT, 'Old draft', '2026-05-01 10:00:00');
         $this->insertVersion($reviewArticle, 'en', 2, ArticleStatus::REVIEW, 'Now in review', '2026-05-01 11:00:00');
@@ -265,10 +265,10 @@ final class ArticleRepositoryTest extends DatabaseTestCase
     private function insertArticle(?int $authorId): int
     {
         return $this->insertRow('articles', [
-            'author' => $authorId,
-            'category_id' => null,
+            'author'                     => $authorId,
+            'category_id'                => null,
             'hide_lead_image_in_content' => 1,
-            'createdAt' => '2026-05-01 09:00:00',
+            'createdAt'                  => '2026-05-01 09:00:00',
         ]);
     }
 
@@ -281,18 +281,18 @@ final class ArticleRepositoryTest extends DatabaseTestCase
         string $createdAt = '2026-05-01 10:00:00',
     ): int {
         return $this->insertRow('article_versions', [
-            'article_id' => $articleId,
-            'language' => $language,
-            'version' => $version,
-            'status' => $status->value,
-            'slug' => strtolower(str_replace(' ', '-', $title)),
-            'title' => $title,
-            'teaser' => '',
-            'content' => '{}',
+            'article_id'  => $articleId,
+            'language'    => $language,
+            'version'     => $version,
+            'status'      => $status->value,
+            'slug'        => strtolower(str_replace(' ', '-', $title)),
+            'title'       => $title,
+            'teaser'      => '',
+            'content'     => '{}',
             'publishedAt' => $status === ArticleStatus::PUBLISHED ? $createdAt : null,
             'scheduledAt' => null,
             'show_teaser' => 0,
-            'createdAt' => $createdAt,
+            'createdAt'   => $createdAt,
         ]);
     }
 
@@ -306,14 +306,14 @@ final class ArticleRepositoryTest extends DatabaseTestCase
         string $reviewedAt,
     ): void {
         $this->insertRow('article_review_actions', [
-            'article_id' => $articleId,
+            'article_id'         => $articleId,
             'article_version_id' => $articleVersionId,
-            'language' => $language,
-            'action' => $action,
-            'comment' => $comment,
-            'reviewed_by' => $reviewerId,
-            'reviewed_at' => $reviewedAt,
-            'created_at' => $reviewedAt,
+            'language'           => $language,
+            'action'             => $action,
+            'comment'            => $comment,
+            'reviewed_by'        => $reviewerId,
+            'reviewed_at'        => $reviewedAt,
+            'created_at'         => $reviewedAt,
         ]);
     }
 }

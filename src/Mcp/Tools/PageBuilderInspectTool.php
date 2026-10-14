@@ -6,7 +6,6 @@ namespace Naf\CMS\Mcp\Tools;
 
 use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
 use Naf\CMS\Enums\ToolRisk;
-
 use Naf\MCP\Support\Schema;
 use Naf\MCP\Tools\ScopedToolInterface;
 use Naf\MCP\Tools\ToolInterface;
@@ -15,8 +14,9 @@ final class PageBuilderInspectTool implements ToolInterface, ScopedToolInterface
 {
     use DeclaresLocalAiToolRisk;
 
-    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const ToolRisk AI_RISK    = ToolRisk::READ;
     private const bool AI_DESTRUCTIVE = false;
+
     public function name(): string
     {
         return 'cms_pagebuilder_inspect';
@@ -53,11 +53,11 @@ final class PageBuilderInspectTool implements ToolInterface, ScopedToolInterface
         $hint = trim((string) ($args['hint'] ?? ''));
 
         return [
-            'success' => true,
-            'message' => 'Zeigemodus gestartet. Klick im PageBuilder auf einen Block oder ein Element.',
+            'success'   => true,
+            'message'   => 'Zeigemodus gestartet. Klick im PageBuilder auf einen Block oder ein Element.',
             'uiActions' => [
                 [
-                    'action' => 'pagebuilder.inspectElement',
+                    'action'  => 'pagebuilder.inspectElement',
                     'payload' => [
                         'hint' => $hint,
                     ],

@@ -14,11 +14,11 @@ final class UserHandlersValidationTest extends TestCase
     public function testValidatorRejectsUnsafeCreatePayload(): void
     {
         $errors = (new UserPayloadValidator())->validate([
-            'username' => 'x',
-            'email' => 'invalid',
-            'password' => 'short',
+            'username'              => 'x',
+            'email'                 => 'invalid',
+            'password'              => 'short',
             'password_confirmation' => 'different',
-            'roles' => [],
+            'roles'                 => [],
         ], true);
 
         foreach (['username', 'email', 'password', 'password_confirmation', 'roles'] as $field) {
@@ -30,7 +30,7 @@ final class UserHandlersValidationTest extends TestCase
     {
         JsonRequest::bind(['username' => 'x']);
         $response = (new StoreUser())();
-        $payload = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
+        $payload  = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
 
         self::assertSame(400, $response->getStatusCode());
         self::assertFalse($payload['success']);

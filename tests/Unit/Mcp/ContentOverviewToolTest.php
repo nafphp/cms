@@ -6,7 +6,6 @@ namespace Tests\Unit\Mcp;
 
 use Naf\CMS\Mcp\Tools\ContentOverviewTool;
 use Tests\Support\DatabaseTestCase;
-use function Naf\CMS\audit_log;
 
 final class ContentOverviewToolTest extends DatabaseTestCase
 {
@@ -79,9 +78,9 @@ final class ContentOverviewToolTest extends DatabaseTestCase
     {
         $this->insertRow('article_versions', [
             'article_id' => $articleId,
-            'language' => $language,
-            'version' => $version,
-            'status' => $status,
+            'language'   => $language,
+            'version'    => $version,
+            'status'     => $status,
         ]);
     }
 }

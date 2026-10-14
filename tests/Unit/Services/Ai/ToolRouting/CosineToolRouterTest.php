@@ -16,12 +16,12 @@ final class CosineToolRouterTest extends TestCase
     {
         $tools = (new LocalAiToolCatalog())->enrich([
             [
-                'name' => 'cms_queue_status',
+                'name'        => 'cms_queue_status',
                 'description' => 'Returns queue status and pending jobs.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_article_draft_create',
+                'name'        => 'cms_article_draft_create',
                 'description' => 'Creates an article draft from a requested title and content.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
@@ -41,17 +41,17 @@ final class CosineToolRouterTest extends TestCase
     {
         $tools = (new LocalAiToolCatalog())->enrich([
             [
-                'name' => 'cms_queue_status',
+                'name'        => 'cms_queue_status',
                 'description' => 'Returns queue status.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_page_overview',
+                'name'        => 'cms_page_overview',
                 'description' => 'Returns page overview.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_tools_search',
+                'name'        => 'cms_tools_search',
                 'description' => 'Searches the registered CMS tools.',
                 'inputSchema' => ['type' => 'object', 'properties' => ['query' => ['type' => 'string']]],
             ],
@@ -71,12 +71,12 @@ final class CosineToolRouterTest extends TestCase
     {
         $tools = (new LocalAiToolCatalog())->enrich([
             [
-                'name' => 'cms_strong_match',
+                'name'        => 'cms_strong_match',
                 'description' => 'Returns a strong semantic match.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_weak_match',
+                'name'        => 'cms_weak_match',
                 'description' => 'Returns a weak semantic match.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],

@@ -1,15 +1,17 @@
 <?php
 
-use function Naf\View\s;
+use Naf\CMS\Theme\Theme;
+
 use function Naf\I18n\t;
+use function Naf\View\s;
 
 $content = is_array($content ?? null) ? $content : [];
-$props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$items = array_values(array_filter(array_map(
+$props   = is_array($content['props'] ?? null) ? $content['props'] : [];
+$items   = array_values(array_filter(array_map(
     static fn(mixed $item): ?array => is_array($item)
         ? ['value' => trim((string) ($item['value'] ?? '')), 'label' => trim((string) ($item['label'] ?? ''))]
         : null,
-    is_array($props['stats'] ?? null) ? $props['stats'] : []
+    is_array($props['stats'] ?? null) ? $props['stats'] : [],
 ), static fn(?array $item): bool => $item !== null && ($item['value'] !== '' || $item['label'] !== '')));
 if ($items === []) {
     $items = [
@@ -18,11 +20,11 @@ if ($items === []) {
         ['value' => (string) ($props['valueC'] ?? '24/7'), 'label' => (string) ($props['labelC'] ?? 'Access')],
     ];
 }
-$surface = \Naf\CMS\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
+$surface   = Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
 $itemClass = [
-    'none' => 'py-1',
-    'soft' => 'rounded-lg bg-[var(--page-panel-soft)] p-5',
-    'card' => 'rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-5',
+    'none'   => 'py-1',
+    'soft'   => 'rounded-lg bg-[var(--page-panel-soft)] p-5',
+    'card'   => 'rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-5',
     'accent' => 'rounded-lg border border-[color-mix(in_srgb,var(--page-accent)_36%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))] p-5',
 ][$surface] ?? 'py-1';
 

@@ -14,6 +14,7 @@ use Naf\CMS\Handlers\Api\Ai\ReviewAiMistakes;
 use Naf\CMS\Handlers\Api\Ai\SaveAiPromptFile;
 use Naf\CMS\Handlers\Api\Ai\SelectAiTools;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ResponseInterface;
 use Tests\Support\JsonRequest;
 
 final class AiHandlersTest extends TestCase
@@ -29,7 +30,7 @@ final class AiHandlersTest extends TestCase
             new SaveAiPromptFile(),
         ] as $handler) {
             $response = $handler();
-            $payload = $this->json($response);
+            $payload  = $this->json($response);
             self::assertSame(400, $response->getStatusCode(), $handler::class);
             self::assertFalse($payload['success'], $handler::class);
         }
@@ -39,7 +40,7 @@ final class AiHandlersTest extends TestCase
     {
         JsonRequest::bind([]);
         $response = (new CallAiTool())();
-        $payload = $this->json($response);
+        $payload  = $this->json($response);
 
         self::assertSame(200, $response->getStatusCode());
         self::assertTrue($payload['success']);
@@ -58,7 +59,7 @@ final class AiHandlersTest extends TestCase
             [new SelectAiTools(), 'tools'],
         ] as [$handler, $key]) {
             $response = $handler();
-            $payload = $this->json($response);
+            $payload  = $this->json($response);
             self::assertSame(200, $response->getStatusCode(), $handler::class);
             self::assertTrue($payload['success'], $handler::class);
             self::assertArrayHasKey($key, $payload, $handler::class);
@@ -66,7 +67,7 @@ final class AiHandlersTest extends TestCase
     }
 
     /** @return array<string, mixed> */
-    private function json(\Psr\Http\Message\ResponseInterface $response): array
+    private function json(ResponseInterface $response): array
     {
         return json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
     }

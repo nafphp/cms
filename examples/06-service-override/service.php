@@ -6,13 +6,15 @@ namespace Naf\CMS\Examples\ServiceOverride;
 
 use Naf\CMS\Contracts\MediaStorageInterface;
 use Psr\Http\Message\UploadedFileInterface;
+use RuntimeException;
+
 use function Naf\app;
 
 final class ExampleMediaStorage implements MediaStorageInterface
 {
     public function storeUploadedFile(UploadedFileInterface $file, ?int $uploadedBy = null, array $context = []): array
     {
-        throw new \RuntimeException('Connect this example to the host storage provider.');
+        throw new RuntimeException('Connect this example to the host storage provider.');
     }
 
     public function delete(int $id): bool

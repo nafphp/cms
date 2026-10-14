@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Controllers;
 
+use Naf\CMS\Api\ApiEndpoint;
 use Naf\CMS\Controllers\Api\ApiController;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -13,6 +14,8 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use ReflectionMethod;
 use ReflectionProperty;
+use RuntimeException;
+
 use function Naf\app;
 use function Naf\CMS\cms;
 use function Naf\route;
@@ -43,14 +46,15 @@ final class ApiControllerTest extends TestCase
         $this->setCurrentRoute(null);
         $this->setRequest(new ServerRequest('GET', '/api/does-not-exist'));
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->resolve();
     }
 
-    private function resolve(): \Naf\CMS\Api\ApiEndpoint
+    private function resolve(): ApiEndpoint
     {
         self::assertNotNull(cms()->api()->get('api.admin.translations.show'));
         $method = new ReflectionMethod(ApiController::class, 'resolveEndpoint');
+
         return $method->invoke(new ApiController());
     }
 

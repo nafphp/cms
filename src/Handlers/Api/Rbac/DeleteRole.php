@@ -11,9 +11,10 @@ use Naf\CMS\Models\Role;
 use Naf\CMS\Repositories\RoleRepository;
 use Naf\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
+
+use function Naf\CMS\user;
 use function Naf\json;
 use function Naf\ORM\repo;
-use function Naf\CMS\user;
 
 final class DeleteRole
 {
@@ -22,10 +23,11 @@ final class DeleteRole
 
     public function __invoke(): ResponseInterface
     {
-        $roleId = (int) ($this->jsonBody()['id'] ?? 0);
+        $roleId     = (int) ($this->jsonBody()['id'] ?? 0);
         $repository = repo(RoleRepository::class);
         /** @var Role|null $old */
         $old = $repository->findOneBy('id', $roleId);
+
         try {
             $deleted = $repository->deleteById((int) user()?->get()?->getId(), $roleId);
         } catch (PrivilegedActionDenied $exception) {

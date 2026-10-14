@@ -1,7 +1,7 @@
 <?php
 
-use function Naf\route;
 use function Naf\I18n\t;
+use function Naf\route;
 use function Naf\View\view;
 
 $overview = is_array($overview ?? null) ? $overview : [];
@@ -9,7 +9,7 @@ $overview = is_array($overview ?? null) ? $overview : [];
 ?>
 <?php $this->setLayout('layouts.admin') ?>
 
-<?php $pageTitle = t('Article management'); ?>
+<?php $pageTitle    = t('Article management'); ?>
 <?php $pageSubtitle = t('Manage article drafts, versions, translations, and publishing state.'); ?>
 
 <?php $this->block('content'); ?>

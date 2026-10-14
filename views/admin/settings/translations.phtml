@@ -1,21 +1,21 @@
 <?php
 
+use function Naf\CMS\cms;
 use function Naf\I18n\t;
 use function Naf\route;
 use function Naf\View\s;
 use function Naf\View\view;
-use function Naf\CMS\cms;
 
-$language = strtolower(trim((string) ($language ?? 'en')));
-$languages = is_array($languages ?? null) ? $languages : [];
+$language        = strtolower(trim((string) ($language ?? 'en')));
+$languages       = is_array($languages ?? null) ? $languages : [];
 $settingSections = is_array($settingSections ?? null) ? $settingSections : [];
-$entries = is_array($entries ?? null) ? $entries : [];
+$entries         = is_array($entries ?? null) ? $entries : [];
 $languageOptions = cms()->languages()->knownOptions();
 
 ?>
 <?php $this->setLayout('layouts.admin') ?>
 
-<?php $pageTitle = (string) ($pageTitle ?? t('Languages')); ?>
+<?php $pageTitle    = (string) ($pageTitle ?? t('Languages')); ?>
 <?php $pageSubtitle = (string) ($pageSubtitle ?? t('Manage CMS languages and translation JSON files.')); ?>
 
 <?php $this->block('content'); ?>
@@ -149,23 +149,23 @@ $languageOptions = cms()->languages()->knownOptions();
     const endpoint = <?= json_encode('/api/admin/translations/{language}') ?>.replace('{language}', encodeURIComponent(language));
     const languageOptions = <?= json_encode($languageOptions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     const labels = <?= json_encode([
-        'duplicateKey' => t('Duplicate translation key:'),
-        'emptyKey' => t('Translation keys cannot be empty.'),
-        'settingsSaved' => t('Settings saved.'),
+        'duplicateKey'         => t('Duplicate translation key:'),
+        'emptyKey'             => t('Translation keys cannot be empty.'),
+        'settingsSaved'        => t('Settings saved.'),
         'settingsCouldNotSave' => t('Could not save settings.'),
-        'dirty' => t('Unsaved changes.'),
-        'clean' => t('No unsaved changes.'),
-        'createLanguage' => t('Create language'),
-        'newLanguage' => t('New language'),
-        'language' => t('Language'),
-        'chooseLanguageCode' => t('Choose a language code.'),
-        'invalidLanguage' => t('Please choose a valid language code.'),
-        'languageCreated' => t('Language created.'),
-        'deleteConfirm' => t('Delete translation?'),
-        'delete' => t('Delete'),
-        'cancel' => t('Cancel'),
-        'saved' => t('Translations saved.'),
-        'couldNotSave' => t('Could not save translations.'),
+        'dirty'                => t('Unsaved changes.'),
+        'clean'                => t('No unsaved changes.'),
+        'createLanguage'       => t('Create language'),
+        'newLanguage'          => t('New language'),
+        'language'             => t('Language'),
+        'chooseLanguageCode'   => t('Choose a language code.'),
+        'invalidLanguage'      => t('Please choose a valid language code.'),
+        'languageCreated'      => t('Language created.'),
+        'deleteConfirm'        => t('Delete translation?'),
+        'delete'               => t('Delete'),
+        'cancel'               => t('Cancel'),
+        'saved'                => t('Translations saved.'),
+        'couldNotSave'         => t('Could not save translations.'),
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     let activeRow = null;
 

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Naf\CMS\Content\Article\Block;
 
 use Naf\CMS\Security\UrlPolicy;
-use Naf\CMS\Content\Article\Block\AbstractBlock;
 
 final class EmbedBlock extends AbstractBlock
 {

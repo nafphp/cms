@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Naf\CMS;
 
 use Naf\CMS\Security\CspNonce;
+use Naf\CMS\Services\Security\UserIdentity;
 use Naf\CMS\Support\Audit;
 use Naf\CMS\Support\AuditEntry;
 use Naf\CMS\Support\Cms;
@@ -55,15 +56,21 @@ function user(?UserHelper $override = null, bool $reset = false): ?UserHelper
     if ($reset) {
         $forced = null;
         \Naf\Auth\auth()->reset();
+
         return null;
     }
-    if ($override !== null) { return $forced = $override; }
-    if ($forced !== null) { return $forced; }
+    if ($override !== null) {
+        return $forced = $override;
+    }
+    if ($forced !== null) {
+        return $forced;
+    }
 
     $identity = \Naf\Auth\auth()->user();
-    if (!$identity instanceof \Naf\CMS\Services\Security\UserIdentity || $identity->user === null) {
+    if (!$identity instanceof UserIdentity || $identity->user === null) {
         return null;
     }
+
     return new UserHelper($identity->user);
 }
 

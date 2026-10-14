@@ -75,12 +75,12 @@ final class ArticleStatusCountsToolTest extends DatabaseTestCase
         self::assertFalse($result['database_available']);
         self::assertSame(0, $result['total']);
         self::assertSame([
-            'draft' => 0,
-            'review' => 0,
-            'declined' => 0,
+            'draft'     => 0,
+            'review'    => 0,
+            'declined'  => 0,
             'published' => 0,
             'scheduled' => 0,
-            'archived' => 0,
+            'archived'  => 0,
         ], $result['counts']);
     }
 
@@ -88,9 +88,9 @@ final class ArticleStatusCountsToolTest extends DatabaseTestCase
     {
         $this->insertRow('article_versions', [
             'article_id' => $articleId,
-            'language' => $language,
-            'version' => $version,
-            'status' => $status,
+            'language'   => $language,
+            'version'    => $version,
+            'status'     => $status,
         ]);
     }
 }

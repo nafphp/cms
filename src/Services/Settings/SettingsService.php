@@ -10,11 +10,13 @@ use Naf\CMS\Enums\Permission;
 use Naf\CMS\Repositories\SettingRepository;
 use Naf\CMS\Settings\SettingField;
 use Naf\CMS\Settings\SettingSection;
+use stdClass;
+
+use function Naf\CMS\audit_log;
+use function Naf\CMS\cms;
+use function Naf\CMS\user;
 use function Naf\config;
 use function Naf\I18n\t;
-use function Naf\CMS\cms;
-use function Naf\CMS\audit_log;
-use function Naf\CMS\user;
 
 final class SettingsService implements SettingsServiceInterface
 {
@@ -30,7 +32,7 @@ final class SettingsService implements SettingsServiceInterface
     /** @return array<int, array<string, mixed>> */
     public function sections(?string $group = null): array
     {
-        $stored = $this->repository()->all();
+        $stored   = $this->repository()->all();
         $sections = [];
 
         foreach (cms()->settings()->sections($group) as $section) {
@@ -49,8 +51,8 @@ final class SettingsService implements SettingsServiceInterface
      */
     public function save(array $payload): array
     {
-        $values = [];
-        $errors = [];
+        $values    = [];
+        $errors    = [];
         $oldValues = $this->currentValues();
 
         foreach ($this->fieldsWithPermissions() as $key => [$field, $permission]) {
@@ -90,26 +92,26 @@ final class SettingsService implements SettingsServiceInterface
         $fields = [];
         foreach ($section->fields() as $field) {
             $fields[] = [
-                'key' => $field->key(),
-                'label' => t($field->label()),
-                'type' => $field->type(),
+                'key'         => $field->key(),
+                'label'       => t($field->label()),
+                'type'        => $field->type(),
                 'description' => $field->description() !== null ? t($field->description()) : null,
-                'value' => $stored[$field->key()] ?? $this->defaultValue($field),
-                'source' => $this->source($field, $stored),
-                'options' => $this->translatedOptions($field->options()),
+                'value'       => $stored[$field->key()] ?? $this->defaultValue($field),
+                'source'      => $this->source($field, $stored),
+                'options'     => $this->translatedOptions($field->options()),
             ];
         }
 
         return [
-            'id' => $section->id(),
-            'label' => t($section->label()),
+            'id'          => $section->id(),
+            'label'       => t($section->label()),
             'description' => $section->description() !== null ? t($section->description()) : null,
-            'group' => $section->group(),
-            'icon' => $section->icon(),
-            'order' => $section->order(),
-            'permission' => $section->permission(),
-            'view' => $section->view(),
-            'fields' => $fields,
+            'group'       => $section->group(),
+            'icon'        => $section->icon(),
+            'order'       => $section->order(),
+            'permission'  => $section->permission(),
+            'view'        => $section->view(),
+            'fields'      => $fields,
         ];
     }
 
@@ -129,7 +131,7 @@ final class SettingsService implements SettingsServiceInterface
     private function normalizeValue(SettingField $field, mixed $value): ?string
     {
         if ($field->type() === 'multiselect') {
-            $values = is_array($value) ? $value : preg_split('/[,\s]+/', (string) $value);
+            $values   = is_array($value) ? $value : preg_split('/[,\s]+/', (string) $value);
             $selected = array_values(array_unique(array_filter(array_map(
                 static fn(mixed $entry): ?string => cms()->languages()->normalize((string) $entry),
                 $values ?: [],
@@ -190,7 +192,7 @@ final class SettingsService implements SettingsServiceInterface
             return 'database';
         }
 
-        $missing = new \stdClass();
+        $missing    = new stdClass();
         $configured = config(str_replace('.', ':', $field->key()), $missing);
         if ($configured !== $missing) {
             return 'config';

@@ -16,19 +16,19 @@ asset()->add('/js/lib/codemirror/show-hint.min.js');
 asset()->add('/js/lib/codemirror/css-hint.min.js');
 asset()->add('/js/admin/theme-editor.js', 'module');
 
-$theme = is_array($theme ?? null) ? $theme : null;
-$isEdit = $theme !== null;
+$theme      = is_array($theme ?? null) ? $theme : null;
+$isEdit     = $theme !== null;
 $identifier = (string) ($theme['identifier'] ?? '');
-$label = (string) ($theme['label'] ?? '');
-$surfaces = is_array($theme['surfaces'] ?? null) ? $theme['surfaces'] : [
-    'none' => 'None',
-    'soft' => 'Soft',
-    'card' => 'Card',
+$label      = (string) ($theme['label'] ?? '');
+$surfaces   = is_array($theme['surfaces'] ?? null) ? $theme['surfaces'] : [
+    'none'   => 'None',
+    'soft'   => 'Soft',
+    'card'   => 'Card',
     'accent' => 'Accent',
 ];
-$css = (string) ($theme['css'] ?? ".theme-" . ($identifier !== '' ? $identifier : 'my-theme') . " {\n    --page-accent: #3f7fbd;\n}\n\n.theme-" . ($identifier !== '' ? $identifier : 'my-theme') . " .page-block--surface-card {\n    border-radius: 12px;\n}\n");
+$css              = (string) ($theme['css'] ?? ".theme-" . ($identifier !== '' ? $identifier : 'my-theme') . " {\n    --page-accent: #3f7fbd;\n}\n\n.theme-" . ($identifier !== '' ? $identifier : 'my-theme') . " .page-block--surface-card {\n    border-radius: 12px;\n}\n");
 $exportIdentifier = $identifier !== '' ? $identifier : 'my-theme';
-$export = "Theme::create('" . $exportIdentifier . "')\n"
+$export           = "Theme::create('" . $exportIdentifier . "')\n"
     . "    ->setLabel('" . str_replace("'", "\\'", $label !== '' ? $label : 'My Theme') . "')\n"
     . "    ->addStylesheet('/css/themes/" . $exportIdentifier . ".css')";
 foreach ($surfaces as $surfaceId => $surfaceLabel) {

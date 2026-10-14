@@ -36,11 +36,11 @@ final class MapBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'query' => '',
+            'query'    => '',
             'embedUrl' => '',
-            'title' => 'Find us',
-            'caption' => '',
-            'height' => 360,
+            'title'    => 'Find us',
+            'caption'  => '',
+            'height'   => 360,
         ];
     }
 

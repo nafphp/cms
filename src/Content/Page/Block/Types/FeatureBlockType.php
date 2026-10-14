@@ -36,9 +36,9 @@ final class FeatureBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'icon' => 'N',
+            'icon'  => 'N',
             'title' => 'Feature',
-            'text' => 'Describe one focused capability.',
+            'text'  => 'Describe one focused capability.',
             ...$this->surfaceDefaults(),
         ];
     }

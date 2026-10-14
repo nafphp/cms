@@ -19,7 +19,7 @@ final class FormSubmissionValidator
     {
         self::registerCoreRules();
 
-        $rules = [];
+        $rules    = [];
         $messages = [];
 
         foreach ($fields as $field) {
@@ -37,13 +37,13 @@ final class FormSubmissionValidator
                 continue;
             }
 
-            $rules[$name] = implode('|', $fieldRules);
+            $rules[$name]    = implode('|', $fieldRules);
             $messages[$name] = [
                 'required' => 'This field is required.',
-                'email' => 'Please enter a valid email address.',
-                'min' => 'Please enter at least %s characters.',
-                'max' => 'Please enter no more than %s characters.',
-                'in' => 'Please choose a valid option.',
+                'email'    => 'Please enter a valid email address.',
+                'min'      => 'Please enter at least %s characters.',
+                'max'      => 'Please enter no more than %s characters.',
+                'in'       => 'Please choose a valid option.',
             ];
         }
 
@@ -86,6 +86,7 @@ final class FormSubmissionValidator
             }
 
             $allowed = array_map('trim', explode(',', (string) $param));
+
             return in_array((string) $value, $allowed, true);
         }, 'Invalid option.');
 
@@ -105,7 +106,7 @@ final class FormSubmissionValidator
         if ($type === 'select') {
             $options = array_values(array_filter(array_map(
                 static fn(mixed $option): string => trim((string) $option),
-                is_array($field['options'] ?? null) ? $field['options'] : []
+                is_array($field['options'] ?? null) ? $field['options'] : [],
             )));
             if ($options !== []) {
                 $rules[] = 'in:' . implode(',', $options);
@@ -121,7 +122,7 @@ final class FormSubmissionValidator
      */
     private function validatorChain(array $field): array
     {
-        $rules = [];
+        $rules      = [];
         $validators = is_array($field['validators'] ?? null) ? $field['validators'] : [];
 
         if ($validators !== []) {
@@ -151,7 +152,7 @@ final class FormSubmissionValidator
             return array_values(array_unique($rules));
         }
 
-        $type = strtolower(trim((string) ($field['type'] ?? 'text')));
+        $type       = strtolower(trim((string) ($field['type'] ?? 'text')));
         $validation = strtolower(trim((string) ($field['validation'] ?? '')));
 
         if ((bool) ($field['required'] ?? false)) {

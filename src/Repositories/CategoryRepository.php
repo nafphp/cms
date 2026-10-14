@@ -7,8 +7,11 @@ namespace Naf\CMS\Repositories;
 use Naf\CMS\Models\Category;
 use Naf\CMS\Support\Slug;
 use Naf\ORM\Repository\AbstractRepository;
-use function Naf\ORM\em;
+use PDO;
+use Throwable;
+
 use function Naf\log;
+use function Naf\ORM\em;
 
 class CategoryRepository extends AbstractRepository
 {
@@ -32,7 +35,7 @@ class CategoryRepository extends AbstractRepository
 
         usort(
             $categories,
-            static fn(Category $a, Category $b): int => strcmp((string) $a->getName(), (string) $b->getName())
+            static fn(Category $a, Category $b): int => strcmp((string) $a->getName(), (string) $b->getName()),
         );
 
         return $categories;
@@ -69,19 +72,19 @@ class CategoryRepository extends AbstractRepository
              FROM categories c
              LEFT JOIN articles a ON a.category_id = c.id
              GROUP BY c.id, c.name, c.slug
-             ORDER BY c.name ASC'
+             ORDER BY c.name ASC',
         );
 
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(
             static fn(array $row): array => [
-                'id' => (int) ($row['id'] ?? 0),
-                'name' => (string) ($row['name'] ?? ''),
-                'slug' => (string) ($row['slug'] ?? ''),
+                'id'            => (int) ($row['id'] ?? 0),
+                'name'          => (string) ($row['name'] ?? ''),
+                'slug'          => (string) ($row['slug'] ?? ''),
                 'article_count' => (int) ($row['article_count'] ?? 0),
             ],
-            $rows
+            $rows,
         );
     }
 
@@ -100,7 +103,7 @@ class CategoryRepository extends AbstractRepository
         $stmt = $this->pdo->prepare('UPDATE categories SET name = :name WHERE id = :id');
         $stmt->execute([
             'name' => $normalizedName,
-            'id' => $id,
+            'id'   => $id,
         ]);
 
         return $stmt->rowCount() > 0;
@@ -113,6 +116,7 @@ class CategoryRepository extends AbstractRepository
         }
 
         $this->pdo->beginTransaction();
+
         try {
             $detachStmt = $this->pdo->prepare('UPDATE articles SET category_id = NULL WHERE category_id = :id');
             $detachStmt->execute(['id' => $id]);
@@ -123,9 +127,10 @@ class CategoryRepository extends AbstractRepository
             $this->pdo->commit();
 
             return $deleteStmt->rowCount() > 0;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('CategoryRepository.deleteByIdWithArticleDetach failed: %s', $e->getMessage()), ['exception' => $e]);
             $this->pdo->rollBack();
+
             return false;
         }
     }
@@ -138,7 +143,7 @@ class CategoryRepository extends AbstractRepository
         }
 
         $stmt = $this->pdo->prepare(
-            'SELECT id FROM categories WHERE LOWER(TRIM(name)) = LOWER(:name) ORDER BY id ASC LIMIT 1'
+            'SELECT id FROM categories WHERE LOWER(TRIM(name)) = LOWER(:name) ORDER BY id ASC LIMIT 1',
         );
         $stmt->execute(['name' => $normalizedName]);
         $categoryId = $stmt->fetchColumn();
@@ -175,7 +180,7 @@ class CategoryRepository extends AbstractRepository
         }
 
         $candidate = $base;
-        $suffix = 1;
+        $suffix    = 1;
         while ($this->slugExists($candidate)) {
             $suffix++;
             $candidate = $base . '-' . $suffix;
@@ -188,6 +193,7 @@ class CategoryRepository extends AbstractRepository
     {
         $stmt = $this->pdo->prepare('SELECT 1 FROM categories WHERE slug = :slug LIMIT 1');
         $stmt->execute(['slug' => $slug]);
+
         return $stmt->fetchColumn() !== false;
     }
 }

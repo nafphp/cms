@@ -37,7 +37,7 @@ final class ArticleTitleBlockType extends AbstractBlockType
     {
         return [
             'showTeaser' => true,
-            'level' => 'h1',
+            'level'      => 'h1',
         ];
     }
 

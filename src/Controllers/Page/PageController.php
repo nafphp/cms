@@ -4,19 +4,21 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Controllers\Page;
 
-use Naf\CMS\Page\PageDataHandler;
 use Naf\CMS\Page\Page;
 use Naf\CMS\Page\PageAuthorization;
 use Naf\CMS\Page\PageBuilderRenderer;
+use Naf\CMS\Page\PageDataHandler;
 use Naf\CMS\Support\HandlerInvoker;
 use Naf\Exceptions\RouteNotFoundException;
 use Psr\Http\Message\ResponseInterface;
+use RuntimeException;
+
+use function Naf\CMS\cms;
 use function Naf\I18n\t;
 use function Naf\request;
 use function Naf\response;
 use function Naf\route;
 use function Naf\View\view;
-use function Naf\CMS\cms;
 
 final class PageController
 {
@@ -25,16 +27,16 @@ final class PageController
         $page = $this->resolvePage();
         (new PageAuthorization())->authorize($page);
 
-        $handler = $page->handler();
+        $handler        = $page->handler();
         $usesPageLayout = false;
         if ($handler !== null) {
             $result = HandlerInvoker::call($handler, $params);
         } elseif ($page->hasContent()) {
             $content = $page->content();
-            $result = $content(...$params);
+            $result  = $content(...$params);
         } else {
             $usesPageLayout = $page->pageLayout() !== null;
-            $result = (new PageBuilderRenderer())->render($page);
+            $result         = (new PageBuilderRenderer())->render($page);
         }
 
         if ($result instanceof ResponseInterface) {
@@ -50,7 +52,7 @@ final class PageController
 
     public function handleData(mixed ...$params): ResponseInterface
     {
-        $page = $this->resolvePage();
+        $page        = $this->resolvePage();
         $dataHandler = $this->resolveDataHandler($page);
 
         (new PageAuthorization())->authorize($page, $dataHandler->permission);
@@ -60,9 +62,9 @@ final class PageController
             return $response;
         }
 
-        throw new \RuntimeException(sprintf(
+        throw new RuntimeException(sprintf(
             'Data handler for page "%s" must return a PSR response.',
-            $page->id()
+            $page->id(),
         ));
     }
 
@@ -72,7 +74,7 @@ final class PageController
         if (is_string($routeName) && $routeName !== '') {
             if (str_starts_with($routeName, 'db.page.')) {
                 $request = request();
-                $page = cms()->pages()->findByPath($request->getUri()->getPath(), $request->getMethod());
+                $page    = cms()->pages()->findByPath($request->getUri()->getPath(), $request->getMethod());
                 if ($page instanceof Page) {
                     return $page;
                 }
@@ -90,7 +92,7 @@ final class PageController
         }
 
         $request = request();
-        $page = cms()->pages()->findByPath($request->getUri()->getPath(), $request->getMethod());
+        $page    = cms()->pages()->findByPath($request->getUri()->getPath(), $request->getMethod());
         if ($page instanceof Page) {
             return $page;
         }
@@ -104,13 +106,13 @@ final class PageController
 
     private function resolveDataHandler(Page $page): PageDataHandler
     {
-        $method = request()->getMethod();
+        $method      = request()->getMethod();
         $dataHandler = $page->dataHandler($method);
         if (!$dataHandler instanceof PageDataHandler) {
-            throw new \RuntimeException(sprintf(
+            throw new RuntimeException(sprintf(
                 'Page "%s" has no data handler for %s.',
                 $page->id(),
-                strtoupper($method)
+                strtoupper($method),
             ));
         }
 
@@ -124,11 +126,11 @@ final class PageController
         }
 
         return response(view('page.shell', [
-            'title' => t($page->title()),
+            'title'     => t($page->title()),
             'pageTitle' => t($page->title()),
-            'page' => $page,
-            'content' => $content,
-            'layout' => $page->layout(),
+            'page'      => $page,
+            'content'   => $content,
+            'layout'    => $page->layout(),
         ]));
     }
 }

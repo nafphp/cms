@@ -36,8 +36,8 @@ final class StackBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'gap' => 'medium',
-            'align' => 'stretch',
+            'gap'      => 'medium',
+            'align'    => 'stretch',
             'children' => [],
         ];
     }

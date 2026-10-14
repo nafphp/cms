@@ -6,6 +6,8 @@ namespace Naf\CMS\Localization;
 
 use Naf\CMS\Enums\Language;
 use Naf\CMS\Support\RuntimePaths;
+use Throwable;
+
 use function Naf\config;
 use function Naf\I18n\t;
 
@@ -98,12 +100,14 @@ final class LanguageRegistry
         }
 
         $label = (new \Naf\I18n\Support\Language())->label($language, '');
+
         return $label !== '' ? $label : strtoupper($language);
     }
 
     public function isKnown(string $language): bool
     {
         $language = $this->normalize($language);
+
         return $language !== null && in_array($language, $this->available(), true);
     }
 
@@ -192,7 +196,7 @@ final class LanguageRegistry
     {
         try {
             return config($key, $default);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return $default;
         }
     }

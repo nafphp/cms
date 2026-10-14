@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Exceptions;
 
-final class PrivilegedActionDenied extends \DomainException
+use DomainException;
+
+final class PrivilegedActionDenied extends DomainException
 {
     public function __construct(
         private readonly string $reason,

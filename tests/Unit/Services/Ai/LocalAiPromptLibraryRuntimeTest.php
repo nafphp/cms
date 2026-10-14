@@ -11,8 +11,8 @@ final class LocalAiPromptLibraryRuntimeTest extends TestCase
 {
     public function testHostOverrideWinsWithoutChangingPackageDefault(): void
     {
-        $root = sys_get_temp_dir() . '/nafcms-prompts-' . bin2hex(random_bytes(6));
-        $defaults = $root . '/defaults';
+        $root      = sys_get_temp_dir() . '/nafcms-prompts-' . bin2hex(random_bytes(6));
+        $defaults  = $root . '/defaults';
         $overrides = $root . '/runtime';
         mkdir($defaults, 0777, true);
         file_put_contents($defaults . '/IDENTITY.md', "Package identity\n");

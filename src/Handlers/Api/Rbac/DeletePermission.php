@@ -11,9 +11,10 @@ use Naf\CMS\Models\Permission;
 use Naf\CMS\Repositories\PermissionRepository;
 use Naf\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
+
+use function Naf\CMS\user;
 use function Naf\json;
 use function Naf\ORM\repo;
-use function Naf\CMS\user;
 
 final class DeletePermission
 {
@@ -23,9 +24,10 @@ final class DeletePermission
     public function __invoke(): ResponseInterface
     {
         $permissionId = (int) ($this->jsonBody()['id'] ?? 0);
-        $repository = repo(PermissionRepository::class);
+        $repository   = repo(PermissionRepository::class);
         /** @var Permission|null $old */
         $old = $repository->findOneBy('id', $permissionId);
+
         try {
             $deleted = $repository->deleteById((int) user()?->get()?->getId(), $permissionId);
         } catch (PrivilegedActionDenied $exception) {

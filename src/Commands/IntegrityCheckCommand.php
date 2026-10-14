@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Commands;
 
-use Naf\CMS\Support\Docs\IntegrityChecker;
 use Naf\CLI\Core\AbstractCommand;
 use Naf\CLI\Core\Input;
 use Naf\CLI\Core\Output;
+use Naf\CMS\Support\Docs\IntegrityChecker;
 
 final class IntegrityCheckCommand extends AbstractCommand
 {
@@ -27,12 +27,14 @@ final class IntegrityCheckCommand extends AbstractCommand
             $output->writeLine('  Usage:');
             $output->writeLine('    vendor/bin/naf integrity:check');
             $output->writeLine('  Exits with code 1 when block/template registries drift from filesystem views.');
+
             return self::SUCCESS;
         }
 
         $issues = (new IntegrityChecker(BASE_PATH))->check();
         if ($issues === []) {
             $output->writeLine('NafCMS integrity checks passed.', 'ok');
+
             return self::SUCCESS;
         }
 

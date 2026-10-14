@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Repositories;
 
+use DomainException;
+use InvalidArgumentException;
 use Naf\CMS\Page\Page;
 use Naf\CMS\Page\PageFactory;
 use PDO;
+use RuntimeException;
+use Throwable;
+
 use function Naf\Database\database;
 use function Naf\log;
 
@@ -15,8 +20,7 @@ final class PageRepository
     public function __construct(
         private ?PDO $connection = null,
         private ?PageFactory $factory = null,
-    )
-    {
+    ) {
     }
 
     /**
@@ -36,27 +40,28 @@ final class PageRepository
                 FROM pages
                 ORDER BY updated_at DESC, created_at DESC, title ASC
             SQL)->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error('PageRepository.summaries failed', [
-                'exception' => $e,
+                'exception'      => $e,
                 'template_count' => count($templates),
             ]);
+
             return [];
         }
 
         $labels = $this->templateLabels($templates);
 
         return array_map(static fn(array $row): array => [
-            'id' => (int) ($row['id'] ?? 0),
+            'id'         => (int) ($row['id'] ?? 0),
             'identifier' => (string) ($row['identifier'] ?? ''),
-            'title' => (string) ($row['title'] ?? ''),
-            'path' => (string) ($row['path'] ?? ''),
-            'language' => (string) ($row['language'] ?? ''),
-            'status' => (string) ($row['status'] ?? 'draft'),
-            'template' => $labels[(string) ($row['template_id'] ?? '')] ?? (string) ($row['template_id'] ?? ''),
+            'title'      => (string) ($row['title'] ?? ''),
+            'path'       => (string) ($row['path'] ?? ''),
+            'language'   => (string) ($row['language'] ?? ''),
+            'status'     => (string) ($row['status'] ?? 'draft'),
+            'template'   => $labels[(string) ($row['template_id'] ?? '')] ?? (string) ($row['template_id'] ?? ''),
             'templateId' => (string) ($row['template_id'] ?? ''),
-            'themeId' => (string) ($row['theme_id'] ?? ''),
-            'updated' => (string) (($row['updated_at'] ?? null) ?: ($row['created_at'] ?? '')),
+            'themeId'    => (string) ($row['theme_id'] ?? ''),
+            'updated'    => (string) (($row['updated_at'] ?? null) ?: ($row['created_at'] ?? '')),
         ], is_array($rows) ? $rows : []);
     }
 
@@ -71,11 +76,12 @@ final class PageRepository
             $statement = $connection->prepare('SELECT * FROM pages WHERE id = :id LIMIT 1');
             $statement->execute(['id' => $id]);
             $row = $statement->fetch(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error('PageRepository.find failed', [
                 'exception' => $e,
-                'id' => $id,
+                'id'        => $id,
             ]);
+
             return null;
         }
 
@@ -87,19 +93,18 @@ final class PageRepository
         ?string $language = null,
         bool $publishedOnly = true,
         ?string $fallbackLanguage = null,
-    ): ?array
-    {
+    ): ?array {
         $connection = $this->connection();
         if (!$connection instanceof PDO) {
             return null;
         }
 
-        $path = $this->normalizePath($path);
-        $language = $language === null ? null : strtolower(trim($language));
+        $path             = $this->normalizePath($path);
+        $language         = $language === null ? null : strtolower(trim($language));
         $fallbackLanguage = $fallbackLanguage === null ? null : strtolower(trim($fallbackLanguage));
 
         try {
-            $sql = 'SELECT * FROM pages WHERE path = :path';
+            $sql        = 'SELECT * FROM pages WHERE path = :path';
             $parameters = ['path' => $path];
             if ($language !== null && $language !== '') {
                 $sql .= ' AND language = :language';
@@ -154,13 +159,14 @@ final class PageRepository
                 $statement->execute(['path' => $path]);
                 $row = $statement->fetch(PDO::FETCH_ASSOC);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error('PageRepository.findByPath failed', [
-                'exception' => $e,
-                'path' => $path,
-                'language' => $language,
+                'exception'      => $e,
+                'path'           => $path,
+                'language'       => $language,
                 'published_only' => $publishedOnly,
             ]);
+
             return null;
         }
 
@@ -206,14 +212,15 @@ final class PageRepository
             $statement = $connection->query(
                 "SELECT id, path, status, template_id
                  FROM pages
-                 ORDER BY path ASC, language ASC"
+                 ORDER BY path ASC, language ASC",
             );
             $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error('PageRepository.routeDescriptors failed', [
-                'exception' => $e,
+                'exception'      => $e,
                 'template_count' => count($templateIds),
             ]);
+
             return [];
         }
 
@@ -223,10 +230,10 @@ final class PageRepository
                 continue;
             }
 
-            $path = $this->normalizePath((string) ($row['path'] ?? '/'));
+            $path       = $this->normalizePath((string) ($row['path'] ?? '/'));
             $descriptor = [
-                'id' => 'db.page.' . (int) ($row['id'] ?? 0),
-                'path' => $path,
+                'id'        => 'db.page.' . (int) ($row['id'] ?? 0),
+                'path'      => $path,
                 'published' => (string) ($row['status'] ?? 'draft') === 'published',
             ];
 
@@ -254,13 +261,14 @@ final class PageRepository
                 ? "SELECT * FROM pages WHERE status = 'published' ORDER BY path ASC, language ASC"
                 : 'SELECT * FROM pages ORDER BY path ASC, language ASC';
             $statement = $connection->query($sql);
-            $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+            $rows      = $statement->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
             log()->error('PageRepository.pagesForRouting failed', [
-                'exception' => $e,
+                'exception'      => $e,
                 'template_count' => count($templates),
                 'published_only' => $publishedOnly,
             ]);
+
             return [];
         }
 
@@ -299,8 +307,7 @@ final class PageRepository
         ?string $language = null,
         bool $publishedOnly = true,
         ?string $fallbackLanguage = null,
-    ): ?Page
-    {
+    ): ?Page {
         $row = $this->findByPath($path, $language, $publishedOnly, $fallbackLanguage);
         if (!is_array($row)) {
             return null;
@@ -329,11 +336,12 @@ final class PageRepository
             $statement = $connection->prepare('SELECT * FROM pages WHERE identifier = :identifier ORDER BY language ASC');
             $statement->execute(['identifier' => $this->normalizeIdentifier($identifier)]);
             $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error('PageRepository.findTranslations failed', [
-                'exception' => $e,
+                'exception'  => $e,
                 'identifier' => $identifier,
             ]);
+
             return [];
         }
 
@@ -350,41 +358,41 @@ final class PageRepository
     {
         $connection = $this->connection();
         if (!$connection instanceof PDO) {
-            throw new \RuntimeException('No database connection available.');
+            throw new RuntimeException('No database connection available.');
         }
 
-        $id = (int) ($payload['id'] ?? 0);
+        $id         = (int) ($payload['id'] ?? 0);
         $identifier = $this->normalizeIdentifier((string) ($payload['identifier'] ?? ''));
-        $path = $this->normalizePath((string) ($payload['path'] ?? ''));
-        $title = trim((string) ($payload['title'] ?? ''));
-        $language = strtolower(trim((string) ($payload['language'] ?? '')));
-        $status = $this->normalizeStatus((string) ($payload['status'] ?? 'draft'));
+        $path       = $this->normalizePath((string) ($payload['path'] ?? ''));
+        $title      = trim((string) ($payload['title'] ?? ''));
+        $language   = strtolower(trim((string) ($payload['language'] ?? '')));
+        $status     = $this->normalizeStatus((string) ($payload['status'] ?? 'draft'));
         $templateId = trim((string) ($payload['template_id'] ?? $payload['templateId'] ?? ''));
-        $themeId = trim((string) ($payload['theme_id'] ?? $payload['themeId'] ?? ''));
-        $layout = trim((string) ($payload['layout'] ?? 'layouts.page')) ?: 'layouts.page';
-        $blocks = is_array($payload['blocks'] ?? null) ? $payload['blocks'] : [];
-        $meta = is_array($payload['meta'] ?? null) ? $payload['meta'] : [];
+        $themeId    = trim((string) ($payload['theme_id'] ?? $payload['themeId'] ?? ''));
+        $layout     = trim((string) ($payload['layout'] ?? 'layouts.page')) ?: 'layouts.page';
+        $blocks     = is_array($payload['blocks'] ?? null) ? $payload['blocks'] : [];
+        $meta       = is_array($payload['meta'] ?? null) ? $payload['meta'] : [];
 
         if ($title === '' || $templateId === '') {
-            throw new \InvalidArgumentException('Page title and template id are required.');
+            throw new InvalidArgumentException('Page title and template id are required.');
         }
 
         $params = [
-            'identifier' => $identifier,
-            'path' => $path,
-            'title' => $title,
-            'language' => $language,
-            'status' => $status,
+            'identifier'  => $identifier,
+            'path'        => $path,
+            'title'       => $title,
+            'language'    => $language,
+            'status'      => $status,
             'template_id' => $templateId,
-            'theme_id' => $themeId === '' ? null : $themeId,
+            'theme_id'    => $themeId === '' ? null : $themeId,
             'blocks_json' => json_encode($blocks, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-            'meta_json' => json_encode($meta, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-            'layout' => $layout,
+            'meta_json'   => json_encode($meta, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            'layout'      => $layout,
         ];
 
         $pathOwnerId = $this->pathLanguageOwnerId($path, $language);
         if ($pathOwnerId !== null && $pathOwnerId !== $id) {
-            throw new \DomainException(sprintf(
+            throw new DomainException(sprintf(
                 'Page path "%s" is already used for language "%s".',
                 $path,
                 $language,
@@ -408,6 +416,7 @@ final class PageRepository
                 WHERE id = :id
             SQL);
             $statement->execute($params + ['id' => $id]);
+
             return $id;
         }
 
@@ -428,10 +437,10 @@ final class PageRepository
         }
 
         $statement = $connection->prepare(
-            'SELECT id FROM pages WHERE path = :path AND language = :language LIMIT 1'
+            'SELECT id FROM pages WHERE path = :path AND language = :language LIMIT 1',
         );
         $statement->execute([
-            'path' => $this->normalizePath($path),
+            'path'     => $this->normalizePath($path),
             'language' => strtolower(trim($language)),
         ]);
         $id = (int) ($statement->fetchColumn() ?: 0);
@@ -470,10 +479,10 @@ final class PageRepository
     {
         return [
             ...$row,
-            'id' => (int) ($row['id'] ?? 0),
+            'id'      => (int) ($row['id'] ?? 0),
             'themeId' => (string) ($row['theme_id'] ?? ''),
-            'blocks' => $this->decodeJson((string) ($row['blocks_json'] ?? '{}')),
-            'meta' => $this->decodeJson((string) ($row['meta_json'] ?? '{}')),
+            'blocks'  => $this->decodeJson((string) ($row['blocks_json'] ?? '{}')),
+            'meta'    => $this->decodeJson((string) ($row['meta_json'] ?? '{}')),
         ];
     }
 
@@ -493,6 +502,7 @@ final class PageRepository
     private function normalizePath(string $path): string
     {
         $path = '/' . ltrim(trim($path), '/');
+
         return $path === '/' ? '/' : rtrim($path, '/');
     }
 
@@ -503,7 +513,7 @@ final class PageRepository
         $identifier = trim($identifier, '-._');
 
         if ($identifier === '') {
-            throw new \InvalidArgumentException('Page identifier cannot be empty.');
+            throw new InvalidArgumentException('Page identifier cannot be empty.');
         }
 
         return $identifier;
@@ -512,6 +522,7 @@ final class PageRepository
     private function normalizeStatus(string $status): string
     {
         $status = strtolower(trim($status));
+
         return in_array($status, ['draft', 'review', 'published', 'scheduled', 'archived'], true) ? $status : 'draft';
     }
 
@@ -519,10 +530,11 @@ final class PageRepository
     {
         try {
             $decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->warning('PageRepository.decodeJson failed', [
                 'exception' => $e,
             ]);
+
             return [];
         }
 
@@ -555,7 +567,7 @@ final class PageRepository
             $statement->execute(['table' => 'pages']);
 
             return (bool) $statement->fetchColumn();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->warning(sprintf('PageRepository.tableExists failed: %s', $e->getMessage()), ['exception' => $e]);
 
             return false;
@@ -570,10 +582,11 @@ final class PageRepository
 
         try {
             $connection = database();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error('PageRepository.connection failed', [
                 'exception' => $e,
             ]);
+
             return null;
         }
 

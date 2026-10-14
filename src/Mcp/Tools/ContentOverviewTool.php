@@ -4,23 +4,27 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Mcp\Tools;
 
+use DateTimeImmutable;
 use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
 use Naf\CMS\Enums\ToolRisk;
-
 use Naf\MCP\Support\Schema;
 use Naf\MCP\Tools\ScopedToolInterface;
 use Naf\MCP\Tools\ToolInterface;
 use PDO;
 use Throwable;
+
 use function Naf\Database\database;
 
 final class ContentOverviewTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
     use DeclaresLocalAiToolRisk;
 
-    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const ToolRisk AI_RISK    = ToolRisk::READ;
     private const bool AI_DESTRUCTIVE = false;
-    public function __construct(private ?PDO $connection = null) {}
+
+    public function __construct(private ?PDO $connection = null)
+    {
+    }
 
     public function name(): string
     {
@@ -50,46 +54,46 @@ final class ContentOverviewTool implements ToolInterface, ScopedToolInterface, L
         $connection = $this->connection();
         if (!$connection instanceof PDO) {
             return [
-                'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
-                'database_available' => false,
-                'counts' => [],
+                'generated_at'          => (new DateTimeImmutable())->format(DATE_ATOM),
+                'database_available'    => false,
+                'counts'                => [],
                 'article_status_counts' => [],
-                'page_status_counts' => [],
-                'language_counts' => [],
+                'page_status_counts'    => [],
+                'language_counts'       => [],
             ];
         }
 
         try {
             return [
-                'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
+                'generated_at'       => (new DateTimeImmutable())->format(DATE_ATOM),
                 'database_available' => true,
-                'counts' => [
-                    'articles' => $this->countTable($connection, 'articles'),
+                'counts'             => [
+                    'articles'                => $this->countTable($connection, 'articles'),
                     'latest_article_versions' => $this->latestArticleVersionCount($connection),
-                    'article_versions' => $this->countTable($connection, 'article_versions'),
-                    'categories' => $this->countTable($connection, 'categories'),
-                    'tags' => $this->countTable($connection, 'tags'),
-                    'pages' => $this->countTable($connection, 'pages'),
-                    'media' => $this->countTable($connection, 'media'),
-                    'users' => $this->countTable($connection, 'users'),
-                    'audit_entries' => $this->countTable($connection, 'audit_log'),
+                    'article_versions'        => $this->countTable($connection, 'article_versions'),
+                    'categories'              => $this->countTable($connection, 'categories'),
+                    'tags'                    => $this->countTable($connection, 'tags'),
+                    'pages'                   => $this->countTable($connection, 'pages'),
+                    'media'                   => $this->countTable($connection, 'media'),
+                    'users'                   => $this->countTable($connection, 'users'),
+                    'audit_entries'           => $this->countTable($connection, 'audit_log'),
                 ],
                 'article_status_counts' => $this->articleStatusCounts($connection),
-                'page_status_counts' => $this->groupCount($connection, 'pages', 'status'),
-                'language_counts' => [
+                'page_status_counts'    => $this->groupCount($connection, 'pages', 'status'),
+                'language_counts'       => [
                     'articles' => $this->groupCount($connection, 'article_versions', 'language'),
-                    'pages' => $this->groupCount($connection, 'pages', 'language'),
+                    'pages'    => $this->groupCount($connection, 'pages', 'language'),
                 ],
             ];
         } catch (Throwable $throwable) {
             return [
-                'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
-                'database_available' => false,
-                'error' => $throwable->getMessage(),
-                'counts' => [],
+                'generated_at'          => (new DateTimeImmutable())->format(DATE_ATOM),
+                'database_available'    => false,
+                'error'                 => $throwable->getMessage(),
+                'counts'                => [],
                 'article_status_counts' => [],
-                'page_status_counts' => [],
-                'language_counts' => [],
+                'page_status_counts'    => [],
+                'language_counts'       => [],
             ];
         }
     }
@@ -177,7 +181,7 @@ final class ContentOverviewTool implements ToolInterface, ScopedToolInterface, L
             $column,
             $table,
             $column,
-            $column
+            $column,
         ));
 
         return $this->rowsToMap($statement->fetchAll(PDO::FETCH_ASSOC) ?: [], 'label');
@@ -191,7 +195,7 @@ final class ContentOverviewTool implements ToolInterface, ScopedToolInterface, L
     {
         $map = [];
         foreach ($rows as $row) {
-            $label = trim((string) ($row[$labelKey] ?? ''));
+            $label                                   = trim((string) ($row[$labelKey] ?? ''));
             $map[$label !== '' ? $label : 'default'] = (int) ($row['total'] ?? 0);
         }
 
@@ -202,6 +206,7 @@ final class ContentOverviewTool implements ToolInterface, ScopedToolInterface, L
     {
         try {
             $connection->query(sprintf('SELECT 1 FROM %s LIMIT 1', $table));
+
             return true;
         } catch (Throwable) {
             return false;

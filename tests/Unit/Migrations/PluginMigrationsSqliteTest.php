@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Migrations;
 
 use Naf\Database\Core\MigrationInterface;
+use PDO;
 use Tests\Support\DatabaseTestCase;
 
 final class PluginMigrationsSqliteTest extends DatabaseTestCase
@@ -16,7 +17,7 @@ final class PluginMigrationsSqliteTest extends DatabaseTestCase
 
         foreach ($files as $file) {
             require_once $file;
-            $class = 'Naf\\CMS\\Migrations\\' . basename($file, '.php');
+            $class     = 'Naf\\CMS\\Migrations\\' . basename($file, '.php');
             $migration = new $class();
 
             self::assertInstanceOf(MigrationInterface::class, $migration);
@@ -25,7 +26,7 @@ final class PluginMigrationsSqliteTest extends DatabaseTestCase
 
         $tables = $this->pdo
             ->query("SELECT name FROM sqlite_master WHERE type = 'table'")
-            ->fetchAll(\PDO::FETCH_COLUMN);
+            ->fetchAll(PDO::FETCH_COLUMN);
 
         foreach (['users', 'articles', 'article_versions', 'media', 'pages', 'forms', 'themes'] as $table) {
             self::assertContains($table, $tables);

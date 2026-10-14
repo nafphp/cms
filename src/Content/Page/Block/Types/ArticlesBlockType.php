@@ -36,11 +36,11 @@ final class ArticlesBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'source' => 'latest',
-            'limit' => 5,
+            'source'       => 'latest',
+            'limit'        => 5,
             'presentation' => 'list',
-            'language' => 'current',
-            'detailPath' => '/articles/{slug}',
+            'language'     => 'current',
+            'detailPath'   => '/articles/{slug}',
         ];
     }
 

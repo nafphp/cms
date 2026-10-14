@@ -34,36 +34,36 @@ final class ArticleCatalogServiceTest extends DatabaseTestCase
     public function testOverviewShapesArticlesAndPrefersPublishedSummary(): void
     {
         $authorId = $this->insertRow('users', [
-            'username' => 'flo',
+            'username'  => 'flo',
             'firstname' => 'Flo',
-            'lastname' => 'Knapp',
+            'lastname'  => 'Knapp',
         ]);
         $articleId = $this->insertRow('articles', [
-            'author' => $authorId,
+            'author'    => $authorId,
             'createdAt' => '2026-05-01 10:00:00',
         ]);
 
         $this->insertRow('article_versions', [
-            'article_id' => $articleId,
-            'language' => 'de',
-            'version' => 1,
-            'status' => 'published',
-            'slug' => 'published-title',
-            'title' => 'Published title',
+            'article_id'  => $articleId,
+            'language'    => 'de',
+            'version'     => 1,
+            'status'      => 'published',
+            'slug'        => 'published-title',
+            'title'       => 'Published title',
             'publishedAt' => '2026-05-01 11:00:00',
             'scheduledAt' => null,
-            'createdAt' => '2026-05-01 10:30:00',
+            'createdAt'   => '2026-05-01 10:30:00',
         ]);
         $this->insertRow('article_versions', [
-            'article_id' => $articleId,
-            'language' => 'de',
-            'version' => 2,
-            'status' => 'draft',
-            'slug' => 'draft-title',
-            'title' => 'Draft title',
+            'article_id'  => $articleId,
+            'language'    => 'de',
+            'version'     => 2,
+            'status'      => 'draft',
+            'slug'        => 'draft-title',
+            'title'       => 'Draft title',
             'publishedAt' => null,
             'scheduledAt' => null,
-            'createdAt' => '2026-05-01 12:00:00',
+            'createdAt'   => '2026-05-01 12:00:00',
         ]);
 
         $overview = (new ArticleCatalogService($this->pdo))->overview();
@@ -81,36 +81,36 @@ final class ArticleCatalogServiceTest extends DatabaseTestCase
     public function testArticlesFallsBackToUsernameAndLatestDraftWhenNothingPublished(): void
     {
         $authorId = $this->insertRow('users', [
-            'username' => 'editor',
+            'username'  => 'editor',
             'firstname' => '',
-            'lastname' => '',
+            'lastname'  => '',
         ]);
         $articleId = $this->insertRow('articles', [
-            'author' => $authorId,
+            'author'    => $authorId,
             'createdAt' => '2026-05-01 10:00:00',
         ]);
 
         $this->insertRow('article_versions', [
-            'article_id' => $articleId,
-            'language' => 'en',
-            'version' => 1,
-            'status' => 'draft',
-            'slug' => 'first-draft',
-            'title' => 'First draft',
+            'article_id'  => $articleId,
+            'language'    => 'en',
+            'version'     => 1,
+            'status'      => 'draft',
+            'slug'        => 'first-draft',
+            'title'       => 'First draft',
             'publishedAt' => null,
             'scheduledAt' => null,
-            'createdAt' => '2026-05-01 10:30:00',
+            'createdAt'   => '2026-05-01 10:30:00',
         ]);
         $this->insertRow('article_versions', [
-            'article_id' => $articleId,
-            'language' => 'en',
-            'version' => 2,
-            'status' => 'review',
-            'slug' => 'review-draft',
-            'title' => 'Review draft',
+            'article_id'  => $articleId,
+            'language'    => 'en',
+            'version'     => 2,
+            'status'      => 'review',
+            'slug'        => 'review-draft',
+            'title'       => 'Review draft',
             'publishedAt' => null,
             'scheduledAt' => null,
-            'createdAt' => '2026-05-01 11:30:00',
+            'createdAt'   => '2026-05-01 11:30:00',
         ]);
 
         $articles = (new ArticleCatalogService($this->pdo))->articles();

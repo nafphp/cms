@@ -7,8 +7,10 @@ namespace Naf\CMS\Services\Settings;
 use Naf\CMS\Contracts\TranslationServiceInterface;
 use Naf\CMS\Support\AtomicFileWriter;
 use Naf\CMS\Support\RuntimePaths;
-use function Naf\CMS\cms;
+use Throwable;
+
 use function Naf\CMS\audit_log;
+use function Naf\CMS\cms;
 
 final class TranslationFileService implements TranslationServiceInterface
 {
@@ -22,8 +24,8 @@ final class TranslationFileService implements TranslationServiceInterface
         ?AtomicFileWriter $writer = null,
     ) {
         $this->overrideDirectory = rtrim($overrideDirectory ?? RuntimePaths::translations(), '/\\');
-        $this->defaultDirectory = rtrim($defaultDirectory ?? RuntimePaths::packageTranslations(), '/\\');
-        $this->writer = $writer ?? new AtomicFileWriter();
+        $this->defaultDirectory  = rtrim($defaultDirectory ?? RuntimePaths::packageTranslations(), '/\\');
+        $this->writer            = $writer ?? new AtomicFileWriter();
     }
 
     /** @return array<int, array{code: string, label: string, active: bool}> */
@@ -36,8 +38,8 @@ final class TranslationFileService implements TranslationServiceInterface
         sort($languages);
 
         return array_map(static fn(string $language): array => [
-            'code' => $language,
-            'label' => cms()->languages()->label($language),
+            'code'   => $language,
+            'label'  => cms()->languages()->label($language),
             'active' => $language === $activeLanguage,
         ], $languages);
     }
@@ -54,6 +56,7 @@ final class TranslationFileService implements TranslationServiceInterface
     public function hasLanguage(string $language): bool
     {
         $language = $this->normalizeLanguage($language);
+
         return $language !== '' && (
             is_file($this->overrideFile($language))
             || is_file($this->defaultFile($language))
@@ -125,9 +128,10 @@ final class TranslationFileService implements TranslationServiceInterface
         }
 
         $file = $this->overrideFile($language);
+
         try {
             $this->writer->write($file, $json . PHP_EOL);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return ['success' => false, 'errors' => ['file' => ['Translation file is not writable.']], 'changed' => 0];
         }
 
@@ -138,7 +142,7 @@ final class TranslationFileService implements TranslationServiceInterface
 
         return [
             'success' => true,
-            'errors' => [],
+            'errors'  => [],
             'changed' => $this->auditChanges($language, $old, $effectiveNew, $file),
         ];
     }
@@ -166,7 +170,7 @@ final class TranslationFileService implements TranslationServiceInterface
 
         try {
             $data = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return [];
         }
 
@@ -204,7 +208,7 @@ final class TranslationFileService implements TranslationServiceInterface
     private function auditChanges(string $language, array $old, array $new, string $file): int
     {
         $changed = 0;
-        $keys = array_values(array_unique([...array_keys($old), ...array_keys($new)]));
+        $keys    = array_values(array_unique([...array_keys($old), ...array_keys($new)]));
         sort($keys, SORT_NATURAL | SORT_FLAG_CASE);
 
         foreach ($keys as $key) {
@@ -216,8 +220,8 @@ final class TranslationFileService implements TranslationServiceInterface
 
             audit_log('translation.updated', 'translation', $language . '.' . $key, $oldValue, $newValue, [
                 'language' => $language,
-                'key' => $key,
-                'file' => $file,
+                'key'      => $key,
+                'file'     => $file,
             ]);
             $changed++;
         }

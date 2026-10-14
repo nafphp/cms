@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Settings;
 
-use Naf\CMS\Settings\SettingField;
-use Naf\CMS\Settings\SettingSection;
+use LogicException;
+use RuntimeException;
 
 final class SettingsRegistry
 {
@@ -20,10 +20,11 @@ final class SettingsRegistry
     public function addSection(SettingSection $section, bool $replace = false): self
     {
         if (isset($this->sections[$section->id()]) && !$replace) {
-            throw new \LogicException(sprintf('Setting section "%s" is already registered.', $section->id()));
+            throw new LogicException(sprintf('Setting section "%s" is already registered.', $section->id()));
         }
 
         $this->sections[$section->id()] = $section;
+
         return $this;
     }
 
@@ -41,10 +42,11 @@ final class SettingsRegistry
     {
         $section = $this->sections[$sectionId] ?? null;
         if (!$section instanceof SettingSection) {
-            throw new \RuntimeException(sprintf('Setting section "%s" is not registered.', $sectionId));
+            throw new RuntimeException(sprintf('Setting section "%s" is not registered.', $sectionId));
         }
 
         $section->addField($field, $replace);
+
         return $this;
     }
 
@@ -85,7 +87,7 @@ final class SettingsRegistry
         foreach ($this->sections() as $section) {
             $group = $section->group();
             $groups[$group] ??= [
-                'label' => $group === 'ai' ? 'AI' : ucfirst(str_replace(['-', '_'], ' ', $group)),
+                'label'    => $group === 'ai' ? 'AI' : ucfirst(str_replace(['-', '_'], ' ', $group)),
                 'sections' => [],
             ];
             $groups[$group]['sections'][$section->id()] = $section;

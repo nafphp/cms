@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Naf\CMS\Support;
 
 use Naf\Auth\Auth;
-use Naf\CMS\Enums\{Permission, Role};
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Enums\Role;
 use Naf\CMS\Models\User;
 use Naf\CMS\Services\Security\UserIdentity;
 
@@ -46,6 +47,13 @@ class UserHelper
         return $this->authorization->hasRole(...$roles);
     }
 
-    public function isLoggedIn(): bool { return $this->loggedIn || $this->user instanceof User; }
-    public function get(): ?User { return $this->user; }
+    public function isLoggedIn(): bool
+    {
+        return $this->loggedIn || $this->user instanceof User;
+    }
+
+    public function get(): ?User
+    {
+        return $this->user;
+    }
 }

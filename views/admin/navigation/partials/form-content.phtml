@@ -1,28 +1,28 @@
 <?php
 
+use function Naf\CMS\cms;
 use function Naf\I18n\t;
 use function Naf\route;
 use function Naf\View\s;
-use function Naf\CMS\cms;
 
-$navigation = is_array($navigation ?? null) ? $navigation : null;
-$translations = is_array($translations ?? null) ? $translations : [];
+$navigation             = is_array($navigation ?? null) ? $navigation : null;
+$translations           = is_array($translations ?? null) ? $translations : [];
 $translationSuggestions = is_array($translationSuggestions ?? null) ? $translationSuggestions : [];
-$languages = is_array($languages ?? null) ? array_values(array_map('strval', $languages)) : ['de', 'en'];
-$pageChoices = is_array($pageChoices ?? null) ? $pageChoices : [];
-$mode = (string) ($mode ?? 'create');
-$endpoint = $mode === 'edit' && isset($navigation['id'])
+$languages              = is_array($languages ?? null) ? array_values(array_map('strval', $languages)) : ['de', 'en'];
+$pageChoices            = is_array($pageChoices ?? null) ? $pageChoices : [];
+$mode                   = (string) ($mode ?? 'create');
+$endpoint               = $mode === 'edit' && isset($navigation['id'])
     ? route('admin.navigation.edit', ['navigationId' => (int) $navigation['id']])
     : route('admin.navigation.create');
 
-$ids = [];
-$items = is_array($navigation['items'] ?? null) ? $navigation['items'] : [];
+$ids               = [];
+$items             = is_array($navigation['items'] ?? null) ? $navigation['items'] : [];
 $preferredLanguage = strtolower(trim((string) ($navigation['language'] ?? '')));
 foreach ($translations as $language => $translation) {
     if (!is_array($translation)) {
         continue;
     }
-    $language = strtolower(trim((string) $language));
+    $language       = strtolower(trim((string) $language));
     $ids[$language] = (int) ($translation['id'] ?? 0);
 
     $translationItems = is_array($translation['items'] ?? null) ? $translation['items'] : [];
@@ -32,13 +32,13 @@ foreach ($translations as $language => $translation) {
 }
 
 $payload = [
-    'id' => (int) ($navigation['id'] ?? 0),
-    'title' => (string) ($navigation['title'] ?? ''),
-    'identifier' => (string) ($navigation['identifier'] ?? ''),
-    'originalIdentifier' => (string) ($navigation['identifier'] ?? ''),
-    'status' => (string) ($navigation['status'] ?? 'draft'),
-    'ids' => $ids,
-    'items' => $items,
+    'id'                  => (int) ($navigation['id'] ?? 0),
+    'title'               => (string) ($navigation['title'] ?? ''),
+    'identifier'          => (string) ($navigation['identifier'] ?? ''),
+    'originalIdentifier'  => (string) ($navigation['identifier'] ?? ''),
+    'status'              => (string) ($navigation['status'] ?? 'draft'),
+    'ids'                 => $ids,
+    'items'               => $items,
     'translationLanguage' => cms()->settings()->currentLanguage(),
 ];
 
@@ -103,36 +103,36 @@ foreach ($languages as $language) {
         languageLabels: <?= json_encode($languageLabels, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>,
         languageOptions: <?= json_encode($languageLabels, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>,
         labels: <?= json_encode([
-            'addChild' => t('Add child'),
-            'cancel' => t('Cancel'),
-            'couldNotSave' => t('Could not save navigation.'),
-            'dirty' => t('Unsaved changes.'),
-            'empty' => t('No items yet.'),
-            'path' => t('Path or URL'),
-            'page' => t('Page'),
-            'remove' => t('Remove'),
-            'saved' => t('Navigation draft saved.'),
-            'clean' => t('No unsaved changes.'),
-            'apply' => t('Apply'),
-            'createLanguage' => t('Create language'),
-            'chooseLanguageCode' => t('Choose a language code.'),
-            'invalidLanguage' => t('Please choose a valid language code.'),
-            'languageCreated' => t('Language created.'),
-            'newLanguage' => t('New language'),
-            'language' => t('Language'),
-            'translationKey' => t('Translation key'),
+            'addChild'                   => t('Add child'),
+            'cancel'                     => t('Cancel'),
+            'couldNotSave'               => t('Could not save navigation.'),
+            'dirty'                      => t('Unsaved changes.'),
+            'empty'                      => t('No items yet.'),
+            'path'                       => t('Path or URL'),
+            'page'                       => t('Page'),
+            'remove'                     => t('Remove'),
+            'saved'                      => t('Navigation draft saved.'),
+            'clean'                      => t('No unsaved changes.'),
+            'apply'                      => t('Apply'),
+            'createLanguage'             => t('Create language'),
+            'chooseLanguageCode'         => t('Choose a language code.'),
+            'invalidLanguage'            => t('Please choose a valid language code.'),
+            'languageCreated'            => t('Language created.'),
+            'newLanguage'                => t('New language'),
+            'language'                   => t('Language'),
+            'translationKey'             => t('Translation key'),
             'searchCreateTranslationKey' => t('Search or create a translation key for this navigation label.'),
-            'key' => t('Key'),
-            'value' => t('Value'),
-            'home' => t('Home'),
-            'storesOnlyTranslationKey' => t('The navigation item stores only the translation key.'),
-            'translationSaved' => t('Translation saved.'),
-            'emptyTranslationKey' => t('Please enter a translation key.'),
-            'selectPage' => t('Select page'),
-            'navigationItem' => t('Navigation item'),
-            'visible' => t('Visible'),
-            'labelField' => t('Label'),
-            'typeField' => t('Type'),
+            'key'                        => t('Key'),
+            'value'                      => t('Value'),
+            'home'                       => t('Home'),
+            'storesOnlyTranslationKey'   => t('The navigation item stores only the translation key.'),
+            'translationSaved'           => t('Translation saved.'),
+            'emptyTranslationKey'        => t('Please enter a translation key.'),
+            'selectPage'                 => t('Select page'),
+            'navigationItem'             => t('Navigation item'),
+            'visible'                    => t('Visible'),
+            'labelField'                 => t('Label'),
+            'typeField'                  => t('Type'),
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>,
     });
 </script>

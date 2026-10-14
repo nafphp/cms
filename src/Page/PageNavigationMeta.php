@@ -42,15 +42,15 @@ final class PageNavigationMeta
     public function toArray(): array
     {
         return [
-            'label' => $this->label,
-            'group' => $this->group,
-            'icon' => $this->icon,
-            'order' => $this->order,
+            'label'   => $this->label,
+            'group'   => $this->group,
+            'icon'    => $this->icon,
+            'order'   => $this->order,
             'visible' => $this->visible,
-            'key' => $this->key,
-            'parent' => $this->parent,
-            'href' => $this->href,
-            'scope' => $this->scope,
+            'key'     => $this->key,
+            'parent'  => $this->parent,
+            'href'    => $this->href,
+            'scope'   => $this->scope,
         ];
     }
 }

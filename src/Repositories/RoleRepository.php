@@ -10,6 +10,8 @@ use Naf\CMS\Services\Security\UserPrivilegePolicy;
 use Naf\ORM\Core\EntityManager;
 use Naf\ORM\Repository\AbstractRepository;
 use PDO;
+use Throwable;
+
 use function Naf\log;
 
 class RoleRepository extends AbstractRepository
@@ -53,24 +55,24 @@ class RoleRepository extends AbstractRepository
             LEFT JOIN ' . self::ROLE_PERMISSION_TABLE . ' rp ON rp.role_id = r.id
             LEFT JOIN permissions p ON p.id = rp.permission_id
             GROUP BY r.id, r.name
-            ORDER BY r.name ASC'
+            ORDER BY r.name ASC',
         );
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(
             static function (array $row): array {
                 $permissions = array_values(array_filter(array_map(
                     static fn(string $permission): string => trim($permission),
-                    explode(',', (string) ($row['permission_names'] ?? ''))
+                    explode(',', (string) ($row['permission_names'] ?? '')),
                 )));
 
                 return [
-                    'id' => (int) ($row['id'] ?? 0),
-                    'name' => (string) ($row['name'] ?? ''),
+                    'id'               => (int) ($row['id'] ?? 0),
+                    'name'             => (string) ($row['name'] ?? ''),
                     'permission_names' => $permissions,
                 ];
             },
-            $rows
+            $rows,
         );
     }
 
@@ -107,7 +109,7 @@ class RoleRepository extends AbstractRepository
         $stmt->execute(['name' => $normalized]);
 
         return new Role([
-            'id' => (int) $this->pdo->lastInsertId(),
+            'id'   => (int) $this->pdo->lastInsertId(),
             'name' => $normalized,
         ]);
     }
@@ -130,7 +132,7 @@ class RoleRepository extends AbstractRepository
 
         $stmt = $this->pdo->prepare('UPDATE roles SET name = :name WHERE id = :id');
         $stmt->execute([
-            'id' => $roleId,
+            'id'   => $roleId,
             'name' => $normalized,
         ]);
 
@@ -146,9 +148,10 @@ class RoleRepository extends AbstractRepository
         }
 
         $this->pdo->beginTransaction();
+
         try {
             $deletePermissionLinksStmt = $this->pdo->prepare(
-                'DELETE FROM ' . self::ROLE_PERMISSION_TABLE . ' WHERE role_id = :roleId'
+                'DELETE FROM ' . self::ROLE_PERMISSION_TABLE . ' WHERE role_id = :roleId',
             );
             $deletePermissionLinksStmt->execute(['roleId' => $roleId]);
 
@@ -159,10 +162,12 @@ class RoleRepository extends AbstractRepository
             $deleteRoleStmt->execute(['roleId' => $roleId]);
 
             $this->pdo->commit();
+
             return $deleteRoleStmt->rowCount() > 0;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('RoleRepository.deleteById failed: %s', $e->getMessage()), ['exception' => $e]);
             $this->pdo->rollBack();
+
             return false;
         }
     }
@@ -181,33 +186,35 @@ class RoleRepository extends AbstractRepository
 
         $normalizedPermissionIds = array_values(array_unique(array_filter(array_map(
             static fn(mixed $permissionId): int => (int) $permissionId,
-            $permissionIds
+            $permissionIds,
         ), static fn(int $permissionId): bool => $permissionId > 0)));
 
         $this->pdo->beginTransaction();
+
         try {
             $deleteStmt = $this->pdo->prepare(
-                'DELETE FROM ' . self::ROLE_PERMISSION_TABLE . ' WHERE role_id = :roleId'
+                'DELETE FROM ' . self::ROLE_PERMISSION_TABLE . ' WHERE role_id = :roleId',
             );
             $deleteStmt->execute(['roleId' => $roleId]);
 
             if ($normalizedPermissionIds !== []) {
                 $insertStmt = $this->pdo->prepare(
-                    'INSERT INTO ' . self::ROLE_PERMISSION_TABLE . ' (role_id, permission_id) VALUES (:roleId, :permissionId)'
+                    'INSERT INTO ' . self::ROLE_PERMISSION_TABLE . ' (role_id, permission_id) VALUES (:roleId, :permissionId)',
                 );
 
                 foreach ($normalizedPermissionIds as $permissionId) {
                     $insertStmt->execute([
-                        'roleId' => $roleId,
+                        'roleId'       => $roleId,
                         'permissionId' => $permissionId,
                     ]);
                 }
             }
 
             $this->pdo->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('RoleRepository.updatePermissionsByRoleId failed: %s', $e->getMessage()), ['exception' => $e]);
             $this->pdo->rollBack();
+
             return [];
         }
 
@@ -216,12 +223,12 @@ class RoleRepository extends AbstractRepository
         }
 
         $placeholders = implode(',', array_fill(0, count($normalizedPermissionIds), '?'));
-        $stmt = $this->pdo->prepare("SELECT name FROM permissions WHERE id IN ($placeholders) ORDER BY name ASC");
+        $stmt         = $this->pdo->prepare("SELECT name FROM permissions WHERE id IN ($placeholders) ORDER BY name ASC");
         $stmt->execute($normalizedPermissionIds);
 
         return array_values(array_filter(array_map(
             static fn(mixed $name): string => trim((string) $name),
-            $stmt->fetchAll(\PDO::FETCH_COLUMN)
+            $stmt->fetchAll(PDO::FETCH_COLUMN),
         )));
     }
 }

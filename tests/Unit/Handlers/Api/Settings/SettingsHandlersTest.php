@@ -10,6 +10,7 @@ use Naf\CMS\Handlers\Api\Settings\GetTranslations;
 use Naf\CMS\Handlers\Api\Settings\UpdateSettings;
 use Naf\CMS\Handlers\Api\Settings\UpdateTranslations;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ResponseInterface;
 use Tests\Support\JsonRequest;
 
 final class SettingsHandlersTest extends TestCase
@@ -17,7 +18,7 @@ final class SettingsHandlersTest extends TestCase
     public function testUpdateSettingsDelegatesPayloadAndMapsValidationFailure(): void
     {
         JsonRequest::bind(['app.name' => '']);
-        $service = new SettingsServiceSpy();
+        $service  = new SettingsServiceSpy();
         $response = (new UpdateSettings($service))();
 
         self::assertSame(['app.name' => ''], $service->payload);
@@ -53,7 +54,7 @@ final class SettingsHandlersTest extends TestCase
     }
 
     /** @return array<string, mixed> */
-    private function json(\Psr\Http\Message\ResponseInterface $response): array
+    private function json(ResponseInterface $response): array
     {
         return json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
     }
@@ -63,10 +64,16 @@ final class SettingsServiceSpy implements SettingsServiceInterface
 {
     /** @var array<string, mixed> */
     public array $payload = [];
-    public function sections(?string $group = null): array { return []; }
+
+    public function sections(?string $group = null): array
+    {
+        return [];
+    }
+
     public function save(array $payload): array
     {
         $this->payload = $payload;
+
         return ['success' => false, 'errors' => ['app.name' => ['required']]];
     }
 }
@@ -76,18 +83,34 @@ final class TranslationServiceSpy implements TranslationServiceInterface
     public string $lastCall = '';
     /** @var array<int, string> */
     public array $remove = [];
-    public function languages(string $activeLanguage = ''): array { return []; }
-    public function entries(string $language): array { return []; }
-    public function hasLanguage(string $language): bool { return true; }
+
+    public function languages(string $activeLanguage = ''): array
+    {
+        return [];
+    }
+
+    public function entries(string $language): array
+    {
+        return [];
+    }
+
+    public function hasLanguage(string $language): bool
+    {
+        return true;
+    }
+
     public function save(string $language, array $entries): array
     {
         $this->lastCall = 'save';
+
         return ['success' => true, 'errors' => [], 'changed' => count($entries)];
     }
+
     public function merge(string $language, array $entries, array $remove = []): array
     {
         $this->lastCall = 'merge';
-        $this->remove = $remove;
+        $this->remove   = $remove;
+
         return ['success' => true, 'errors' => [], 'changed' => count($entries)];
     }
 }

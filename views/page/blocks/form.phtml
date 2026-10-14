@@ -1,30 +1,32 @@
 <?php
 
 use Naf\CMS\Services\Form\FormTextTranslator;
+use Naf\CMS\Theme\Theme;
+
+use function Naf\CMS\cms;
 use function Naf\Form\csrf;
 use function Naf\I18n\t;
 use function Naf\Session\session;
 use function Naf\View\s;
-use function Naf\CMS\cms;
 
-$content = is_array($content ?? null) ? $content : [];
-$props = is_array($content['props'] ?? null) ? $content['props'] : [];
+$content    = is_array($content ?? null) ? $content : [];
+$props      = is_array($content['props'] ?? null) ? $content['props'] : [];
 $identifier = trim((string) ($props['formIdentifier'] ?? $props['identifier'] ?? ''));
-$form = $identifier !== '' ? cms()->forms()->findByIdentifier($identifier, true) : null;
-$fields = is_array($form['fields'] ?? null) ? $form['fields'] : [];
-$settings = is_array($form['settings'] ?? null) ? $form['settings'] : [];
+$form       = $identifier !== '' ? cms()->forms()->findByIdentifier($identifier, true) : null;
+$fields     = is_array($form['fields'] ?? null) ? $form['fields'] : [];
+$settings   = is_array($form['settings'] ?? null) ? $form['settings'] : [];
 $translator = new FormTextTranslator();
-$title = trim(t((string) ($props['title'] ?? $translator->translate(
+$title      = trim(t((string) ($props['title'] ?? $translator->translate(
     is_string($settings['titleKey'] ?? null) ? $settings['titleKey'] : null,
-    (string) ($form['title'] ?? 'Contact')
+    (string) ($form['title'] ?? 'Contact'),
 ))));
-$intro = trim(t((string) ($props['intro'] ?? '')));
-$submitLabel = t((string) ($props['submitLabel'] ?? $translator->setting($settings, 'submitLabel', t('Send'))));
-$surface = \Naf\CMS\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
+$intro        = trim(t((string) ($props['intro'] ?? '')));
+$submitLabel  = t((string) ($props['submitLabel'] ?? $translator->setting($settings, 'submitLabel', t('Send'))));
+$surface      = Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
 $surfaceClass = [
-    'none' => 'grid gap-5',
-    'soft' => 'grid gap-5 rounded-lg bg-[var(--page-panel-soft)] p-6',
-    'card' => 'grid gap-5 rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-6',
+    'none'   => 'grid gap-5',
+    'soft'   => 'grid gap-5 rounded-lg bg-[var(--page-panel-soft)] p-6',
+    'card'   => 'grid gap-5 rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-6',
     'accent' => 'grid gap-5 rounded-lg border border-[color-mix(in_srgb,var(--page-accent)_36%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))] p-6',
 ][$surface] ?? 'grid gap-5';
 $csrfToken = session()->get('_csrf');
@@ -53,14 +55,14 @@ if (!is_string($csrfToken) || $csrfToken === '') {
                 if (!is_array($field)) {
                     continue;
                 }
-                $name = (string) ($field['name'] ?? '');
-                $type = (string) ($field['type'] ?? 'text');
-                $label = $translator->fieldLabel($field);
+                $name        = (string) ($field['name'] ?? '');
+                $type        = (string) ($field['type'] ?? 'text');
+                $label       = $translator->fieldLabel($field);
                 $placeholder = $translator->fieldPlaceholder($field);
-                $validators = is_array($field['validators'] ?? null) ? $field['validators'] : [];
-                $required = (bool) ($field['required'] ?? false);
-                $minLength = max(0, (int) ($field['minLength'] ?? 0));
-                $maxLength = max(0, (int) ($field['maxLength'] ?? 0));
+                $validators  = is_array($field['validators'] ?? null) ? $field['validators'] : [];
+                $required    = (bool) ($field['required'] ?? false);
+                $minLength   = max(0, (int) ($field['minLength'] ?? 0));
+                $maxLength   = max(0, (int) ($field['maxLength'] ?? 0));
                 foreach ($validators as $validator) {
                     if (!is_array($validator)) {
                         continue;
@@ -76,7 +78,7 @@ if (!is_string($csrfToken) || $csrfToken === '') {
                 }
                 $lengthAttributes = trim(
                     ($minLength > 0 ? ' minlength="' . s((string) $minLength) . '"' : '')
-                    . ($maxLength > 0 ? ' maxlength="' . s((string) $maxLength) . '"' : '')
+                    . ($maxLength > 0 ? ' maxlength="' . s((string) $maxLength) . '"' : ''),
                 );
                 ?>
                 <label class="grid gap-1.5">

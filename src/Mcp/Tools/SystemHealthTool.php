@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Mcp\Tools;
 
+use DateTimeImmutable;
 use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
 use Naf\CMS\Services\Assets\AssetPublisher;
 use Naf\CMS\Support\RuntimePaths;
@@ -12,6 +13,7 @@ use Naf\MCP\Tools\ScopedToolInterface;
 use Naf\MCP\Tools\ToolInterface;
 use PDO;
 use Throwable;
+
 use function Naf\app;
 use function Naf\config;
 use function Naf\Database\database;
@@ -21,14 +23,14 @@ final class SystemHealthTool implements ToolInterface, ScopedToolInterface, Loca
     public function localAiMetadata(): array
     {
         return [
-            'title' => 'System health',
-            'routingText' => 'Inspect PHP, database, session, runtime storage, assets, and loaded plugin health.',
-            'examples' => ['Is the CMS healthy?', 'Show database and asset status.'],
+            'title'        => 'System health',
+            'routingText'  => 'Inspect PHP, database, session, runtime storage, assets, and loaded plugin health.',
+            'examples'     => ['Is the CMS healthy?', 'Show database and asset status.'],
             'capabilities' => ['system.read'],
-            'mode' => 'read',
-            'risk' => 'read',
-            'destructive' => false,
-            'autoRun' => true,
+            'mode'         => 'read',
+            'risk'         => 'read',
+            'destructive'  => false,
+            'autoRun'      => true,
         ];
     }
 
@@ -67,37 +69,37 @@ final class SystemHealthTool implements ToolInterface, ScopedToolInterface, Loca
         $basePath = rtrim((string) app()->getBasePath(), '/');
 
         return [
-            'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
-            'php' => [
-                'version' => PHP_VERSION,
+            'generated_at' => (new DateTimeImmutable())->format(DATE_ATOM),
+            'php'          => [
+                'version'      => PHP_VERSION,
                 'memory_limit' => ini_get('memory_limit'),
             ],
             'database' => $this->databaseStatus(),
-            'session' => [
-                'storage' => config('session:storage', null),
+            'session'  => [
+                'storage'        => config('session:storage', null),
                 'database_table' => config('session:database_table', null),
             ],
             'mcp_auth' => [
-                'enabled' => (bool) config('mcp:auth:enabled', true),
-                'driver' => config('mcp:auth:driver', null),
+                'enabled'    => (bool) config('mcp:auth:enabled', true),
+                'driver'     => config('mcp:auth:driver', null),
                 'token_file' => $this->fileStatus((string) config('mcp:auth:token_file', $basePath . '/storage/mcp/tokens.json')),
             ],
             'storage' => [
-                'logs' => $this->directoryStatus($basePath . '/logs'),
-                'storage' => $this->directoryStatus($basePath . '/storage'),
-                'storage/mcp' => $this->directoryStatus($basePath . '/storage/mcp'),
-                'storage/queue' => $this->directoryStatus($basePath . '/storage/queue'),
-                'nafcms_runtime' => $this->directoryStatus(RuntimePaths::storageRoot()),
-                'nafcms_prompts' => $this->directoryStatus(RuntimePaths::prompts()),
+                'logs'                => $this->directoryStatus($basePath . '/logs'),
+                'storage'             => $this->directoryStatus($basePath . '/storage'),
+                'storage/mcp'         => $this->directoryStatus($basePath . '/storage/mcp'),
+                'storage/queue'       => $this->directoryStatus($basePath . '/storage/queue'),
+                'nafcms_runtime'      => $this->directoryStatus(RuntimePaths::storageRoot()),
+                'nafcms_prompts'      => $this->directoryStatus(RuntimePaths::prompts()),
                 'nafcms_translations' => $this->directoryStatus(RuntimePaths::translations()),
             ],
-            'assets' => $this->assetStatus(),
+            'assets'  => $this->assetStatus(),
             'plugins' => array_map(
                 static fn($plugin) => [
-                    'loaded' => true,
+                    'loaded'  => true,
                     'version' => method_exists($plugin, 'getVersion') ? $plugin->getVersion() : null,
                 ],
-                app()->getPlugins()
+                app()->getPlugins(),
             ),
         ];
     }
@@ -107,10 +109,10 @@ final class SystemHealthTool implements ToolInterface, ScopedToolInterface, Loca
         $status = (new AssetPublisher())->status();
 
         return [
-            'current' => $status['current'],
-            'missing' => count($status['missing']),
-            'outdated' => count($status['outdated']),
-            'stale' => count($status['stale']),
+            'current'   => $status['current'],
+            'missing'   => count($status['missing']),
+            'outdated'  => count($status['outdated']),
+            'stale'     => count($status['stale']),
             'conflicts' => count($status['conflicts']),
         ];
     }
@@ -126,14 +128,14 @@ final class SystemHealthTool implements ToolInterface, ScopedToolInterface, Loca
             $connection->query('SELECT 1');
 
             return [
-                'available' => true,
-                'driver' => (string) $connection->getAttribute(PDO::ATTR_DRIVER_NAME),
+                'available'      => true,
+                'driver'         => (string) $connection->getAttribute(PDO::ATTR_DRIVER_NAME),
                 'server_version' => (string) $connection->getAttribute(PDO::ATTR_SERVER_VERSION),
             ];
         } catch (Throwable $throwable) {
             return [
                 'available' => false,
-                'error' => $throwable->getMessage(),
+                'error'     => $throwable->getMessage(),
             ];
         }
     }
@@ -141,7 +143,7 @@ final class SystemHealthTool implements ToolInterface, ScopedToolInterface, Loca
     private function directoryStatus(string $path): array
     {
         return [
-            'exists' => is_dir($path),
+            'exists'   => is_dir($path),
             'readable' => is_dir($path) && is_readable($path),
             'writable' => is_dir($path) && is_writable($path),
         ];
@@ -150,7 +152,7 @@ final class SystemHealthTool implements ToolInterface, ScopedToolInterface, Loca
     private function fileStatus(string $path): array
     {
         return [
-            'exists' => is_file($path),
+            'exists'   => is_file($path),
             'readable' => is_file($path) && is_readable($path),
             'writable' => is_file($path) ? is_writable($path) : is_writable(dirname($path)),
         ];

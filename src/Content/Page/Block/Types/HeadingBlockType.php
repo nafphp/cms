@@ -36,7 +36,7 @@ final class HeadingBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'text' => 'New heading',
+            'text'  => 'New heading',
             'level' => 'h2',
             'align' => 'left',
         ];

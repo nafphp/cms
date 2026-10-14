@@ -1,29 +1,29 @@
 <?php
 
-use function Naf\View\s;
 use function Naf\I18n\t;
+use function Naf\View\s;
 
-$content = is_array($content ?? null) ? $content : [];
-$props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$text = t((string) ($props['text'] ?? $label ?? ''));
-$tone = (string) ($props['tone'] ?? 'body');
-$tone = in_array($tone, ['body', 'lead', 'muted'], true) ? $tone : 'body';
-$align = (string) ($props['align'] ?? 'left');
-$align = in_array($align, ['left', 'center', 'right'], true) ? $align : 'left';
+$content       = is_array($content ?? null) ? $content : [];
+$props         = is_array($content['props'] ?? null) ? $content['props'] : [];
+$text          = t((string) ($props['text'] ?? $label ?? ''));
+$tone          = (string) ($props['tone'] ?? 'body');
+$tone          = in_array($tone, ['body', 'lead', 'muted'], true) ? $tone : 'body';
+$align         = (string) ($props['align'] ?? 'left');
+$align         = in_array($align, ['left', 'center', 'right'], true) ? $align : 'left';
 $verticalAlign = (string) ($props['verticalAlign'] ?? 'top');
 $verticalAlign = in_array($verticalAlign, ['top', 'center', 'bottom'], true) ? $verticalAlign : 'top';
-$toneClass = [
-    'body' => 'text-base text-[var(--page-text)]',
-    'lead' => 'text-lg font-medium text-[var(--page-text)]',
+$toneClass     = [
+    'body'  => 'text-base text-[var(--page-text)]',
+    'lead'  => 'text-lg font-medium text-[var(--page-text)]',
     'muted' => 'text-sm text-[var(--page-muted)]',
 ][$tone];
 $alignClass = [
-    'left' => 'text-left',
+    'left'   => 'text-left',
     'center' => 'text-center mx-auto',
-    'right' => 'text-right ml-auto',
+    'right'  => 'text-right ml-auto',
 ][$align];
 $verticalClass = [
-    'top' => 'self-start',
+    'top'    => 'self-start',
     'center' => 'self-center',
     'bottom' => 'self-end',
 ][$verticalAlign];

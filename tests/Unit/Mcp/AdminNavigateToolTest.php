@@ -26,7 +26,7 @@ final class AdminNavigateToolTest extends TestCase
     {
         $result = (new AdminNavigateTool())->handle([
             'target' => 'pageBuilder',
-            'id' => 12,
+            'id'     => 12,
         ]);
 
         self::assertSame('/admin/pages/create?id=12', $result['url']);
@@ -38,11 +38,11 @@ final class AdminNavigateToolTest extends TestCase
     public static function targetProvider(): array
     {
         return [
-            'users' => ['users', 0, '/admin/users'],
-            'user create' => ['userEditor', 0, '/admin/users/create'],
-            'user edit' => ['userEditor', 7, '/admin/users/7/edit'],
-            'roles' => ['roles', 0, '/admin/roles'],
-            'navigation' => ['navigation', 0, '/admin/navigation'],
+            'users'           => ['users', 0, '/admin/users'],
+            'user create'     => ['userEditor', 0, '/admin/users/create'],
+            'user edit'       => ['userEditor', 7, '/admin/users/7/edit'],
+            'roles'           => ['roles', 0, '/admin/roles'],
+            'navigation'      => ['navigation', 0, '/admin/navigation'],
             'navigation edit' => ['navigationEditor', 3, '/admin/navigation/3/edit'],
         ];
     }
@@ -52,7 +52,7 @@ final class AdminNavigateToolTest extends TestCase
     {
         $result = (new AdminNavigateTool())->handle(array_filter([
             'target' => $target,
-            'id' => $id,
+            'id'     => $id,
         ]));
 
         self::assertTrue($result['success']);
@@ -61,7 +61,7 @@ final class AdminNavigateToolTest extends TestCase
 
     public function testEveryDeclaredTargetResolvesToAUrl(): void
     {
-        $tool = new AdminNavigateTool();
+        $tool    = new AdminNavigateTool();
         $targets = $tool->inputSchema()['properties']['target']['enum'] ?? [];
 
         self::assertNotSame([], $targets);

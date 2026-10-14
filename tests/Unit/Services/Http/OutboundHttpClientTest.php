@@ -10,15 +10,17 @@ use Naf\CMS\Services\Http\OutboundHttpPolicy;
 use Naf\CMS\Services\Http\OutboundHttpProfile;
 use Naf\CMS\Services\Http\OutboundHttpTarget;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class OutboundHttpClientTest extends TestCase
 {
     public function testRedirectTargetIsResolvedAndAuthorizedAgain(): void
     {
-        $calls = [];
+        $calls  = [];
         $policy = new OutboundHttpPolicy(static fn(string $host): array => ['93.184.216.34']);
         $client = new OutboundHttpClient($policy, static function (OutboundHttpTarget $target) use (&$calls): array {
             $calls[] = $target->url;
+
             return count($calls) === 1
                 ? ['status' => 302, 'headers' => ['location' => 'https://second.example/final'], 'body' => '']
                 : ['status' => 204, 'headers' => [], 'body' => ''];
@@ -32,10 +34,11 @@ final class OutboundHttpClientTest extends TestCase
 
     public function testRedirectToBlockedNetworkIsRejectedBeforeSecondRequest(): void
     {
-        $calls = 0;
+        $calls  = 0;
         $policy = new OutboundHttpPolicy(static fn(string $host): array => ['93.184.216.34']);
         $client = new OutboundHttpClient($policy, static function () use (&$calls): array {
             $calls++;
+
             return ['status' => 302, 'headers' => ['location' => 'https://127.0.0.1/internal'], 'body' => ''];
         });
 
@@ -49,10 +52,11 @@ final class OutboundHttpClientTest extends TestCase
 
     public function testProtocolRelativeRedirectCannotBypassTargetPolicy(): void
     {
-        $calls = 0;
+        $calls  = 0;
         $policy = new OutboundHttpPolicy(static fn(string $host): array => ['93.184.216.34']);
         $client = new OutboundHttpClient($policy, static function () use (&$calls): array {
             $calls++;
+
             return ['status' => 302, 'headers' => ['location' => '//127.0.0.1/internal'], 'body' => ''];
         });
 
@@ -67,13 +71,15 @@ final class OutboundHttpClientTest extends TestCase
     public function testDnsChangeOnRedirectIsRechecked(): void
     {
         $resolutions = 0;
-        $calls = 0;
-        $policy = new OutboundHttpPolicy(static function (string $host) use (&$resolutions): array {
+        $calls       = 0;
+        $policy      = new OutboundHttpPolicy(static function (string $host) use (&$resolutions): array {
             $resolutions++;
+
             return $resolutions === 1 ? ['93.184.216.34'] : ['169.254.169.254'];
         });
         $client = new OutboundHttpClient($policy, static function () use (&$calls): array {
             $calls++;
+
             return ['status' => 307, 'headers' => ['location' => 'https://rebind.example/next'], 'body' => ''];
         });
 
@@ -95,7 +101,7 @@ final class OutboundHttpClientTest extends TestCase
             maxResponseBytes: 4,
         );
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $client->request('https://public.example/hook', 'GET', '', OutboundHttpProfile::webhook());
     }
 }

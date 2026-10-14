@@ -1,38 +1,39 @@
 <?php
 
 use Naf\View\Core\Asset;
+
+use function Naf\CMS\cms;
 use function Naf\Form\csrf;
 use function Naf\I18n\t;
 use function Naf\request;
 use function Naf\route;
 use function Naf\View\s;
 use function Naf\View\view;
-use function Naf\CMS\cms;
 
-$article = is_array($article ?? null) ? $article : [];
-$categories = is_array($categories ?? null) ? $categories : [];
-$tagSuggestions = is_array($tagSuggestions ?? null) ? $tagSuggestions : [];
-$mode = (string) ($mode ?? 'create');
-$articleId = (int) ($articleId ?? ($article['id'] ?? 0));
+$article          = is_array($article ?? null) ? $article : [];
+$categories       = is_array($categories ?? null) ? $categories : [];
+$tagSuggestions   = is_array($tagSuggestions ?? null) ? $tagSuggestions : [];
+$mode             = (string) ($mode ?? 'create');
+$articleId        = (int) ($articleId ?? ($article['id'] ?? 0));
 $articleVersionId = $mode === 'version' || $mode === 'translation' ? 0 : (int) ($article['article_version_id'] ?? 0);
 $selectedLanguage = strtolower((string) ($language ?? ($article['language'] ?? cms()->settings()->language())));
-$languageOptions = array_intersect_key(
+$languageOptions  = array_intersect_key(
     cms()->languages()->options(),
     array_flip(cms()->settings()->languages()),
 );
 $hideLeadImageInContent = (int) ($article['hide_lead_image_in_content'] ?? 1) === 1;
-$showTeaser = (int) ($article['show_teaser'] ?? 0) === 1;
-$initialTagNames = array_values(array_filter(array_map('strval', $article['tags'] ?? [])));
-$content = (string) ($article['content'] ?? '');
-$publishDate = (string) ($article['publishedAt'] ?? '');
-$publishDateValue = $publishDate !== '' ? date('Y-m-d\TH:i', strtotime($publishDate) ?: time()) : date('Y-m-d\TH:i');
-$fieldErrorAssets = new Asset();
+$showTeaser             = (int) ($article['show_teaser'] ?? 0) === 1;
+$initialTagNames        = array_values(array_filter(array_map('strval', $article['tags'] ?? [])));
+$content                = (string) ($article['content'] ?? '');
+$publishDate            = (string) ($article['publishedAt'] ?? '');
+$publishDateValue       = $publishDate !== '' ? date('Y-m-d\TH:i', strtotime($publishDate) ?: time()) : date('Y-m-d\TH:i');
+$fieldErrorAssets       = new Asset();
 $fieldErrorAssets->add('/js/components/formFieldErrors.js');
 
 ?>
 <?php $this->setLayout('layouts.admin') ?>
 
-<?php $pageTitle = (string) ($title ?? t('Create article')); ?>
+<?php $pageTitle    = (string) ($title ?? t('Create article')); ?>
 <?php $pageSubtitle = (string) ($pageSubtitle ?? t('Create and edit article content, metadata, and publishing details.')); ?>
 
 <?php if ($mode !== 'create'): ?>
@@ -59,25 +60,25 @@ $fieldErrorAssets->add('/js/components/formFieldErrors.js');
         <div class="grid gap-[46px] shell:grid-cols-[minmax(0,1fr)_410px]">
             <div class="min-w-0 px-[22px] pb-0 pt-[22px]">
                 <?= view('components.admin.form.input', [
-                    'name' => 'title',
+                    'name'  => 'title',
                     'label' => t('Title'),
                     'value' => (string) ($article['title'] ?? ''),
                 ]) ?>
 
                 <div id="teaserContainer" class="mt-4">
                     <?= view('components.admin.form.text', [
-                        'name' => 'teaser',
+                        'name'  => 'teaser',
                         'label' => t('Teaser'),
-                        'rows' => 6,
+                        'rows'  => 6,
                         'value' => (string) ($article['teaser'] ?? ''),
                     ]) ?>
                 </div>
 
                 <div class="mt-6">
                     <?= view('components.admin.form.editor', [
-                        'name' => 'content',
-                        'label' => t('Content'),
-                        'value' => $content !== '' ? $content : null,
+                        'name'      => 'content',
+                        'label'     => t('Content'),
+                        'value'     => $content !== '' ? $content : null,
                         'uploadUrl' => route('api.admin.media.upload'),
                     ]) ?>
                 </div>
@@ -89,7 +90,7 @@ $fieldErrorAssets->add('/js/components/formFieldErrors.js');
 
                 <div class="flex items-center gap-2">
                     <?= view('components.admin.form.input', [
-                        'name' => 'slug',
+                        'name'  => 'slug',
                         'label' => t('Slug'),
                         'value' => (string) ($article['slug'] ?? ''),
                     ]) ?>
@@ -101,9 +102,9 @@ $fieldErrorAssets->add('/js/components/formFieldErrors.js');
                 <label class="grid gap-3">
                     <span class="text-base font-semibold text-slate-100"><?= s(t('Publish date')) ?></span>
                     <?= view('components.admin.form.input', [
-                        'name' => 'publish_date',
+                        'name'  => 'publish_date',
                         'label' => t('Publish date'),
-                        'type' => 'datetime-local',
+                        'type'  => 'datetime-local',
                         'value' => $publishDateValue,
                     ]) ?>
                 </label>
@@ -114,12 +115,12 @@ $fieldErrorAssets->add('/js/components/formFieldErrors.js');
                     <span class="text-base font-semibold text-slate-100"><?= s(t('Category')) ?></span>
                     <div class="relative">
                         <?= view('components.admin.form.input', [
-                            'id' => 'category-input',
-                            'name' => 'category',
-                            'label' => t('Category'),
-                            'value' => (string) ($article['category_name'] ?? ''),
+                            'id'          => 'category-input',
+                            'name'        => 'category',
+                            'label'       => t('Category'),
+                            'value'       => (string) ($article['category_name'] ?? ''),
                             'placeholder' => t('Choose or type category'),
-                            'attributes' => ['autocomplete' => 'off'],
+                            'attributes'  => ['autocomplete' => 'off'],
                         ]) ?>
                         <div id="category-suggestions" class="absolute left-0 right-0 top-[calc(100%+6px)] z-30 hidden max-h-[220px] overflow-auto rounded-lg border border-[var(--border)] bg-white p-1.5 shadow-[0_18px_44px_rgba(15,23,42,.14)] dark:bg-slate-900 dark:shadow-[0_20px_70px_rgba(0,0,0,.38)]"></div>
                     </div>
@@ -131,12 +132,12 @@ $fieldErrorAssets->add('/js/components/formFieldErrors.js');
                     <span class="text-base font-semibold text-slate-100"><?= s(t('Tags')) ?></span>
                     <div class="relative">
                         <?= view('components.admin.form.input', [
-                            'id' => 'tag-input',
-                            'name' => '',
-                            'label' => t('Tags'),
+                            'id'          => 'tag-input',
+                            'name'        => '',
+                            'label'       => t('Tags'),
                             'placeholder' => t('Type tag and press comma'),
-                            'attributes' => ['autocomplete' => 'off'],
-                            'useMemory' => false,
+                            'attributes'  => ['autocomplete' => 'off'],
+                            'useMemory'   => false,
                         ]) ?>
                         <div id="tag-suggestions" class="absolute left-0 right-0 top-[calc(100%+6px)] z-30 hidden max-h-[220px] overflow-auto rounded-lg border border-[var(--border)] bg-white p-1.5 shadow-[0_18px_44px_rgba(15,23,42,.14)] dark:bg-slate-900 dark:shadow-[0_20px_70px_rgba(0,0,0,.38)]"></div>
                     </div>
@@ -151,10 +152,10 @@ $fieldErrorAssets->add('/js/components/formFieldErrors.js');
                     <span class="text-base font-semibold text-slate-100"><?= s(t('Language')) ?></span>
                     <div class="grid grid-cols-[minmax(0,1fr)_110px] items-center gap-3 shell:grid-cols-1">
                         <?= view('components.admin.form.select', [
-                            'name' => 'language',
-                            'label' => t('Language'),
+                            'name'     => 'language',
+                            'label'    => t('Language'),
                             'selected' => $selectedLanguage,
-                            'options' => $languageOptions,
+                            'options'  => $languageOptions,
                         ]) ?>
                         <div class="version-info hidden min-h-[52px] min-w-20 rounded-lg border border-[rgba(148,163,184,.18)] bg-[rgba(31,41,58,.66)] px-2.5 py-2 text-center text-xs font-bold text-slate-100 [&_div]:text-[11px] [&_div]:font-medium [&_div]:text-slate-400"></div>
                     </div>
@@ -163,17 +164,17 @@ $fieldErrorAssets->add('/js/components/formFieldErrors.js');
                 <hr class="my-[22px] border-0 border-t border-slate-400/20">
 
                 <?= view('components.admin.form.checkbox', [
-                    'name' => 'hide_lead_image_in_content',
-                    'label' => t('Hide first image in article body'),
+                    'name'    => 'hide_lead_image_in_content',
+                    'label'   => t('Hide first image in article body'),
                     'checked' => $hideLeadImageInContent,
-                    'class' => 'w-max min-w-[296px] border-transparent bg-[rgba(24,32,49,.76)] text-slate-100',
+                    'class'   => 'w-max min-w-[296px] border-transparent bg-[rgba(24,32,49,.76)] text-slate-100',
                 ]) ?>
 
                 <?= view('components.admin.form.checkbox', [
-                    'name' => 'show_teaser',
-                    'label' => t('Show teaser?'),
+                    'name'    => 'show_teaser',
+                    'label'   => t('Show teaser?'),
                     'checked' => $showTeaser,
-                    'class' => 'w-max min-w-[296px] border-transparent bg-[rgba(24,32,49,.76)] text-slate-100',
+                    'class'   => 'w-max min-w-[296px] border-transparent bg-[rgba(24,32,49,.76)] text-slate-100',
                 ]) ?>
             </aside>
         </div>

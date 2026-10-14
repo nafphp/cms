@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Naf\CMS\Navigation\NavigationItem;
 use Naf\CMS\Navigation\Navigation;
+use Naf\CMS\Navigation\NavigationItem;
 
 return [
     Navigation::create('main', 'Main navigation')
@@ -11,13 +11,13 @@ return [
             NavigationItem::create('home')
                 ->setLabel('Home')
                 ->setHref('/')
-                ->setOrder(10)
+                ->setOrder(10),
         )
         ->addItem(
             NavigationItem::create('articles')
                 ->setLabel('Articles')
                 ->setHref('/articles')
-                ->setOrder(20)
+                ->setOrder(20),
         ),
     NavigationItem::create('content')
         ->setLabel('Content')

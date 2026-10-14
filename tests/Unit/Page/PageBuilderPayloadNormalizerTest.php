@@ -13,30 +13,30 @@ final class PageBuilderPayloadNormalizerTest extends TestCase
     {
         $payload = [
             'main' => [
-                'type' => 'section',
-                'label' => 'Section',
+                'type'         => 'section',
+                'label'        => 'Section',
                 'previewTitle' => 'Section',
-                'props' => [
-                    'width' => 'wide',
-                    'padding' => 'medium',
-                    'tone' => 'soft',
+                'props'        => [
+                    'width'    => 'wide',
+                    'padding'  => 'medium',
+                    'tone'     => 'soft',
                     'children' => [[
-                        'type' => 'columns',
-                        'label' => 'Columns',
+                        'type'         => 'columns',
+                        'label'        => 'Columns',
                         'previewTitle' => 'Columns',
-                        'props' => [
-                            'columns' => 2,
-                            'gap' => 'large',
-                            'align' => 'stretch',
+                        'props'        => [
+                            'columns'        => 2,
+                            'gap'            => 'large',
+                            'align'          => 'stretch',
                             'containerStyle' => 'card',
-                            'children' => [[
-                                'type' => 'text',
-                                'label' => 'Text block',
+                            'children'       => [[
+                                'type'         => 'text',
+                                'label'        => 'Text block',
                                 'previewTitle' => 'Short text',
-                                'props' => [
-                                    'text' => 'Hello',
-                                    'tone' => 'lead',
-                                    'align' => 'left',
+                                'props'        => [
+                                    'text'          => 'Hello',
+                                    'tone'          => 'lead',
+                                    'align'         => 'left',
                                     'verticalAlign' => 'top',
                                 ],
                             ]],
@@ -47,10 +47,10 @@ final class PageBuilderPayloadNormalizerTest extends TestCase
         ];
         $slots = [['id' => 'main', 'region' => 'main', 'accepts' => ['section']]];
 
-        $firstErrors = [];
-        $first = (new PageBuilderPayloadNormalizer())->normalize($payload, $slots, $firstErrors);
+        $firstErrors  = [];
+        $first        = (new PageBuilderPayloadNormalizer())->normalize($payload, $slots, $firstErrors);
         $secondErrors = [];
-        $second = (new PageBuilderPayloadNormalizer())->normalize($first, $slots, $secondErrors);
+        $second       = (new PageBuilderPayloadNormalizer())->normalize($first, $slots, $secondErrors);
 
         self::assertSame([], $firstErrors);
         self::assertSame([], $secondErrors);
@@ -62,12 +62,12 @@ final class PageBuilderPayloadNormalizerTest extends TestCase
         $errors = [];
         (new PageBuilderPayloadNormalizer())->normalize([
             'hero' => [
-                'type' => 'hero',
+                'type'  => 'hero',
                 'props' => [
-                    'title' => 'Unsafe',
+                    'title'     => 'Unsafe',
                     'buttonUrl' => 'javascript:alert(1)',
-                    'surface' => 'not-a-surface',
-                    'unknown' => 'value',
+                    'surface'   => 'not-a-surface',
+                    'unknown'   => 'value',
                 ],
             ],
         ], [['id' => 'hero', 'region' => 'hero', 'accepts' => ['hero']]], $errors);

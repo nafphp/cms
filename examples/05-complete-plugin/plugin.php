@@ -13,6 +13,7 @@ use Naf\MCP\Support\Schema;
 use Naf\MCP\Tools\ScopedToolInterface;
 use Naf\MCP\Tools\ToolInterface;
 use Psr\Http\Message\ResponseInterface;
+
 use function Naf\CMS\cms;
 use function Naf\json;
 use function Naf\MCP\tool;
@@ -51,21 +52,41 @@ final class ReportApiHandler
 
 final class ReportSummaryTool implements ToolInterface, ScopedToolInterface, LocalAiToolMetadataInterface
 {
-    public function name(): string { return 'cms_example_plugin_report_summary'; }
-    public function description(): string { return 'Returns the current report summary.'; }
-    public function inputSchema(): array { return Schema::object()->additionalProperties(false)->toArray(); }
-    public function requiredScopes(): array { return ['system:read']; }
-    public function handle(array $args): array { return ['reports' => 0]; }
+    public function name(): string
+    {
+        return 'cms_example_plugin_report_summary';
+    }
+
+    public function description(): string
+    {
+        return 'Returns the current report summary.';
+    }
+
+    public function inputSchema(): array
+    {
+        return Schema::object()->additionalProperties(false)->toArray();
+    }
+
+    public function requiredScopes(): array
+    {
+        return ['system:read'];
+    }
+
+    public function handle(array $args): array
+    {
+        return ['reports' => 0];
+    }
+
     public function localAiMetadata(): array
     {
         return [
-            'title' => 'Report summary',
-            'routingText' => 'Read the installed report plugin summary.',
-            'examples' => ['How many reports are available?'],
+            'title'        => 'Report summary',
+            'routingText'  => 'Read the installed report plugin summary.',
+            'examples'     => ['How many reports are available?'],
             'capabilities' => ['reports.read'],
-            'mode' => 'read',
-            'risk' => 'read',
-            'autoRun' => true,
+            'mode'         => 'read',
+            'risk'         => 'read',
+            'autoRun'      => true,
         ];
     }
 }

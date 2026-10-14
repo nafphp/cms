@@ -9,6 +9,7 @@ use Naf\CLI\Core\Input;
 use Naf\CLI\Core\Output;
 use PDO;
 use PDOException;
+
 use function Naf\config;
 
 class CreateDatabaseCommand extends AbstractCommand
@@ -32,12 +33,13 @@ class CreateDatabaseCommand extends AbstractCommand
             $output->writeLine('    vendor/bin/naf db:create --force');
             $output->writeLine('  Reads driver/host/port/username/password/database from app config (.env).');
             $output->writeLine('  --force drops the configured database before recreating it.');
+
             return self::SUCCESS;
         }
 
         $dbConfig = (array) config('database', []);
-        $driver = (string) ($dbConfig['driver'] ?? 'mysql');
-        $force = $input->getOption('force') === true;
+        $driver   = (string) ($dbConfig['driver'] ?? 'mysql');
+        $force    = $input->getOption('force') === true;
 
         if ($driver === 'sqlite') {
             if ($force) {
@@ -45,24 +47,27 @@ class CreateDatabaseCommand extends AbstractCommand
             }
 
             $output->writeLine('SQLite databases are created on first connect; nothing to do.', 'ok');
+
             return self::SUCCESS;
         }
 
-        $host = (string) ($dbConfig['host'] ?? '127.0.0.1');
-        $port = (string) ($dbConfig['port'] ?? '3306');
-        $username = (string) ($dbConfig['username'] ?? '');
-        $password = (string) ($dbConfig['password'] ?? '');
-        $database = trim((string) ($dbConfig['database'] ?? ''));
-        $charset = (string) ($dbConfig['charset'] ?? 'utf8mb4');
+        $host      = (string) ($dbConfig['host'] ?? '127.0.0.1');
+        $port      = (string) ($dbConfig['port'] ?? '3306');
+        $username  = (string) ($dbConfig['username'] ?? '');
+        $password  = (string) ($dbConfig['password'] ?? '');
+        $database  = trim((string) ($dbConfig['database'] ?? ''));
+        $charset   = (string) ($dbConfig['charset'] ?? 'utf8mb4');
         $collation = (string) ($dbConfig['collation'] ?? 'utf8mb4_unicode_ci');
 
         if ($database === '') {
             $output->writeLine('DB_DATABASE is empty. Set it in your .env first.', 'error');
+
             return self::ERROR;
         }
 
         if (!preg_match('/^[A-Za-z0-9_]+$/', $database)) {
             $output->writeLine(sprintf('Refusing to create database with unsafe name "%s".', $database), 'error');
+
             return self::ERROR;
         }
 
@@ -74,6 +79,7 @@ class CreateDatabaseCommand extends AbstractCommand
             ]);
         } catch (PDOException $e) {
             $output->writeLine(sprintf('Could not connect to %s: %s', $dsn, $e->getMessage()), 'error');
+
             return self::ERROR;
         }
 
@@ -84,6 +90,7 @@ class CreateDatabaseCommand extends AbstractCommand
                 $pdo->exec(sprintf('DROP DATABASE `%s`', $database));
             } catch (PDOException $e) {
                 $output->writeLine(sprintf('Could not drop database "%s": %s', $database, $e->getMessage()), 'error');
+
                 return self::ERROR;
             }
 
@@ -95,13 +102,14 @@ class CreateDatabaseCommand extends AbstractCommand
             'CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET %s COLLATE %s',
             $database,
             $charset,
-            $collation
+            $collation,
         );
 
         try {
             $pdo->exec($sql);
         } catch (PDOException $e) {
             $output->writeLine(sprintf('Could not create database "%s": %s', $database, $e->getMessage()), 'error');
+
             return self::ERROR;
         }
 
@@ -117,7 +125,7 @@ class CreateDatabaseCommand extends AbstractCommand
     private function databaseExists(PDO $pdo, string $database): bool
     {
         $existsStmt = $pdo->prepare(
-            'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = :name LIMIT 1'
+            'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = :name LIMIT 1',
         );
         $existsStmt->execute(['name' => $database]);
 
@@ -129,15 +137,18 @@ class CreateDatabaseCommand extends AbstractCommand
         $database = trim($database);
         if ($database === '' || $database === ':memory:') {
             $output->writeLine('SQLite database is in-memory or empty; nothing to drop.', 'ok');
+
             return self::SUCCESS;
         }
 
         if (is_file($database) && !unlink($database)) {
             $output->writeLine(sprintf('Could not delete SQLite database file "%s".', $database), 'error');
+
             return self::ERROR;
         }
 
         $output->writeLine(sprintf('SQLite database "%s" removed.', $database), 'warning');
+
         return self::SUCCESS;
     }
 }

@@ -4,19 +4,24 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Repositories;
 
+use DateTime;
+use DateTimeImmutable;
+use DateTimeInterface;
+use InvalidArgumentException;
 use Naf\CMS\Enums\ArticleStatus;
 use Naf\CMS\Models\Article;
 use Naf\CMS\Models\ArticleVersion;
 use Naf\CMS\Models\Category;
 use Naf\CMS\Models\Tag;
 use Naf\ORM\Repository\AbstractRepository;
-use Naf\CMS\Repositories\ArticleVersionRepository;
-use Naf\CMS\Repositories\CategoryRepository;
-use Naf\CMS\Repositories\TagRepository;
+use PDO;
+use RuntimeException;
+use Throwable;
+
+use function Naf\CMS\cms;
 use function Naf\log;
 use function Naf\ORM\em;
 use function Naf\ORM\repo;
-use function Naf\CMS\cms;
 
 class ArticleRepository extends AbstractRepository
 {
@@ -57,7 +62,7 @@ class ArticleRepository extends AbstractRepository
     public function findPublishedWithLatestVersionByCategory(
         ?int $categoryId,
         ?int $limit = null,
-        array $excludeArticleIds = []
+        array $excludeArticleIds = [],
     ): array {
         return $this->findPublishedWithLatestVersionByCategoryAndLanguage(
             $categoryId,
@@ -77,11 +82,11 @@ class ArticleRepository extends AbstractRepository
         ?int $categoryId,
         ?int $limit,
         string $language,
-        array $excludeArticleIds = []
+        array $excludeArticleIds = [],
     ): array {
         /** @var array<int, Article> $articles */
-        $articles = $this->findAll();
-        $articles = $this->hydrateLatestVisiblePublishedVersions($articles, $language);
+        $articles    = $this->findAll();
+        $articles    = $this->hydrateLatestVisiblePublishedVersions($articles, $language);
         $excludedIds = array_values(array_unique(array_map('intval', $excludeArticleIds)));
 
         $filteredArticles = array_values(array_filter(
@@ -100,14 +105,15 @@ class ArticleRepository extends AbstractRepository
                 }
 
                 $candidateCategoryId = $candidate->getCategory()?->getId();
+
                 return $candidateCategoryId !== null && (int) $candidateCategoryId === $categoryId;
-            }
+            },
         ));
 
         usort(
             $filteredArticles,
-            static fn(Article $a, Article $b): int =>
-                ($b->getPublishedAt()?->getTimestamp() ?? 0) <=> ($a->getPublishedAt()?->getTimestamp() ?? 0)
+            static fn(Article $a, Article $b): int
+                => ($b->getPublishedAt()?->getTimestamp() ?? 0) <=> ($a->getPublishedAt()?->getTimestamp() ?? 0),
         );
 
         if ($limit !== null) {
@@ -127,17 +133,17 @@ class ArticleRepository extends AbstractRepository
             return [];
         }
 
-        $currentArticleId = (int) $currentArticle->getId();
+        $currentArticleId  = (int) $currentArticle->getId();
         $currentCategoryId = $currentArticle->getCategory()?->getId();
-        $currentTagNames = $this->normalizeTagNames($currentArticle->getTagNames());
+        $currentTagNames   = $this->normalizeTagNames($currentArticle->getTagNames());
         if ($currentTagNames === []) {
             return [];
         }
 
-        $currentTagSet = array_fill_keys($currentTagNames, true);
-        $candidates = $this->findPublishedWithLatestVersionByCategory(null, null, [$currentArticleId]);
+        $currentTagSet      = array_fill_keys($currentTagNames, true);
+        $candidates         = $this->findPublishedWithLatestVersionByCategory(null, null, [$currentArticleId]);
         $sameCategoryAndTag = [];
-        $sameTag = [];
+        $sameTag            = [];
 
         foreach ($candidates as $candidate) {
             if ((int) $candidate->getId() === $currentArticleId) {
@@ -145,7 +151,7 @@ class ArticleRepository extends AbstractRepository
             }
 
             $candidateCategoryId = $candidate->getCategory()?->getId();
-            $sameCategory = $currentCategoryId !== null
+            $sameCategory        = $currentCategoryId !== null
                 && $candidateCategoryId !== null
                 && (int) $candidateCategoryId === (int) $currentCategoryId;
 
@@ -161,7 +167,7 @@ class ArticleRepository extends AbstractRepository
             }
 
             $entry = [
-                'article' => $candidate,
+                'article'        => $candidate,
                 'sharedTagCount' => $sharedTagCount,
             ];
 
@@ -183,7 +189,7 @@ class ArticleRepository extends AbstractRepository
                 }
 
                 return $right['sharedTagCount'] <=> $left['sharedTagCount'];
-            }
+            },
         );
 
         $recommendations = [];
@@ -194,7 +200,7 @@ class ArticleRepository extends AbstractRepository
             }
 
             /** @var Article $candidate */
-            $candidate = $entry['article'];
+            $candidate         = $entry['article'];
             $recommendations[] = [
                 'article' => $candidate,
             ];
@@ -238,12 +244,12 @@ class ArticleRepository extends AbstractRepository
         foreach ($articles as $article) {
             $languageVersions = array_filter(
                 $article->getVersions(),
-                static fn(ArticleVersion $version): bool => $version->getLanguageCode() === $language
+                static fn(ArticleVersion $version): bool => $version->getLanguageCode() === $language,
             );
 
             usort(
                 $languageVersions,
-                static fn(ArticleVersion $a, ArticleVersion $b): int => $b->getVersion() <=> $a->getVersion()
+                static fn(ArticleVersion $a, ArticleVersion $b): int => $b->getVersion() <=> $a->getVersion(),
             );
 
             if (count($languageVersions) === 0) {
@@ -293,7 +299,7 @@ class ArticleRepository extends AbstractRepository
         string $fallbackLanguage,
     ): ?ArticleVersion {
         $fallbackVersion = null;
-        $anyVersion = null;
+        $anyVersion      = null;
 
         foreach ($article->getVersions() as $version) {
             if (!$this->isFrontendVisiblePublishedVersion($version)) {
@@ -315,7 +321,7 @@ class ArticleRepository extends AbstractRepository
         return $fallbackVersion ?? $anyVersion;
     }
 
-    private function isFrontendVisiblePublishedVersion(ArticleVersion $version, ?\DateTimeInterface $now = null): bool
+    private function isFrontendVisiblePublishedVersion(ArticleVersion $version, ?DateTimeInterface $now = null): bool
     {
         if ($version->getStatus() !== ArticleStatus::PUBLISHED) {
             return false;
@@ -330,7 +336,8 @@ class ArticleRepository extends AbstractRepository
             return false;
         }
 
-        $now ??= new \DateTimeImmutable();
+        $now ??= new DateTimeImmutable();
+
         return $publishedAt->getTimestamp() <= $now->getTimestamp();
     }
 
@@ -351,7 +358,7 @@ class ArticleRepository extends AbstractRepository
         $version = repo(ArticleVersionRepository::class)
             ->findOneBy(
                 $criteria,
-                orderBy: ['version' => 'DESC']
+                orderBy: ['version' => 'DESC'],
             );
 
         if ($version) {
@@ -383,6 +390,7 @@ class ArticleRepository extends AbstractRepository
             }
 
             $article->setCurrentVersion($version);
+
             return $article;
         }
 
@@ -417,7 +425,7 @@ class ArticleRepository extends AbstractRepository
             // then the translation that owns the slug.
             $owner = $this->visibleVersionBySlug($slug);
             if ($owner instanceof ArticleVersion) {
-                $articleId = (int) $owner->getArticleId();
+                $articleId        = (int) $owner->getArticleId();
                 $fallbackLanguage = cms()->settings()->fallbackLanguage();
 
                 $version = $this->visibleVersionByArticleAndLanguage($articleId, $language)
@@ -439,6 +447,7 @@ class ArticleRepository extends AbstractRepository
         }
 
         $article->setCurrentVersion($version);
+
         return $article;
     }
 
@@ -469,7 +478,7 @@ class ArticleRepository extends AbstractRepository
         /** @var ArticleVersion|null $version */
         $version = repo(ArticleVersionRepository::class)->findOneBy(
             $criteria,
-            orderBy: ['version' => 'DESC']
+            orderBy: ['version' => 'DESC'],
         );
 
         return $version instanceof ArticleVersion && $this->isFrontendVisiblePublishedVersion($version)
@@ -488,8 +497,8 @@ class ArticleRepository extends AbstractRepository
         /** @var ArticleVersion|null $version */
         $version = repo(ArticleVersionRepository::class)->findOneBy([
             'article_id' => $article->getId(),
-            'language' => $language,
-            'version' => $versionNumber,
+            'language'   => $language,
+            'version'    => $versionNumber,
         ]);
 
         if ($version) {
@@ -512,17 +521,17 @@ class ArticleRepository extends AbstractRepository
         em()->begin();
 
         try {
-            $articleId = (int) ($data['article_id'] ?? 0);
+            $articleId              = (int) ($data['article_id'] ?? 0);
             $hideLeadImageInContent = filter_var($data['hide_lead_image_in_content'] ?? true, FILTER_VALIDATE_BOOLEAN);
-            $showTeaser = filter_var($data['show_teaser'] ?? false, FILTER_VALIDATE_BOOLEAN);
-            $language = cms()->languages()->normalize((string) ($data['language'] ?? ''));
+            $showTeaser             = filter_var($data['show_teaser'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $language               = cms()->languages()->normalize((string) ($data['language'] ?? ''));
             if ($language === null || !cms()->languages()->isKnown($language)) {
-                throw new \InvalidArgumentException('Invalid article language.');
+                throw new InvalidArgumentException('Invalid article language.');
             }
 
             $content = json_encode($data['content'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             if ($content === false) {
-                throw new \RuntimeException('Could not encode article content.');
+                throw new RuntimeException('Could not encode article content.');
             }
 
             $category = repo(CategoryRepository::class)->findOrCreateByNormalizedName((string) ($data['category'] ?? ''));
@@ -531,14 +540,14 @@ class ArticleRepository extends AbstractRepository
                 /** @var Article|null $article */
                 $article = $this->findOneBy('id', $articleId);
                 if (!$article instanceof Article) {
-                    throw new \RuntimeException('Article not found.');
+                    throw new RuntimeException('Article not found.');
                 }
 
                 $article->setHideLeadImageInContent($hideLeadImageInContent);
                 $article->setCategory($category instanceof Category ? $category : null);
             } else {
                 $article = new Article([
-                    'author' => $authorId,
+                    'author'                     => $authorId,
                     'hide_lead_image_in_content' => $hideLeadImageInContent ? 1 : 0,
                 ]);
                 $article->setCategory($category instanceof Category ? $category : null);
@@ -550,7 +559,7 @@ class ArticleRepository extends AbstractRepository
             $this->replaceArticleTags($articleId, $this->normalizeTagNamesFromPayload($data['tags'] ?? []));
 
             $articleVersionId = (int) ($data['article_version_id'] ?? 0);
-            $articleVersion = null;
+            $articleVersion   = null;
             if ($articleVersionId > 0) {
                 /** @var ArticleVersion|null $candidateVersion */
                 $candidateVersion = repo(ArticleVersionRepository::class)->findOneBy('id', $articleVersionId);
@@ -588,10 +597,10 @@ class ArticleRepository extends AbstractRepository
             em()->commit();
 
             return [
-                'articleId' => $articleId,
+                'articleId'        => $articleId,
                 'articleVersionId' => (int) $articleVersion->getId(),
             ];
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             em()->rollback();
 
             throw $throwable;
@@ -606,12 +615,13 @@ class ArticleRepository extends AbstractRepository
             return false;
         }
 
-        $publishedAt = $version->getPublishedAt() ?? new \DateTime();
+        $publishedAt      = $version->getPublishedAt() ?? new DateTime();
         $publishedVersion = $version
             ->withStatus(ArticleStatus::PUBLISHED)
             ->withPublishedAt($publishedAt);
 
         em()->save($publishedVersion);
+
         return true;
     }
 
@@ -624,6 +634,7 @@ class ArticleRepository extends AbstractRepository
     {
         $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM article_versions WHERE status = :status');
         $stmt->execute(['status' => $status->value]);
+
         return (int) $stmt->fetchColumn();
     }
 
@@ -638,7 +649,7 @@ class ArticleRepository extends AbstractRepository
         }
 
         $stmt = $this->pdo->query('SELECT status, COUNT(*) AS total FROM article_versions GROUP BY status');
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($rows as $row) {
             $status = (string) ($row['status'] ?? '');
@@ -694,7 +705,7 @@ class ArticleRepository extends AbstractRepository
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($rows as $row) {
             $status = (string) ($row['status'] ?? '');
@@ -726,7 +737,7 @@ class ArticleRepository extends AbstractRepository
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
-            'draftStatusOuter' => ArticleStatus::DRAFT->value,
+            'draftStatusOuter'    => ArticleStatus::DRAFT->value,
             'declinedStatusOuter' => ArticleStatus::DECLINED->value,
         ]);
 
@@ -797,30 +808,30 @@ class ArticleRepository extends AbstractRepository
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
-            'draftStatus' => ArticleStatus::DRAFT->value,
+            'draftStatus'    => ArticleStatus::DRAFT->value,
             'declinedStatus' => ArticleStatus::DECLINED->value,
         ]);
 
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(
             static fn(array $row): array => [
-                'article_id' => (int) ($row['article_id'] ?? 0),
-                'language' => (string) ($row['language'] ?? ''),
-                'article_version_id' => (int) ($row['article_version_id'] ?? 0),
-                'version' => (int) ($row['version'] ?? 0),
-                'title' => (string) ($row['title'] ?? ''),
-                'slug' => (string) ($row['slug'] ?? ''),
-                'teaser' => (string) ($row['teaser'] ?? ''),
-                'author_name' => trim((string) ($row['author_name'] ?? '')),
-                'published_at' => $row['published_at'] !== null ? (string) $row['published_at'] : null,
-                'created_at' => $row['created_at'] !== null ? (string) $row['created_at'] : null,
-                'last_review_action' => $row['last_review_action'] !== null ? (string) $row['last_review_action'] : null,
+                'article_id'          => (int) ($row['article_id'] ?? 0),
+                'language'            => (string) ($row['language'] ?? ''),
+                'article_version_id'  => (int) ($row['article_version_id'] ?? 0),
+                'version'             => (int) ($row['version'] ?? 0),
+                'title'               => (string) ($row['title'] ?? ''),
+                'slug'                => (string) ($row['slug'] ?? ''),
+                'teaser'              => (string) ($row['teaser'] ?? ''),
+                'author_name'         => trim((string) ($row['author_name'] ?? '')),
+                'published_at'        => $row['published_at'] !== null ? (string) $row['published_at'] : null,
+                'created_at'          => $row['created_at'] !== null ? (string) $row['created_at'] : null,
+                'last_review_action'  => $row['last_review_action'] !== null ? (string) $row['last_review_action'] : null,
                 'last_review_comment' => $row['last_review_comment'] !== null ? (string) $row['last_review_comment'] : null,
-                'last_reviewed_at' => $row['last_reviewed_at'] !== null ? (string) $row['last_reviewed_at'] : null,
-                'last_reviewer_name' => $row['last_reviewer_name'] !== null ? trim((string) $row['last_reviewer_name']) : null,
+                'last_reviewed_at'    => $row['last_reviewed_at'] !== null ? (string) $row['last_reviewed_at'] : null,
+                'last_reviewer_name'  => $row['last_reviewer_name'] !== null ? trim((string) $row['last_reviewer_name']) : null,
             ],
-            $rows
+            $rows,
         );
     }
 
@@ -831,18 +842,20 @@ class ArticleRepository extends AbstractRepository
         }
 
         $this->pdo->beginTransaction();
+
         try {
             $deleteStmt = $this->pdo->prepare(
-                'DELETE FROM article_versions WHERE article_id = :article_id AND language = :language'
+                'DELETE FROM article_versions WHERE article_id = :article_id AND language = :language',
             );
             $deleteStmt->execute([
                 'article_id' => $articleId,
-                'language' => $language,
+                'language'   => $language,
             ]);
 
             $deleted = $deleteStmt->rowCount() > 0;
             if (!$deleted) {
                 $this->pdo->rollBack();
+
                 return false;
             }
 
@@ -856,12 +869,14 @@ class ArticleRepository extends AbstractRepository
             }
 
             $this->pdo->commit();
+
             return true;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('ArticleRepository.deleteLanguageVersions failed: %s', $e->getMessage()), ['exception' => $e]);
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
+
             return false;
         }
     }
@@ -879,9 +894,9 @@ class ArticleRepository extends AbstractRepository
         }
 
         /** @var array<int, Tag> $tags */
-        $tags = repo(TagRepository::class)->findOrCreateManyByNormalizedName($tagNames);
+        $tags   = repo(TagRepository::class)->findOrCreateManyByNormalizedName($tagNames);
         $insert = $this->pdo->prepare(
-            'INSERT IGNORE INTO article_tags (article_id, tag_id) VALUES (:article_id, :tag_id)'
+            'INSERT IGNORE INTO article_tags (article_id, tag_id) VALUES (:article_id, :tag_id)',
         );
         foreach ($tags as $tag) {
             $tagId = (int) $tag->getId();
@@ -891,7 +906,7 @@ class ArticleRepository extends AbstractRepository
 
             $insert->execute([
                 'article_id' => $articleId,
-                'tag_id' => $tagId,
+                'tag_id'     => $tagId,
             ]);
         }
     }
@@ -902,8 +917,8 @@ class ArticleRepository extends AbstractRepository
     private function normalizeTagNamesFromPayload(mixed $rawTags): array
     {
         $values = is_array($rawTags) ? $rawTags : (preg_split('/[,;\n\r]+/u', (string) $rawTags) ?: []);
-        $tags = [];
-        $seen = [];
+        $tags   = [];
+        $seen   = [];
 
         foreach ($values as $value) {
             $name = preg_replace('/\s+/u', ' ', trim((string) $value)) ?? '';
@@ -917,13 +932,13 @@ class ArticleRepository extends AbstractRepository
             }
 
             $seen[$key] = true;
-            $tags[] = $name;
+            $tags[]     = $name;
         }
 
         return $tags;
     }
 
-    private function normalizeDate(string $value): ?\DateTime
+    private function normalizeDate(string $value): ?DateTime
     {
         $trimmed = trim($value);
         if ($trimmed === '') {
@@ -931,9 +946,10 @@ class ArticleRepository extends AbstractRepository
         }
 
         try {
-            return new \DateTime($trimmed);
-        } catch (\Throwable $e) {
+            return new DateTime($trimmed);
+        } catch (Throwable $e) {
             log()->warning(sprintf('ArticleRepository.normalizeDate failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return null;
         }
     }
@@ -945,20 +961,22 @@ class ArticleRepository extends AbstractRepository
         }
 
         $this->pdo->beginTransaction();
+
         try {
             $deleteStmt = $this->pdo->prepare(
                 'DELETE FROM article_versions
-                 WHERE article_id = :article_id AND language = :language AND version = :version'
+                 WHERE article_id = :article_id AND language = :language AND version = :version',
             );
             $deleteStmt->execute([
                 'article_id' => $articleId,
-                'language' => $language,
-                'version' => $versionNumber,
+                'language'   => $language,
+                'version'    => $versionNumber,
             ]);
 
             $deleted = $deleteStmt->rowCount() > 0;
             if (!$deleted) {
                 $this->pdo->rollBack();
+
                 return false;
             }
 
@@ -972,12 +990,14 @@ class ArticleRepository extends AbstractRepository
             }
 
             $this->pdo->commit();
+
             return true;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('ArticleRepository.deleteSpecificVersion failed: %s', $e->getMessage()), ['exception' => $e]);
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
+
             return false;
         }
     }

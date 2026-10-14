@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Naf\CMS\Handlers\Api\Page;
 
 use Psr\Http\Message\ResponseInterface;
-use function Naf\json;
+
 use function Naf\CMS\cms;
+use function Naf\json;
 
 final class DeletePage
 {

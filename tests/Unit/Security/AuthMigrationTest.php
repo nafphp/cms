@@ -1,23 +1,29 @@
 <?php
 
 declare(strict_types=1);
+
 namespace Tests\Unit\Security;
 
 use Naf\Auth\Credentials\PasswordCredentials;
-use Naf\CMS\Api\{ApiAuthorization, ApiEndpoint};
+use Naf\CMS\Api\ApiAuthorization;
+use Naf\CMS\Api\ApiEndpoint;
 use Naf\CMS\Contracts\RateLimiterInterface;
-use Naf\CMS\Enums\{Permission, Role};
+use Naf\CMS\Enums\Permission;
+use Naf\CMS\Enums\Role;
 use Naf\CMS\Events\AuthRedirectEvent;
 use Naf\CMS\Exceptions\AuthException;
 use Naf\CMS\Handlers\Api\Article\ReviewArticle;
 use Naf\CMS\Handlers\Page\Auth\LoginUser;
-use Naf\CMS\Page\{Page, PageAuthorization};
-use Naf\CMS\Services\Security\{CmsSessionStateStore, CredentialService, DatabaseProvider, RateLimitDecision};
+use Naf\CMS\Page\Page;
+use Naf\CMS\Page\PageAuthorization;
+use Naf\CMS\Services\Security\CredentialService;
+use Naf\CMS\Services\Security\RateLimitDecision;
 use Naf\CMS\Support\UserHelper;
-use Naf\Session\Core\Session;
-use PHPUnit\Framework\Attributes\{PreserveGlobalState, RunTestsInSeparateProcesses};
-use Tests\Support\{DatabaseTestCase, JsonRequest};
-use function Naf\app;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tests\Support\DatabaseTestCase;
+use Tests\Support\JsonRequest;
+
 use function Naf\Auth\auth;
 use function Naf\CMS\user;
 use function Naf\Session\session;
@@ -32,7 +38,9 @@ final class AuthMigrationTest extends DatabaseTestCase
     {
         parent::setUp();
         $path = BASE_PATH . '/storage/cache/auth-test-sessions';
-        if (!is_dir($path)) { mkdir($path, 0700, true); }
+        if (!is_dir($path)) {
+            mkdir($path, 0700, true);
+        }
         session_save_path($path);
         session()->start();
         $_SESSION = [];
@@ -57,14 +65,16 @@ final class AuthMigrationTest extends DatabaseTestCase
     {
         auth()->logout();
         user(reset: true);
-        if (session_status() === PHP_SESSION_ACTIVE) { session_destroy(); }
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
         parent::tearDown();
     }
 
     public function testLoginHandlerPublishesActorRotatesSessionAndKeepsMetadata(): void
     {
         JsonRequest::bind(['username' => 'alice', 'password' => 'correct-password'], '/admin/login');
-        $before = session_id();
+        $before   = session_id();
         $response = (new LoginUser($this->limiter))();
         self::assertSame(302, $response->getStatusCode());
         self::assertSame('/admin', $response->getHeaderLine('Location'));
@@ -190,8 +200,8 @@ final class AuthMigrationTest extends DatabaseTestCase
     public function testLogoutPageClearsActorAndLegacyState(): void
     {
         auth()->authenticate(new PasswordCredentials('alice', 'correct-password'), 'database');
-        $pages = require BASE_PATH . '/src/Resources/pages/auth.php';
-        $logout = array_values(array_filter($pages, static fn(Page $page) => $page->id() === 'auth.logout'))[0];
+        $pages    = require BASE_PATH . '/src/Resources/pages/auth.php';
+        $logout   = array_values(array_filter($pages, static fn(Page $page) => $page->id() === 'auth.logout'))[0];
         $response = ($logout->content())();
         self::assertSame(302, $response->getStatusCode());
         self::assertFalse(auth()->check());
@@ -232,6 +242,7 @@ final class AuthMigrationTest extends DatabaseTestCase
     public function testApiGuestReceives401JsonWithoutLoginRedirect(): void
     {
         JsonRequest::bind([], '/api/probe');
+
         try {
             (new ApiAuthorization())->authorize(ApiEndpoint::get('probe', '/api/probe')->requireAuthentication());
             self::fail('Expected authentication failure.');
@@ -265,12 +276,24 @@ final class AuthMigrationTest extends DatabaseTestCase
 
 final class MigrationRateLimiter implements RateLimiterInterface
 {
-    public bool $allowed = true;
-    public int $failures = 0;
+    public bool $allowed  = true;
+    public int $failures  = 0;
     public int $successes = 0;
+
     public function inspect(string $username, string $ipAddress): RateLimitDecision
-    { return new RateLimitDecision($this->allowed, 0, $this->allowed ? 0 : 30); }
+    {
+        return new RateLimitDecision($this->allowed, 0, $this->allowed ? 0 : 30);
+    }
+
     public function recordFailure(string $username, string $ipAddress): RateLimitDecision
-    { $this->failures++; return new RateLimitDecision(true, 4, 0); }
-    public function clearSuccessfulPair(string $username, string $ipAddress): void { $this->successes++; }
+    {
+        $this->failures++;
+
+        return new RateLimitDecision(true, 4, 0);
+    }
+
+    public function clearSuccessfulPair(string $username, string $ipAddress): void
+    {
+        $this->successes++;
+    }
 }

@@ -15,6 +15,7 @@ use Naf\CMS\Contracts\TranslationServiceInterface;
 use Naf\CMS\Contracts\UserPrivilegePolicyInterface;
 use Naf\CMS\Services\Security\PasswordPolicy;
 use PHPUnit\Framework\TestCase;
+
 use function Naf\app;
 
 /**
@@ -65,7 +66,7 @@ final class ServiceBindingTest extends TestCase
     public function testHostBindingReplacesTheShippedDefault(): void
     {
         $container = app()->container();
-        $original = $container->get(PasswordPolicyInterface::class);
+        $original  = $container->get(PasswordPolicyInterface::class);
 
         try {
             $container->set(PasswordPolicyInterface::class, static fn(): PasswordPolicyInterface => new class implements PasswordPolicyInterface {

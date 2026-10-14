@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Migrations;
 
+use FilesystemIterator;
 use Naf\Database\Core\AbstractMigration;
 use PDO;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 
 final class Migration202605030002 extends AbstractMigration
 {
@@ -55,7 +59,7 @@ final class Migration202605030002 extends AbstractMigration
 
         foreach (is_array($rows) ? $rows : [] as $row) {
             $update->execute([
-                'id' => (int) ($row['id'] ?? 0),
+                'id'        => (int) ($row['id'] ?? 0),
                 'public_id' => $this->newPublicId($connection),
             ]);
         }
@@ -75,16 +79,16 @@ final class Migration202605030002 extends AbstractMigration
 
         foreach (is_array($rows) ? $rows : [] as $row) {
             $storedName = (string) ($row['stored_name'] ?? '');
-            $publicId = (string) ($row['public_id'] ?? '');
+            $publicId   = (string) ($row['public_id'] ?? '');
             if ($storedName === '' || $publicId === '') {
                 continue;
             }
 
             $storagePath = trim((string) ($row['storage_path'] ?? ''), '/');
             $update->execute([
-                'id' => (int) ($row['id'] ?? 0),
+                'id'         => (int) ($row['id'] ?? 0),
                 'public_url' => '/media/' . $publicId . '/' . rawurlencode($storedName),
-                'file_path' => 'storage/media/' . $storagePath,
+                'file_path'  => 'storage/media/' . $storagePath,
             ]);
         }
     }
@@ -101,12 +105,12 @@ final class Migration202605030002 extends AbstractMigration
             return;
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($source, \FilesystemIterator::SKIP_DOTS),
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS),
         );
 
         foreach ($iterator as $file) {
-            if (!$file instanceof \SplFileInfo || !$file->isFile()) {
+            if (!$file instanceof SplFileInfo || !$file->isFile()) {
                 continue;
             }
 
@@ -116,7 +120,7 @@ final class Migration202605030002 extends AbstractMigration
             }
 
             $targetPath = $target . '/' . $relativePath;
-            $targetDir = dirname($targetPath);
+            $targetDir  = dirname($targetPath);
             if (!is_dir($targetDir)) {
                 mkdir($targetDir, 0755, true);
             }
@@ -145,11 +149,13 @@ final class Migration202605030002 extends AbstractMigration
         if ($driver === 'sqlite') {
             $statement = $connection->prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = :table");
             $statement->execute(['table' => $table]);
+
             return (bool) $statement->fetchColumn();
         }
 
         $statement = $connection->prepare('SHOW TABLES LIKE :table');
         $statement->execute(['table' => $table]);
+
         return (bool) $statement->fetchColumn();
     }
 
@@ -169,6 +175,7 @@ final class Migration202605030002 extends AbstractMigration
 
         $statement = $connection->prepare('SHOW COLUMNS FROM ' . $table . ' LIKE :column');
         $statement->execute(['column' => $column]);
+
         return (bool) $statement->fetchColumn();
     }
 
@@ -178,11 +185,13 @@ final class Migration202605030002 extends AbstractMigration
         if ($driver === 'sqlite') {
             $statement = $connection->prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = :table AND name = :index");
             $statement->execute(['table' => $table, 'index' => $index]);
+
             return (bool) $statement->fetchColumn();
         }
 
         $statement = $connection->prepare('SHOW INDEX FROM ' . $table . ' WHERE Key_name = :index');
         $statement->execute(['index' => $index]);
+
         return (bool) $statement->fetchColumn();
     }
 }

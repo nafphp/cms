@@ -1,38 +1,38 @@
 <?php
 
+use function Naf\CMS\cms;
 use function Naf\I18n\t;
 use function Naf\route;
 use function Naf\View\s;
-use function Naf\CMS\cms;
 
 $active = (string) ($active ?? 'general');
 $groups = cms()->settings()->groups();
-$tabs = [];
+$tabs   = [];
 foreach ($groups as $key => $group) {
-    $key = (string) $key;
+    $key   = (string) $key;
     $label = match ($key) {
-        'general' => t('General'),
+        'general'   => t('General'),
         'languages' => t('Languages'),
-        'ai' => t('AI'),
-        default => t((string) ($group['label'] ?? ucfirst($key))),
+        'ai'        => t('AI'),
+        default     => t((string) ($group['label'] ?? ucfirst($key))),
     };
     $href = match ($key) {
-        'general' => route('admin.settings'),
+        'general'   => route('admin.settings'),
         'languages' => route('admin.translations'),
-        'ai' => route('admin.settings.ai'),
-        default => route('admin.settings.group', ['group' => $key]),
+        'ai'        => route('admin.settings.ai'),
+        default     => route('admin.settings.group', ['group' => $key]),
     };
 
     $tabs[] = [
-        'key' => $key,
+        'key'   => $key,
         'label' => $label,
-        'href' => $href,
+        'href'  => $href,
     ];
 }
 $tabs[] = [
-    'key' => 'audit',
+    'key'   => 'audit',
     'label' => t('Audit log'),
-    'href' => route('admin.settings.audit'),
+    'href'  => route('admin.settings.audit'),
 ];
 
 ?>

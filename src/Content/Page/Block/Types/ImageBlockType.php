@@ -36,11 +36,11 @@ final class ImageBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'src' => '',
-            'alt' => '',
+            'src'     => '',
+            'alt'     => '',
             'caption' => '',
-            'aspect' => 'wide',
-            'fit' => 'cover',
+            'aspect'  => 'wide',
+            'fit'     => 'cover',
         ];
     }
 

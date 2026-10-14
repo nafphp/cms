@@ -7,6 +7,7 @@ namespace Naf\CMS\Handlers\Support;
 use Naf\CMS\Exceptions\PrivilegedActionDenied;
 use Naf\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
+
 use function Naf\json;
 
 trait RejectsPrivilegedAction

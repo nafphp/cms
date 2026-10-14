@@ -1,16 +1,16 @@
 <?php
 
-use function Naf\View\s;
 use function Naf\CMS\View\Admin\Form\classes;
+use function Naf\View\s;
 
 require_once __DIR__ . '/_helpers.php';
 
-$name = (string) ($name ?? '');
-$label = (string) ($label ?? $name);
-$value = (string) ($value ?? '');
+$name        = (string) ($name ?? '');
+$label       = (string) ($label ?? $name);
+$value       = (string) ($value ?? '');
 $placeholder = (string) ($placeholder ?? '');
-$rows = (int) ($rows ?? 4);
-$className = classes('block min-h-[150px] w-full resize-y rounded-lg border border-[var(--border)] bg-admin-field px-3 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-slate-400 focus:border-accent focus:bg-admin-field-focus focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)]', (string) ($class ?? ''));
+$rows        = (int) ($rows ?? 4);
+$className   = classes('block min-h-[150px] w-full resize-y rounded-lg border border-[var(--border)] bg-admin-field px-3 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-slate-400 focus:border-accent focus:bg-admin-field-focus focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)]', (string) ($class ?? ''));
 
 ?>
 <label class="grid gap-1.5">

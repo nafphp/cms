@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Commands;
 
-use Naf\CMS\Services\Assets\AssetPublisher;
 use Naf\CLI\Core\AbstractCommand;
 use Naf\CLI\Core\Input;
 use Naf\CLI\Core\Output;
+use Naf\CMS\Services\Assets\AssetPublisher;
+use Throwable;
 
 final class RemoveAssetsCommand extends AbstractCommand
 {
@@ -23,12 +24,14 @@ final class RemoveAssetsCommand extends AbstractCommand
     {
         try {
             $removed = (new AssetPublisher())->remove();
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             $output->writeLine($exception->getMessage(), 'error');
+
             return self::ERROR;
         }
 
         $output->writeLine(sprintf('Removed %d published NafCMS asset(s).', $removed), 'ok');
+
         return self::SUCCESS;
     }
 }

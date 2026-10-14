@@ -13,15 +13,15 @@ final class NafTestCaseTest extends NafTestCase
     public function testMockArticleCreatesArticleWithCurrentVersion(): void
     {
         $article = $this->mockArticle([
-            'id' => 42,
+            'id'   => 42,
             'tags' => ['cms', 'testing'],
         ], $this->mockArticleVersion([
             'article_id' => 42,
-            'language' => Language::EN,
-            'status' => ArticleStatus::PUBLISHED,
-            'title' => 'Fixture Article',
-            'slug' => 'fixture-article',
-            'content' => [
+            'language'   => Language::EN,
+            'status'     => ArticleStatus::PUBLISHED,
+            'title'      => 'Fixture Article',
+            'slug'       => 'fixture-article',
+            'content'    => [
                 $this->mockParagraphBlock('Fixture body'),
                 $this->mockImageBlock('/fixture.png', 'Fixture'),
             ],

@@ -1,15 +1,17 @@
 <?php
 
-use function Naf\View\s;
-use function Naf\I18n\t;
+use Naf\CMS\Theme\Theme;
 
-$content = is_array($content ?? null) ? $content : [];
-$props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$surface = \Naf\CMS\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
+use function Naf\I18n\t;
+use function Naf\View\s;
+
+$content      = is_array($content ?? null) ? $content : [];
+$props        = is_array($content['props'] ?? null) ? $content['props'] : [];
+$surface      = Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
 $surfaceClass = [
-    'none' => 'grid h-full gap-3',
-    'soft' => 'grid h-full gap-3 rounded-lg bg-[var(--page-panel-soft)] p-5',
-    'card' => 'grid h-full gap-3 rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-5',
+    'none'   => 'grid h-full gap-3',
+    'soft'   => 'grid h-full gap-3 rounded-lg bg-[var(--page-panel-soft)] p-5',
+    'card'   => 'grid h-full gap-3 rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-5',
     'accent' => 'grid h-full gap-3 rounded-lg border border-[color-mix(in_srgb,var(--page-accent)_36%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))] p-5',
 ][$surface] ?? 'grid h-full gap-3';
 

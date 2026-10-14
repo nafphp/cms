@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Theme;
 
+use InvalidArgumentException;
+
 /**
  * Frontend theme definition: body class, optional assets, and builder-visible surfaces.
  */
@@ -20,7 +22,7 @@ final class Theme
     private function __construct(private readonly string $id)
     {
         if ($this->id === '') {
-            throw new \InvalidArgumentException('Theme id cannot be empty.');
+            throw new InvalidArgumentException('Theme id cannot be empty.');
         }
 
         $this->label = ucwords(str_replace(['-', '_'], ' ', $this->id));
@@ -43,8 +45,9 @@ final class Theme
 
     public function setLabel(string $label): self
     {
-        $label = trim($label);
+        $label       = trim($label);
         $this->label = $label === '' ? $this->label : $label;
+
         return $this;
     }
 
@@ -60,10 +63,11 @@ final class Theme
     {
         $href = trim($href);
         if ($href === '') {
-            throw new \InvalidArgumentException('Theme stylesheet href cannot be empty.');
+            throw new InvalidArgumentException('Theme stylesheet href cannot be empty.');
         }
 
         $this->stylesheets[] = ['href' => $href, 'attributes' => $this->cleanAttributes($attributes)];
+
         return $this;
     }
 
@@ -82,10 +86,11 @@ final class Theme
     {
         $src = trim($src);
         if ($src === '') {
-            throw new \InvalidArgumentException('Theme script src cannot be empty.');
+            throw new InvalidArgumentException('Theme script src cannot be empty.');
         }
 
         $this->scripts[] = ['src' => $src, 'attributes' => $this->cleanAttributes($attributes)];
+
         return $this;
     }
 
@@ -101,11 +106,12 @@ final class Theme
     {
         $id = self::slug($id);
         if ($id === '') {
-            throw new \InvalidArgumentException('Theme surface id cannot be empty.');
+            throw new InvalidArgumentException('Theme surface id cannot be empty.');
         }
 
-        $label = trim((string) ($label ?? ''));
+        $label               = trim((string) ($label ?? ''));
         $this->surfaces[$id] = $label === '' ? ucwords(str_replace(['-', '_'], ' ', $id)) : $label;
+
         return $this;
     }
 
@@ -158,6 +164,7 @@ final class Theme
     {
         $value = strtolower(trim($value));
         $value = preg_replace('/[^a-z0-9]+/', '-', $value) ?? '';
+
         return trim($value, '-');
     }
 

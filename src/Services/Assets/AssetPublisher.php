@@ -5,13 +5,19 @@ declare(strict_types=1);
 namespace Naf\CMS\Services\Assets;
 
 use Composer\InstalledVersions;
+use FilesystemIterator;
 use Naf\CMS\Support\AtomicFileWriter;
 use Naf\CMS\Support\RuntimePaths;
+use OutOfBoundsException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RuntimeException;
+use Throwable;
 
 final class AssetPublisher
 {
     private const array DIRECTORIES = ['css', 'fonts', 'images', 'js'];
-    private const string MANIFEST = '.nafcms-assets.json';
+    private const string MANIFEST   = '.nafcms-assets.json';
 
     public function __construct(
         private readonly ?string $sourceRoot = null,
@@ -23,10 +29,10 @@ final class AssetPublisher
     /** @return array{current: bool, missing: list<string>, outdated: list<string>, conflicts: list<string>, stale: list<string>} */
     public function status(): array
     {
-        $source = $this->sourceFiles();
-        $manifest = $this->manifestFiles();
-        $missing = [];
-        $outdated = [];
+        $source    = $this->sourceFiles();
+        $manifest  = $this->manifestFiles();
+        $missing   = [];
+        $outdated  = [];
         $conflicts = [];
 
         foreach ($source as $relative => $hash) {
@@ -55,11 +61,11 @@ final class AssetPublisher
         sort($stale);
 
         return [
-            'current' => $missing === [] && $outdated === [] && $conflicts === [] && $stale === [],
-            'missing' => $missing,
-            'outdated' => $outdated,
+            'current'   => $missing === [] && $outdated === [] && $conflicts === [] && $stale === [],
+            'missing'   => $missing,
+            'outdated'  => $outdated,
             'conflicts' => $conflicts,
-            'stale' => $stale,
+            'stale'     => $stale,
         ];
     }
 
@@ -72,12 +78,12 @@ final class AssetPublisher
 
         $status = $this->status();
         if ($status['conflicts'] !== []) {
-            throw new \RuntimeException('Asset publish conflicts: ' . implode(', ', $status['conflicts']));
+            throw new RuntimeException('Asset publish conflicts: ' . implode(', ', $status['conflicts']));
         }
 
-        $source = $this->sourceFiles();
+        $source      = $this->sourceFiles();
         $oldManifest = $this->manifestFiles();
-        $published = 0;
+        $published   = 0;
         foreach ($source as $relative => $hash) {
             $target = $this->target($relative);
             if (is_file($target) && hash_file('sha256', $target) === $hash) {
@@ -86,7 +92,7 @@ final class AssetPublisher
 
             $contents = file_get_contents($this->source() . '/' . $relative);
             if (!is_string($contents)) {
-                throw new \RuntimeException(sprintf('Could not read package asset "%s".', $relative));
+                throw new RuntimeException(sprintf('Could not read package asset "%s".', $relative));
             }
 
             ($this->writer ?? new AtomicFileWriter())->write($target, $contents, 0644);
@@ -105,7 +111,7 @@ final class AssetPublisher
         $manifest = json_encode([
             'package' => 'naf/cms',
             'version' => $this->version(),
-            'files' => $source,
+            'files'   => $source,
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL;
         ($this->writer ?? new AtomicFileWriter())->write($this->manifestPath(), $manifest, 0644);
 
@@ -114,7 +120,7 @@ final class AssetPublisher
 
     public function remove(): int
     {
-        $manifest = $this->manifestFiles();
+        $manifest  = $this->manifestFiles();
         $conflicts = [];
         foreach ($manifest as $relative => $hash) {
             $target = $this->target($relative);
@@ -125,7 +131,7 @@ final class AssetPublisher
 
         if ($conflicts !== []) {
             sort($conflicts);
-            throw new \RuntimeException('Asset removal conflicts: ' . implode(', ', $conflicts));
+            throw new RuntimeException('Asset removal conflicts: ' . implode(', ', $conflicts));
         }
 
         $removed = 0;
@@ -154,7 +160,7 @@ final class AssetPublisher
                 continue;
             }
 
-            $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS));
+            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS));
             foreach ($iterator as $file) {
                 if (!$file->isFile()) {
                     continue;
@@ -173,6 +179,7 @@ final class AssetPublisher
         }
 
         ksort($files);
+
         return $files;
     }
 
@@ -185,7 +192,7 @@ final class AssetPublisher
 
         try {
             $manifest = json_decode((string) file_get_contents($this->manifestPath()), true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return [];
         }
 
@@ -216,7 +223,7 @@ final class AssetPublisher
     {
         try {
             return InstalledVersions::getPrettyVersion('naf/cms') ?? 'dev';
-        } catch (\OutOfBoundsException) {
+        } catch (OutOfBoundsException) {
             return 'dev';
         }
     }

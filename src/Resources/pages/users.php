@@ -6,11 +6,12 @@ use Naf\CMS\Enums\Permission;
 use Naf\CMS\Page\Page;
 use Naf\CMS\Repositories\RoleRepository;
 use Naf\CMS\Repositories\UserRepository;
+
+use function Naf\CMS\user;
 use function Naf\I18n\t;
 use function Naf\ORM\repo;
 use function Naf\redirect;
 use function Naf\View\render;
-use function Naf\CMS\user;
 
 $roleDefinitions = static fn(): array => user()?->can(Permission::ROLES_MANAGE) === true
     ? repo(RoleRepository::class)->findAllWithPermissions()
@@ -24,10 +25,10 @@ return [
         ->requirePermission(Permission::USERS_VIEW)
         ->setAdminNavigation('Users', icon: 'user', order: 30, key: 'users')
         ->setContent(static fn() => render('admin.users.index', [
-            'title' => t('Users'),
-            'pageTitle' => t('Users'),
-            'pageSubtitle' => t('Invite users and manage roles.'),
-            'users' => repo(UserRepository::class)->findAllWithRolesAndPermissions(),
+            'title'           => t('Users'),
+            'pageTitle'       => t('Users'),
+            'pageSubtitle'    => t('Invite users and manage roles.'),
+            'users'           => repo(UserRepository::class)->findAllWithRolesAndPermissions(),
             'roleDefinitions' => $roleDefinitions(),
         ])),
 
@@ -39,12 +40,12 @@ return [
         ->requirePermission(Permission::ROLES_MANAGE)
         ->hideFromAdminNavigation('users')
         ->setContent(static fn() => render('admin.users.form', [
-            'title' => t('Create user'),
-            'pageTitle' => t('Create user'),
-            'pageSubtitle' => t('Create an account and assign initial roles.'),
+            'title'           => t('Create user'),
+            'pageTitle'       => t('Create user'),
+            'pageSubtitle'    => t('Create an account and assign initial roles.'),
             'roleDefinitions' => $roleDefinitions(),
-            'canManageRoles' => true,
-            'user' => null,
+            'canManageRoles'  => true,
+            'user'            => null,
         ])),
 
     Page::create('admin.users.edit')
@@ -60,12 +61,12 @@ return [
             }
 
             return render('admin.users.form', [
-                'title' => t('Edit user'),
-                'pageTitle' => t('Edit user'),
-                'pageSubtitle' => t('Update account details.'),
+                'title'           => t('Edit user'),
+                'pageTitle'       => t('Edit user'),
+                'pageSubtitle'    => t('Update account details.'),
                 'roleDefinitions' => [],
-                'canManageRoles' => false,
-                'user' => $user,
+                'canManageRoles'  => false,
+                'user'            => $user,
             ]);
         }),
 ];

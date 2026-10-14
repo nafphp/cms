@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
+use InvalidArgumentException;
+use Naf\Database\Core\Database;
 use Naf\ORM\Core\EntityManager;
 use Naf\ORM\Repository\RepositoryFactory;
-use Naf\Database\Core\Database;
 use PDO;
 
 use function Naf\app;
@@ -65,7 +66,7 @@ abstract class DatabaseTestCase extends NafTestCase
             $this->assertIdentifier((string) $column);
         }
 
-        $columns = array_keys($values);
+        $columns      = array_keys($values);
         $placeholders = array_map(static fn(string $column): string => ':' . $column, $columns);
 
         $statement = $this->pdo->prepare(sprintf(
@@ -110,6 +111,6 @@ abstract class DatabaseTestCase extends NafTestCase
             return;
         }
 
-        throw new \InvalidArgumentException(sprintf('Unsafe SQL identifier "%s".', $identifier));
+        throw new InvalidArgumentException(sprintf('Unsafe SQL identifier "%s".', $identifier));
     }
 }

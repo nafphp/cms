@@ -57,24 +57,24 @@ final class MediaApi
     public function summary(): array
     {
         $summary = [
-            'total' => 0,
-            'images' => 0,
-            'documents' => 0,
-            'archives' => 0,
-            'files' => 0,
-            'bytes' => 0,
+            'total'       => 0,
+            'images'      => 0,
+            'documents'   => 0,
+            'archives'    => 0,
+            'files'       => 0,
+            'bytes'       => 0,
             'kind_counts' => [
-                'image' => 0,
+                'image'    => 0,
                 'document' => 0,
-                'archive' => 0,
-                'file' => 0,
+                'archive'  => 0,
+                'file'     => 0,
             ],
         ];
 
         foreach ($this->storage()->search() as $media) {
             $payload = MediaPayload::fromEntity($media);
-            $kind = (string) ($payload['kind'] ?? 'file');
-            $kind = array_key_exists($kind, $summary['kind_counts']) ? $kind : 'file';
+            $kind    = (string) ($payload['kind'] ?? 'file');
+            $kind    = array_key_exists($kind, $summary['kind_counts']) ? $kind : 'file';
 
             $summary['total']++;
             $summary['bytes'] += (int) ($payload['size_bytes'] ?? 0);
@@ -104,6 +104,7 @@ final class MediaApi
     public function find(int $id): ?array
     {
         $media = $this->storage()->find($id);
+
         return $media instanceof Media ? MediaPayload::fromEntity($media) : null;
     }
 
@@ -118,6 +119,7 @@ final class MediaApi
         }
 
         $media = $this->storage()->first(Criteria::create()->equals('public_id', $publicId));
+
         return $media instanceof Media ? MediaPayload::fromEntity($media) : null;
     }
 
@@ -152,7 +154,7 @@ final class MediaApi
      */
     public function update(int $id, array $payload): ?array
     {
-        $old = $this->find($id);
+        $old         = $this->find($id);
         $mediaEntity = $this->storage()->update($id, [
             'visibility' => array_key_exists('visibility', $payload)
                 ? MediaPayload::normalizeVisibility((string) $payload['visibility'])
@@ -177,7 +179,7 @@ final class MediaApi
 
     public function delete(int $id): bool
     {
-        $old = $this->find($id);
+        $old     = $this->find($id);
         $deleted = $this->storage->delete($id);
         if ($deleted) {
             AuditEntry::create(
@@ -223,21 +225,22 @@ final class MediaApi
         }
 
         return [
-            'id' => (int) ($media['id'] ?? 0),
-            'public_id' => (string) ($media['public_id'] ?? ''),
+            'id'            => (int) ($media['id'] ?? 0),
+            'public_id'     => (string) ($media['public_id'] ?? ''),
             'original_name' => (string) ($media['original_name'] ?? ''),
-            'stored_name' => (string) ($media['stored_name'] ?? ''),
-            'visibility' => (string) ($media['visibility'] ?? ''),
-            'mime_type' => (string) ($media['mime_type'] ?? ''),
-            'size_bytes' => (int) ($media['size_bytes'] ?? 0),
-            'alt_text' => $media['alt_text'] ?? null,
-            'public_url' => (string) ($media['public_url'] ?? ''),
+            'stored_name'   => (string) ($media['stored_name'] ?? ''),
+            'visibility'    => (string) ($media['visibility'] ?? ''),
+            'mime_type'     => (string) ($media['mime_type'] ?? ''),
+            'size_bytes'    => (int) ($media['size_bytes'] ?? 0),
+            'alt_text'      => $media['alt_text'] ?? null,
+            'public_url'    => (string) ($media['public_url'] ?? ''),
         ];
     }
 
     private function normalizePublicId(string $publicId): string
     {
         $publicId = strtolower(trim($publicId));
+
         return preg_match('/^[a-z0-9]{16,40}$/', $publicId) === 1 ? $publicId : '';
     }
 

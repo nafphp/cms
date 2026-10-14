@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Naf\Database\Core\Database;
+
 use function Naf\app;
 use function Naf\guard;
 

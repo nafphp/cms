@@ -39,10 +39,10 @@ final class ContactFormBlockType extends AbstractBlockType
         $formOptions = PageBuilderBlockOptions::formOptions();
 
         return [
-            'title' => 'Contact',
-            'intro' => 'Tell us what you need.',
+            'title'          => 'Contact',
+            'intro'          => 'Tell us what you need.',
             'formIdentifier' => (string) ($formOptions[0]['value'] ?? 'contact'),
-            'submitLabel' => 'Send message',
+            'submitLabel'    => 'Send message',
             ...$this->surfaceDefaults(),
         ];
     }

@@ -4,25 +4,27 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Models;
 
+use DateTime;
+use JsonSerializable;
 use Naf\CMS\Enums\ArticleStatus;
 use Naf\CMS\Enums\Language;
-use DateTime;
 use Naf\ORM\Model\AbstractModel;
+use Throwable;
 
-class ArticleVersion extends AbstractModel implements \JsonSerializable
+class ArticleVersion extends AbstractModel implements JsonSerializable
 {
-    protected ?int $article_id = null;
-    protected ?string $language = null;
-    protected ?int $version = null;
-    protected ?string $status = null;
-    protected ?string $slug = null;
-    protected ?string $title = null;
-    protected ?string $teaser = null;
-    protected ?string $content = null;
+    protected ?int $article_id     = null;
+    protected ?string $language    = null;
+    protected ?int $version        = null;
+    protected ?string $status      = null;
+    protected ?string $slug        = null;
+    protected ?string $title       = null;
+    protected ?string $teaser      = null;
+    protected ?string $content     = null;
     protected ?string $publishedAt = null;
     protected ?string $scheduledAt = null;
-    protected ?int $show_teaser = 0;
-    protected ?string $createdAt = null;
+    protected ?int $show_teaser    = 0;
+    protected ?string $createdAt   = null;
 
     public string $table = 'article_versions';
 
@@ -84,7 +86,7 @@ class ArticleVersion extends AbstractModel implements \JsonSerializable
 
         try {
             return new DateTime((string) $this->publishedAt);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }
@@ -97,7 +99,7 @@ class ArticleVersion extends AbstractModel implements \JsonSerializable
 
         try {
             return new DateTime((string) $this->scheduledAt);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }
@@ -114,64 +116,73 @@ class ArticleVersion extends AbstractModel implements \JsonSerializable
 
     public function withTitle(string $title): self
     {
-        $clone = clone $this;
+        $clone        = clone $this;
         $clone->title = $title;
+
         return $clone;
     }
 
     public function withSlug(string $slug): self
     {
-        $clone = clone $this;
+        $clone       = clone $this;
         $clone->slug = $slug;
+
         return $clone;
     }
 
     public function withTeaser(string $teaser): self
     {
-        $clone = clone $this;
+        $clone         = clone $this;
         $clone->teaser = $teaser;
+
         return $clone;
     }
 
     public function withContent(string $content): self
     {
-        $clone = clone $this;
+        $clone          = clone $this;
         $clone->content = $content;
+
         return $clone;
     }
 
     public function withStatus(ArticleStatus $status): self
     {
-        $clone = clone $this;
+        $clone         = clone $this;
         $clone->status = $status->value;
+
         return $clone;
     }
 
     public function withLanguage(Language|string $language): self
     {
-        $clone = clone $this;
+        $clone           = clone $this;
         $clone->language = $language instanceof Language ? $language->value : $language;
+
         return $clone;
     }
 
     public function withPublishedAt(?DateTime $publishedAt): self
     {
-        $clone = clone $this;
+        $clone              = clone $this;
         $clone->publishedAt = $publishedAt?->format('Y-m-d H:i:s');
+
         return $clone;
     }
 
     public function withScheduledAt(?DateTime $scheduledAt): self
     {
-        $clone = clone $this;
+        $clone              = clone $this;
         $clone->scheduledAt = $scheduledAt?->format('Y-m-d H:i:s');
+
         return $clone;
     }
 
     public function withShowTeaser(bool $showTeaser): self
     {
-        $clone = clone $this;
+        $clone              = clone $this;
         $clone->show_teaser = $showTeaser ? 1 : 0;
+
         return $clone;
     }
 
@@ -179,13 +190,13 @@ class ArticleVersion extends AbstractModel implements \JsonSerializable
     {
         return [
             'articleVersionId' => $this->id ?? null,
-            'language' => $this->language,
-            'version' => $this->version,
-            'slug' => $this->slug,
-            'publishedAt' => $this->publishedAt,
-            'scheduledAt' => $this->scheduledAt,
-            'status' => $this->status,
-            'title' => $this->title,
+            'language'         => $this->language,
+            'version'          => $this->version,
+            'slug'             => $this->slug,
+            'publishedAt'      => $this->publishedAt,
+            'scheduledAt'      => $this->scheduledAt,
+            'status'           => $this->status,
+            'title'            => $this->title,
         ];
     }
 }

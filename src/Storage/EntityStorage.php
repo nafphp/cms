@@ -5,21 +5,24 @@ declare(strict_types=1);
 namespace Naf\CMS\Storage;
 
 use InvalidArgumentException;
+use Naf\CMS\Api\ContentApi;
 use Naf\CMS\Storage\Filter\ContainsFilter;
 use Naf\CMS\Storage\Filter\EqualsFilter;
 use Naf\CMS\Storage\Filter\FilterInterface;
 use Naf\CMS\Storage\Filter\InFilter;
 use Naf\CMS\Storage\Filter\NotEqualsFilter;
 use Naf\CMS\Storage\Filter\RangeFilter;
-use Naf\ORM\Core\EntityManager;
 use Naf\ORM\Core\EntityInterface;
+use Naf\ORM\Core\EntityManager;
 use PDO;
-use Naf\CMS\Api\ContentApi;
-use Naf\CMS\Storage\Criteria;
-use Naf\CMS\Storage\StorageQuery;
+use PDOStatement;
+use ReflectionClass;
+use ReflectionProperty;
+use RuntimeException;
+
+use function Naf\CMS\cms;
 use function Naf\Database\database;
 use function Naf\ORM\em;
-use function Naf\CMS\cms;
 
 /**
  * Generic typed CRUD over a single entity.
@@ -68,6 +71,7 @@ final class EntityStorage
     {
         /** @var EntityInterface $entity */
         $entity = new $this->modelClass($this->filterWritableData($data, allowPrimaryKey: true));
+
         return $entity;
     }
 
@@ -136,9 +140,9 @@ final class EntityStorage
             return false;
         }
 
-        $table = $this->quoteIdentifier($this->table());
+        $table      = $this->quoteIdentifier($this->table());
         $primaryKey = $this->quoteColumn($this->model->getPrimaryKey());
-        $statement = $this->connection()->prepare("DELETE FROM {$table} WHERE {$primaryKey} = :id");
+        $statement  = $this->connection()->prepare("DELETE FROM {$table} WHERE {$primaryKey} = :id");
         $statement->bindValue(':id', $id, is_int($id) ? PDO::PARAM_INT : PDO::PARAM_STR);
         $statement->execute();
 
@@ -150,7 +154,7 @@ final class EntityStorage
      */
     public function search(?Criteria $criteria = null): array
     {
-        $query = $this->buildSelect($criteria ?? Criteria::create());
+        $query     = $this->buildSelect($criteria ?? Criteria::create());
         $statement = $this->connection()->prepare($query->sql);
         $this->bind($statement, $query->parameters);
         $statement->execute();
@@ -182,7 +186,7 @@ final class EntityStorage
 
     public function count(?Criteria $criteria = null): int
     {
-        $query = $this->buildCount($criteria ?? Criteria::create());
+        $query     = $this->buildCount($criteria ?? Criteria::create());
         $statement = $this->connection()->prepare($query->sql);
         $this->bind($statement, $query->parameters);
         $statement->execute();
@@ -194,7 +198,7 @@ final class EntityStorage
     {
         $table = $this->quoteIdentifier($this->table());
         $where = $this->buildWhere($criteria);
-        $sql = "SELECT * FROM {$table}{$where->sql}";
+        $sql   = "SELECT * FROM {$table}{$where->sql}";
 
         if ($criteria->sorts() !== []) {
             $parts = [];
@@ -225,9 +229,9 @@ final class EntityStorage
 
     private function buildWhere(Criteria $criteria): StorageQuery
     {
-        $parts = [];
+        $parts      = [];
         $parameters = [];
-        $counter = 0;
+        $counter    = 0;
 
         foreach ($criteria->filters() as $filter) {
             $compiled = $this->compileFilter($filter, $counter);
@@ -235,7 +239,7 @@ final class EntityStorage
                 continue;
             }
 
-            $parts[] = $compiled->sql;
+            $parts[]    = $compiled->sql;
             $parameters = array_replace($parameters, $compiled->parameters);
         }
 
@@ -256,6 +260,7 @@ final class EntityStorage
             }
 
             $parameter = $this->nextParameter($counter);
+
             return new StorageQuery("{$column} = {$parameter}", [$parameter => $filter->value]);
         }
 
@@ -265,11 +270,13 @@ final class EntityStorage
             }
 
             $parameter = $this->nextParameter($counter);
+
             return new StorageQuery("{$column} != {$parameter}", [$parameter => $filter->value]);
         }
 
         if ($filter instanceof ContainsFilter) {
             $parameter = $this->nextParameter($counter);
+
             return new StorageQuery(
                 "{$column} LIKE {$parameter} ESCAPE '\\'",
                 [$parameter => '%' . $this->escapeLike($filter->value) . '%'],
@@ -282,10 +289,10 @@ final class EntityStorage
             }
 
             $placeholders = [];
-            $parameters = [];
+            $parameters   = [];
             foreach ($filter->values as $value) {
-                $parameter = $this->nextParameter($counter);
-                $placeholders[] = $parameter;
+                $parameter              = $this->nextParameter($counter);
+                $placeholders[]         = $parameter;
                 $parameters[$parameter] = $value;
             }
 
@@ -296,7 +303,7 @@ final class EntityStorage
         }
 
         if ($filter instanceof RangeFilter) {
-            $parts = [];
+            $parts      = [];
             $parameters = [];
             foreach (['gt' => '>', 'gte' => '>=', 'lt' => '<', 'lte' => '<='] as $property => $operator) {
                 $value = $filter->{$property};
@@ -304,8 +311,8 @@ final class EntityStorage
                     continue;
                 }
 
-                $parameter = $this->nextParameter($counter);
-                $parts[] = "{$column} {$operator} {$parameter}";
+                $parameter              = $this->nextParameter($counter);
+                $parts[]                = "{$column} {$operator} {$parameter}";
                 $parameters[$parameter] = $value;
             }
 
@@ -323,7 +330,7 @@ final class EntityStorage
     /**
      * @param array<string, mixed> $parameters
      */
-    private function bind(\PDOStatement $statement, array $parameters): void
+    private function bind(PDOStatement $statement, array $parameters): void
     {
         foreach ($parameters as $name => $value) {
             $type = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
@@ -349,9 +356,9 @@ final class EntityStorage
      */
     private function columns(): array
     {
-        $fields = [];
-        $reflection = new \ReflectionClass($this->model);
-        foreach ($reflection->getProperties(\ReflectionProperty::IS_PROTECTED) as $property) {
+        $fields     = [];
+        $reflection = new ReflectionClass($this->model);
+        foreach ($reflection->getProperties(ReflectionProperty::IS_PROTECTED) as $property) {
             $fields[] = $property->getName();
         }
 
@@ -395,12 +402,12 @@ final class EntityStorage
         }
     }
 
-    private function property(string $field): \ReflectionProperty
+    private function property(string $field): ReflectionProperty
     {
-        $reflection = new \ReflectionClass($this->modelClass);
+        $reflection = new ReflectionClass($this->modelClass);
         while (!$reflection->hasProperty($field)) {
             $reflection = $reflection->getParentClass();
-            if (!$reflection instanceof \ReflectionClass) {
+            if (!$reflection instanceof ReflectionClass) {
                 throw new InvalidArgumentException(sprintf('Column not allowed for %s: %s', $this->modelClass, $field));
             }
         }
@@ -440,7 +447,7 @@ final class EntityStorage
     {
         $connection = $this->connection ?? database();
         if (!$connection instanceof PDO) {
-            throw new \RuntimeException('No database connection available for cms()->storage(...).');
+            throw new RuntimeException('No database connection available for cms()->storage(...).');
         }
 
         return $connection;

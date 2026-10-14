@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Support\Docs;
 
-use Naf\CMS\Support\Docs\DocBlockRenderer;
-use Naf\CMS\Support\Docs\MarkdownTable;
+use Throwable;
+
 use function Naf\MCP\tool;
 
 final class McpDocRenderer implements DocBlockRenderer
@@ -23,7 +23,7 @@ final class McpDocRenderer implements DocBlockRenderer
 
         try {
             $definitions = tool()->definitions();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return '_No MCP tools registered._';
         }
 
@@ -36,8 +36,8 @@ final class McpDocRenderer implements DocBlockRenderer
                     '`' . (string) ($definition['name'] ?? '') . '`',
                     (string) ($definition['description'] ?? ''),
                 ],
-                $definitions
-            )
+                $definitions,
+            ),
         );
     }
 }

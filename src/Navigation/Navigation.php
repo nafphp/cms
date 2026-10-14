@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Navigation;
 
-use Naf\CMS\Navigation\NavigationItem;
+use InvalidArgumentException;
 
 final class Navigation
 {
     /** @var array<int, NavigationItem> */
-    private array $items = [];
-    private ?int $id = null;
+    private array $items      = [];
+    private ?int $id          = null;
     private ?string $language = null;
-    private string $status = 'draft';
+    private string $status    = 'draft';
 
     private function __construct(
         private readonly string $identifier,
@@ -35,10 +35,10 @@ final class Navigation
     {
         $navigation = self::create(
             (string) ($data['identifier'] ?? ''),
-            isset($data['title']) ? (string) $data['title'] : null
+            isset($data['title']) ? (string) $data['title'] : null,
         );
-        $navigation->id = isset($data['id']) ? (int) $data['id'] : null;
-        $navigation->scope = trim((string) ($data['scope'] ?? 'frontend')) ?: 'frontend';
+        $navigation->id       = isset($data['id']) ? (int) $data['id'] : null;
+        $navigation->scope    = trim((string) ($data['scope'] ?? 'frontend')) ?: 'frontend';
         $navigation->language = isset($data['language']) && trim((string) $data['language']) !== ''
             ? strtolower(trim((string) $data['language']))
             : null;
@@ -61,6 +61,7 @@ final class Navigation
     public function setId(?int $id): self
     {
         $this->id = $id !== null && $id > 0 ? $id : null;
+
         return $this;
     }
 
@@ -76,8 +77,9 @@ final class Navigation
 
     public function setTitle(string $title): self
     {
-        $title = trim($title);
+        $title       = trim($title);
         $this->title = $title === '' ? self::titleFromIdentifier($this->identifier) : $title;
+
         return $this;
     }
 
@@ -88,8 +90,9 @@ final class Navigation
 
     public function setScope(string $scope): self
     {
-        $scope = trim($scope);
+        $scope       = trim($scope);
         $this->scope = $scope === '' ? 'frontend' : $scope;
+
         return $this;
     }
 
@@ -100,8 +103,9 @@ final class Navigation
 
     public function setLanguage(?string $language): self
     {
-        $language = $language === null ? null : strtolower(trim($language));
+        $language       = $language === null ? null : strtolower(trim($language));
         $this->language = $language === '' ? null : $language;
+
         return $this;
     }
 
@@ -112,15 +116,17 @@ final class Navigation
 
     public function setStatus(string $status): self
     {
-        $status = trim($status);
+        $status       = trim($status);
         $this->status = $status === '' ? 'draft' : $status;
+
         return $this;
     }
 
     public function addItem(NavigationItem|array $item): self
     {
-        $item = is_array($item) ? NavigationItem::fromArray($item) : $item;
+        $item          = is_array($item) ? NavigationItem::fromArray($item) : $item;
         $this->items[] = $item;
+
         return $this;
     }
 
@@ -138,15 +144,15 @@ final class Navigation
     public function toArray(): array
     {
         return [
-            'id' => $this->id,
+            'id'         => $this->id,
             'identifier' => $this->identifier,
-            'title' => $this->title,
-            'scope' => $this->scope,
-            'language' => $this->language,
-            'status' => $this->status,
-            'items' => array_map(
+            'title'      => $this->title,
+            'scope'      => $this->scope,
+            'language'   => $this->language,
+            'status'     => $this->status,
+            'items'      => array_map(
                 static fn(NavigationItem $item): array => $item->toArray(),
-                $this->items
+                $this->items,
             ),
         ];
     }
@@ -158,7 +164,7 @@ final class Navigation
         $identifier = trim($identifier, '.-_');
 
         if ($identifier === '') {
-            throw new \InvalidArgumentException('Navigation identifier cannot be empty.');
+            throw new InvalidArgumentException('Navigation identifier cannot be empty.');
         }
 
         return $identifier;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Naf\CMS\Content\Article\Block;
 
 use Naf\CMS\Security\InlineHtmlSanitizer;
-use Naf\CMS\Content\Article\Block\BlockInterface;
+
 use function Naf\View\s;
 
 abstract class AbstractBlock implements BlockInterface

@@ -9,6 +9,7 @@ use Naf\CMS\Handlers\Page\Article\StoreArticleDraft;
 use Naf\CMS\Handlers\Page\Form\StoreForm;
 use Naf\CMS\Handlers\Page\Navigation\StoreNavigation;
 use Naf\CMS\Handlers\Page\Theme\StoreTheme as StoreThemePage;
+use Psr\Http\Message\ResponseInterface;
 use Tests\Support\DatabaseTestCase;
 use Tests\Support\JsonRequest;
 
@@ -24,7 +25,7 @@ final class PageWriteHandlersTest extends DatabaseTestCase
             new StoreNavigation(),
         ] as $handler) {
             $response = $handler();
-            $payload = $this->json($response);
+            $payload  = $this->json($response);
             self::assertSame(400, $response->getStatusCode(), $handler::class);
             self::assertFalse($payload['success'], $handler::class);
             self::assertNotSame([], $payload['errors'], $handler::class);
@@ -45,7 +46,7 @@ final class PageWriteHandlersTest extends DatabaseTestCase
     }
 
     /** @return array<string, mixed> */
-    private function json(\Psr\Http\Message\ResponseInterface $response): array
+    private function json(ResponseInterface $response): array
     {
         return json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
     }

@@ -7,8 +7,9 @@ namespace Naf\CMS\Handlers\Api\Article;
 use Naf\CMS\Models\Article;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use function Naf\json;
+
 use function Naf\CMS\cms;
+use function Naf\json;
 
 final class PublishArticle
 {

@@ -6,7 +6,7 @@ namespace Naf\CMS\Services\Security;
 
 use Closure;
 use Naf\CMS\Support\RuntimePaths;
-use Naf\CMS\Services\Security\RateLimitDecision;
+use RuntimeException;
 
 final class FileRateLimiter
 {
@@ -41,30 +41,30 @@ final class FileRateLimiter
     private function mutate(string $key, int $maximumAttempts, int $windowSeconds, bool $increment): RateLimitDecision
     {
         $maximumAttempts = max(1, $maximumAttempts);
-        $windowSeconds = max(1, $windowSeconds);
-        $now = ($this->clock)();
-        $path = $this->path($key);
-        $directory = dirname($path);
+        $windowSeconds   = max(1, $windowSeconds);
+        $now             = ($this->clock)();
+        $path            = $this->path($key);
+        $directory       = dirname($path);
         if (!is_dir($directory) && !@mkdir($directory, 0770, true) && !is_dir($directory)) {
-            throw new \RuntimeException('Rate-limit storage is not writable.');
+            throw new RuntimeException('Rate-limit storage is not writable.');
         }
 
         $handle = @fopen($path, 'c+');
         if (!is_resource($handle)) {
-            throw new \RuntimeException('Rate-limit state could not be opened.');
+            throw new RuntimeException('Rate-limit state could not be opened.');
         }
 
         try {
             if (!flock($handle, LOCK_EX)) {
-                throw new \RuntimeException('Rate-limit state could not be locked.');
+                throw new RuntimeException('Rate-limit state could not be locked.');
             }
             rewind($handle);
-            $raw = stream_get_contents($handle);
-            $state = is_string($raw) && $raw !== '' ? json_decode($raw, true) : null;
-            $count = is_array($state) ? max(0, (int) ($state['count'] ?? 0)) : 0;
+            $raw     = stream_get_contents($handle);
+            $state   = is_string($raw) && $raw !== '' ? json_decode($raw, true) : null;
+            $count   = is_array($state) ? max(0, (int) ($state['count'] ?? 0)) : 0;
             $resetAt = is_array($state) ? (int) ($state['reset_at'] ?? 0) : 0;
             if ($resetAt <= $now) {
-                $count = 0;
+                $count   = 0;
                 $resetAt = $now + $windowSeconds;
             }
             if ($increment) {

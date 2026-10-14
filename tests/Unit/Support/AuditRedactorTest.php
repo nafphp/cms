@@ -6,17 +6,19 @@ namespace Tests\Unit\Support;
 
 use Naf\CMS\Support\AuditRedactor;
 use PHPUnit\Framework\TestCase;
+use SensitiveParameter;
+use SensitiveParameterValue;
 
 final class AuditRedactorTest extends TestCase
 {
     public function testRedactsSensitiveArrayKeysRecursively(): void
     {
         $redacted = (new AuditRedactor())->redact([
-            'email' => 'admin@example.test',
+            'email'    => 'admin@example.test',
             'password' => 'secret',
-            'nested' => [
+            'nested'   => [
                 'inviteToken' => 'abc123',
-                'title' => 'Visible',
+                'title'       => 'Visible',
             ],
         ]);
 
@@ -27,14 +29,14 @@ final class AuditRedactorTest extends TestCase
 
     public function testRedactsSensitiveParameterValue(): void
     {
-        $redacted = (new AuditRedactor())->redact(new \SensitiveParameterValue('secret'));
+        $redacted = (new AuditRedactor())->redact(new SensitiveParameterValue('secret'));
 
         self::assertSame('[redacted]', $redacted);
     }
 
     public function testTreatsSensitiveConstructorParameterAsPropertySignal(): void
     {
-        $payload = new AuditRedactorFixture('admin@example.test', 'invite-secret');
+        $payload  = new AuditRedactorFixture('admin@example.test', 'invite-secret');
         $redacted = (new AuditRedactor())->redact($payload);
 
         self::assertSame('admin@example.test', $redacted['email']);
@@ -46,7 +48,7 @@ final class AuditRedactorFixture
 {
     public function __construct(
         public string $email,
-        #[\SensitiveParameter]
+        #[SensitiveParameter]
         public string $token,
     ) {
     }

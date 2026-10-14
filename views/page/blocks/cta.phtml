@@ -1,17 +1,19 @@
 <?php
 
 use Naf\CMS\Security\UrlPolicy;
-use function Naf\View\s;
-use function Naf\I18n\t;
+use Naf\CMS\Theme\Theme;
 
-$content = is_array($content ?? null) ? $content : [];
-$props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$buttonUrl = UrlPolicy::link((string) ($props['buttonUrl'] ?? '#')) ?? '#';
-$surface = \Naf\CMS\Theme\Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
+use function Naf\I18n\t;
+use function Naf\View\s;
+
+$content      = is_array($content ?? null) ? $content : [];
+$props        = is_array($content['props'] ?? null) ? $content['props'] : [];
+$buttonUrl    = UrlPolicy::link((string) ($props['buttonUrl'] ?? '#')) ?? '#';
+$surface      = Theme::slug((string) ($props['surface'] ?? 'none')) ?: 'none';
 $surfaceClass = [
-    'none' => 'flex flex-wrap items-center justify-between gap-5',
-    'soft' => 'flex flex-wrap items-center justify-between gap-5 rounded-lg bg-[var(--page-panel-soft)] p-6',
-    'card' => 'flex flex-wrap items-center justify-between gap-5 rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-6',
+    'none'   => 'flex flex-wrap items-center justify-between gap-5',
+    'soft'   => 'flex flex-wrap items-center justify-between gap-5 rounded-lg bg-[var(--page-panel-soft)] p-6',
+    'card'   => 'flex flex-wrap items-center justify-between gap-5 rounded-lg border border-[var(--page-card-border)] bg-[var(--page-card-bg)] p-6',
     'accent' => 'flex flex-wrap items-center justify-between gap-5 rounded-lg border border-[color-mix(in_srgb,var(--page-accent)_36%,var(--page-card-border))] bg-[color-mix(in_srgb,var(--page-accent)_12%,var(--page-card-bg))] p-6',
 ][$surface] ?? 'flex flex-wrap items-center justify-between gap-5';
 

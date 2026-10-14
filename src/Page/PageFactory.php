@@ -6,13 +6,9 @@ namespace Naf\CMS\Page;
 
 use Naf\CMS\Content\BlockViewRegistry;
 use Naf\CMS\Enums\Permission;
-use Naf\CMS\Page\CustomLayoutNormalizer;
-use Naf\CMS\Page\Layout;
-use Naf\CMS\Page\Page;
-use Naf\CMS\Page\PageBuilderPayloadNormalizer;
-use Naf\CMS\Page\Template;
-use function Naf\log;
+
 use function Naf\CMS\cms;
+use function Naf\log;
 
 final class PageFactory
 {
@@ -33,10 +29,10 @@ final class PageFactory
             ->addScript('/js/admin/diagrams.js', ['type' => 'module'])
             ->addBodyClass('min-h-screen bg-[var(--page-bg)] text-[var(--page-text)]'));
 
-        $storedBlocks = is_array($row['blocks'] ?? null) ? $row['blocks'] : [];
-        $meta = is_array($row['meta'] ?? null) ? $row['meta'] : [];
+        $storedBlocks     = is_array($row['blocks'] ?? null) ? $row['blocks'] : [];
+        $meta             = is_array($row['meta'] ?? null) ? $row['meta'] : [];
         $definitionBlocks = is_array($definition['blocks'] ?? null) ? $definition['blocks'] : [];
-        $layoutErrors = [];
+        $layoutErrors     = [];
         if (array_key_exists('custom_layout', $meta)) {
             $definitionBlocks = (new CustomLayoutNormalizer())->normalize(
                 is_array($meta['custom_layout'] ?? null) ? $meta['custom_layout'] : [],
@@ -44,7 +40,7 @@ final class PageFactory
             );
         }
 
-        $blockErrors = [];
+        $blockErrors  = [];
         $storedBlocks = (new PageBuilderPayloadNormalizer())->normalize($storedBlocks, $definitionBlocks, $blockErrors);
 
         // Rejected blocks are dropped from the page, so the page renders as an
@@ -62,7 +58,7 @@ final class PageFactory
             }
 
             $content = is_array($storedBlocks[$id] ?? null) ? $storedBlocks[$id] : [];
-            $type = trim((string) ($content['type'] ?? $this->defaultContentType($id, $block)));
+            $type    = trim((string) ($content['type'] ?? $this->defaultContentType($id, $block)));
             if ($type === '') {
                 $layout->addBlock($id, 'page.blocks.empty', $this->blockData($id, $block, [
                     'content' => [],
@@ -71,7 +67,7 @@ final class PageFactory
             }
 
             $layout->addBlock($id, $this->blockViews()->viewFor($type), $this->blockData($id, $block, [
-                'label' => (string) ($content['label'] ?? $block['label'] ?? $id),
+                'label'   => (string) ($content['label'] ?? $block['label'] ?? $id),
                 'preview' => (string) ($block['preview'] ?? $type),
                 'content' => $content,
             ]));
@@ -121,10 +117,10 @@ final class PageFactory
                 $reasons,
             ),
             [
-                'page_id' => (int) ($row['id'] ?? 0),
-                'path' => (string) ($row['path'] ?? ''),
+                'page_id'     => (int) ($row['id'] ?? 0),
+                'path'        => (string) ($row['path'] ?? ''),
                 'template_id' => (string) ($row['template_id'] ?? ''),
-                'errors' => $errors,
+                'errors'      => $errors,
             ],
         );
     }
@@ -137,13 +133,13 @@ final class PageFactory
     private function blockData(string $id, array $block, array $data = []): array
     {
         return [
-            'label' => (string) ($block['label'] ?? $id),
-            'region' => (string) ($block['region'] ?? 'main'),
-            'size' => (string) ($block['size'] ?? 'medium'),
-            'position' => (string) ($block['position'] ?? 'stretch'),
+            'label'     => (string) ($block['label'] ?? $id),
+            'region'    => (string) ($block['region'] ?? 'main'),
+            'size'      => (string) ($block['size'] ?? 'medium'),
+            'position'  => (string) ($block['position'] ?? 'stretch'),
             'maxHeight' => (string) ($block['maxHeight'] ?? 'none'),
-            'overflow' => (string) ($block['overflow'] ?? 'visible'),
-            'surface' => (string) ($block['surface'] ?? 'none'),
+            'overflow'  => (string) ($block['overflow'] ?? 'visible'),
+            'surface'   => (string) ($block['surface'] ?? 'none'),
             ...$data,
         ];
     }
@@ -175,7 +171,7 @@ final class PageFactory
         return match ($id) {
             'site_header' => 'header',
             'site_footer' => 'footer',
-            default => '',
+            default       => '',
         };
     }
 }

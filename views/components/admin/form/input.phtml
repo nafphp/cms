@@ -1,22 +1,22 @@
 <?php
 
-use function Naf\View\s;
 use function Naf\CMS\View\Admin\Form\attributes;
 use function Naf\CMS\View\Admin\Form\classes;
 use function Naf\CMS\View\Admin\Form\field_id;
 use function Naf\CMS\View\Admin\Form\remembered;
+use function Naf\View\s;
 
 require_once __DIR__ . '/_helpers.php';
 
-$name = (string) ($name ?? '');
-$label = (string) ($label ?? $name);
-$type = (string) ($type ?? 'text');
-$id = ($id ?? null) === false ? '' : field_id($name, isset($id) ? (string) $id : null);
-$value = remembered($name, $value ?? null, (bool) ($useMemory ?? true));
-$placeholder = (string) ($placeholder ?? $label);
-$hideLabel = (bool) ($hideLabel ?? true);
-$attributes = is_array($attributes ?? null) ? $attributes : [];
-$className = classes('block min-h-11 w-full rounded-lg border border-[var(--border)] bg-admin-field px-3 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-slate-400 focus:border-accent focus:bg-admin-field-focus focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)]', (string) ($class ?? ''));
+$name         = (string) ($name ?? '');
+$label        = (string) ($label ?? $name);
+$type         = (string) ($type ?? 'text');
+$id           = ($id ?? null) === false ? '' : field_id($name, isset($id) ? (string) $id : null);
+$value        = remembered($name, $value ?? null, (bool) ($useMemory ?? true));
+$placeholder  = (string) ($placeholder ?? $label);
+$hideLabel    = (bool) ($hideLabel ?? true);
+$attributes   = is_array($attributes ?? null) ? $attributes : [];
+$className    = classes('block min-h-11 w-full rounded-lg border border-[var(--border)] bg-admin-field px-3 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-slate-400 focus:border-accent focus:bg-admin-field-focus focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)]', (string) ($class ?? ''));
 $wrapperClass = classes((string) ($wrapperClass ?? ''));
 
 ?>

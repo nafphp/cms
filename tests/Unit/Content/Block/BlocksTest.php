@@ -31,7 +31,7 @@ final class BlocksTest extends TestCase
 
         self::assertSame(
             '<h2>alert(1)<strong>bold</strong></h2>',
-            $block->render(['level' => 2, 'text' => '<script>alert(1)</script><strong>bold</strong>'])
+            $block->render(['level' => 2, 'text' => '<script>alert(1)</script><strong>bold</strong>']),
         );
     }
 
@@ -41,7 +41,7 @@ final class BlocksTest extends TestCase
 
         self::assertSame(
             '<p>hello <strong>world</strong></p>',
-            $block->render(['text' => '<div>hello </div><strong>world</strong>'])
+            $block->render(['text' => '<div>hello </div><strong>world</strong>']),
         );
     }
 
@@ -65,11 +65,11 @@ final class BlocksTest extends TestCase
 
         self::assertSame(
             '<ul><li>a</li><li>b</li></ul>',
-            $block->render(['style' => 'unordered', 'items' => ['a', 'b']])
+            $block->render(['style' => 'unordered', 'items' => ['a', 'b']]),
         );
         self::assertSame(
             '<ol><li>a</li></ol>',
-            $block->render(['style' => 'ordered', 'items' => ['a']])
+            $block->render(['style' => 'ordered', 'items' => ['a']]),
         );
     }
 
@@ -77,7 +77,7 @@ final class BlocksTest extends TestCase
     {
         self::assertSame(
             '<blockquote><p>be kind</p><cite>Anon</cite></blockquote>',
-            (new QuoteBlock())->render(['text' => 'be kind', 'caption' => 'Anon'])
+            (new QuoteBlock())->render(['text' => 'be kind', 'caption' => 'Anon']),
         );
     }
 
@@ -85,7 +85,7 @@ final class BlocksTest extends TestCase
     {
         self::assertSame(
             '<blockquote><p>be kind</p></blockquote>',
-            (new QuoteBlock())->render(['text' => 'be kind'])
+            (new QuoteBlock())->render(['text' => 'be kind']),
         );
     }
 
@@ -93,7 +93,7 @@ final class BlocksTest extends TestCase
     {
         self::assertSame(
             '<pre><code>&lt;script&gt;alert(1)&lt;/script&gt;</code></pre>',
-            (new CodeBlock())->render(['code' => '<script>alert(1)</script>'])
+            (new CodeBlock())->render(['code' => '<script>alert(1)</script>']),
         );
     }
 
@@ -101,15 +101,15 @@ final class BlocksTest extends TestCase
     {
         self::assertSame(
             '<table><tbody><tr><td>a</td><td>b</td></tr><tr><td>c</td></tr></tbody></table>',
-            (new TableBlock())->render(['content' => [['a', 'b'], ['c']]])
+            (new TableBlock())->render(['content' => [['a', 'b'], ['c']]]),
         );
     }
 
     public function testImagePrefersFileUrlOverDataUrl(): void
     {
         $html = (new ImageBlock())->render([
-            'file' => ['url' => '/img/a.png'],
-            'url' => '/img/b.png',
+            'file'    => ['url' => '/img/a.png'],
+            'url'     => '/img/b.png',
             'caption' => 'cap',
         ]);
 
@@ -132,7 +132,7 @@ final class BlocksTest extends TestCase
     {
         self::assertSame(
             '<iframe src="https://example.com" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-forms allow-popups allow-same-origin allow-scripts" allowfullscreen></iframe>',
-            (new EmbedBlock())->render(['embed' => 'https://example.com'])
+            (new EmbedBlock())->render(['embed' => 'https://example.com']),
         );
     }
 

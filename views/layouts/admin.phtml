@@ -2,6 +2,8 @@
 
 use Naf\CMS\Localization\LanguageRegistry;
 use Naf\CMS\Services\Admin\AdminNavigationService;
+
+use function Naf\CMS\cms;
 use function Naf\Form\csrf;
 use function Naf\I18n\lang;
 use function Naf\I18n\t;
@@ -10,16 +12,15 @@ use function Naf\Session\session;
 use function Naf\View\asset;
 use function Naf\View\s;
 use function Naf\View\view;
-use function Naf\CMS\cms;
 
 $navigationService = new AdminNavigationService();
-$path = request()->getUri()->getPath();
-$accent = $navigationService->accentForPath($path);
-$navItems = $navigationService->items();
-$settings = cms()->settings();
-$currentLanguage = $settings->currentLanguage();
-$currentUserId = (int) (session()->get('userId') ?? 0);
-$csrfToken = session()->get('_csrf');
+$path              = request()->getUri()->getPath();
+$accent            = $navigationService->accentForPath($path);
+$navItems          = $navigationService->items();
+$settings          = cms()->settings();
+$currentLanguage   = $settings->currentLanguage();
+$currentUserId     = (int) (session()->get('userId') ?? 0);
+$csrfToken         = session()->get('_csrf');
 if (!is_string($csrfToken) || $csrfToken === '') {
     $csrfToken = csrf()->generate();
 }
@@ -164,7 +165,7 @@ asset()->add('/js/admin/ai.js', 'module');
 
 	    <div class="min-w-0" style="--admin-page-accent: <?= s($accent) ?>;">
         <?= view('components.admin.layout.topbar', [
-            'title' => (string) ($pageTitle ?? $title ?? t('Admin')),
+            'title'    => (string) ($pageTitle ?? $title ?? t('Admin')),
             'subtitle' => (string) ($pageSubtitle ?? ''),
         ]) ?>
 

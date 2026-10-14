@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Visualization;
 
-use Naf\CMS\Visualization\ChartDefinition;
-use function Naf\CMS\Visualization\t;
+use Naf\CMS\Theme\Theme;
+
 use function Naf\I18n\t as i18n_t;
+use function t;
 
 final class PageChartFactory
 {
@@ -17,7 +18,7 @@ final class PageChartFactory
      */
     public function fromBlockProps(array $props, string $idPrefix = 'page-chart'): ChartDefinition
     {
-        $type = $this->chartType((string) ($props['chartType'] ?? 'bar'));
+        $type   = $this->chartType((string) ($props['chartType'] ?? 'bar'));
         $values = $this->values($props);
         $height = $this->height($props['height'] ?? 320);
         if ($type === 'metric-bars') {
@@ -26,10 +27,10 @@ final class PageChartFactory
 
         $options = [
             'datasetLabel' => $this->translate((string) ($props['datasetLabel'] ?? 'Value')),
-            'height' => $height,
-            'surface' => $this->surface($props['surface'] ?? 'none'),
-            'colors' => $this->colors($props),
-            'echarts' => [
+            'height'       => $height,
+            'surface'      => $this->surface($props['surface'] ?? 'none'),
+            'colors'       => $this->colors($props),
+            'echarts'      => [
                 'legend' => [
                     'show' => $type !== 'metric-bars'
                         && filter_var($props['showLegend'] ?? true, FILTER_VALIDATE_BOOLEAN),
@@ -103,9 +104,9 @@ final class PageChartFactory
                     'echarts' => [
                         ...($chart->options['echarts'] ?? []),
                         'series' => [[
-                            'smooth' => filter_var($props['smoothLine'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                            'smooth'     => filter_var($props['smoothLine'] ?? true, FILTER_VALIDATE_BOOLEAN),
                             'symbolSize' => 7,
-                            'lineStyle' => ['width' => 3],
+                            'lineStyle'  => ['width' => 3],
                         ]],
                     ],
                 ],
@@ -128,7 +129,7 @@ final class PageChartFactory
                 $label = 'Metric ' . ($index + 1);
             }
 
-            $key = $label;
+            $key    = $label;
             $suffix = 2;
             while (array_key_exists($key, $values)) {
                 $key = $label . ' ' . $suffix;
@@ -213,7 +214,7 @@ final class PageChartFactory
 
     private function surface(mixed $surface): string
     {
-        return \Naf\CMS\Theme\Theme::slug((string) $surface) ?: 'none';
+        return Theme::slug((string) $surface) ?: 'none';
     }
 
     private function height(mixed $value): int

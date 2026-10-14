@@ -1,8 +1,11 @@
 <?php
 
+use Naf\CMS\Page\Template;
+
 use function Naf\View\view;
+
 /** @var string $templateView */
-/** @var \Naf\CMS\Page\Template $template */
+/** @var Template $template */
 
 if ($template->parent() !== null && $template->parent() !== '') {
     $this->setLayout($template->parent());

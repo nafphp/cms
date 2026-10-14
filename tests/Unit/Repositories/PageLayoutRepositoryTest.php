@@ -42,15 +42,15 @@ final class PageLayoutRepositoryTest extends DatabaseTestCase
     public function testSaveCreatesReusableTemplateDefinition(): void
     {
         $layout = $this->repository->save([
-            'name' => 'Campaign layout',
+            'name'        => 'Campaign layout',
             'description' => 'Reusable campaign structure.',
-            'slots' => [
+            'slots'       => [
                 [
-                    'id' => 'slot_hero',
-                    'label' => 'Hero',
-                    'region' => 'header',
-                    'size' => 'hero',
-                    'accepts' => ['hero'],
+                    'id'                 => 'slot_hero',
+                    'label'              => 'Hero',
+                    'region'             => 'header',
+                    'size'               => 'hero',
+                    'accepts'            => ['hero'],
                     'defaultContentType' => 'hero',
                 ],
             ],
@@ -72,13 +72,13 @@ final class PageLayoutRepositoryTest extends DatabaseTestCase
     public function testSaveMakesIdentifiersUnique(): void
     {
         $first = $this->repository->save([
-            'name' => 'Campaign layout',
+            'name'  => 'Campaign layout',
             'slots' => [
                 ['id' => 'slot_text', 'label' => 'Text', 'region' => 'main', 'size' => 'medium'],
             ],
         ]);
         $second = $this->repository->save([
-            'name' => 'Campaign layout',
+            'name'  => 'Campaign layout',
             'slots' => [
                 ['id' => 'slot_text', 'label' => 'Text', 'region' => 'main', 'size' => 'medium'],
             ],
@@ -91,7 +91,7 @@ final class PageLayoutRepositoryTest extends DatabaseTestCase
     public function testDeleteRemovesLayout(): void
     {
         $layout = $this->repository->save([
-            'name' => 'Temporary layout',
+            'name'  => 'Temporary layout',
             'slots' => [
                 ['id' => 'slot_text', 'label' => 'Text', 'region' => 'main', 'size' => 'medium'],
             ],
@@ -104,7 +104,7 @@ final class PageLayoutRepositoryTest extends DatabaseTestCase
     public function testDeleteRefusesWhenReferencedByPage(): void
     {
         $layout = $this->repository->save([
-            'name' => 'Referenced layout',
+            'name'  => 'Referenced layout',
             'slots' => [
                 ['id' => 'slot_text', 'label' => 'Text', 'region' => 'main', 'size' => 'medium'],
             ],
@@ -122,7 +122,7 @@ final class PageLayoutRepositoryTest extends DatabaseTestCase
     public function testDeleteRefusesWhenReferencedByCurrentPageBuilderMeta(): void
     {
         $layout = $this->repository->save([
-            'name' => 'Current reference layout',
+            'name'  => 'Current reference layout',
             'slots' => [
                 ['id' => 'slot_text', 'label' => 'Text', 'region' => 'main', 'size' => 'medium'],
             ],
@@ -140,22 +140,22 @@ final class PageLayoutRepositoryTest extends DatabaseTestCase
     public function testSaveFiltersMeta(): void
     {
         $layout = $this->repository->save([
-            'name' => 'Meta layout',
+            'name'  => 'Meta layout',
             'slots' => [
                 ['id' => 'slot_text', 'label' => 'Text', 'region' => 'main', 'size' => 'medium'],
             ],
             'meta' => [
-                'source' => 'page-builder',
-                'createdBy' => 42,
-                'tags' => ['landing', '', ['nested'], 'landing', 'campaign'],
+                'source'     => 'page-builder',
+                'createdBy'  => 42,
+                'tags'       => ['landing', '', ['nested'], 'landing', 'campaign'],
                 'unexpected' => 'drop-me',
             ],
         ]);
 
         self::assertSame([
-            'source' => 'page-builder',
+            'source'    => 'page-builder',
             'createdBy' => '42',
-            'tags' => ['landing', 'campaign'],
+            'tags'      => ['landing', 'campaign'],
         ], $layout['meta']);
     }
 }

@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Services\Ai;
 
+use DateTimeImmutable;
+use InvalidArgumentException;
 use Naf\CMS\Support\AtomicFileWriter;
 use Naf\CMS\Support\RuntimePaths;
+use Throwable;
+
 use function Naf\log;
 
 final class LocalAiPromptLibrary
@@ -33,8 +37,8 @@ final class LocalAiPromptLibrary
         ?AtomicFileWriter $writer = null,
     ) {
         $this->overrideDirectory = rtrim($directory ?? RuntimePaths::prompts(), '/\\');
-        $this->defaultDirectory = rtrim($defaultDirectory ?? ($directory !== null ? $directory : RuntimePaths::packagePrompts()), '/\\');
-        $this->writer = $writer ?? new AtomicFileWriter();
+        $this->defaultDirectory  = rtrim($defaultDirectory ?? ($directory !== null ? $directory : RuntimePaths::packagePrompts()), '/\\');
+        $this->writer            = $writer ?? new AtomicFileWriter();
     }
 
     public function compiledPrompt(): string
@@ -85,7 +89,7 @@ final class LocalAiPromptLibrary
             }
 
             $entries[] = [
-                'id' => substr(hash('sha256', $entry), 0, 16),
+                'id'      => substr(hash('sha256', $entry), 0, 16),
                 'content' => $entry,
             ];
         }
@@ -98,15 +102,15 @@ final class LocalAiPromptLibrary
      */
     public function removeMistakeEntries(array $ids): string
     {
-        $ids = array_values(array_filter(array_map('strval', $ids), fn (string $id): bool => $id !== ''));
+        $ids = array_values(array_filter(array_map('strval', $ids), fn(string $id): bool => $id !== ''));
         if ($ids === []) {
             return $this->promptFile('MISTAKES.md');
         }
 
-        $remove = array_flip($ids);
+        $remove  = array_flip($ids);
         $content = $this->promptFile('MISTAKES.md');
-        $intro = [];
-        $kept = [];
+        $intro   = [];
+        $kept    = [];
 
         foreach (preg_split('/(?=^## \d{4}-\d{2}-\d{2} )/m', $content) ?: [] as $part) {
             $part = trim($part);
@@ -136,9 +140,9 @@ final class LocalAiPromptLibrary
      */
     public function promptFiles(): array
     {
-        return array_map(fn (string $file): array => [
-            'name' => $file,
-            'content' => $this->promptFile($file),
+        return array_map(fn(string $file): array => [
+            'name'     => $file,
+            'content'  => $this->promptFile($file),
             'inPrompt' => in_array($file, self::ORDER, true),
         ], self::EDITABLE_FILES);
     }
@@ -152,6 +156,7 @@ final class LocalAiPromptLibrary
         }
 
         $default = $this->defaultPath($file);
+
         return is_file($default) ? (string) file_get_contents($default) : '';
     }
 
@@ -159,7 +164,7 @@ final class LocalAiPromptLibrary
     {
         $this->assertEditableFile($file);
         if (strlen($content) > 200000) {
-            throw new \InvalidArgumentException('Prompt file is too large.');
+            throw new InvalidArgumentException('Prompt file is too large.');
         }
 
         $this->writer->write($this->overridePath($file), rtrim($content) . "\n");
@@ -171,13 +176,13 @@ final class LocalAiPromptLibrary
     {
         $sentence = $this->memorySentence($sentence);
         if ($sentence === '') {
-            throw new \InvalidArgumentException('Memory sentence is required.');
+            throw new InvalidArgumentException('Memory sentence is required.');
         }
 
         $content = $this->memory();
         $content = preg_replace('/^No durable assistant memory has been recorded yet\.\s*/i', '', $content) ?? $content;
         $content = trim((string) $content);
-        $entry = '- ' . $sentence;
+        $entry   = '- ' . $sentence;
 
         foreach (preg_split('/\R+/', $content) ?: [] as $line) {
             if (mb_strtolower(trim(ltrim($line, "- \t"))) === mb_strtolower($sentence)) {
@@ -197,7 +202,7 @@ final class LocalAiPromptLibrary
 
         $entry = [
             '',
-            sprintf('## %s', (new \DateTimeImmutable())->format('Y-m-d H:i:s T')),
+            sprintf('## %s', (new DateTimeImmutable())->format('Y-m-d H:i:s T')),
             sprintf('- Event: %s', $this->line($event)),
             sprintf('- Context: %s', $this->line($context !== '' ? $context : 'No additional context provided.')),
             sprintf('- Correction: %s', $this->line($correction !== '' ? $correction : 'Tighten the prompt or UI flow so this behavior does not repeat.')),
@@ -207,11 +212,11 @@ final class LocalAiPromptLibrary
         try {
             $current = rtrim($this->promptFile('MISTAKES.md'));
             $this->writer->write($path, $current . implode("\n", $entry));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error('LocalAiPromptLibrary.appendMistake failed', [
                 'exception' => $e,
-                'path' => $path,
-                'event' => $event,
+                'path'      => $path,
+                'event'     => $event,
             ]);
         }
     }
@@ -249,7 +254,7 @@ final class LocalAiPromptLibrary
     private function assertEditableFile(string $file): void
     {
         if (!in_array($file, self::EDITABLE_FILES, true)) {
-            throw new \InvalidArgumentException('Prompt file is not editable.');
+            throw new InvalidArgumentException('Prompt file is not editable.');
         }
     }
 }

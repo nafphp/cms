@@ -9,6 +9,8 @@ use Naf\CMS\Enums\Permission;
 use Naf\CMS\Enums\Role;
 use Naf\CMS\Exceptions\PrivilegedActionDenied;
 use PDO;
+use RuntimeException;
+
 use function Naf\Database\database;
 
 /**
@@ -26,8 +28,7 @@ final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
         ?int $targetId,
         array $roleNames,
         Permission $userPermission = Permission::USERS_EDIT,
-    ): void
-    {
+    ): void {
         $actor = $this->profile($actorId);
         $this->requirePermission($actor, $userPermission);
         $this->requirePermission($actor, Permission::ROLES_MANAGE);
@@ -254,7 +255,7 @@ final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
         }
 
         $placeholders = implode(',', array_fill(0, count($names), '?'));
-        $statement = $this->connection()->prepare("SELECT id, name FROM roles WHERE name IN ($placeholders)");
+        $statement    = $this->connection()->prepare("SELECT id, name FROM roles WHERE name IN ($placeholders)");
         $statement->execute($names);
         $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
         if (count($rows) !== count($names)) {
@@ -263,10 +264,10 @@ final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
 
         $profiles = [];
         foreach ($rows as $row) {
-            $roleId = (int) ($row['id'] ?? 0);
-            $name = (string) ($row['name'] ?? '');
+            $roleId          = (int) ($row['id'] ?? 0);
+            $name            = (string) ($row['name'] ?? '');
             $profiles[$name] = [
-                'name' => $name,
+                'name'        => $name,
                 'permissions' => $this->column(
                     'SELECT p.name FROM role_permissions rp JOIN permissions p ON p.id = rp.permission_id WHERE rp.role_id = :id ORDER BY p.name',
                     ['id' => $roleId],
@@ -296,7 +297,7 @@ final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
         }
 
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $statement = $this->connection()->prepare("SELECT name FROM permissions WHERE id IN ($placeholders) ORDER BY name");
+        $statement    = $this->connection()->prepare("SELECT name FROM permissions WHERE id IN ($placeholders) ORDER BY name");
         $statement->execute($ids);
 
         return array_map('strval', $statement->fetchAll(PDO::FETCH_COLUMN));
@@ -315,6 +316,7 @@ final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
     {
         $statement = $this->connection()->prepare('SELECT 1 FROM user_role WHERE user_id = :userId AND role_id = :roleId LIMIT 1');
         $statement->execute(['userId' => $actorId, 'roleId' => $roleId]);
+
         return (bool) $statement->fetchColumn();
     }
 
@@ -330,6 +332,7 @@ final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
     {
         $statement = $this->connection()->prepare('SELECT 1 FROM users WHERE id = :id LIMIT 1');
         $statement->execute(['id' => $userId]);
+
         return (bool) $statement->fetchColumn();
     }
 
@@ -337,6 +340,7 @@ final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
     {
         $statement = $this->connection()->prepare('SELECT COUNT(DISTINCT ur.user_id) FROM user_role ur JOIN roles r ON r.id = ur.role_id WHERE r.name = :role');
         $statement->execute(['role' => Role::ADMIN->value]);
+
         return (int) $statement->fetchColumn();
     }
 
@@ -351,6 +355,7 @@ final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
     {
         $statement = $this->connection()->prepare($sql);
         $statement->execute($parameters);
+
         return array_map('strval', $statement->fetchAll(PDO::FETCH_COLUMN));
     }
 
@@ -359,6 +364,7 @@ final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
     {
         $statement = $this->connection()->prepare($sql);
         $statement->execute($parameters);
+
         return $statement->fetchColumn();
     }
 
@@ -370,7 +376,7 @@ final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
 
         $connection = database();
         if (!$connection instanceof PDO) {
-            throw new \RuntimeException('No database connection available.');
+            throw new RuntimeException('No database connection available.');
         }
 
         return $this->connection = $connection;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Page;
 
-use Naf\CMS\Page\Layout;
 use Naf\CMS\Support\RuntimePaths;
+
 use function Naf\app;
 
 final class PageTemplateCatalog
@@ -13,7 +13,7 @@ final class PageTemplateCatalog
     /** @return array<int, array<string, mixed>> */
     public function codeDefinitions(): array
     {
-        $files = [dirname(__DIR__) . '/Resources/pages/page_templates.php'];
+        $files    = [dirname(__DIR__) . '/Resources/pages/page_templates.php'];
         $hostRoot = app()->getBasePath();
 
         if (is_string($hostRoot) && $hostRoot !== '') {

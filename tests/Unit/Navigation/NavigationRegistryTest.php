@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Navigation;
 
-use Naf\CMS\Navigation\NavigationItem;
+use LogicException;
 use Naf\CMS\Navigation\Navigation;
+use Naf\CMS\Navigation\NavigationItem;
 use Naf\CMS\Navigation\NavigationRegistry;
 use PHPUnit\Framework\TestCase;
 
@@ -14,7 +15,7 @@ final class NavigationRegistryTest extends TestCase
     public function testRegistryStoresNavigationItemsByKey(): void
     {
         $registry = new NavigationRegistry();
-        $item = NavigationItem::create('content')
+        $item     = NavigationItem::create('content')
             ->setLabel('Content')
             ->setIcon('content')
             ->setOrder(20);
@@ -30,7 +31,7 @@ final class NavigationRegistryTest extends TestCase
         $registry = new NavigationRegistry();
         $registry->add(NavigationItem::create('content')->setLabel('Content'));
 
-        self::expectException(\LogicException::class);
+        self::expectException(LogicException::class);
         self::expectExceptionMessage('Navigation item "content" is already registered.');
 
         $registry->add(NavigationItem::create('content')->setLabel('Articles'));
@@ -40,28 +41,28 @@ final class NavigationRegistryTest extends TestCase
     {
         $registry = new NavigationRegistry();
         $registry->add([
-            'key' => 'plugin.reports',
-            'label' => 'Reports',
-            'parent' => 'content',
-            'href' => '/admin/reports',
-            'scope' => 'admin',
+            'key'        => 'plugin.reports',
+            'label'      => 'Reports',
+            'parent'     => 'content',
+            'href'       => '/admin/reports',
+            'scope'      => 'admin',
             'routeNames' => ['admin.reports'],
         ]);
 
         self::assertSame([
-            'key' => 'plugin.reports',
-            'label' => 'Reports',
-            'href' => '/admin/reports',
-            'parent' => 'content',
-            'icon' => null,
-            'type' => 'url',
-            'target' => null,
-            'meta' => [],
-            'order' => 100,
-            'visible' => true,
-            'scope' => 'admin',
+            'key'        => 'plugin.reports',
+            'label'      => 'Reports',
+            'href'       => '/admin/reports',
+            'parent'     => 'content',
+            'icon'       => null,
+            'type'       => 'url',
+            'target'     => null,
+            'meta'       => [],
+            'order'      => 100,
+            'visible'    => true,
+            'scope'      => 'admin',
             'routeNames' => ['admin.reports'],
-            'children' => [],
+            'children'   => [],
         ], $registry->get('plugin.reports')?->toArray());
     }
 
@@ -81,8 +82,8 @@ final class NavigationRegistryTest extends TestCase
     public function testRegistryCanReturnItemsForAScope(): void
     {
         $registry = new NavigationRegistry();
-        $docs = NavigationItem::create('docs')->setLabel('Docs');
-        $admin = NavigationItem::create('admin.tools')->setLabel('Tools')->setScope('admin');
+        $docs     = NavigationItem::create('docs')->setLabel('Docs');
+        $admin    = NavigationItem::create('admin.tools')->setLabel('Tools')->setScope('admin');
 
         $registry->addMany([$docs, $admin]);
 
@@ -92,13 +93,13 @@ final class NavigationRegistryTest extends TestCase
 
     public function testRegistryStoresScopedNavigationObjects(): void
     {
-        $registry = new NavigationRegistry();
+        $registry   = new NavigationRegistry();
         $navigation = Navigation::create('main', 'Main navigation')
             ->addItem(
                 NavigationItem::create('home')
                     ->setLabel('Home')
                     ->setHref('/')
-                    ->addChild(NavigationItem::create('docs')->setLabel('Docs')->setHref('/docs'))
+                    ->addChild(NavigationItem::create('docs')->setLabel('Docs')->setHref('/docs')),
             );
 
         $registry->addNavigation($navigation);
@@ -110,7 +111,7 @@ final class NavigationRegistryTest extends TestCase
 
     public function testRegistryFallsBackFromLanguageSpecificNavigationToDefault(): void
     {
-        $registry = new NavigationRegistry();
+        $registry   = new NavigationRegistry();
         $navigation = Navigation::create('main');
 
         $registry->addNavigation($navigation);

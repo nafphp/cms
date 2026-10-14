@@ -17,14 +17,15 @@
         "php": ">=8.3",
         "ext-curl": "*",
         "ext-dom": "*",
-        "naf/framework": "^0.2",
+        "ext-pdo": "*",
+        "naf/framework": "^0.2.9",
         "naf/view": "^0.2",
         "naf/form": "^0.2",
         "naf/database": "^0.2",
         "naf/orm": "^0.2",
         "naf/session": "^0.2",
         "naf/i18n": "^0.2",
-        "naf/cli": "^0.2",
+        "naf/cli": "^0.2.2",
         "naf/queue": "^0.2",
         "naf/schedule": "^0.2",
         "naf/mail": "^0.2",
@@ -57,10 +58,15 @@
         "check": [
             "@analyse",
             "@test"
-        ]
+        ],
+        "style:check": "@php vendor/bin/php-cs-fixer fix --dry-run --diff",
+        "style:fix": "@php vendor/bin/php-cs-fixer fix"
     },
     "config": {
-        "process-timeout": 0
+        "process-timeout": 0,
+        "platform": {
+            "php": "8.3.0"
+        }
     },
     "archive": {
         "exclude": [
@@ -85,7 +91,8 @@
     },
     "minimum-stability": "stable",
     "require-dev": {
-        "phpunit/phpunit": "^12.1",
-        "phpstan/phpstan": "^2.1"
+        "friendsofphp/php-cs-fixer": "3.95.25",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^12.1"
     }
 }

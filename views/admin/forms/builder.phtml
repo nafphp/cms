@@ -1,32 +1,32 @@
 <?php
 
+use function Naf\CMS\cms;
 use function Naf\I18n\t;
 use function Naf\View\asset;
 use function Naf\View\s;
-use function Naf\CMS\cms;
 
-$form = is_array($form ?? null) ? $form : null;
-$fields = is_array($form['fields'] ?? null) ? $form['fields'] : [];
-$settings = is_array($form['settings'] ?? null) ? $form['settings'] : [];
+$form                   = is_array($form ?? null) ? $form : null;
+$fields                 = is_array($form['fields'] ?? null) ? $form['fields'] : [];
+$settings               = is_array($form['settings'] ?? null) ? $form['settings'] : [];
 $translationSuggestions = is_array($translationSuggestions ?? null) ? array_values(array_filter(
     $translationSuggestions,
     static fn(mixed $suggestion): bool => is_array($suggestion)
         && is_string($suggestion['key'] ?? null)
-        && is_string($suggestion['value'] ?? null)
+        && is_string($suggestion['value'] ?? null),
 )) : [];
 $payload = [
-    'id' => (int) ($form['id'] ?? 0),
+    'id'         => (int) ($form['id'] ?? 0),
     'identifier' => (string) ($form['identifier'] ?? ''),
-    'title' => (string) ($form['title'] ?? ''),
-    'status' => (string) ($form['status'] ?? 'draft'),
-    'fields' => $fields,
-    'settings' => [
-        'titleKey' => (string) ($settings['titleKey'] ?? ''),
-        'submitLabel' => (string) ($settings['submitLabel'] ?? ''),
-        'submitLabelKey' => (string) ($settings['submitLabelKey'] ?? ''),
-        'successMessage' => (string) ($settings['successMessage'] ?? ''),
+    'title'      => (string) ($form['title'] ?? ''),
+    'status'     => (string) ($form['status'] ?? 'draft'),
+    'fields'     => $fields,
+    'settings'   => [
+        'titleKey'          => (string) ($settings['titleKey'] ?? ''),
+        'submitLabel'       => (string) ($settings['submitLabel'] ?? ''),
+        'submitLabelKey'    => (string) ($settings['submitLabelKey'] ?? ''),
+        'successMessage'    => (string) ($settings['successMessage'] ?? ''),
         'successMessageKey' => (string) ($settings['successMessageKey'] ?? ''),
-        'actions' => is_array($settings['actions'] ?? null) ? $settings['actions'] : [],
+        'actions'           => is_array($settings['actions'] ?? null) ? $settings['actions'] : [],
     ],
 ];
 asset()->add('/js/admin/form-builder.js', 'module');

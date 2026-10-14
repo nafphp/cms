@@ -12,20 +12,20 @@ final class FormSubmissionValidatorTest extends NafTestCase
     public function testValidatesRequiredEmailAndLengthRules(): void
     {
         $errors = (new FormSubmissionValidator())->validate([
-            'email' => 'not-an-email',
+            'email'   => 'not-an-email',
             'message' => 'hi',
         ], [
             [
-                'name' => 'email',
-                'type' => 'email',
+                'name'       => 'email',
+                'type'       => 'email',
                 'validators' => [
                     ['rule' => 'required'],
                     ['rule' => 'email'],
                 ],
             ],
             [
-                'name' => 'message',
-                'type' => 'textarea',
+                'name'       => 'message',
+                'type'       => 'textarea',
                 'validators' => [
                     ['rule' => 'required'],
                     ['rule' => 'min', 'param' => 5],
@@ -44,8 +44,8 @@ final class FormSubmissionValidatorTest extends NafTestCase
             'email' => '',
         ], [
             [
-                'name' => 'email',
-                'type' => 'email',
+                'name'     => 'email',
+                'type'     => 'email',
                 'required' => false,
             ],
         ]);
@@ -59,8 +59,8 @@ final class FormSubmissionValidatorTest extends NafTestCase
             'topic' => 'billing',
         ], [
             [
-                'name' => 'topic',
-                'type' => 'select',
+                'name'    => 'topic',
+                'type'    => 'select',
                 'options' => ['support', 'sales'],
             ],
         ]);

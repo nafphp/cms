@@ -12,9 +12,10 @@ use Naf\CMS\Repositories\UserRepository;
 use Naf\CMS\Services\Security\PasswordPolicy;
 use Naf\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
+
+use function Naf\CMS\user;
 use function Naf\json;
 use function Naf\ORM\repo;
-use function Naf\CMS\user;
 
 final class UpdateUserPassword
 {
@@ -23,15 +24,16 @@ final class UpdateUserPassword
 
     public function __construct(
         private readonly PasswordPolicyInterface $passwords = new PasswordPolicy(),
-    ) {}
+    ) {
+    }
 
     public function __invoke(): ResponseInterface
     {
-        $data = $this->jsonBody();
-        $userId = (int) ($data['user_id'] ?? 0);
-        $password = (string) ($data['password'] ?? '');
+        $data         = $this->jsonBody();
+        $userId       = (int) ($data['user_id'] ?? 0);
+        $password     = (string) ($data['password'] ?? '');
         $confirmation = (string) ($data['password_confirmation'] ?? '');
-        $errors = [];
+        $errors       = [];
 
         if ($userId <= 0) {
             $errors['user_id'][] = 'Invalid user id.';

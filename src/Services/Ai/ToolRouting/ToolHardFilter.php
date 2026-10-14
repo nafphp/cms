@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Services\Ai\ToolRouting;
 
-use Naf\CMS\Services\Ai\ToolRouting\ToolContext;
-
 final class ToolHardFilter
 {
     /**
@@ -14,10 +12,10 @@ final class ToolHardFilter
      */
     public function filter(array $tools, string $input, ToolContext $context): array
     {
-        $query = strtolower($input . ' ' . implode(' ', array_filter($context->uiContext, 'is_scalar')));
-        $writeIntent = $this->hasWriteIntent($query);
-        $destructiveIntent = $this->hasDestructiveIntent($query);
-        $requestedMode = $context->requestedMode();
+        $query                 = strtolower($input . ' ' . implode(' ', array_filter($context->uiContext, 'is_scalar')));
+        $writeIntent           = $this->hasWriteIntent($query);
+        $destructiveIntent     = $this->hasDestructiveIntent($query);
+        $requestedMode         = $context->requestedMode();
         $requestedCapabilities = $context->requestedCapabilities();
 
         return array_values(array_filter($tools, function (array $tool) use ($context, $writeIntent, $destructiveIntent, $requestedMode, $requestedCapabilities): bool {
@@ -62,11 +60,11 @@ final class ToolHardFilter
         $capabilities = $this->capabilities($meta);
 
         return match ($area) {
-            'pagebuilder' => $this->intersects($capabilities, ['block.create', 'block.update', 'layout.write', 'pages.write', 'content.write']),
-            'themeeditor' => $this->intersects($capabilities, ['theme.write', 'themes.write']),
-            'articleeditor' => $this->intersects($capabilities, ['content.write', 'articles.write']),
+            'pagebuilder'               => $this->intersects($capabilities, ['block.create', 'block.update', 'layout.write', 'pages.write', 'content.write']),
+            'themeeditor'               => $this->intersects($capabilities, ['theme.write', 'themes.write']),
+            'articleeditor'             => $this->intersects($capabilities, ['content.write', 'articles.write']),
             'formeditor', 'formbuilder' => $this->intersects($capabilities, ['content.write', 'forms.write']),
-            default => ($meta['mode'] ?? 'read') !== 'write' && ($meta['destructive'] ?? false) !== true,
+            default                     => ($meta['mode'] ?? 'read') !== 'write' && ($meta['destructive'] ?? false) !== true,
         };
     }
 

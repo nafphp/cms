@@ -7,7 +7,21 @@ parameters:
     - src
     - tests
   bootstrapFiles:
-    - tests/bootstrap.php
+    - tests/phpstan-bootstrap.php
+  scanFiles:
+    - vendor/naf/auth/src/functions.php
+    - vendor/naf/cli/src/functions.php
+    - vendor/naf/database/src/functions.php
+    - vendor/naf/form/src/view_helpers.php
+    - vendor/naf/i18n/src/functions.php
+    - vendor/naf/i18n/src/view_helpers.php
+    - vendor/naf/mail/src/functions.php
+    - vendor/naf/mcp/src/functions.php
+    - vendor/naf/orm/src/functions.php
+    - vendor/naf/queue/src/functions.php
+    - vendor/naf/schedule/src/functions.php
+    - vendor/naf/session/src/functions.php
+    - vendor/naf/view/src/view_helpers.php
   treatPhpDocTypesAsCertain: false
   excludePaths:
     - src/Migrations/*

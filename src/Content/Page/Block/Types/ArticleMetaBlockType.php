@@ -38,7 +38,7 @@ final class ArticleMetaBlockType extends AbstractBlockType
         return [
             'showStatus' => false,
             'showAuthor' => true,
-            'showTags' => true,
+            'showTags'   => true,
             ...$this->surfaceDefaults(),
         ];
     }

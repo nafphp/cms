@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 namespace Naf\CMS\Content\Page\Block;
+
+use Throwable;
+
 use function Naf\CMS\cms;
 use function Naf\log;
 
@@ -17,7 +20,7 @@ final class PageBuilderBlockOptions
 
         try {
             $summaries = cms()->navigation()->summaries('frontend');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->warning('PageBuilderBlockOptions.navigationChoices failed', [
                 'exception' => $e,
             ]);
@@ -31,35 +34,36 @@ final class PageBuilderBlockOptions
             }
 
             $language = trim((string) ($summary['language'] ?? ''));
+
             try {
                 $items = cms()->navigation()->tree($identifier, $language !== '' ? $language : null);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 log()->warning('PageBuilderBlockOptions.navigationTree failed', [
-                    'exception' => $e,
+                    'exception'  => $e,
                     'identifier' => $identifier,
-                    'language' => $language,
+                    'language'   => $language,
                 ]);
                 $items = [];
             }
 
-            $status = (string) ($summary['status'] ?? 'draft');
+            $status   = (string) ($summary['status'] ?? 'draft');
             $priority = (int) ($summary['priority'] ?? 0);
 
             $choices[] = [
                 'identifier' => $identifier,
-                'label' => (string) (($summary['title'] ?? null) ?: $identifier),
-                'language' => $language,
-                'status' => $status,
-                'priority' => $priority,
-                'itemCount' => (int) ($summary['item_count'] ?? count($items)),
-                'items' => $items,
-                'rank' => match ($status) {
-                    'primary' => 300,
+                'label'      => (string) (($summary['title'] ?? null) ?: $identifier),
+                'language'   => $language,
+                'status'     => $status,
+                'priority'   => $priority,
+                'itemCount'  => (int) ($summary['item_count'] ?? count($items)),
+                'items'      => $items,
+                'rank'       => match ($status) {
+                    'primary'   => 300,
                     'published' => 200,
-                    default => 100,
+                    default     => 100,
                 } + $priority + match ($identifier) {
                     'main', 'primary', 'header' => 25,
-                    default => 0,
+                    default                     => 0,
                 },
             ];
         }
@@ -67,18 +71,18 @@ final class PageBuilderBlockOptions
         usort(
             $choices,
             static fn(array $a, array $b): int => [$b['rank'], $b['itemCount'], $a['label']]
-                <=> [$a['rank'], $a['itemCount'], $b['label']]
+                <=> [$a['rank'], $a['itemCount'], $b['label']],
         );
 
         if ($choices === []) {
             $choices[] = [
                 'identifier' => 'main',
-                'label' => 'Main navigation',
-                'language' => '',
-                'status' => 'preview',
-                'priority' => 0,
-                'itemCount' => 4,
-                'items' => [
+                'label'      => 'Main navigation',
+                'language'   => '',
+                'status'     => 'preview',
+                'priority'   => 0,
+                'itemCount'  => 4,
+                'items'      => [
                     ['label' => 'Home', 'href' => '/', 'children' => []],
                     ['label' => 'News', 'href' => '/news', 'children' => []],
                     ['label' => 'Pages', 'href' => '/pages', 'children' => []],
@@ -89,6 +93,7 @@ final class PageBuilderBlockOptions
 
         return array_map(static function (array $choice): array {
             unset($choice['rank']);
+
             return $choice;
         }, $choices);
     }
@@ -103,7 +108,7 @@ final class PageBuilderBlockOptions
                 '%s%s%s',
                 (string) $navigation['label'],
                 (string) ($navigation['status'] ?? '') !== '' ? ' - ' . (string) $navigation['status'] : '',
-                (int) ($navigation['priority'] ?? 0) > 0 ? ' - Prio ' . (int) $navigation['priority'] : ''
+                (int) ($navigation['priority'] ?? 0) > 0 ? ' - Prio ' . (int) $navigation['priority'] : '',
             )),
             'value' => (string) $navigation['identifier'],
         ], self::navigationChoices());
@@ -116,7 +121,7 @@ final class PageBuilderBlockOptions
     {
         try {
             $options = cms()->forms()->choices(false);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->warning('PageBuilderBlockOptions.formOptions failed', [
                 'exception' => $e,
             ]);

@@ -6,6 +6,7 @@ namespace Naf\CMS\Services\Content;
 
 use PDO;
 use Throwable;
+
 use function Naf\Database\database;
 
 final class ArticleFormService
@@ -66,6 +67,7 @@ final class ArticleFormService
         }
 
         $row['tags'] = $this->tagNamesForArticle($articleId);
+
         return $row;
     }
 
@@ -93,11 +95,11 @@ final class ArticleFormService
         }
 
         $statement = $connection->prepare(
-            'SELECT COALESCE(MAX(version), 0) + 1 FROM article_versions WHERE article_id = :article_id AND language = :language'
+            'SELECT COALESCE(MAX(version), 0) + 1 FROM article_versions WHERE article_id = :article_id AND language = :language',
         );
         $statement->execute([
             'article_id' => $articleId,
-            'language' => strtolower(trim($language)),
+            'language'   => strtolower(trim($language)),
         ]);
 
         return max(1, (int) $statement->fetchColumn());
@@ -142,7 +144,7 @@ final class ArticleFormService
         }
 
         $statement = $connection->prepare(
-            'SELECT t.name FROM tags t INNER JOIN article_tags at ON at.tag_id = t.id WHERE at.article_id = :article_id ORDER BY t.name ASC'
+            'SELECT t.name FROM tags t INNER JOIN article_tags at ON at.tag_id = t.id WHERE at.article_id = :article_id ORDER BY t.name ASC',
         );
         $statement->execute(['article_id' => $articleId]);
 
@@ -162,7 +164,7 @@ final class ArticleFormService
         try {
             return array_values(array_filter(array_map(
                 static fn(mixed $value): string => trim((string) $value),
-                $connection->query(sprintf('SELECT name FROM %s ORDER BY name ASC', $table))->fetchAll(PDO::FETCH_COLUMN)
+                $connection->query(sprintf('SELECT name FROM %s ORDER BY name ASC', $table))->fetchAll(PDO::FETCH_COLUMN),
             )));
         } catch (Throwable) {
             return [];

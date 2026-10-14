@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Naf\CMS\Examples\BlockType;
 
 use Naf\CMS\Content\Page\Block\AbstractBlockType;
+
 use function Naf\CMS\cms;
 
 final class ExampleQuoteBlockType extends AbstractBlockType
@@ -32,7 +33,7 @@ final class ExampleQuoteBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'quote' => 'A concise customer quote belongs here.',
+            'quote'  => 'A concise customer quote belongs here.',
             'source' => '',
         ];
     }

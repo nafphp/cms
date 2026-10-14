@@ -4,11 +4,11 @@ use function Naf\I18n\t;
 use function Naf\View\s;
 use function Naf\View\view;
 
-$fields = is_array($fields ?? null) ? $fields : [];
-$routingFallbacks = is_array($routingFallbacks ?? null) ? $routingFallbacks : [];
-$modelField = null;
+$fields              = is_array($fields ?? null) ? $fields : [];
+$routingFallbacks    = is_array($routingFallbacks ?? null) ? $routingFallbacks : [];
+$modelField          = null;
 $embeddingModelField = null;
-$otherFields = [];
+$otherFields         = [];
 foreach ($fields as $field) {
     if ((string) ($field['key'] ?? '') === 'ai.model') {
         $modelField = $field;
@@ -21,20 +21,20 @@ foreach ($fields as $field) {
 
     $otherFields[] = $field;
 }
-$modelValue = (string) ($modelField['value'] ?? 'llama3.1:8b');
-$modelSource = (string) ($modelField['source'] ?? 'default');
-$modelLabel = (string) ($modelField['label'] ?? t('Default model'));
-$modelDescription = (string) ($modelField['description'] ?? t('Default Ollama model for CMS assistant tasks.'));
-$embeddingModelValue = (string) ($embeddingModelField['value'] ?? '');
-$embeddingModelSource = (string) ($embeddingModelField['source'] ?? 'default');
-$embeddingModelLabel = (string) ($embeddingModelField['label'] ?? t('Embedding model'));
+$modelValue                = (string) ($modelField['value'] ?? 'llama3.1:8b');
+$modelSource               = (string) ($modelField['source'] ?? 'default');
+$modelLabel                = (string) ($modelField['label'] ?? t('Default model'));
+$modelDescription          = (string) ($modelField['description'] ?? t('Default Ollama model for CMS assistant tasks.'));
+$embeddingModelValue       = (string) ($embeddingModelField['value'] ?? '');
+$embeddingModelSource      = (string) ($embeddingModelField['source'] ?? 'default');
+$embeddingModelLabel       = (string) ($embeddingModelField['label'] ?? t('Embedding model'));
 $embeddingModelDescription = (string) ($embeddingModelField['description'] ?? t('Optional Ollama embedding model for semantic tool routing.'));
-$sourceLabels = [
+$sourceLabels              = [
     'database' => t('Database'),
-    'config' => t('config.php'),
-    'default' => t('Default'),
+    'config'   => t('config.php'),
+    'default'  => t('Default'),
 ];
-$modelSourceLabel = (string) ($sourceLabels[$modelSource] ?? $sourceLabels['default']);
+$modelSourceLabel          = (string) ($sourceLabels[$modelSource] ?? $sourceLabels['default']);
 $embeddingModelSourceLabel = (string) ($sourceLabels[$embeddingModelSource] ?? $sourceLabels['default']);
 
 ?>

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Repositories;
 
+use DateTime;
 use Naf\CMS\Enums\ArticleStatus;
 use Naf\CMS\Models\ArticleVersion;
 use Naf\ORM\Repository\AbstractRepository;
+
 use function Naf\ORM\em;
 
 class ArticleVersionRepository extends AbstractRepository
@@ -28,6 +30,7 @@ class ArticleVersionRepository extends AbstractRepository
                 WHERE id = :article_version_id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(['article_version_id' => $articleVersionId]);
+
         return (int) $stmt->fetchColumn();
     }
 
@@ -40,7 +43,7 @@ class ArticleVersionRepository extends AbstractRepository
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'article_id' => $articleId,
-            'language' => $language,
+            'language'   => $language,
         ]);
 
         return (int) $stmt->fetchColumn();
@@ -53,22 +56,22 @@ class ArticleVersionRepository extends AbstractRepository
         string $title,
         string $teaser,
         string $content,
-        ?\DateTime $publishedAt = null,
+        ?DateTime $publishedAt = null,
         bool $showTeaser = false,
     ): ArticleVersion {
         $nextVersion = $this->getNextVersion($articleId, $language);
 
         $entityClass = $this->getEntityClass();
-        $version = new $entityClass([
-            'article_id' => $articleId,
-            'language' => $language,
-            'slug' => $slug,
-            'version' => $nextVersion,
-            'status' => ArticleStatus::DRAFT->value,
-            'title' => $title,
-            'teaser' => $teaser,
+        $version     = new $entityClass([
+            'article_id'  => $articleId,
+            'language'    => $language,
+            'slug'        => $slug,
+            'version'     => $nextVersion,
+            'status'      => ArticleStatus::DRAFT->value,
+            'title'       => $title,
+            'teaser'      => $teaser,
             'show_teaser' => $showTeaser ? 1 : 0,
-            'content' => $content,
+            'content'     => $content,
             'publishedAt' => $publishedAt?->format('Y-m-d H:i:s'),
         ]);
 

@@ -36,8 +36,8 @@ final class MediaBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'src' => '',
-            'alt' => '',
+            'src'     => '',
+            'alt'     => '',
             'caption' => '',
         ];
     }

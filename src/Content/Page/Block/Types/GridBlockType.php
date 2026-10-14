@@ -36,8 +36,8 @@ final class GridBlockType extends AbstractBlockType
     public function defaults(): array
     {
         return [
-            'columns' => 3,
-            'gap' => 'medium',
+            'columns'  => 3,
+            'gap'      => 'medium',
             'children' => [],
         ];
     }

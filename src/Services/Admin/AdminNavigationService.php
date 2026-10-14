@@ -6,10 +6,6 @@ namespace Naf\CMS\Services\Admin;
 
 use Naf\CMS\Api\ScopedNavigationApi;
 use Naf\CMS\Page\PageRegistry;
-use Naf\CMS\Services\Admin\AdminNavigationAuthorizationFilter;
-use Naf\CMS\Services\Admin\AdminNavigationColorInheritance;
-use Naf\CMS\Services\Admin\AdminNavigationItemCollector;
-use Naf\CMS\Services\Admin\AdminNavigationTreeBuilder;
 
 final class AdminNavigationService
 {
@@ -23,7 +19,8 @@ final class AdminNavigationService
         private ?AdminNavigationTreeBuilder $treeBuilder = null,
         private ?AdminNavigationAuthorizationFilter $authorizationFilter = null,
         private ?AdminNavigationColorInheritance $colorInheritance = null,
-    ) {}
+    ) {
+    }
 
     /**
      * @return array<int, array<string, mixed>>
@@ -32,8 +29,8 @@ final class AdminNavigationService
     {
         return $this->authorizationFilter()->filter(
             $this->colorInheritance()->apply(
-                $this->treeBuilder()->build($this->collector()->collect())
-            )
+                $this->treeBuilder()->build($this->collector()->collect()),
+            ),
         );
     }
 

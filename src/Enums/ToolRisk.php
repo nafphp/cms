@@ -6,7 +6,7 @@ namespace Naf\CMS\Enums;
 
 enum ToolRisk: string
 {
-    case READ = 'read';
+    case READ  = 'read';
     case WRITE = 'write';
 
     public function requiresConfirmation(): bool

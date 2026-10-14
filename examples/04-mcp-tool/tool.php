@@ -7,6 +7,7 @@ namespace Naf\CMS\Examples\McpTool;
 use Naf\MCP\Support\Schema;
 use Naf\MCP\Tools\ScopedToolInterface;
 use Naf\MCP\Tools\ToolInterface;
+
 use function Naf\MCP\tool;
 
 final class ExamplePingTool implements ToolInterface, ScopedToolInterface

@@ -14,5 +14,6 @@ final readonly class ToolRoute
         public array $tool,
         public float $score,
         public array $reasons = [],
-    ) {}
+    ) {
+    }
 }

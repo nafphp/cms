@@ -1,16 +1,17 @@
 <?php
 
+use Naf\CMS\Enums\Permission;
+
+use function Naf\CMS\user;
 use function Naf\I18n\t;
 use function Naf\route;
 use function Naf\View\view;
-use Naf\CMS\Enums\Permission;
-use function Naf\CMS\user;
 
-$pages = is_array($pages ?? null) ? $pages : [];
+$pages  = is_array($pages ?? null) ? $pages : [];
 $config = [
-    'rows' => array_map(static fn(array $page): array => $page + ['kind' => 'Page'], $pages),
-    'sort' => ['key' => 'title', 'direction' => 'asc'],
-    'search' => ['title', 'path', 'language', 'status', 'template', 'updated'],
+    'rows'    => array_map(static fn(array $page): array => $page + ['kind' => 'Page'], $pages),
+    'sort'    => ['key' => 'title', 'direction' => 'asc'],
+    'search'  => ['title', 'path', 'language', 'status', 'template', 'updated'],
     'columns' => [
         ['key' => 'title', 'labelKey' => 'title', 'type' => 'title', 'subtitle' => 'kind', 'colClass' => 'w-[24%]'],
         ['key' => 'path', 'labelKey' => 'path', 'type' => 'code', 'colClass' => 'w-[16%]'],
@@ -19,7 +20,7 @@ $config = [
         ['key' => 'template', 'labelKey' => 'template', 'cellClass' => 'text-slate-600 dark:text-slate-300', 'colClass' => 'w-[18%]'],
         ['key' => 'updated', 'labelKey' => 'updated', 'cellClass' => 'text-slate-500 dark:text-slate-400', 'colClass' => 'w-[13%]'],
         [
-            'key' => 'actions',
+            'key'      => 'actions',
             'labelKey' => 'actions',
             'sortable' => false,
             'colClass' => 'w-[120px]',
@@ -27,29 +28,29 @@ $config = [
     ],
     'urls' => [
         'create' => route('admin.pages.create'),
-        'edit' => route('admin.pages.create') . '?mode=edit&id={id}',
+        'edit'   => route('admin.pages.create') . '?mode=edit&id={id}',
         'delete' => '/api/admin/pages/{id}/delete',
     ],
     'labels' => [
-        'actions' => t('Actions'),
-        'cancel' => t('Cancel'),
-        'createPage' => t('Create page'),
-        'delete' => t('Delete'),
+        'actions'       => t('Actions'),
+        'cancel'        => t('Cancel'),
+        'createPage'    => t('Create page'),
+        'delete'        => t('Delete'),
         'deleteConfirm' => t('Really delete this page?'),
-        'deleted' => t('Page deleted.'),
-        'edit' => t('Edit'),
-        'empty' => t('No pages found.'),
-        'error' => t('Action failed.'),
-        'language' => t('Language'),
-        'loading' => t('Loading pages...'),
-        'noResults' => t('No matching pages found.'),
-        'path' => t('Path'),
-        'preview' => t('Preview'),
-        'search' => t('Search pages'),
-        'status' => t('Status'),
-        'template' => t('Template'),
-        'title' => t('Title'),
-        'updated' => t('Updated'),
+        'deleted'       => t('Page deleted.'),
+        'edit'          => t('Edit'),
+        'empty'         => t('No pages found.'),
+        'error'         => t('Action failed.'),
+        'language'      => t('Language'),
+        'loading'       => t('Loading pages...'),
+        'noResults'     => t('No matching pages found.'),
+        'path'          => t('Path'),
+        'preview'       => t('Preview'),
+        'search'        => t('Search pages'),
+        'status'        => t('Status'),
+        'template'      => t('Template'),
+        'title'         => t('Title'),
+        'updated'       => t('Updated'),
     ],
     'permissions' => [
         'canPreview' => user()?->can(Permission::PAGES_VIEW) === true,
@@ -61,13 +62,13 @@ $config = [
 
 <?php $this->block('content'); ?>
 <?= view('components.admin.grid', [
-    'attributes' => ['data-page-grid' => true],
-    'frameAttributes' => ['data-page-grid-frame' => true],
-    'config' => $config,
+    'attributes'        => ['data-page-grid' => true],
+    'frameAttributes'   => ['data-page-grid-frame' => true],
+    'config'            => $config,
     'searchPlaceholder' => t('Search pages'),
-    'actionLabel' => t('Create page'),
-    'actionHref' => route('admin.pages.create'),
-    'loadingLabel' => t('Loading pages...'),
-    'script' => '/js/admin/page-grid.js',
+    'actionLabel'       => t('Create page'),
+    'actionHref'        => route('admin.pages.create'),
+    'loadingLabel'      => t('Loading pages...'),
+    'script'            => '/js/admin/page-grid.js',
 ]) ?>
 <?php $this->endBlock('content'); ?>

@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Page;
 
+use LogicException;
 use Naf\CMS\Enums\Permission;
 use Naf\CMS\Page\Page;
 use Naf\CMS\Page\PageRegistry;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
+use ReflectionProperty;
 
 final class PageRegistryTest extends TestCase
 {
@@ -29,7 +32,7 @@ final class PageRegistryTest extends TestCase
         $registry = new PageRegistry();
         $registry->add(Page::create('custom.about')->setPath('/about'));
 
-        self::expectException(\LogicException::class);
+        self::expectException(LogicException::class);
         self::expectExceptionMessage('Page "custom.about" is already registered.');
 
         $registry->add(Page::create('custom.about')->setPath('/ueber-uns'));
@@ -64,11 +67,11 @@ final class PageRegistryTest extends TestCase
     public function testPublishedStoredPageReplacesACodePageThatOptedIn(): void
     {
         $registry = new PageRegistry();
-        $method = new \ReflectionMethod($registry, 'storedPageMayReplaceCodePage');
+        $method   = new ReflectionMethod($registry, 'storedPageMayReplaceCodePage');
 
-        $codeHome = Page::create('home')->setPath('/')->allowStoredOverride();
+        $codeHome            = Page::create('home')->setPath('/')->allowStoredOverride();
         $publishedStoredHome = Page::create('db.page.1')->setPath('/');
-        $draftStoredHome = Page::create('db.page.2')
+        $draftStoredHome     = Page::create('db.page.2')
             ->setPath('/')
             ->requirePermission(Permission::PAGES_VIEW);
         $publishedStoredAbout = Page::create('db.page.3')->setPath('/about');
@@ -81,11 +84,11 @@ final class PageRegistryTest extends TestCase
     public function testCodePageKeepsItsPathUnlessItOptedIn(): void
     {
         $registry = new PageRegistry();
-        $method = new \ReflectionMethod($registry, 'storedPageMayReplaceCodePage');
+        $method   = new ReflectionMethod($registry, 'storedPageMayReplaceCodePage');
 
         // A plugin page that never declared itself replaceable must not be
         // taken over by an editor's page on the same path.
-        $codeShop = Page::create('shop.index')->setPath('/shop');
+        $codeShop            = Page::create('shop.index')->setPath('/shop');
         $publishedStoredShop = Page::create('db.page.4')->setPath('/shop');
 
         self::assertFalse($method->invoke($registry, $publishedStoredShop, $codeShop));
@@ -106,13 +109,13 @@ final class PageRegistryTest extends TestCase
 
     public function testStoredHomePageKeepsHomeRouteAlias(): void
     {
-        $registry = new PageRegistry();
+        $registry   = new PageRegistry();
         $storedHome = Page::create('db.page.1')->setPath('/');
 
-        $property = new \ReflectionProperty($registry, 'routeAliases');
+        $property = new ReflectionProperty($registry, 'routeAliases');
         $property->setValue($registry, ['home' => 'db.page.1']);
 
-        $method = new \ReflectionMethod($registry, 'routeAliasesFor');
+        $method = new ReflectionMethod($registry, 'routeAliasesFor');
 
         self::assertSame(['home'], $method->invoke($registry, $storedHome));
     }

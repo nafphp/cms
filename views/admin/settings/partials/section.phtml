@@ -3,10 +3,10 @@
 use function Naf\View\s;
 use function Naf\View\view;
 
-$section = is_array($section ?? null) ? $section : [];
-$fields = is_array($section['fields'] ?? null) ? $section['fields'] : [];
+$section    = is_array($section ?? null) ? $section : [];
+$fields     = is_array($section['fields'] ?? null) ? $section['fields'] : [];
 $customView = trim((string) ($section['view'] ?? ''));
-$sectionId = trim((string) ($section['id'] ?? ''));
+$sectionId  = trim((string) ($section['id'] ?? ''));
 
 ?>
 <section class="settings-section-card"<?= $sectionId !== '' ? ' id="settings-section-' . s($sectionId) . '"' : '' ?>>
@@ -19,8 +19,8 @@ $sectionId = trim((string) ($section['id'] ?? ''));
 
     <?php if ($customView !== ''): ?>
         <?= view($customView, [
-            'section' => $section,
-            'fields' => $fields,
+            'section'          => $section,
+            'fields'           => $fields,
             'routingFallbacks' => is_array($routingFallbacks ?? null) ? $routingFallbacks : [],
         ]) ?>
     <?php else: ?>

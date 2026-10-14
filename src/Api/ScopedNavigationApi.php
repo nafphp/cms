@@ -7,7 +7,6 @@ namespace Naf\CMS\Api;
 use Naf\CMS\Enums\Scope;
 use Naf\CMS\Navigation\Navigation;
 use Naf\CMS\Navigation\NavigationItem;
-use Naf\CMS\Api\NavigationApi;
 
 final class ScopedNavigationApi
 {
@@ -20,6 +19,7 @@ final class ScopedNavigationApi
     public function add(NavigationItem|array $item, bool $replace = false): self
     {
         $this->navigation->add($this->scopedItem($item), $replace);
+
         return $this;
     }
 
@@ -43,6 +43,7 @@ final class ScopedNavigationApi
     public function addNavigation(Navigation|array $navigation, bool $replace = false): self
     {
         $this->navigation->addNavigation($this->scopedNavigation($navigation), $replace);
+
         return $this;
     }
 
@@ -78,6 +79,7 @@ final class ScopedNavigationApi
     public function item(string $key): ?NavigationItem
     {
         $item = $this->navigation->item($key);
+
         return $item instanceof NavigationItem && $item->scope() === $this->scope->value ? $item : null;
     }
 
@@ -96,6 +98,7 @@ final class ScopedNavigationApi
         }
 
         $item['scope'] = $this->scope->value;
+
         return $item;
     }
 
@@ -106,6 +109,7 @@ final class ScopedNavigationApi
         }
 
         $navigation['scope'] = $this->scope->value;
+
         return $navigation;
     }
 }

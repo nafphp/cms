@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Services\Admin;
 
-use Naf\CMS\Services\Admin\AdminNavigationItemCollector;
-
 final class AdminNavigationTreeBuilder
 {
     private const SCOPE = 'admin';
@@ -19,7 +17,7 @@ final class AdminNavigationTreeBuilder
         $knownKeys = array_keys($items);
         foreach ($knownKeys as $key) {
             $parent = $items[$key]['parent'] ?? null;
-            $scope = (string) ($items[$key]['scope'] ?? self::SCOPE);
+            $scope  = (string) ($items[$key]['scope'] ?? self::SCOPE);
             if (!is_string($parent) || $parent === '') {
                 continue;
             }
@@ -27,12 +25,12 @@ final class AdminNavigationTreeBuilder
             while ($parent !== '') {
                 if (!isset($items[$parent])) {
                     $items[$parent] = AdminNavigationItemCollector::normalizeItem([
-                        'key' => $parent,
-                        'label' => AdminNavigationItemCollector::labelFromKey($parent),
-                        'href' => '#',
-                        'parent' => AdminNavigationItemCollector::parentFromKey($parent),
+                        'key'     => $parent,
+                        'label'   => AdminNavigationItemCollector::labelFromKey($parent),
+                        'href'    => '#',
+                        'parent'  => AdminNavigationItemCollector::parentFromKey($parent),
                         'visible' => true,
-                        'scope' => $scope,
+                        'scope'   => $scope,
                     ]);
                 }
 
@@ -60,7 +58,7 @@ final class AdminNavigationTreeBuilder
             usort($children, $this->sortItems(...));
 
             foreach ($children as &$child) {
-                $child['children'] = $build((string) $child['key']);
+                $child['children']   = $build((string) $child['key']);
                 $child['routeNames'] = AdminNavigationItemCollector::routeNames([
                     ...$child['routeNames'],
                     ...$this->descendantRouteNames($child['children']),
@@ -74,7 +72,7 @@ final class AdminNavigationTreeBuilder
             return array_values(array_filter(
                 $children,
                 static fn(array $child): bool => ($child['scope'] ?? self::SCOPE) === self::SCOPE
-                    || (is_array($child['children'] ?? null) && $child['children'] !== [])
+                    || (is_array($child['children'] ?? null) && $child['children'] !== []),
             ));
         };
 

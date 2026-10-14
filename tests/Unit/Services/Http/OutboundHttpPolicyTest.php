@@ -67,7 +67,7 @@ final class OutboundHttpPolicyTest extends TestCase
 
     public function testExplicitDevelopmentWebhookExceptionIsHostBound(): void
     {
-        $policy = new OutboundHttpPolicy(static fn(string $host): array => ['127.0.0.1']);
+        $policy  = new OutboundHttpPolicy(static fn(string $host): array => ['127.0.0.1']);
         $profile = OutboundHttpProfile::webhook(true, ['dev-webhook.local']);
 
         self::assertSame(
@@ -81,7 +81,7 @@ final class OutboundHttpPolicyTest extends TestCase
 
     public function testOllamaAllowsOnlyDocumentedLoopbackHostsAndPorts(): void
     {
-        $policy = new OutboundHttpPolicy(static fn(string $host): array => $host === 'localhost' ? ['127.0.0.1', '::1'] : ['192.168.1.20']);
+        $policy  = new OutboundHttpPolicy(static fn(string $host): array => $host === 'localhost' ? ['127.0.0.1', '::1'] : ['192.168.1.20']);
         $profile = OutboundHttpProfile::ollama([11434, 11435]);
 
         self::assertSame(11434, $policy->authorize('http://localhost:11434/api/embed', $profile)->port);

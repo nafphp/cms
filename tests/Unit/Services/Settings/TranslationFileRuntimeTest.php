@@ -12,8 +12,8 @@ final class TranslationFileRuntimeTest extends TestCase
 {
     public function testOverridesMergeOverImmutableDefaultsAndSaveAtomically(): void
     {
-        $root = sys_get_temp_dir() . '/nafcms-translations-' . bin2hex(random_bytes(6));
-        $defaults = $root . '/defaults';
+        $root      = sys_get_temp_dir() . '/nafcms-translations-' . bin2hex(random_bytes(6));
+        $defaults  = $root . '/defaults';
         $overrides = $root . '/runtime';
         mkdir($defaults, 0777, true);
         mkdir($overrides, 0777, true);
@@ -35,7 +35,7 @@ final class TranslationFileRuntimeTest extends TestCase
     public function testMergeOnlyTouchesTheGivenKeys(): void
     {
         [$service, $defaults, $overrides] = $this->service([
-            'Hello' => 'Package',
+            'Hello'        => 'Package',
             'Only default' => 'Yes',
         ], [
             'Hello' => 'Host',
@@ -99,8 +99,8 @@ final class TranslationFileRuntimeTest extends TestCase
      */
     private function service(array $defaults, ?array $overrides): array
     {
-        $root = sys_get_temp_dir() . '/nafcms-translations-' . bin2hex(random_bytes(6));
-        $defaultDirectory = $root . '/defaults';
+        $root              = sys_get_temp_dir() . '/nafcms-translations-' . bin2hex(random_bytes(6));
+        $defaultDirectory  = $root . '/defaults';
         $overrideDirectory = $root . '/runtime';
         mkdir($defaultDirectory, 0777, true);
         mkdir($overrideDirectory, 0777, true);

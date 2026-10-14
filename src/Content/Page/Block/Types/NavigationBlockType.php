@@ -39,11 +39,11 @@ final class NavigationBlockType extends AbstractBlockType
         $navigationOptions = PageBuilderBlockOptions::navigationOptions();
 
         return [
-            'identifier' => (string) ($navigationOptions[0]['value'] ?? 'main'),
+            'identifier'   => (string) ($navigationOptions[0]['value'] ?? 'main'),
             'presentation' => 'horizontal',
-            'linkStyle' => 'blank',
-            'linkTheme' => 'default',
-            'language' => 'current',
+            'linkStyle'    => 'blank',
+            'linkTheme'    => 'default',
+            'language'     => 'current',
             ...$this->surfaceDefaults(),
         ];
     }

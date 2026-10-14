@@ -37,6 +37,7 @@ final class UrlPolicy
         $scheme = strtolower((string) parse_url($value, PHP_URL_SCHEME));
         if (in_array($scheme, ['http', 'https'], true)) {
             $host = parse_url($value, PHP_URL_HOST);
+
             return is_string($host) && $host !== '' && filter_var($value, FILTER_VALIDATE_URL) !== false
                 ? $value
                 : null;
@@ -44,11 +45,13 @@ final class UrlPolicy
 
         if ($allowMailto && $scheme === 'mailto') {
             $address = substr($value, strlen('mailto:'));
+
             return filter_var($address, FILTER_VALIDATE_EMAIL) !== false ? $value : null;
         }
 
         if ($allowTel && $scheme === 'tel') {
             $number = substr($value, strlen('tel:'));
+
             return preg_match('/^\+?[0-9(). -]{3,40}$/', $number) === 1 ? $value : null;
         }
 

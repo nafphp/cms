@@ -4,24 +4,24 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Models;
 
-use Naf\CMS\Enums\Role as RoleEnum;
 use Naf\CMS\Enums\Permission as PermissionEnum;
+use Naf\CMS\Enums\Role as RoleEnum;
 use Naf\CMS\Repositories\RoleRepository;
 use Naf\CMS\Repositories\UserRepository;
 use Naf\ORM\Model\AbstractModel;
-use Naf\CMS\Models\Role;
+
 use function Naf\ORM\repo;
 
 final class User extends AbstractModel
 {
-    protected ?string $provider = null;
+    protected ?string $provider    = null;
     protected ?string $provider_id = null;
-    protected ?string $firstname = null;
-    protected ?string $lastname = null;
-    protected ?string $email = null;
-    protected ?string $username = null;
-    protected ?string $password = null;
-    protected ?string $createdAt = null;
+    protected ?string $firstname   = null;
+    protected ?string $lastname    = null;
+    protected ?string $email       = null;
+    protected ?string $username    = null;
+    protected ?string $password    = null;
+    protected ?string $createdAt   = null;
 
     public array $pivotTables = [
         Role::class => 'user_role',
@@ -36,7 +36,7 @@ final class User extends AbstractModel
 
         return array_values(array_filter(array_map(
             static fn(Role $role): ?RoleEnum => RoleEnum::tryFrom((string) $role->getName()),
-            $rows
+            $rows,
         )));
     }
 
@@ -95,9 +95,10 @@ final class User extends AbstractModel
 
     public function getDisplayName(): string
     {
-        $first = trim((string) $this->firstname);
-        $last = trim((string) $this->lastname);
+        $first    = trim((string) $this->firstname);
+        $last     = trim((string) $this->lastname);
         $combined = trim($first . ' ' . $last);
+
         return $combined !== '' ? $combined : (string) $this->username;
     }
 }

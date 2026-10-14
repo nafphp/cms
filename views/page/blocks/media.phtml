@@ -1,12 +1,13 @@
 <?php
 
 use Naf\CMS\Security\UrlPolicy;
-use function Naf\View\s;
+
 use function Naf\I18n\t;
+use function Naf\View\s;
 
 $content = is_array($content ?? null) ? $content : [];
-$props = is_array($content['props'] ?? null) ? $content['props'] : [];
-$src = UrlPolicy::media((string) ($props['src'] ?? ''));
+$props   = is_array($content['props'] ?? null) ? $content['props'] : [];
+$src     = UrlPolicy::media((string) ($props['src'] ?? ''));
 $caption = trim(t((string) ($props['caption'] ?? '')));
 
 ?>

@@ -14,6 +14,8 @@ PHP 8.3 and 8.4 are the supported release targets and are required CI gates. Dev
 
 Prerequisites are PHP 8.3 or 8.4 with cURL, DOM, PDO, and either PDO SQLite or PDO MySQL, plus Composer 2. Node.js is needed only when changing NafCMS frontend sources, not in an installed host.
 
+The package requires Framework 0.2.9 or newer for rendering from commands and workers, and CLI 0.2.2 or newer for Composer-installed command bootstrap paths. PDO belongs to the CMS's own requirements.
+
 Create a regular NAF host application, then install NafCMS as a plugin:
 
 ```bash
@@ -68,7 +70,7 @@ vendor/bin/naf mcp:token:create
 php -S 127.0.0.1:8080 -t public
 ```
 
-`nafcms:agents:install` creates the short project guide used by people and AI coding agents at the host root. It never overwrites an existing user-owned `AGENTS.md`; `--update` refreshes only a file carrying the NafCMS managed marker. The guide gives a synchronized inspection order and the explicit Page, API, content, migration, view, handler, service, repository, model, plugin, and MCP extension points.
+`nafcms:agents:install` creates the short project guide used by people and AI coding agents at the host root. It never overwrites an existing user-owned `AGENTS.md`; `--update` refreshes only a file carrying the NafCMS managed marker. The current starter already ships a guide, so this command reports that it was preserved and exits with status 1. Review and combine the [CMS guide template](docs/templates/SHIPPED_AGENTS.md) with the host's instructions when needed. The guide gives a synchronized inspection order and the explicit Page, API, content, migration, view, handler, service, repository, model, plugin, and MCP extension points.
 
 `user:create` requests the password twice with terminal echo disabled. For non-interactive installation, pass `--password-file` with a short-lived mode-`0600` file instead of exposing a password in shell history or the process list. Open `http://127.0.0.1:8080/admin` after installation. Configure the host database in `app/config.php` or its environment file before migrating. Production web servers should use the host's `public` directory as the DocumentRoot and rewrite missing files to `index.php`.
 
@@ -98,7 +100,7 @@ Use `npm run dev` while working on Tailwind or admin UI assets.
 
 ## Release Gates
 
-Every change is checked on PHP 8.3 and 8.4 with Composer validation, PHPUnit, generated-documentation drift detection, and the repository integrity check. Separate jobs rebuild the Tailwind asset, audit the locked Composer dependencies, apply all migrations to MariaDB, inspect the Composer archive, and install the mirrored package into a freshly generated NAF host. The host smoke test verifies plugin boot idempotence, views and admin routing, commands, SQLite migrations, published assets, authenticated admin boundaries, scoped MCP execution, and that normal host writes never modify `vendor/naf/cms`.
+Every change is checked on PHP 8.3 and 8.4 with Composer validation, PHPUnit, generated-documentation drift detection, and the repository integrity check. PHP 8.3 also tests the lowest allowed NAF dependencies. Separate jobs rebuild the Tailwind asset, audit locked Composer and npm dependencies, apply all migrations to MariaDB, inspect the Composer archive, and install the mirrored package into a freshly generated NAF host. The host smoke test verifies plugin boot idempotence, views and admin routing, commands, SQLite migrations, published assets, authenticated admin boundaries, scoped MCP execution, and that normal host writes never modify `vendor/naf/cms`.
 
 Run the same package-level checks locally with:
 
@@ -107,7 +109,7 @@ scripts/check-package.sh
 scripts/package-smoke.sh
 ```
 
-The smoke script needs network access to create the temporary official `naf/app` host. It deletes the fixture after the run and does not require Docker; MariaDB is only an additional CI migration gate.
+The smoke script needs network access to create the temporary official `naf/app` host. It checks preservation of the starter's guide and installation of a CMS-managed guide, deletes the fixture after the run, and does not require Docker; MariaDB is only an additional CI migration gate. Static analysis scans the dependency helpers without booting the application or reading a local environment file. Tailwind builds scan only the declared package PHP, template and JavaScript sources, so temporary hosts and local tooling do not affect generated CSS.
 
 ## Sitebuilder Preview
 
@@ -491,4 +493,11 @@ For architecture principles, audit rules, testing expectations, and contributor 
 
 ## Authentication migration
 
-Generic identity, provider and permission mechanics use `naf/auth`. See [the migration guide](docs/auth-migration.md) for the local pre-release Composer setup, existing-session compatibility and application boundaries.
+Generic identity, provider and permission mechanics use `naf/auth`. See [the migration guide](docs/auth-migration.md) for published Composer dependencies, existing-session compatibility and application boundaries.
+
+## PHP code style
+
+Source, tests and PHP templates follow the shared [NAF code style](https://github.com/nafphp/docs/blob/main/CODE_STYLE.md)
+(PER Coding Style 3.0 with the Nafinity readability rules). After `composer install`, run
+`composer style:check` to verify formatting or `composer style:fix` to apply it. The formatter
+is a development dependency. Review template output and run the package checks after changes.

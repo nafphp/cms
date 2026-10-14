@@ -10,8 +10,8 @@ use Naf\CMS\Support\AuditActorInfo;
 use Naf\CMS\Support\AuditActorResolver;
 use Naf\CMS\Support\AuditEntry;
 use Tests\Support\DatabaseTestCase;
+
 use function Naf\CMS\audit;
-use function Naf\CMS\audit_log;
 
 final class AuditTest extends DatabaseTestCase
 {

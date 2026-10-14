@@ -51,34 +51,34 @@ final class ArticleFormServiceTest extends DatabaseTestCase
     public function testFindArticleForFormReturnsSelectedVersionWithTags(): void
     {
         $categoryId = $this->insertRow('categories', ['name' => 'CMS']);
-        $articleId = $this->insertRow('articles', [
-            'category_id' => $categoryId,
-            'author' => 7,
+        $articleId  = $this->insertRow('articles', [
+            'category_id'                => $categoryId,
+            'author'                     => 7,
             'hide_lead_image_in_content' => 1,
         ]);
         $tagId = $this->insertRow('tags', ['name' => 'Architecture']);
         $this->insertRow('article_tags', ['article_id' => $articleId, 'tag_id' => $tagId]);
         $this->insertRow('article_versions', [
-            'article_id' => $articleId,
-            'language' => 'de',
-            'version' => 1,
-            'status' => 'draft',
-            'slug' => 'alter-titel',
-            'title' => 'Alter Titel',
-            'teaser' => '',
-            'content' => '{}',
+            'article_id'  => $articleId,
+            'language'    => 'de',
+            'version'     => 1,
+            'status'      => 'draft',
+            'slug'        => 'alter-titel',
+            'title'       => 'Alter Titel',
+            'teaser'      => '',
+            'content'     => '{}',
             'publishedAt' => null,
             'show_teaser' => 1,
         ]);
         $versionId = $this->insertRow('article_versions', [
-            'article_id' => $articleId,
-            'language' => 'de',
-            'version' => 2,
-            'status' => 'review',
-            'slug' => 'neuer-titel',
-            'title' => 'Neuer Titel',
-            'teaser' => 'Kurz',
-            'content' => '{"blocks":[]}',
+            'article_id'  => $articleId,
+            'language'    => 'de',
+            'version'     => 2,
+            'status'      => 'review',
+            'slug'        => 'neuer-titel',
+            'title'       => 'Neuer Titel',
+            'teaser'      => 'Kurz',
+            'content'     => '{"blocks":[]}',
             'publishedAt' => null,
             'show_teaser' => 1,
         ]);
@@ -95,31 +95,31 @@ final class ArticleFormServiceTest extends DatabaseTestCase
     public function testNextVersionIsLanguageAware(): void
     {
         $articleId = $this->insertRow('articles', [
-            'category_id' => null,
-            'author' => 1,
+            'category_id'                => null,
+            'author'                     => 1,
             'hide_lead_image_in_content' => 0,
         ]);
         $this->insertRow('article_versions', [
-            'article_id' => $articleId,
-            'language' => 'de',
-            'version' => 3,
-            'status' => 'draft',
-            'slug' => 'de',
-            'title' => 'DE',
-            'teaser' => '',
-            'content' => '{}',
+            'article_id'  => $articleId,
+            'language'    => 'de',
+            'version'     => 3,
+            'status'      => 'draft',
+            'slug'        => 'de',
+            'title'       => 'DE',
+            'teaser'      => '',
+            'content'     => '{}',
             'publishedAt' => null,
             'show_teaser' => 1,
         ]);
         $this->insertRow('article_versions', [
-            'article_id' => $articleId,
-            'language' => 'en',
-            'version' => 1,
-            'status' => 'draft',
-            'slug' => 'en',
-            'title' => 'EN',
-            'teaser' => '',
-            'content' => '{}',
+            'article_id'  => $articleId,
+            'language'    => 'en',
+            'version'     => 1,
+            'status'      => 'draft',
+            'slug'        => 'en',
+            'title'       => 'EN',
+            'teaser'      => '',
+            'content'     => '{}',
             'publishedAt' => null,
             'show_teaser' => 1,
         ]);
@@ -134,41 +134,41 @@ final class ArticleFormServiceTest extends DatabaseTestCase
     public function testReviewActionsAreNewestFirstAndIncludeReviewerNames(): void
     {
         $reviewerId = $this->insertRow('users', [
-            'username' => 'reviewer',
+            'username'  => 'reviewer',
             'firstname' => 'Ria',
-            'lastname' => 'Review',
+            'lastname'  => 'Review',
         ]);
         $articleId = $this->insertRow('articles', [
-            'category_id' => null,
-            'author' => $reviewerId,
+            'category_id'                => null,
+            'author'                     => $reviewerId,
             'hide_lead_image_in_content' => 0,
         ]);
         $versionId = $this->insertRow('article_versions', [
-            'article_id' => $articleId,
-            'language' => 'de',
-            'version' => 1,
-            'status' => 'review',
-            'slug' => 'review',
-            'title' => 'Review',
-            'teaser' => '',
-            'content' => '{}',
+            'article_id'  => $articleId,
+            'language'    => 'de',
+            'version'     => 1,
+            'status'      => 'review',
+            'slug'        => 'review',
+            'title'       => 'Review',
+            'teaser'      => '',
+            'content'     => '{}',
             'publishedAt' => null,
             'show_teaser' => 1,
         ]);
 
         $this->insertRow('article_review_actions', [
             'article_version_id' => $versionId,
-            'reviewed_by' => $reviewerId,
-            'action' => 'declined',
-            'comment' => 'Bitte schärfen',
-            'reviewed_at' => '2026-05-01 10:00:00',
+            'reviewed_by'        => $reviewerId,
+            'action'             => 'declined',
+            'comment'            => 'Bitte schärfen',
+            'reviewed_at'        => '2026-05-01 10:00:00',
         ]);
         $this->insertRow('article_review_actions', [
             'article_version_id' => $versionId,
-            'reviewed_by' => $reviewerId,
-            'action' => 'approved',
-            'comment' => 'Passt',
-            'reviewed_at' => '2026-05-01 11:00:00',
+            'reviewed_by'        => $reviewerId,
+            'action'             => 'approved',
+            'comment'            => 'Passt',
+            'reviewed_at'        => '2026-05-01 11:00:00',
         ]);
 
         $actions = (new ArticleFormService($this->pdo))->reviewActions($versionId);

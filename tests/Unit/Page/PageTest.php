@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Page;
 
+use LogicException;
 use Naf\CMS\Enums\Permission;
 use Naf\CMS\Enums\Role;
 use Naf\CMS\Page\Layout;
@@ -36,17 +37,17 @@ final class PageTest extends TestCase
     {
         $page = Page::create('custom.about');
 
-        $page->meta()->seo->description = 'About NafCMS';
-        $page->meta()->navigation->label = 'About';
-        $page->meta()->theme->accent = '#64748b';
-        $page->meta()->theme->headerBackground = '#020617';
-        $page->meta()->theme->headerBackgroundTransparent = false;
-        $page->meta()->theme->footerBackground = '#111827';
-        $page->meta()->theme->footerBackgroundTransparent = true;
-        $page->meta()->theme->contentWidth = 'wide';
-        $page->meta()->theme->headerContentWidthIncludesChrome = true;
+        $page->meta()->seo->description                           = 'About NafCMS';
+        $page->meta()->navigation->label                          = 'About';
+        $page->meta()->theme->accent                              = '#64748b';
+        $page->meta()->theme->headerBackground                    = '#020617';
+        $page->meta()->theme->headerBackgroundTransparent         = false;
+        $page->meta()->theme->footerBackground                    = '#111827';
+        $page->meta()->theme->footerBackgroundTransparent         = true;
+        $page->meta()->theme->contentWidth                        = 'wide';
+        $page->meta()->theme->headerContentWidthIncludesChrome    = true;
         $page->meta()->theme->headerBackgroundWidthIncludesChrome = true;
-        $page->meta()->theme->footerContentWidthIncludesChrome = false;
+        $page->meta()->theme->footerContentWidthIncludesChrome    = false;
         $page->meta()->theme->footerBackgroundWidthIncludesChrome = false;
 
         self::assertSame('About NafCMS', $page->meta()->seo->description);
@@ -66,7 +67,7 @@ final class PageTest extends TestCase
     public function testPageCanRegisterDataHandlerWithPermission(): void
     {
         $handler = static fn() => null;
-        $page = Page::create('admin.users.create')
+        $page    = Page::create('admin.users.create')
             ->setPath('/admin/users/create')
             ->setDataHandler($handler, 'post', Permission::USERS_CREATE);
 
@@ -111,7 +112,7 @@ final class PageTest extends TestCase
     {
         $layout = Layout::create('landing')->addBlock('hero', 'frontend.blocks.hero');
 
-        self::expectException(\LogicException::class);
+        self::expectException(LogicException::class);
         self::expectExceptionMessage('Layout already has a block "hero".');
 
         $layout->addBlock('hero', 'frontend.blocks.alternate-hero');

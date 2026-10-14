@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Theme;
 
-use Naf\CMS\Theme\Theme;
+use LogicException;
 
 final class ThemeRegistry
 {
@@ -26,10 +26,11 @@ final class ThemeRegistry
     public function add(Theme $theme, bool $replace = false): self
     {
         if (isset($this->themes[$theme->id()]) && !$replace) {
-            throw new \LogicException(sprintf('Theme "%s" is already registered.', $theme->id()));
+            throw new LogicException(sprintf('Theme "%s" is already registered.', $theme->id()));
         }
 
         $this->themes[$theme->id()] = $theme;
+
         return $this;
     }
 
@@ -48,6 +49,7 @@ final class ThemeRegistry
     public function get(?string $id): ?Theme
     {
         $id = Theme::slug((string) $id);
+
         return $id === '' ? null : ($this->themes[$id] ?? null);
     }
 

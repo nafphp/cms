@@ -12,9 +12,9 @@ final class FileRateLimiterTest extends TestCase
 {
     public function testAttemptsAreLimitedAtomicallyAndResetAfterTtl(): void
     {
-        $now = 1000;
+        $now       = 1000;
         $directory = sys_get_temp_dir() . '/nafcms-rate-test-' . bin2hex(random_bytes(6));
-        $limiter = new FileRateLimiter($directory, static function () use (&$now): int {
+        $limiter   = new FileRateLimiter($directory, static function () use (&$now): int {
             return $now;
         });
 
@@ -32,7 +32,7 @@ final class FileRateLimiterTest extends TestCase
     public function testLoginLimiterUsesTemporaryPairBucketWithoutStoringIdentifiers(): void
     {
         $directory = sys_get_temp_dir() . '/nafcms-login-rate-test-' . bin2hex(random_bytes(6));
-        $limiter = new LoginRateLimiter(new FileRateLimiter($directory, static fn(): int => 2000));
+        $limiter   = new LoginRateLimiter(new FileRateLimiter($directory, static fn(): int => 2000));
 
         for ($attempt = 0; $attempt < 5; $attempt++) {
             self::assertTrue($limiter->recordFailure('Ada@example.test', '203.0.113.20')->allowed);

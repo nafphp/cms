@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Mcp\Tools;
 
+use DateTimeImmutable;
 use Naf\CMS\Contracts\LocalAiToolMetadataInterface;
 use Naf\CMS\Enums\ToolRisk;
-
 use Naf\MCP\Support\Schema;
 use Naf\MCP\Tools\ScopedToolInterface;
 use Naf\MCP\Tools\ToolInterface;
+
 use function Naf\app;
 use function Naf\CMS\cms;
 
@@ -17,8 +18,9 @@ final class PluginOverviewTool implements ToolInterface, ScopedToolInterface, Lo
 {
     use DeclaresLocalAiToolRisk;
 
-    private const ToolRisk AI_RISK = ToolRisk::READ;
+    private const ToolRisk AI_RISK    = ToolRisk::READ;
     private const bool AI_DESTRUCTIVE = false;
+
     public function name(): string
     {
         return 'cms_plugin_overview';
@@ -46,27 +48,27 @@ final class PluginOverviewTool implements ToolInterface, ScopedToolInterface, Lo
     public function handle(array $args): array
     {
         $includePaths = filter_var($args['include_paths'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $plugins = [];
+        $plugins      = [];
 
         foreach (app()->getPlugins() as $package => $plugin) {
             $resources = [
-                'config_paths' => $plugin->getConfigPaths(),
-                'route_files' => $plugin->getRouteFiles(),
-                'view_paths' => $plugin->getViewPaths(),
-                'function_files' => $plugin->getFunctionsFiles(),
+                'config_paths'      => $plugin->getConfigPaths(),
+                'route_files'       => $plugin->getRouteFiles(),
+                'view_paths'        => $plugin->getViewPaths(),
+                'function_files'    => $plugin->getFunctionsFiles(),
                 'view_helper_files' => $plugin->getViewHelpersFiles(),
             ];
 
             $entry = [
-                'package' => (string) $package,
-                'version' => method_exists($plugin, 'getVersion') ? $plugin->getVersion() : null,
+                'package'   => (string) $package,
+                'version'   => method_exists($plugin, 'getVersion') ? $plugin->getVersion() : null,
                 'resources' => array_map('count', $resources),
             ];
 
             if ($includePaths) {
                 $entry['paths'] = array_map(
                     fn(array $paths): array => array_map($this->relativePath(...), $paths),
-                    $resources
+                    $resources,
                 );
             }
 
@@ -74,15 +76,15 @@ final class PluginOverviewTool implements ToolInterface, ScopedToolInterface, Lo
         }
 
         return [
-            'generated_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
-            'total' => count($plugins),
-            'plugins' => $plugins,
-            'registries' => [
-                'pages' => count(cms()->pages()->all()),
+            'generated_at' => (new DateTimeImmutable())->format(DATE_ATOM),
+            'total'        => count($plugins),
+            'plugins'      => $plugins,
+            'registries'   => [
+                'pages'         => count(cms()->pages()->all()),
                 'api_endpoints' => count(cms()->api()->all()),
                 'content_types' => count(cms()->contentTypes()->all()),
-                'block_types' => count(cms()->blockTypes()->all()),
-                'block_views' => count(cms()->blocks()->all()),
+                'block_types'   => count(cms()->blockTypes()->all()),
+                'block_views'   => count(cms()->blocks()->all()),
             ],
         ];
     }

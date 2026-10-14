@@ -2,20 +2,21 @@
 
 declare(strict_types=1);
 
-use Naf\CMS\Enums\Permission;
 use Naf\CMS\Contracts\TranslationServiceInterface;
+use Naf\CMS\Enums\Permission;
 use Naf\CMS\Handlers\Page\Form\StoreForm;
 use Naf\CMS\Page\Page;
+
 use function Naf\app;
+use function Naf\CMS\cms;
 use function Naf\I18n\t;
 use function Naf\redirect;
 use function Naf\route;
 use function Naf\View\render;
-use function Naf\CMS\cms;
 
 $translationSuggestions = static function (): array {
     $language = cms()->settings()->currentLanguage();
-    $entries = app()->container()->get(TranslationServiceInterface::class)->entries($language);
+    $entries  = app()->container()->get(TranslationServiceInterface::class)->entries($language);
 
     return array_map(
         static fn(string $key, string $value): array => ['key' => $key, 'value' => $value],
@@ -32,10 +33,10 @@ return [
         ->requirePermission(Permission::FORMS_VIEW)
         ->setAdminNavigation('Formulare', parent: 'content', icon: 'form', order: 20, key: 'forms')
         ->setContent(static fn() => render('admin.forms.index', [
-            'title' => t('Formulare'),
-            'pageTitle' => t('Formulare'),
+            'title'        => t('Formulare'),
+            'pageTitle'    => t('Formulare'),
             'pageSubtitle' => t('Formulare erstellen, bearbeiten, veröffentlichen und Einsendungen prüfen.'),
-            'forms' => cms()->forms()->summaries(),
+            'forms'        => cms()->forms()->summaries(),
         ])),
 
     Page::create('admin.forms.create')
@@ -46,13 +47,13 @@ return [
         ->setDataHandler(StoreForm::class, 'POST', Permission::FORMS_CREATE)
         ->hideFromAdminNavigation('forms')
         ->setContent(static fn() => render('admin.forms.builder', [
-            'title' => t('Create form'),
-            'pageTitle' => t('Create form'),
-            'pageSubtitle' => t('Define fields, validation basics, and submission behavior.'),
-            'form' => null,
-            'mode' => 'create',
-            'saveUrl' => route('admin.forms.create'),
-            'overviewUrl' => route('admin.forms'),
+            'title'                  => t('Create form'),
+            'pageTitle'              => t('Create form'),
+            'pageSubtitle'           => t('Define fields, validation basics, and submission behavior.'),
+            'form'                   => null,
+            'mode'                   => 'create',
+            'saveUrl'                => route('admin.forms.create'),
+            'overviewUrl'            => route('admin.forms'),
             'translationSuggestions' => $translationSuggestions(),
         ])),
 
@@ -70,13 +71,13 @@ return [
             }
 
             return render('admin.forms.builder', [
-                'title' => t('Edit form'),
-                'pageTitle' => t('Edit form'),
-                'pageSubtitle' => t('Update fields, status, and submission behavior.'),
-                'form' => $form,
-                'mode' => 'edit',
-                'saveUrl' => route('admin.forms.edit', ['formId' => (int) $formId]),
-                'overviewUrl' => route('admin.forms'),
+                'title'                  => t('Edit form'),
+                'pageTitle'              => t('Edit form'),
+                'pageSubtitle'           => t('Update fields, status, and submission behavior.'),
+                'form'                   => $form,
+                'mode'                   => 'edit',
+                'saveUrl'                => route('admin.forms.edit', ['formId' => (int) $formId]),
+                'overviewUrl'            => route('admin.forms'),
                 'translationSuggestions' => $translationSuggestions(),
             ]);
         }),
@@ -94,11 +95,11 @@ return [
             }
 
             return render('admin.forms.submissions', [
-                'title' => t('Form submissions'),
-                'pageTitle' => t('Form submissions'),
+                'title'        => t('Form submissions'),
+                'pageTitle'    => t('Form submissions'),
                 'pageSubtitle' => (string) ($form['title'] ?? ''),
-                'form' => $form,
-                'submissions' => cms()->forms()->submissions((int) $formId),
+                'form'         => $form,
+                'submissions'  => cms()->forms()->submissions((int) $formId),
             ]);
         }),
 ];

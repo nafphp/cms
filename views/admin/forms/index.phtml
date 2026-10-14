@@ -4,15 +4,15 @@ use function Naf\I18n\t;
 use function Naf\route;
 use function Naf\View\view;
 
-$forms = is_array($forms ?? null) ? $forms : [];
+$forms  = is_array($forms ?? null) ? $forms : [];
 $config = [
     'rows' => array_map(static fn(array $form): array => [
         ...$form,
         'title' => t((string) ($form['title'] ?? '')),
-        'kind' => 'Form',
+        'kind'  => 'Form',
     ], $forms),
-    'sort' => ['key' => 'title', 'direction' => 'asc'],
-    'search' => ['title', 'identifier', 'status', 'updated'],
+    'sort'    => ['key' => 'title', 'direction' => 'asc'],
+    'search'  => ['title', 'identifier', 'status', 'updated'],
     'columns' => [
         ['key' => 'title', 'labelKey' => 'title', 'type' => 'title', 'subtitle' => 'identifier', 'colClass' => 'w-[28%]'],
         ['key' => 'status', 'labelKey' => 'status', 'type' => 'status', 'colClass' => 'w-[13%]'],
@@ -22,28 +22,28 @@ $config = [
         ['key' => 'actions', 'labelKey' => 'actions', 'sortable' => false, 'colClass' => 'w-[120px]'],
     ],
     'urls' => [
-        'create' => route('admin.forms.create'),
-        'edit' => '/admin/forms/{id}/edit',
+        'create'      => route('admin.forms.create'),
+        'edit'        => '/admin/forms/{id}/edit',
         'submissions' => '/admin/forms/{id}/submissions',
-        'delete' => '/api/admin/forms/{id}/delete',
+        'delete'      => '/api/admin/forms/{id}/delete',
     ],
     'labels' => [
-        'actions' => t('Actions'),
-        'cancel' => t('Cancel'),
-        'createForm' => t('Create form'),
-        'delete' => t('Delete'),
+        'actions'       => t('Actions'),
+        'cancel'        => t('Cancel'),
+        'createForm'    => t('Create form'),
+        'delete'        => t('Delete'),
         'deleteConfirm' => t('Really delete this form? Submissions will be removed too.'),
-        'deleted' => t('Form deleted.'),
-        'edit' => t('Edit'),
-        'empty' => t('No forms found.'),
-        'error' => t('Action failed.'),
-        'fields' => t('Fields'),
-        'loading' => t('Loading forms...'),
-        'noResults' => t('No matching forms found.'),
-        'status' => t('Status'),
-        'submissions' => t('Submissions'),
-        'title' => t('Title'),
-        'updated' => t('Updated'),
+        'deleted'       => t('Form deleted.'),
+        'edit'          => t('Edit'),
+        'empty'         => t('No forms found.'),
+        'error'         => t('Action failed.'),
+        'fields'        => t('Fields'),
+        'loading'       => t('Loading forms...'),
+        'noResults'     => t('No matching forms found.'),
+        'status'        => t('Status'),
+        'submissions'   => t('Submissions'),
+        'title'         => t('Title'),
+        'updated'       => t('Updated'),
     ],
 ];
 
@@ -52,13 +52,13 @@ $config = [
 
 <?php $this->block('content'); ?>
 <?= view('components.admin.grid', [
-    'attributes' => ['data-form-grid' => true],
-    'frameAttributes' => ['data-form-grid-frame' => true],
-    'config' => $config,
+    'attributes'        => ['data-form-grid' => true],
+    'frameAttributes'   => ['data-form-grid-frame' => true],
+    'config'            => $config,
     'searchPlaceholder' => t('Search forms'),
-    'actionLabel' => t('Create form'),
-    'actionHref' => route('admin.forms.create'),
-    'loadingLabel' => t('Loading forms...'),
-    'script' => '/js/admin/form-grid.js',
+    'actionLabel'       => t('Create form'),
+    'actionHref'        => route('admin.forms.create'),
+    'loadingLabel'      => t('Loading forms...'),
+    'script'            => '/js/admin/form-grid.js',
 ]) ?>
 <?php $this->endBlock('content'); ?>

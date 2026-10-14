@@ -16,6 +16,7 @@ final class FormSubmissionActionRunnerTest extends NafTestCase
         $runner = new FormSubmissionActionRunner(
             static function (int $formId, array $payload, array $meta) use (&$stored): int {
                 $stored = compact('formId', 'payload', 'meta');
+
                 return 42;
             },
         );
@@ -29,21 +30,22 @@ final class FormSubmissionActionRunnerTest extends NafTestCase
 
     public function testSendsWebhookActionPayload(): void
     {
-        $sent = [];
+        $sent   = [];
         $runner = new FormSubmissionActionRunner(
             static fn(): int => 0,
             static function (string $url, string $method, array $payload) use (&$sent): array {
                 $sent = compact('url', 'method', 'payload');
+
                 return ['success' => true, 'status' => 204];
             },
             $this->publicPolicy(),
         );
 
         $result = $runner->run([
-            'id' => 5,
+            'id'         => 5,
             'identifier' => 'contact',
-            'title' => 'Contact',
-            'settings' => [
+            'title'      => 'Contact',
+            'settings'   => [
                 'actions' => [
                     ['type' => 'webhook', 'url' => 'https://example.test/leads', 'method' => 'PUT'],
                 ],
@@ -69,8 +71,8 @@ final class FormSubmissionActionRunnerTest extends NafTestCase
             'settings' => [
                 'actions' => [
                     [
-                        'type' => 'webhook',
-                        'url' => 'https://example.test/leads',
+                        'type'        => 'webhook',
+                        'url'         => 'https://example.test/leads',
                         'failOnError' => true,
                     ],
                 ],
@@ -83,19 +85,20 @@ final class FormSubmissionActionRunnerTest extends NafTestCase
 
     public function testBlockedWebhookNeverReachesInjectedSender(): void
     {
-        $sent = false;
+        $sent   = false;
         $runner = new FormSubmissionActionRunner(
             static fn(): int => 0,
             static function () use (&$sent): array {
                 $sent = true;
+
                 return ['success' => true, 'status' => 204];
             },
         );
 
         $result = $runner->run([
             'settings' => ['actions' => [[
-                'type' => 'webhook',
-                'url' => 'https://169.254.169.254/latest/meta-data',
+                'type'        => 'webhook',
+                'url'         => 'https://169.254.169.254/latest/meta-data',
                 'failOnError' => true,
             ]]],
         ], [], []);

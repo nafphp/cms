@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Content;
 
+use InvalidArgumentException;
 use Naf\CMS\Content\Article\Block\BlockInterface;
 use Naf\CMS\Content\Article\Block\HeaderBlock;
 use Naf\CMS\Content\Article\Block\ImageBlock;
 use Naf\CMS\Content\Article\Block\ParagraphBlock;
 use Naf\CMS\Content\Article\BlockRegistry;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 final class BlockRegistryTest extends TestCase
 {
@@ -60,14 +62,14 @@ final class BlockRegistryTest extends TestCase
     {
         $registry = new BlockRegistry();
 
-        self::expectException(\InvalidArgumentException::class);
-        $registry->register('bad', \stdClass::class);
+        self::expectException(InvalidArgumentException::class);
+        $registry->register('bad', stdClass::class);
     }
 
     public function testAllReturnsTypeToClassMap(): void
     {
         $registry = new BlockRegistry();
-        $map = $registry->all();
+        $map      = $registry->all();
 
         self::assertSame(ParagraphBlock::class, $map['paragraph'] ?? null);
         self::assertSame(ImageBlock::class, $map['image'] ?? null);

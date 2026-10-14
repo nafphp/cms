@@ -1,26 +1,26 @@
 <?php
 
+use function Naf\I18n\t;
 use function Naf\View\s;
 use function Naf\View\view;
-use function Naf\I18n\t;
 
-$fields = is_array($fields ?? null) ? $fields : [];
+$fields       = is_array($fields ?? null) ? $fields : [];
 $sourceLabels = [
     'database' => t('Database'),
-    'config' => t('config.php'),
-    'default' => t('Default'),
+    'config'   => t('config.php'),
+    'default'  => t('Default'),
 ];
 
 ?>
 <div class="grid items-start gap-4 lg:grid-cols-2">
     <?php foreach ($fields as $field): ?>
         <?php
-        $key = (string) ($field['key'] ?? '');
-        $type = (string) ($field['type'] ?? 'text');
-        $value = (string) ($field['value'] ?? '');
-        $options = is_array($field['options'] ?? null) ? $field['options'] : [];
-        $label = (string) ($field['label'] ?? $key);
-        $source = (string) ($field['source'] ?? 'default');
+        $key         = (string) ($field['key'] ?? '');
+        $type        = (string) ($field['type'] ?? 'text');
+        $value       = (string) ($field['value'] ?? '');
+        $options     = is_array($field['options'] ?? null) ? $field['options'] : [];
+        $label       = (string) ($field['label'] ?? $key);
+        $source      = (string) ($field['source'] ?? 'default');
         $sourceLabel = (string) ($sourceLabels[$source] ?? $sourceLabels['default']);
         ?>
         <div class="settings-field" data-setting-field="<?= s($key) ?>">
@@ -32,19 +32,19 @@ $sourceLabels = [
             </div>
             <?php if ($type === 'textarea'): ?>
                 <?= view('components.admin.form.text', [
-                    'name' => $key,
-                    'label' => $label,
-                    'value' => $value,
-                    'rows' => 3,
+                    'name'      => $key,
+                    'label'     => $label,
+                    'value'     => $value,
+                    'rows'      => 3,
                     'hideLabel' => true,
-                    'class' => 'min-h-24',
+                    'class'     => 'min-h-24',
                 ]) ?>
             <?php elseif ($type === 'select'): ?>
                 <?= view('components.admin.form.select', [
-                    'name' => $key,
-                    'label' => $label,
-                    'selected' => $value,
-                    'options' => $options,
+                    'name'      => $key,
+                    'label'     => $label,
+                    'selected'  => $value,
+                    'options'   => $options,
                     'hideLabel' => true,
                 ]) ?>
             <?php elseif ($type === 'multiselect'): ?>
@@ -61,10 +61,10 @@ $sourceLabels = [
                         <?php foreach ($options as $optionValue => $optionLabel): ?>
                             <?php $optionValue = (string) $optionValue; ?>
                             <?= view('components.admin.form.checkbox', [
-                                'name' => $key . '[]',
-                                'label' => (string) $optionLabel,
-                                'value' => $optionValue,
-                                'checked' => in_array($optionValue, $selectedValues, true),
+                                'name'      => $key . '[]',
+                                'label'     => (string) $optionLabel,
+                                'value'     => $optionValue,
+                                'checked'   => in_array($optionValue, $selectedValues, true),
                                 'useMemory' => false,
                             ]) ?>
                         <?php endforeach; ?>
@@ -72,10 +72,10 @@ $sourceLabels = [
                 </fieldset>
             <?php else: ?>
                 <?= view('components.admin.form.input', [
-                    'name' => $key,
-                    'label' => $label,
-                    'value' => $value,
-                    'type' => preg_match('/(?:api[_-]?key|token|secret|password)$/i', $key) === 1 ? 'password' : 'text',
+                    'name'      => $key,
+                    'label'     => $label,
+                    'value'     => $value,
+                    'type'      => preg_match('/(?:api[_-]?key|token|secret|password)$/i', $key) === 1 ? 'password' : 'text',
                     'hideLabel' => true,
                 ]) ?>
             <?php endif; ?>

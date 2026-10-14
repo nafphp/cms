@@ -1,21 +1,22 @@
 <?php
 
-use function Naf\I18n\t;
-use function Naf\View\s;
 use Naf\CMS\Services\Ai\LocalAiPromptLibrary;
+
 use function Naf\CMS\cms;
 use function Naf\CMS\user;
+use function Naf\I18n\t;
+use function Naf\View\s;
 
-$settings = cms()->settings();
-$aiEnabledValue = strtolower(trim((string) $settings->value('ai.enabled', '0')));
-$aiEnabled = in_array($aiEnabledValue, ['1', 'true', 'yes', 'on', 'enabled'], true);
-$aiType = strtolower(trim((string) $settings->value('ai.type', 'local')));
-$aiUrl = trim((string) $settings->value('ai.url', 'http://localhost:11434'));
-$aiModel = trim((string) $settings->value('ai.model', 'llama3.1:8b'));
-$aiInstructions = trim((string) $settings->value('ai.instructions', ''));
-$aiSystemPrompt = (new LocalAiPromptLibrary())->compiledPrompt();
-$isLocal = $aiType === 'local';
-$currentUser = user()?->get();
+$settings        = cms()->settings();
+$aiEnabledValue  = strtolower(trim((string) $settings->value('ai.enabled', '0')));
+$aiEnabled       = in_array($aiEnabledValue, ['1', 'true', 'yes', 'on', 'enabled'], true);
+$aiType          = strtolower(trim((string) $settings->value('ai.type', 'local')));
+$aiUrl           = trim((string) $settings->value('ai.url', 'http://localhost:11434'));
+$aiModel         = trim((string) $settings->value('ai.model', 'llama3.1:8b'));
+$aiInstructions  = trim((string) $settings->value('ai.instructions', ''));
+$aiSystemPrompt  = (new LocalAiPromptLibrary())->compiledPrompt();
+$isLocal         = $aiType === 'local';
+$currentUser     = user()?->get();
 $currentUserName = trim((string) ($currentUser?->getFirstname() ?: $currentUser?->getDisplayName() ?: ''));
 
 ?>

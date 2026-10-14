@@ -6,6 +6,7 @@ use Naf\CMS\Enums\Permission;
 use Naf\CMS\Handlers\Page\Theme\StoreTheme;
 use Naf\CMS\Page\Page;
 use Naf\CMS\Repositories\ThemeRepository;
+
 use function Naf\I18n\t;
 use function Naf\redirect;
 use function Naf\request;
@@ -22,9 +23,9 @@ return [
         ->requirePermission(Permission::THEMES_VIEW)
         ->setAdminNavigation('Themes', parent: 'content', icon: 'paint', order: 8, key: 'themes')
         ->setContent(static fn() => render('admin.themes.index', [
-            'title' => t('Themes'),
+            'title'        => t('Themes'),
             'pageSubtitle' => t('Manage frontend theme assets, surfaces, and editor exports.'),
-            'themes' => $repository()->summaries(),
+            'themes'       => $repository()->summaries(),
         ])),
 
     Page::create('admin.themes.create')
@@ -36,10 +37,10 @@ return [
         ->setDataHandler(StoreTheme::class, 'POST', Permission::THEMES_CREATE)
         ->hideFromAdminNavigation('themes')
         ->setContent(static fn() => render('admin.themes.form', [
-            'title' => t('Create theme'),
+            'title'        => t('Create theme'),
             'pageSubtitle' => t('Define surfaces and CSS for a frontend theme.'),
-            'theme' => null,
-            'error' => (string) (request()->getQueryParams()['error'] ?? ''),
+            'theme'        => null,
+            'error'        => (string) (request()->getQueryParams()['error'] ?? ''),
         ])),
 
     Page::create('admin.themes.edit')
@@ -57,10 +58,10 @@ return [
             }
 
             return render('admin.themes.form', [
-                'title' => t('Edit theme'),
+                'title'        => t('Edit theme'),
                 'pageSubtitle' => t('Define surfaces and CSS for a frontend theme.'),
-                'theme' => $theme,
-                'error' => (string) (request()->getQueryParams()['error'] ?? ''),
+                'theme'        => $theme,
+                'error'        => (string) (request()->getQueryParams()['error'] ?? ''),
             ]);
         }),
 ];

@@ -44,11 +44,11 @@ final class FooterBlockType extends AbstractBlockType
         $navigationOptions = PageBuilderBlockOptions::navigationOptions();
 
         return [
-            'text' => 'Powered by NafCMS',
+            'text'                 => 'Powered by NafCMS',
             'navigationIdentifier' => (string) ($navigationOptions[0]['value'] ?? 'main'),
-            'presentation' => 'compact',
-            'linkStyle' => 'blank',
-            'linkTheme' => 'default',
+            'presentation'         => 'compact',
+            'linkStyle'            => 'blank',
+            'linkTheme'            => 'default',
         ];
     }
 

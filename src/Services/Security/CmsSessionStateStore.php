@@ -17,14 +17,18 @@ final class CmsSessionStateStore extends SessionStateStore
 
     public function read(): ?array
     {
-        if ($this->cmsSession->get('auth') !== null) { return parent::read(); }
+        if ($this->cmsSession->get('auth') !== null) {
+            return parent::read();
+        }
         $legacyId = $this->cmsSession->get('userId');
         if ((is_int($legacyId) || is_string($legacyId)) && ctype_digit((string) $legacyId) && (int) $legacyId > 0) {
             $record = ['provider' => 'database', 'identifier' => (string) (int) $legacyId];
             $this->cmsSession->set('auth', $record);
+
             return $record;
         }
         $this->cmsSession->forget('userId');
+
         return null;
     }
 

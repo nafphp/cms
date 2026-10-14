@@ -73,6 +73,7 @@ final class ArticleRenderer
     public function categoryId(): ?int
     {
         $categoryId = (int) ($this->article['category_id'] ?? 0);
+
         return $categoryId > 0 ? $categoryId : null;
     }
 
@@ -88,7 +89,7 @@ final class ArticleRenderer
 
         return array_values(array_filter(array_map(
             static fn(mixed $tag): string => trim((string) $tag),
-            $tags
+            $tags,
         )));
     }
 
@@ -105,11 +106,11 @@ final class ArticleRenderer
     public function html(): string
     {
         $content = json_decode((string) ($this->article['content'] ?? ''), true);
-        $blocks = is_array($content) && isset($content['blocks']) && is_array($content['blocks'])
+        $blocks  = is_array($content) && isset($content['blocks']) && is_array($content['blocks'])
             ? $content['blocks']
             : [];
 
-        $html = [];
+        $html             = [];
         $leadImageSkipped = false;
 
         foreach ($blocks as $block) {
@@ -126,7 +127,7 @@ final class ArticleRenderer
             }
 
             $renderer = $this->registry->resolve($type) ?? $this->fallback;
-            $html[] = $renderer->render($data);
+            $html[]   = $renderer->render($data);
         }
 
         return implode("\n", array_filter($html));

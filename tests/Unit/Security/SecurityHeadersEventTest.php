@@ -9,6 +9,7 @@ use Naf\CMS\Security\CspNonce;
 use Naf\Core\Config;
 use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
+
 use function Naf\app;
 
 final class SecurityHeadersEventTest extends TestCase
@@ -49,9 +50,9 @@ final class SecurityHeadersEventTest extends TestCase
 
     public function testLocalAiEnablesLoopbackConnectTargets(): void
     {
-        $config = $this->originalConfig->all();
+        $config                  = $this->originalConfig->all();
         $config['ai']['enabled'] = true;
-        $config['ai']['type'] = 'local';
+        $config['ai']['type']    = 'local';
         app()->container()->set(Config::class, new Config($config));
 
         $response = (new SecurityHeadersEvent())->handle(new Response());

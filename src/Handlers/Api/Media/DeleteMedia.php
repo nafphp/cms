@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Naf\CMS\Handlers\Api\Media;
 
 use Psr\Http\Message\ResponseInterface;
+
+use function Naf\CMS\cms;
 use function Naf\I18n\t;
 use function Naf\json;
-use function Naf\CMS\cms;
 
 final class DeleteMedia
 {

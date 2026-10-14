@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Content\Article;
 
+use InvalidArgumentException;
 use Naf\CMS\Content\Article\Block\BlockInterface;
 use Naf\CMS\Content\Article\Block\CodeBlock;
 use Naf\CMS\Content\Article\Block\EmbedBlock;
@@ -37,8 +38,8 @@ final class BlockRegistry
     public function register(string $type, string $blockClass): void
     {
         if (!is_subclass_of($blockClass, BlockInterface::class)) {
-            throw new \InvalidArgumentException(
-                "Block class {$blockClass} must implement " . BlockInterface::class
+            throw new InvalidArgumentException(
+                "Block class {$blockClass} must implement " . BlockInterface::class,
             );
         }
 

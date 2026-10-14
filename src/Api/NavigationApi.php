@@ -13,7 +13,7 @@ use Naf\CMS\Navigation\NavigationRegistry;
 use Naf\CMS\Repositories\NavigationRepository;
 use Naf\CMS\Storage\EntityStorage;
 use Naf\CMS\Support\AuditEntry;
-use Naf\CMS\Api\ScopedNavigationApi;
+
 use function Naf\I18n\t;
 
 /**
@@ -27,14 +27,13 @@ final class NavigationApi implements ScopeAwareInterface
     /**
      * @var EntityStorage<SiteNavigation>|null
      */
-    private ?EntityStorage $storage = null;
+    private ?EntityStorage $storage       = null;
     private ?NavigationRegistry $registry = null;
 
     public function __construct(
         private NavigationRepository $repository,
         private bool $loadConfiguredRegistry = true,
-    )
-    {
+    ) {
     }
 
     /**
@@ -77,6 +76,7 @@ final class NavigationApi implements ScopeAwareInterface
     public function add(NavigationItem|array $item, bool $replace = false): self
     {
         $this->registry()->add($item, $replace);
+
         return $this;
     }
 
@@ -86,12 +86,14 @@ final class NavigationApi implements ScopeAwareInterface
     public function addMany(iterable $items, bool $replace = false): self
     {
         $this->registry()->addMany($items, $replace);
+
         return $this;
     }
 
     public function addNavigation(Navigation|array $navigation, bool $replace = false): self
     {
         $this->registry()->addNavigation($navigation, $replace);
+
         return $this;
     }
 
@@ -147,8 +149,8 @@ final class NavigationApi implements ScopeAwareInterface
      */
     public function save(array $payload): int
     {
-        $id = (int) ($payload['id'] ?? 0);
-        $old = $id > 0 ? $this->repository->find($id) : null;
+        $id      = (int) ($payload['id'] ?? 0);
+        $old     = $id > 0 ? $this->repository->find($id) : null;
         $savedId = $this->repository->save($payload);
 
         AuditEntry::create(
@@ -164,7 +166,7 @@ final class NavigationApi implements ScopeAwareInterface
 
     public function publish(int $id): bool
     {
-        $old = $this->repository->find($id);
+        $old       = $this->repository->find($id);
         $published = $this->repository->publish($id);
         if ($published) {
             AuditEntry::create(
@@ -181,7 +183,7 @@ final class NavigationApi implements ScopeAwareInterface
 
     public function delete(int $id): bool
     {
-        $old = $this->repository->find($id);
+        $old     = $this->repository->find($id);
         $deleted = $this->repository->delete($id);
         if ($deleted) {
             AuditEntry::create(
@@ -234,14 +236,13 @@ final class NavigationApi implements ScopeAwareInterface
         $data = $navigation->toArray();
 
         return [
-            'id' => $navigation->id(),
+            'id'         => $navigation->id(),
             'identifier' => $navigation->identifier(),
-            'title' => $navigation->title(),
-            'scope' => $navigation->scope(),
-            'language' => $navigation->language(),
-            'status' => $navigation->status(),
-            'items' => $data['items'] ?? [],
+            'title'      => $navigation->title(),
+            'scope'      => $navigation->scope(),
+            'language'   => $navigation->language(),
+            'status'     => $navigation->status(),
+            'items'      => $data['items'] ?? [],
         ];
     }
-
 }

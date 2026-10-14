@@ -7,15 +7,16 @@ namespace Naf\CMS\Page;
 use Naf\CMS\Content\Page\Block\BlockTypeInterface;
 use Naf\CMS\Content\Page\Block\BlockTypeRegistry;
 use Naf\CMS\Security\UrlPolicy;
+
 use function Naf\CMS\cms;
 
 final class PageBuilderPayloadNormalizer
 {
-    public const VERSION = 1;
+    public const VERSION        = 1;
     public const MAX_JSON_BYTES = 262_144;
-    public const MAX_BLOCKS = 100;
-    public const MAX_CHILDREN = 24;
-    public const MAX_DEPTH = 4;
+    public const MAX_BLOCKS     = 100;
+    public const MAX_CHILDREN   = 24;
+    public const MAX_DEPTH      = 4;
 
     private int $blockCount = 0;
 
@@ -32,8 +33,8 @@ final class PageBuilderPayloadNormalizer
     public function normalize(array $blocks, array $slots, array &$errors = []): array
     {
         $this->blockCount = 0;
-        $normalized = [];
-        $slotMap = [];
+        $normalized       = [];
+        $slotMap          = [];
         foreach ($slots as $slot) {
             $id = trim((string) ($slot['id'] ?? ''));
             if ($id !== '') {
@@ -75,10 +76,12 @@ final class PageBuilderPayloadNormalizer
         $this->blockCount++;
         if ($this->blockCount > self::MAX_BLOCKS) {
             $errors[] = sprintf('%s exceeds the limit of %d blocks.', $path, self::MAX_BLOCKS);
+
             return null;
         }
         if ($depth > self::MAX_DEPTH) {
             $errors[] = sprintf('%s exceeds the nesting limit of %d.', $path, self::MAX_DEPTH);
+
             return null;
         }
 
@@ -89,9 +92,10 @@ final class PageBuilderPayloadNormalizer
         }
 
         $typeId = strtolower(trim((string) ($content['type'] ?? '')));
-        $type = $this->types()->get($typeId);
+        $type   = $this->types()->get($typeId);
         if (!$type instanceof BlockTypeInterface) {
             $errors[] = sprintf('%s uses unknown block type "%s".', $path, $typeId);
+
             return null;
         }
 
@@ -107,6 +111,7 @@ final class PageBuilderPayloadNormalizer
         $props = $content['props'] ?? [];
         if (!is_array($props)) {
             $errors[] = sprintf('%s.props must be an object.', $path);
+
             return null;
         }
 
@@ -141,10 +146,10 @@ final class PageBuilderPayloadNormalizer
         }
 
         return [
-            'type' => $typeId,
-            'label' => $this->shortText((string) ($content['label'] ?? $type->label()), 160),
+            'type'         => $typeId,
+            'label'        => $this->shortText((string) ($content['label'] ?? $type->label()), 160),
             'previewTitle' => $this->shortText((string) ($content['previewTitle'] ?? $type->previewTitle()), 160),
-            'props' => $normalizedProps,
+            'props'        => $normalizedProps,
         ];
     }
 
@@ -158,20 +163,25 @@ final class PageBuilderPayloadNormalizer
         if ($type === 'checkbox') {
             if (!is_bool($value)) {
                 $errors[] = $path . ' must be a boolean.';
+
                 return null;
             }
+
             return $value;
         }
         if ($type === 'number') {
             if (!is_int($value) && !is_float($value) && !(is_string($value) && is_numeric($value))) {
                 $errors[] = $path . ' must be numeric.';
+
                 return null;
             }
             $number = (float) $value;
             if (isset($field['min']) && $number < (float) $field['min'] || isset($field['max']) && $number > (float) $field['max']) {
                 $errors[] = $path . ' is outside its allowed range.';
+
                 return null;
             }
+
             return floor($number) === $number ? (int) $number : $number;
         }
         if ($type === 'select') {
@@ -183,13 +193,16 @@ final class PageBuilderPayloadNormalizer
             }
             if (!is_string($value) || !in_array($value, $allowed, true)) {
                 $errors[] = $path . ' has an invalid option.';
+
                 return null;
             }
+
             return $value;
         }
         if ($type === 'children') {
             if (!is_array($value)) {
                 $errors[] = $path . ' must be an array.';
+
                 return null;
             }
             if (count($value) > self::MAX_CHILDREN) {
@@ -206,6 +219,7 @@ final class PageBuilderPayloadNormalizer
                     $children[] = $normalized;
                 }
             }
+
             return $children;
         }
         if ($type === 'stats') {
@@ -216,25 +230,28 @@ final class PageBuilderPayloadNormalizer
         }
         if (!is_scalar($value) && $value !== null) {
             $errors[] = $path . ' must be text.';
+
             return null;
         }
 
         $string = trim((string) ($value ?? ''));
-        $limit = $type === 'textarea' ? 5_000 : 1_000;
+        $limit  = $type === 'textarea' ? 5_000 : 1_000;
         if (mb_strlen($string) > $limit) {
             $errors[] = sprintf('%s exceeds %d characters.', $path, $limit);
+
             return null;
         }
 
         $name = strtolower((string) ($field['name'] ?? ''));
-        $url = match (true) {
-            $type === 'media' => UrlPolicy::media($string),
+        $url  = match (true) {
+            $type === 'media'                          => UrlPolicy::media($string),
             in_array($name, ['url', 'embedurl'], true) => UrlPolicy::embed($string),
-            str_ends_with($name, 'url') => UrlPolicy::link($string),
-            default => $string,
+            str_ends_with($name, 'url')                => UrlPolicy::link($string),
+            default                                    => $string,
         };
         if ($string !== '' && $url === null) {
             $errors[] = $path . ' contains an unsafe URL.';
+
             return null;
         }
 
@@ -246,6 +263,7 @@ final class PageBuilderPayloadNormalizer
     {
         if (!is_array($value) || count($value) > $limit) {
             $errors[] = sprintf('%s must contain at most %d rows.', $path, $limit);
+
             return null;
         }
         $rows = [];
@@ -256,6 +274,7 @@ final class PageBuilderPayloadNormalizer
             }
             $rows[] = array_combine($keys, array_map(fn(string $key): string => $this->shortText((string) ($row[$key] ?? ''), 240), $keys));
         }
+
         return $rows;
     }
 
@@ -264,6 +283,7 @@ final class PageBuilderPayloadNormalizer
     {
         if (!is_array($value) || count($value) > 12) {
             $errors[] = $path . ' must contain at most 12 metrics.';
+
             return null;
         }
         $metrics = [];
@@ -279,6 +299,7 @@ final class PageBuilderPayloadNormalizer
             }
             $metrics[] = ['label' => $this->shortText((string) ($metric['label'] ?? ''), 240), 'value' => (float) $metric['value'], 'color' => $color];
         }
+
         return $metrics;
     }
 

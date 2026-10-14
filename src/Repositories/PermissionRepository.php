@@ -10,8 +10,10 @@ use Naf\CMS\Services\Security\UserPrivilegePolicy;
 use Naf\ORM\Core\EntityManager;
 use Naf\ORM\Repository\AbstractRepository;
 use PDO;
-use function Naf\ORM\em;
+use Throwable;
+
 use function Naf\log;
+use function Naf\ORM\em;
 
 class PermissionRepository extends AbstractRepository
 {
@@ -53,37 +55,39 @@ class PermissionRepository extends AbstractRepository
             FROM permissions p
             LEFT JOIN ' . self::ROLE_PERMISSION_TABLE . ' rp ON rp.permission_id = p.id
             GROUP BY p.name
-            ORDER BY p.name ASC'
+            ORDER BY p.name ASC',
         );
 
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         return array_map(
             static fn(array $row): array => [
-                'id' => (int) ($row['id'] ?? 0),
-                'name' => (string) ($row['name'] ?? ''),
+                'id'         => (int) ($row['id'] ?? 0),
+                'name'       => (string) ($row['name'] ?? ''),
                 'role_count' => (int) ($row['role_count'] ?? 0),
             ],
-            $rows
+            $rows,
         );
     }
 
     public function mergeDuplicateNames(): int
     {
         $duplicatesStmt = $this->pdo->query(
-            'SELECT name FROM permissions GROUP BY name HAVING COUNT(*) > 1'
+            'SELECT name FROM permissions GROUP BY name HAVING COUNT(*) > 1',
         );
-        $duplicateNames = $duplicatesStmt->fetchAll(\PDO::FETCH_COLUMN);
+        $duplicateNames = $duplicatesStmt->fetchAll(PDO::FETCH_COLUMN);
         if ($duplicateNames === []) {
             return 0;
         }
 
         $removed = 0;
         $this->pdo->beginTransaction();
+
         try {
             foreach ($duplicateNames as $duplicateName) {
                 $idsStmt = $this->pdo->prepare('SELECT id FROM permissions WHERE name = :name ORDER BY id ASC');
                 $idsStmt->execute(['name' => (string) $duplicateName]);
-                $ids = array_map('intval', $idsStmt->fetchAll(\PDO::FETCH_COLUMN));
+                $ids = array_map('intval', $idsStmt->fetchAll(PDO::FETCH_COLUMN));
                 if (count($ids) < 2) {
                     continue;
                 }
@@ -92,15 +96,15 @@ class PermissionRepository extends AbstractRepository
                 foreach ($ids as $duplicateId) {
                     $mergeStmt = $this->pdo->prepare(
                         'INSERT IGNORE INTO ' . self::ROLE_PERMISSION_TABLE . ' (role_id, permission_id)
-                         SELECT role_id, :keepId FROM ' . self::ROLE_PERMISSION_TABLE . ' WHERE permission_id = :duplicateId'
+                         SELECT role_id, :keepId FROM ' . self::ROLE_PERMISSION_TABLE . ' WHERE permission_id = :duplicateId',
                     );
                     $mergeStmt->execute([
-                        'keepId' => $keepId,
+                        'keepId'      => $keepId,
                         'duplicateId' => (int) $duplicateId,
                     ]);
 
                     $deleteRelationsStmt = $this->pdo->prepare(
-                        'DELETE FROM ' . self::ROLE_PERMISSION_TABLE . ' WHERE permission_id = :duplicateId'
+                        'DELETE FROM ' . self::ROLE_PERMISSION_TABLE . ' WHERE permission_id = :duplicateId',
                     );
                     $deleteRelationsStmt->execute(['duplicateId' => (int) $duplicateId]);
 
@@ -111,10 +115,12 @@ class PermissionRepository extends AbstractRepository
             }
 
             $this->pdo->commit();
+
             return $removed;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('PermissionRepository.mergeDuplicateNames failed: %s', $e->getMessage()), ['exception' => $e]);
             $this->pdo->rollBack();
+
             return 0;
         }
     }
@@ -172,7 +178,7 @@ class PermissionRepository extends AbstractRepository
 
         $stmt = $this->pdo->prepare('UPDATE permissions SET name = :name WHERE id = :id');
         $stmt->execute([
-            'id' => $permissionId,
+            'id'   => $permissionId,
             'name' => $normalized,
         ]);
 
@@ -188,9 +194,10 @@ class PermissionRepository extends AbstractRepository
         }
 
         $this->pdo->beginTransaction();
+
         try {
             $deleteLinksStmt = $this->pdo->prepare(
-                'DELETE FROM ' . self::ROLE_PERMISSION_TABLE . ' WHERE permission_id = :permissionId'
+                'DELETE FROM ' . self::ROLE_PERMISSION_TABLE . ' WHERE permission_id = :permissionId',
             );
             $deleteLinksStmt->execute(['permissionId' => $permissionId]);
 
@@ -198,10 +205,12 @@ class PermissionRepository extends AbstractRepository
             $deletePermissionStmt->execute(['permissionId' => $permissionId]);
 
             $this->pdo->commit();
+
             return $deletePermissionStmt->rowCount() > 0;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('PermissionRepository.deleteById failed: %s', $e->getMessage()), ['exception' => $e]);
             $this->pdo->rollBack();
+
             return false;
         }
     }

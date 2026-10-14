@@ -1,14 +1,15 @@
 <?php
 
 use Naf\CMS\Services\Content\ArticleRenderer;
+
 use function Naf\View\s;
 
 /** @var ArticleRenderer|null $article */
-$content = is_array($content ?? null) ? $content : [];
-$props = is_array($content['props'] ?? null) ? $content['props'] : [];
+$content    = is_array($content ?? null) ? $content : [];
+$props      = is_array($content['props'] ?? null) ? $content['props'] : [];
 $showTeaser = (bool) ($showTeaser ?? $props['showTeaser'] ?? true);
-$level = in_array(($level ?? $props['level'] ?? 'h1'), ['h1', 'h2', 'h3'], true) ? (string) ($level ?? $props['level'] ?? 'h1') : 'h1';
-$class = [
+$level      = in_array(($level ?? $props['level'] ?? 'h1'), ['h1', 'h2', 'h3'], true) ? (string) ($level ?? $props['level'] ?? 'h1') : 'h1';
+$class      = [
     'h1' => 'text-[clamp(2rem,4vw,3.75rem)] font-black leading-[1.02]',
     'h2' => 'text-[clamp(1.7rem,3vw,2.6rem)] font-extrabold leading-tight',
     'h3' => 'text-[clamp(1.35rem,2vw,1.9rem)] font-bold leading-tight',

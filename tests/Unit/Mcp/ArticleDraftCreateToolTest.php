@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mcp;
 
+use InvalidArgumentException;
 use Naf\CMS\Mcp\Tools\ArticleDraftCreateTool;
 use PHPUnit\Framework\TestCase;
 
@@ -12,20 +13,21 @@ final class ArticleDraftCreateToolTest extends TestCase
     public function testCreatesDraftPayloadFromPlainBody(): void
     {
         $captured = [];
-        $tool = new ArticleDraftCreateTool(
+        $tool     = new ArticleDraftCreateTool(
             function (array $payload, ?int $authorId) use (&$captured): array {
                 $captured = ['payload' => $payload, 'authorId' => $authorId];
+
                 return ['articleId' => 42, 'articleVersionId' => 84];
-            }
+            },
         );
 
         $result = $tool->handle([
-            'title' => 'A Useful Draft Title',
-            'language' => 'DE',
-            'body' => "First paragraph.\n\nSecond paragraph.",
-            'tags' => 'CMS, AI, CMS',
-            'category' => 'Product',
-            'author_id' => 7,
+            'title'       => 'A Useful Draft Title',
+            'language'    => 'DE',
+            'body'        => "First paragraph.\n\nSecond paragraph.",
+            'tags'        => 'CMS, AI, CMS',
+            'category'    => 'Product',
+            'author_id'   => 7,
             'show_teaser' => true,
         ]);
 
@@ -48,18 +50,19 @@ final class ArticleDraftCreateToolTest extends TestCase
     public function testCreatesDraftPayloadFromEditorBlocks(): void
     {
         $captured = [];
-        $tool = new ArticleDraftCreateTool(
+        $tool     = new ArticleDraftCreateTool(
             function (array $payload, ?int $authorId) use (&$captured): array {
                 $captured = $payload;
+
                 return ['articleId' => 10, 'articleVersionId' => 20];
-            }
+            },
         );
 
         $tool->handle([
-            'title' => 'Another Useful Draft',
-            'slug' => 'custom-draft',
+            'title'    => 'Another Useful Draft',
+            'slug'     => 'custom-draft',
             'language' => 'en',
-            'blocks' => [
+            'blocks'   => [
                 ['type' => 'header', 'data' => ['text' => 'Intro', 'level' => 2]],
                 ['type' => '', 'data' => ['text' => 'Ignored']],
                 'not-a-block',
@@ -74,12 +77,12 @@ final class ArticleDraftCreateToolTest extends TestCase
 
     public function testRejectsDraftWithoutContent(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         (new ArticleDraftCreateTool(
-            static fn(array $payload, ?int $authorId): array => ['articleId' => 1, 'articleVersionId' => 2]
+            static fn(array $payload, ?int $authorId): array => ['articleId' => 1, 'articleVersionId' => 2],
         ))->handle([
-            'title' => 'A Useful Draft Title',
+            'title'    => 'A Useful Draft Title',
             'language' => 'en',
         ]);
     }

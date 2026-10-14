@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 namespace Naf\CMS\Support;
-use Naf\CMS\Support\Audit;
+
 use function Naf\CMS\audit;
 
 final class AuditEntry
@@ -46,12 +46,12 @@ final class AuditEntry
     public function toArray(): array
     {
         return [
-            'action' => $this->action,
+            'action'       => $this->action,
             'subject_type' => $this->subjectType,
-            'subject_key' => $this->subjectKey,
-            'old_value' => $this->oldValue,
-            'new_value' => $this->newValue,
-            'meta' => $this->meta,
+            'subject_key'  => $this->subjectKey,
+            'old_value'    => $this->oldValue,
+            'new_value'    => $this->newValue,
+            'meta'         => $this->meta,
         ];
     }
 }

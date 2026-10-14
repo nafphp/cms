@@ -8,8 +8,9 @@ use Naf\CMS\Contracts\TranslationServiceInterface;
 use Naf\I18n\Core\Translator;
 use Naf\I18n\Support\Language;
 use Stringable;
-use function Naf\config;
+
 use function Naf\app;
+use function Naf\config;
 
 final class RuntimeTranslator extends Translator
 {
@@ -30,13 +31,13 @@ final class RuntimeTranslator extends Translator
         $this->runtimeLanguage ??= Language::normalize(
             (string) (config('language') ?? config('fallback_language', Language::EN)),
         );
-        $translations = $this->translations ?? app()->container()->get(TranslationServiceInterface::class);
+        $translations      = $this->translations ?? app()->container()->get(TranslationServiceInterface::class);
         $this->runtimeData = $translations->entries($this->runtimeLanguage);
     }
 
     public function translate(string $key, array $params = []): string
     {
-        $result = $this->runtimeData[$key] ?? $key;
+        $result       = $this->runtimeData[$key] ?? $key;
         $replacements = [];
 
         foreach ($params as $name => $value) {

@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Support;
 
+use DateTimeInterface;
+use ReflectionMethod;
+use ReflectionObject;
+use SensitiveParameter;
+use SensitiveParameterValue;
+
 final class AuditRedactor
 {
     private const string REDACTED = '[redacted]';
@@ -22,7 +28,7 @@ final class AuditRedactor
 
     public function redact(mixed $value): mixed
     {
-        if ($value instanceof \SensitiveParameterValue) {
+        if ($value instanceof SensitiveParameterValue) {
             return self::REDACTED;
         }
 
@@ -59,13 +65,13 @@ final class AuditRedactor
      */
     private function redactObject(object $value): array|string
     {
-        if ($value instanceof \DateTimeInterface) {
+        if ($value instanceof DateTimeInterface) {
             return $value->format('Y-m-d H:i:s');
         }
 
         $sensitiveProperties = $this->sensitiveConstructorParameterNames($value);
-        $reflection = new \ReflectionObject($value);
-        $redacted = [
+        $reflection          = new ReflectionObject($value);
+        $redacted            = [
             '_class' => $reflection->getName(),
         ];
 
@@ -99,14 +105,14 @@ final class AuditRedactor
      */
     private function sensitiveConstructorParameterNames(object $value): array
     {
-        $constructor = (new \ReflectionObject($value))->getConstructor();
-        if (!$constructor instanceof \ReflectionMethod) {
+        $constructor = (new ReflectionObject($value))->getConstructor();
+        if (!$constructor instanceof ReflectionMethod) {
             return [];
         }
 
         $names = [];
         foreach ($constructor->getParameters() as $parameter) {
-            if ($parameter->getAttributes(\SensitiveParameter::class) === []) {
+            if ($parameter->getAttributes(SensitiveParameter::class) === []) {
                 continue;
             }
 

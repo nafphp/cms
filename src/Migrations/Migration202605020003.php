@@ -11,7 +11,7 @@ final class Migration202605020003 extends AbstractMigration
 {
     public function up(PDO $connection): void
     {
-        $driver = strtolower((string) $connection->getAttribute(PDO::ATTR_DRIVER_NAME));
+        $driver   = strtolower((string) $connection->getAttribute(PDO::ATTR_DRIVER_NAME));
         $idColumn = $driver === 'sqlite'
             ? 'id INTEGER PRIMARY KEY AUTOINCREMENT'
             : 'id INT AUTO_INCREMENT PRIMARY KEY';
@@ -46,5 +46,4 @@ final class Migration202605020003 extends AbstractMigration
     {
         $connection->exec('DROP TABLE IF EXISTS pages');
     }
-
 }

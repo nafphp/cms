@@ -18,7 +18,7 @@ final class LocalAiToolSelectorTest extends TestCase
             $tools,
             'Wie sieht der Status der Queue aus?',
             ['area' => 'dashboard'],
-            2
+            2,
         );
 
         self::assertSame('cms_queue_status', $selected[0]['name']);
@@ -32,7 +32,7 @@ final class LocalAiToolSelectorTest extends TestCase
             $tools,
             'Welche Artikel gibt es gerade?',
             ['area' => 'articleEditor'],
-            3
+            3,
         );
 
         self::assertNotContains('cms_article_draft_create', array_column($selected, 'name'));
@@ -46,11 +46,11 @@ final class LocalAiToolSelectorTest extends TestCase
             $tools,
             'Welche Bloecke sind auf dieser Seite?',
             [
-                'area' => 'pageBuilder',
-                'selectedRegion' => 'content',
+                'area'                  => 'pageBuilder',
+                'selectedRegion'        => 'content',
                 'availableBlockModules' => ['text', 'image'],
             ],
-            2
+            2,
         );
 
         self::assertSame('cms_page_overview', $selected[0]['name']);
@@ -63,17 +63,17 @@ final class LocalAiToolSelectorTest extends TestCase
     {
         return (new LocalAiToolCatalog())->enrich([
             [
-                'name' => 'cms_queue_status',
+                'name'        => 'cms_queue_status',
                 'description' => 'Returns queue status and pending jobs.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_article_draft_create',
+                'name'        => 'cms_article_draft_create',
                 'description' => 'Creates an article draft.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],
             [
-                'name' => 'cms_page_overview',
+                'name'        => 'cms_page_overview',
                 'description' => 'Returns page and layout block overview.',
                 'inputSchema' => ['type' => 'object', 'properties' => []],
             ],

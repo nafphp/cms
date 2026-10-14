@@ -10,9 +10,10 @@ use Naf\CMS\Services\Http\OutboundHttpPolicy;
 use Naf\CMS\Services\Http\OutboundHttpProfile;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
+
+use function Naf\CMS\cms;
 use function Naf\config;
 use function Naf\json;
-use function Naf\CMS\cms;
 
 final class StoreForm
 {
@@ -20,7 +21,7 @@ final class StoreForm
 
     public function __invoke(): ResponseInterface
     {
-        $data = $this->jsonBody();
+        $data   = $this->jsonBody();
         $errors = $this->validate($data);
         if ($errors !== []) {
             return json(['success' => false, 'errors' => $errors], 400);
@@ -28,12 +29,12 @@ final class StoreForm
 
         try {
             $id = cms()->forms()->save([
-                'id' => (int) ($data['id'] ?? 0),
+                'id'         => (int) ($data['id'] ?? 0),
                 'identifier' => (string) ($data['identifier'] ?? ''),
-                'title' => (string) ($data['title'] ?? ''),
-                'status' => (string) ($data['status'] ?? 'draft'),
-                'fields' => is_array($data['fields'] ?? null) ? $data['fields'] : [],
-                'settings' => is_array($data['settings'] ?? null) ? $data['settings'] : [],
+                'title'      => (string) ($data['title'] ?? ''),
+                'status'     => (string) ($data['status'] ?? 'draft'),
+                'fields'     => is_array($data['fields'] ?? null) ? $data['fields'] : [],
+                'settings'   => is_array($data['settings'] ?? null) ? $data['settings'] : [],
             ]);
 
             return json(['success' => true, 'id' => $id]);
@@ -84,8 +85,8 @@ final class StoreForm
             }
         }
 
-        $settings = is_array($data['settings'] ?? null) ? $data['settings'] : [];
-        $actions = is_array($settings['actions'] ?? null) ? $settings['actions'] : [];
+        $settings         = is_array($data['settings'] ?? null) ? $data['settings'] : [];
+        $actions          = is_array($settings['actions'] ?? null) ? $settings['actions'] : [];
         $hasEnabledAction = false;
         foreach ($actions as $index => $action) {
             if (!is_array($action) || ($action['enabled'] ?? true) === false) {
@@ -100,7 +101,8 @@ final class StoreForm
 
             if ($type === 'webhook') {
                 $hasEnabledAction = true;
-                $url = trim((string) ($action['url'] ?? ''));
+                $url              = trim((string) ($action['url'] ?? ''));
+
                 try {
                     (new OutboundHttpPolicy())->authorize($url, OutboundHttpProfile::webhook(
                         (bool) config('cms:outbound_http:webhooks:allow_development_http', false),

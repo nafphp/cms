@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
+use DomainException;
 use Naf\CMS\Repositories\PageRepository;
 use Tests\Support\DatabaseTestCase;
 
@@ -40,16 +41,16 @@ final class PageRepositoryTest extends DatabaseTestCase
     public function testSaveCreatesAndSummarizesPage(): void
     {
         $id = $this->repository->save([
-            'identifier' => 'news',
-            'path' => '/news',
-            'title' => 'News',
-            'language' => 'en',
-            'status' => 'draft',
+            'identifier'  => 'news',
+            'path'        => '/news',
+            'title'       => 'News',
+            'language'    => 'en',
+            'status'      => 'draft',
             'template_id' => 'editorial',
-            'theme_id' => 'brand',
-            'layout' => 'layouts.page',
-            'blocks' => ['intro' => ['type' => 'heading', 'props' => ['text' => 'Latest']]],
-            'meta' => ['description' => 'Overview'],
+            'theme_id'    => 'brand',
+            'layout'      => 'layouts.page',
+            'blocks'      => ['intro' => ['type' => 'heading', 'props' => ['text' => 'Latest']]],
+            'meta'        => ['description' => 'Overview'],
         ]);
 
         $this->assertGreaterThan(0, $id);
@@ -68,23 +69,23 @@ final class PageRepositoryTest extends DatabaseTestCase
     public function testSaveRejectsExistingPathLanguagePairInsteadOfOverwritingIt(): void
     {
         $firstId = $this->repository->save([
-            'identifier' => 'news',
-            'path' => '/news',
-            'title' => 'News',
-            'language' => 'en',
+            'identifier'  => 'news',
+            'path'        => '/news',
+            'title'       => 'News',
+            'language'    => 'en',
             'template_id' => 'editorial',
         ]);
 
         try {
             $this->repository->save([
-                'identifier' => 'news-updated',
-                'path' => '/news',
-                'title' => 'Updated News',
-                'language' => 'en',
+                'identifier'  => 'news-updated',
+                'path'        => '/news',
+                'title'       => 'Updated News',
+                'language'    => 'en',
                 'template_id' => 'landing',
             ]);
             self::fail('Expected the duplicate page path to be rejected.');
-        } catch (\DomainException $exception) {
+        } catch (DomainException $exception) {
             self::assertStringContainsString('already used', $exception->getMessage());
         }
 
@@ -95,19 +96,19 @@ final class PageRepositoryTest extends DatabaseTestCase
     public function testFindByPathUsesConfiguredFallbackBeforeAnotherTranslation(): void
     {
         $this->repository->save([
-            'identifier' => 'about',
-            'path' => '/about',
-            'title' => 'Deutsch',
-            'language' => 'de',
-            'status' => 'published',
+            'identifier'  => 'about',
+            'path'        => '/about',
+            'title'       => 'Deutsch',
+            'language'    => 'de',
+            'status'      => 'published',
             'template_id' => 'default',
         ]);
         $this->repository->save([
-            'identifier' => 'about',
-            'path' => '/about',
-            'title' => 'English',
-            'language' => 'en',
-            'status' => 'published',
+            'identifier'  => 'about',
+            'path'        => '/about',
+            'title'       => 'English',
+            'language'    => 'en',
+            'status'      => 'published',
             'template_id' => 'default',
         ]);
 
@@ -119,32 +120,32 @@ final class PageRepositoryTest extends DatabaseTestCase
     public function testRouteDescriptorsContainOnlyOnePublishedRoutePerPath(): void
     {
         $this->repository->save([
-            'identifier' => 'draft-only',
-            'path' => '/draft-only',
-            'title' => 'Draft only',
-            'language' => 'en',
-            'status' => 'draft',
+            'identifier'  => 'draft-only',
+            'path'        => '/draft-only',
+            'title'       => 'Draft only',
+            'language'    => 'en',
+            'status'      => 'draft',
             'template_id' => 'default',
         ]);
         $this->repository->save([
-            'identifier' => 'about',
-            'path' => '/about',
-            'title' => 'About',
-            'language' => 'en',
-            'status' => 'published',
+            'identifier'  => 'about',
+            'path'        => '/about',
+            'title'       => 'About',
+            'language'    => 'en',
+            'status'      => 'published',
             'template_id' => 'default',
         ]);
         $this->repository->save([
-            'identifier' => 'about',
-            'path' => '/about',
-            'title' => 'Über uns',
-            'language' => 'de',
-            'status' => 'published',
+            'identifier'  => 'about',
+            'path'        => '/about',
+            'title'       => 'Über uns',
+            'language'    => 'de',
+            'status'      => 'published',
             'template_id' => 'default',
         ]);
 
         $descriptors = $this->repository->routeDescriptors(['default']);
-        $byPath = array_column($descriptors, null, 'path');
+        $byPath      = array_column($descriptors, null, 'path');
 
         // One route per path, both translations of /about collapsed into one.
         self::assertCount(2, $descriptors);
@@ -161,19 +162,19 @@ final class PageRepositoryTest extends DatabaseTestCase
         // The draft sorts first by language, so a naive "first row wins" would
         // report this path as unpublished and let it lose the home override.
         $this->repository->save([
-            'identifier' => 'mixed',
-            'path' => '/mixed',
-            'title' => 'Entwurf',
-            'language' => 'de',
-            'status' => 'draft',
+            'identifier'  => 'mixed',
+            'path'        => '/mixed',
+            'title'       => 'Entwurf',
+            'language'    => 'de',
+            'status'      => 'draft',
             'template_id' => 'default',
         ]);
         $this->repository->save([
-            'identifier' => 'mixed',
-            'path' => '/mixed',
-            'title' => 'Published',
-            'language' => 'en',
-            'status' => 'published',
+            'identifier'  => 'mixed',
+            'path'        => '/mixed',
+            'title'       => 'Published',
+            'language'    => 'en',
+            'status'      => 'published',
             'template_id' => 'default',
         ]);
 
@@ -185,17 +186,17 @@ final class PageRepositoryTest extends DatabaseTestCase
     public function testFindTranslationsReturnsRowsByLanguage(): void
     {
         $this->repository->save([
-            'identifier' => 'about',
-            'path' => '/about',
-            'title' => 'About',
-            'language' => 'en',
+            'identifier'  => 'about',
+            'path'        => '/about',
+            'title'       => 'About',
+            'language'    => 'en',
             'template_id' => 'default',
         ]);
         $this->repository->save([
-            'identifier' => 'about',
-            'path' => '/ueber-uns',
-            'title' => 'Ueber uns',
-            'language' => 'de',
+            'identifier'  => 'about',
+            'path'        => '/ueber-uns',
+            'title'       => 'Ueber uns',
+            'language'    => 'de',
             'template_id' => 'default',
         ]);
 
@@ -208,12 +209,12 @@ final class PageRepositoryTest extends DatabaseTestCase
     public function testCustomPageExamplePersistsCustomLayoutMeta(): void
     {
         $id = $this->repository->save([
-            'identifier' => 'custom-example',
-            'path' => '/custom-example',
-            'title' => 'Custom example',
-            'language' => 'en',
+            'identifier'  => 'custom-example',
+            'path'        => '/custom-example',
+            'title'       => 'Custom example',
+            'language'    => 'en',
             'template_id' => 'custom',
-            'blocks' => [
+            'blocks'      => [
                 'slot_hero' => ['type' => 'hero', 'props' => ['title' => 'Custom hero']],
                 'slot_text' => ['type' => 'text', 'props' => ['text' => 'Stacked content']],
             ],
@@ -236,10 +237,10 @@ final class PageRepositoryTest extends DatabaseTestCase
     public function testDeleteRemovesPage(): void
     {
         $id = $this->repository->save([
-            'identifier' => 'delete-me',
-            'path' => '/delete-me',
-            'title' => 'Delete me',
-            'language' => 'en',
+            'identifier'  => 'delete-me',
+            'path'        => '/delete-me',
+            'title'       => 'Delete me',
+            'language'    => 'en',
             'template_id' => 'default',
         ]);
 

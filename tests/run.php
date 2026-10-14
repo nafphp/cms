@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 putenv('APP_ENV=test');
-$_ENV['APP_ENV'] = 'test';
+$_ENV['APP_ENV']    = 'test';
 $_SERVER['APP_ENV'] = 'test';
 
-$phpunit = dirname(__DIR__) . '/vendor/bin/phpunit';
-$arguments = array_slice($argv, 1);
+$phpunit   = dirname(__DIR__) . '/vendor/bin/phpunit';
+$arguments = array_slice($_SERVER['argv'] ?? [], 1);
 if ($arguments === []) {
     $arguments = ['tests'];
 }

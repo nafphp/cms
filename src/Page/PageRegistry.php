@@ -4,38 +4,39 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Page;
 
+use LogicException;
 use Naf\CMS\Controllers\Page\PageController;
 use Naf\CMS\Enums\Permission;
-use Naf\CMS\Repositories\PageRepository;
 use Naf\CMS\Repositories\PageLayoutRepository;
+use Naf\CMS\Repositories\PageRepository;
 use Naf\CMS\Support\AuditEntry;
-use Naf\CMS\Page\Page;
-use Naf\CMS\Page\PageDataHandler;
-use Naf\CMS\Page\PageTemplateCatalog;
-use function Naf\log;
-use function Naf\route;
+use RuntimeException;
+
 use function Naf\CMS\cms;
 use function Naf\CMS\user;
+use function Naf\log;
+use function Naf\route;
 
 final class PageRegistry
 {
     /** @var array<string, Page> */
     private array $pages = [];
     /** @var array<string, string> */
-    private array $routeAliases = [];
+    private array $routeAliases         = [];
     private ?PageRepository $repository = null;
-    private bool $storedPagesLoaded = false;
-    private bool $storedRoutesResolved = false;
+    private bool $storedPagesLoaded     = false;
+    private bool $storedRoutesResolved  = false;
     /** @var array<int, array{id: string, path: string, published: bool}>|null */
     private ?array $storedRouteDescriptors = null;
 
     public function add(Page $page, bool $replace = false): self
     {
         if (isset($this->pages[$page->id()]) && !$replace) {
-            throw new \LogicException(sprintf('Page "%s" is already registered.', $page->id()));
+            throw new LogicException(sprintf('Page "%s" is already registered.', $page->id()));
         }
 
         $this->pages[$page->id()] = $page;
+
         return $this;
     }
 
@@ -56,7 +57,7 @@ final class PageRegistry
 
     public function require(string $id): Page
     {
-        return $this->get($id) ?? throw new \RuntimeException(sprintf('Page "%s" is not registered.', $id));
+        return $this->get($id) ?? throw new RuntimeException(sprintf('Page "%s" is not registered.', $id));
     }
 
     public function findByPath(string $path, string $method = 'GET'): ?Page
@@ -66,7 +67,7 @@ final class PageRegistry
         // is actually needed.
         $this->resolveStoredRoutes();
 
-        $normalizedPath = $this->normalizePath($path);
+        $normalizedPath   = $this->normalizePath($path);
         $normalizedMethod = strtoupper($method);
 
         foreach ($this->pages as $page) {
@@ -134,7 +135,7 @@ final class PageRegistry
                     $dataHandler->method(),
                     $page->path(),
                     [PageController::class, 'handleData'],
-                    $this->dataRouteName($page, $dataHandler)
+                    $this->dataRouteName($page, $dataHandler),
                 );
             }
         }
@@ -198,13 +199,13 @@ final class PageRegistry
     public function save(array $payload): int
     {
         $old = null;
-        $id = (int) ($payload['id'] ?? 0);
+        $id  = (int) ($payload['id'] ?? 0);
         if ($id > 0) {
             $old = $this->repository()->find($id);
         }
 
         $savedId = $this->repository()->save($payload);
-        $new = $this->repository()->find($savedId);
+        $new     = $this->repository()->find($savedId);
 
         AuditEntry::create(
             $old === null ? 'page.created' : 'page.updated',
@@ -213,7 +214,7 @@ final class PageRegistry
             $this->pageAuditSnapshot($old),
             $this->pageAuditSnapshot($new),
             [
-                'path' => (string) ($new['path'] ?? $payload['path'] ?? ''),
+                'path'     => (string) ($new['path'] ?? $payload['path'] ?? ''),
                 'language' => (string) ($new['language'] ?? $payload['language'] ?? ''),
             ],
         )->record();
@@ -223,7 +224,7 @@ final class PageRegistry
 
     public function publish(int $id): bool
     {
-        $old = $this->repository()->find($id);
+        $old       = $this->repository()->find($id);
         $published = $this->repository()->publish($id);
         if ($published) {
             AuditEntry::create(
@@ -240,7 +241,7 @@ final class PageRegistry
 
     public function delete(int $id): bool
     {
-        $old = $this->repository()->find($id);
+        $old     = $this->repository()->find($id);
         $deleted = $this->repository()->delete($id);
         if ($deleted) {
             AuditEntry::create(
@@ -275,6 +276,7 @@ final class PageRegistry
     private function normalizePath(string $path): string
     {
         $path = '/' . ltrim(trim($path), '/');
+
         return $path === '/' ? '/' : rtrim($path, '/');
     }
 
@@ -289,16 +291,16 @@ final class PageRegistry
         }
 
         return [
-            'id' => (int) ($page['id'] ?? 0),
-            'identifier' => (string) ($page['identifier'] ?? ''),
-            'title' => (string) ($page['title'] ?? ''),
-            'path' => (string) ($page['path'] ?? ''),
-            'language' => (string) ($page['language'] ?? ''),
-            'status' => (string) ($page['status'] ?? ''),
+            'id'          => (int) ($page['id'] ?? 0),
+            'identifier'  => (string) ($page['identifier'] ?? ''),
+            'title'       => (string) ($page['title'] ?? ''),
+            'path'        => (string) ($page['path'] ?? ''),
+            'language'    => (string) ($page['language'] ?? ''),
+            'status'      => (string) ($page['status'] ?? ''),
             'template_id' => (string) ($page['template_id'] ?? ''),
-            'layout' => (string) ($page['layout'] ?? ''),
-            'blocks' => $page['blocks'] ?? [],
-            'meta' => $page['meta'] ?? [],
+            'layout'      => (string) ($page['layout'] ?? ''),
+            'blocks'      => $page['blocks'] ?? [],
+            'meta'        => $page['meta'] ?? [],
         ];
     }
 
@@ -373,8 +375,8 @@ final class PageRegistry
     {
         return $this->storedRouteMayReplaceCodePage(
             [
-                'id' => $storedPage->id(),
-                'path' => $storedPage->path(),
+                'id'        => $storedPage->id(),
+                'path'      => $storedPage->path(),
                 'published' => !in_array(Permission::PAGES_VIEW, $storedPage->requiredPermissions(), true),
             ],
             $codePage,
@@ -430,7 +432,7 @@ final class PageRegistry
 
     private function findCodePageByPath(string $path, string $method = 'GET'): ?Page
     {
-        $normalizedPath = $this->normalizePath($path);
+        $normalizedPath   = $this->normalizePath($path);
         $normalizedMethod = strtoupper($method);
 
         foreach ($this->pages as $page) {

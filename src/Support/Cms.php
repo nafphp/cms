@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Support;
 
-use Naf\CMS\Api\ArticleApi;
+use InvalidArgumentException;
 use Naf\CMS\Api\ApiRegistry;
+use Naf\CMS\Api\ArticleApi;
 use Naf\CMS\Api\FormApi;
 use Naf\CMS\Api\MediaApi;
 use Naf\CMS\Api\NavigationApi;
@@ -23,21 +24,20 @@ use Naf\CMS\Page\PageRegistry;
 use Naf\CMS\Storage\EntityStorage;
 use Naf\CMS\Theme\ThemeRegistry;
 use Naf\CMS\Visualization\VisualizationRegistry;
-use Naf\CMS\Support\ScopedCms;
-use Naf\CMS\Support\Settings;
+
 use function Naf\app;
 
 final class Cms
 {
-    private ?ApiRegistry $apiRegistry = null;
-    private ?Settings $settings = null;
-    private ?ContentRegistry $contentRegistry = null;
-    private ?PageRegistry $pageRegistry = null;
+    private ?ApiRegistry $apiRegistry                     = null;
+    private ?Settings $settings                           = null;
+    private ?ContentRegistry $contentRegistry             = null;
+    private ?PageRegistry $pageRegistry                   = null;
     private ?VisualizationRegistry $visualizationRegistry = null;
-    private ?LanguageRegistry $languageRegistry = null;
-    private ?BlockViewRegistry $blockViewRegistry = null;
-    private ?BlockTypeRegistry $blockTypeRegistry = null;
-    private ?ThemeRegistry $themeRegistry = null;
+    private ?LanguageRegistry $languageRegistry           = null;
+    private ?BlockViewRegistry $blockViewRegistry         = null;
+    private ?BlockTypeRegistry $blockTypeRegistry         = null;
+    private ?ThemeRegistry $themeRegistry                 = null;
 
     public function scope(Scope|string|null $scope = null): ScopedCms
     {
@@ -63,6 +63,7 @@ final class Cms
     {
         /** @var NavigationApi $api */
         $api = $this->content(SiteNavigation::class);
+
         return $api;
     }
 
@@ -115,6 +116,7 @@ final class Cms
     {
         /** @var ArticleApi $api */
         $api = $this->content(Article::class);
+
         return $api;
     }
 
@@ -122,6 +124,7 @@ final class Cms
     {
         /** @var FormApi $api */
         $api = $this->content(Form::class);
+
         return $api;
     }
 
@@ -129,6 +132,7 @@ final class Cms
     {
         /** @var MediaApi $api */
         $api = $this->content(Media::class);
+
         return $api;
     }
 
@@ -152,9 +156,9 @@ final class Cms
             return $type->api();
         }
 
-        throw new \InvalidArgumentException(sprintf(
+        throw new InvalidArgumentException(sprintf(
             'No content type registered for "%s". Register one through cms()->contentTypes()->add(...).',
-            $class
+            $class,
         ));
     }
 }

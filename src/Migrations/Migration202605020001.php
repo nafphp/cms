@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Migrations;
 
+use InvalidArgumentException;
 use Naf\CMS\Enums\Permission;
 use Naf\Database\Core\AbstractMigration;
 use PDO;
@@ -12,7 +13,7 @@ final class Migration202605020001 extends AbstractMigration
 {
     public function up(PDO $connection): void
     {
-        $driver = strtolower((string) $connection->getAttribute(PDO::ATTR_DRIVER_NAME));
+        $driver   = strtolower((string) $connection->getAttribute(PDO::ATTR_DRIVER_NAME));
         $idColumn = $driver === 'sqlite'
             ? 'id INTEGER PRIMARY KEY AUTOINCREMENT'
             : 'id INT AUTO_INCREMENT PRIMARY KEY';
@@ -86,7 +87,7 @@ final class Migration202605020001 extends AbstractMigration
         foreach ($permissions as $permission) {
             $linkStatement->execute([
                 'role_id' => $adminRoleId,
-                'name' => $permission->value,
+                'name'    => $permission->value,
             ]);
         }
     }
@@ -94,7 +95,7 @@ final class Migration202605020001 extends AbstractMigration
     private function indexExists(PDO $connection, string $table, string $index): bool
     {
         if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $table) !== 1) {
-            throw new \InvalidArgumentException(sprintf('Unsafe table name "%s".', $table));
+            throw new InvalidArgumentException(sprintf('Unsafe table name "%s".', $table));
         }
 
         $statement = $connection->query(sprintf(

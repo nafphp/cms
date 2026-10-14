@@ -4,36 +4,34 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Page;
 
+use InvalidArgumentException;
+use LogicException;
 use Naf\CMS\Enums\Permission;
 use Naf\CMS\Enums\Role;
 use Psr\Http\Message\ResponseInterface;
-use Naf\CMS\Page\Layout;
-use Naf\CMS\Page\PageDataHandler;
-use Naf\CMS\Page\PageMeta;
-use Naf\CMS\Page\Template;
 
 final class Page
 {
-    private string $method = 'GET';
-    private ?string $path = null;
-    private ?string $title = null;
-    private ?string $layout = null;
-    private ?Layout $pageLayout = null;
+    private string $method               = 'GET';
+    private ?string $path                = null;
+    private ?string $title               = null;
+    private ?string $layout              = null;
+    private ?Layout $pageLayout          = null;
     private bool $requiresAuthentication = false;
     /** @var array<int, Role> */
     private array $requiredRoles = [];
     /** @var array<int, Permission> */
-    private array $requiredPermissions = [];
+    private array $requiredPermissions  = [];
     private bool $requiresAnyPermission = false;
-    private bool $storedOverridable = false;
+    private bool $storedOverridable     = false;
     /** @var callable|null */
     private $content = null;
     /** @var callable|array{0: class-string, 1: string}|null */
     private mixed $handler = null;
     /** @var array<string, PageDataHandler> */
     private array $dataHandlers = [];
-    private ?string $language = null;
-    private ?string $themeId = null;
+    private ?string $language   = null;
+    private ?string $themeId    = null;
     /** @var array<string, string|bool> */
     private array $htmlAttributes = [];
     /** @var array<string, string|bool> */
@@ -76,6 +74,7 @@ final class Page
     public function allowStoredOverride(bool $allow = true): self
     {
         $this->storedOverridable = $allow;
+
         return $this;
     }
 
@@ -87,13 +86,14 @@ final class Page
     public function setMethod(string $method): self
     {
         $this->method = strtoupper(trim($method));
+
         return $this;
     }
 
     public function path(): string
     {
         if ($this->path === null || $this->path === '') {
-            throw new \LogicException(sprintf('Page "%s" has no path.', $this->id));
+            throw new LogicException(sprintf('Page "%s" has no path.', $this->id));
         }
 
         return $this->path;
@@ -101,8 +101,9 @@ final class Page
 
     public function setPath(string $path): self
     {
-        $path = '/' . ltrim(trim($path), '/');
+        $path       = '/' . ltrim(trim($path), '/');
         $this->path = $path === '/' ? '/' : rtrim($path, '/');
+
         return $this;
     }
 
@@ -114,6 +115,7 @@ final class Page
     public function setTitle(string $title): self
     {
         $this->title = trim($title);
+
         return $this;
     }
 
@@ -126,20 +128,23 @@ final class Page
     {
         if ($layout instanceof Template) {
             $this->pageLayout = new Layout($layout);
+
             return $this;
         }
 
         if ($layout instanceof Layout) {
             $this->pageLayout = $layout;
+
             return $this;
         }
 
         if ($layout === null || trim($layout) === '') {
             $this->layout = null;
+
             return $this;
         }
 
-        $layout = trim($layout);
+        $layout       = trim($layout);
         $this->layout = str_contains($layout, '.') || str_contains($layout, '/')
             ? $layout
             : 'layouts.' . $layout;
@@ -155,6 +160,7 @@ final class Page
     public function requireAuthentication(bool $required = true): self
     {
         $this->requiresAuthentication = $required;
+
         return $this;
     }
 
@@ -191,6 +197,7 @@ final class Page
         }
 
         $this->requiresAnyPermission = false;
+
         return $this->requireAuthentication();
     }
 
@@ -203,6 +210,7 @@ final class Page
         }
 
         $this->requiresAnyPermission = true;
+
         return $this->requireAuthentication();
     }
 
@@ -214,13 +222,14 @@ final class Page
     public function setContent(callable|string|ResponseInterface $content): self
     {
         $this->content = is_callable($content) ? $content : static fn(): string|ResponseInterface => $content;
+
         return $this;
     }
 
     public function content(): callable
     {
         if ($this->content === null) {
-            throw new \LogicException(sprintf('Page "%s" has no content.', $this->id));
+            throw new LogicException(sprintf('Page "%s" has no content.', $this->id));
         }
 
         return $this->content;
@@ -237,6 +246,7 @@ final class Page
     public function setHandler(callable|array|string $handler): self
     {
         $this->handler = $handler;
+
         return $this;
     }
 
@@ -250,8 +260,9 @@ final class Page
      */
     public function setDataHandler(callable|array|string $handler, string $method = 'POST', ?Permission $permission = null): self
     {
-        $dataHandler = new PageDataHandler($handler, $method, $permission);
+        $dataHandler                                = new PageDataHandler($handler, $method, $permission);
         $this->dataHandlers[$dataHandler->method()] = $dataHandler;
+
         return $this;
     }
 
@@ -280,10 +291,12 @@ final class Page
     {
         if ($language === null || trim($language) === '') {
             $this->language = null;
+
             return $this;
         }
 
         $this->language = strtolower(trim($language));
+
         return $this;
     }
 
@@ -294,8 +307,9 @@ final class Page
 
     public function setTheme(?string $themeId): self
     {
-        $themeId = $themeId === null ? null : trim($themeId);
+        $themeId       = $themeId === null ? null : trim($themeId);
         $this->themeId = $themeId === '' ? null : $themeId;
+
         return $this;
     }
 
@@ -351,11 +365,11 @@ final class Page
     {
         $href = trim($href);
         if ($href === '') {
-            throw new \InvalidArgumentException('Stylesheet href cannot be empty.');
+            throw new InvalidArgumentException('Stylesheet href cannot be empty.');
         }
 
         $this->stylesheets[] = [
-            'href' => $href,
+            'href'       => $href,
             'attributes' => $this->cleanAttributes($attributes),
         ];
 
@@ -377,11 +391,11 @@ final class Page
     {
         $src = trim($src);
         if ($src === '') {
-            throw new \InvalidArgumentException('Script src cannot be empty.');
+            throw new InvalidArgumentException('Script src cannot be empty.');
         }
 
         $this->scripts[] = [
-            'src' => $src,
+            'src'        => $src,
             'attributes' => $this->cleanAttributes($attributes),
         ];
 
@@ -404,6 +418,7 @@ final class Page
     public function setMeta(PageMeta|array $meta): self
     {
         $this->meta = is_array($meta) ? PageMeta::fromArray($meta) : $meta;
+
         return $this;
     }
 
@@ -417,14 +432,14 @@ final class Page
         bool $visible = true,
         string $scope = 'frontend',
     ): self {
-        $this->meta->navigation->label = $label;
-        $this->meta->navigation->parent = $parent;
-        $this->meta->navigation->icon = $icon;
-        $this->meta->navigation->order = $order;
-        $this->meta->navigation->key = $key;
-        $this->meta->navigation->href = $href;
+        $this->meta->navigation->label   = $label;
+        $this->meta->navigation->parent  = $parent;
+        $this->meta->navigation->icon    = $icon;
+        $this->meta->navigation->order   = $order;
+        $this->meta->navigation->key     = $key;
+        $this->meta->navigation->href    = $href;
         $this->meta->navigation->visible = $visible;
-        $this->meta->navigation->scope = $scope;
+        $this->meta->navigation->scope   = $scope;
 
         return $this;
     }
@@ -464,15 +479,17 @@ final class Page
     {
         $name = trim($name);
         if ($name === '') {
-            throw new \InvalidArgumentException('Attribute name cannot be empty.');
+            throw new InvalidArgumentException('Attribute name cannot be empty.');
         }
 
         if ($value === null || $value === false) {
             unset($target[$name]);
+
             return $this;
         }
 
         $target[$name] = is_string($value) ? trim($value) : $value;
+
         return $this;
     }
 

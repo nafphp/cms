@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Repositories;
 
+use InvalidArgumentException;
 use PDO;
+use RuntimeException;
+use Throwable;
+
 use function Naf\Database\database;
 use function Naf\log;
 
@@ -31,19 +35,20 @@ final class FormRepository
                 GROUP BY f.id, f.identifier, f.title, f.status, f.fields_json, f.updated_at, f.created_at
                 ORDER BY f.updated_at DESC, f.created_at DESC, f.title ASC
             SQL)->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('FormRepository.summaries failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return [];
         }
 
         return array_map(fn(array $row): array => [
-            'id' => (int) ($row['id'] ?? 0),
-            'identifier' => (string) ($row['identifier'] ?? ''),
-            'title' => (string) ($row['title'] ?? ''),
-            'status' => (string) ($row['status'] ?? 'draft'),
-            'fields' => count($this->decodeJson((string) ($row['fields_json'] ?? '[]'))),
+            'id'          => (int) ($row['id'] ?? 0),
+            'identifier'  => (string) ($row['identifier'] ?? ''),
+            'title'       => (string) ($row['title'] ?? ''),
+            'status'      => (string) ($row['status'] ?? 'draft'),
+            'fields'      => count($this->decodeJson((string) ($row['fields_json'] ?? '[]'))),
             'submissions' => (int) ($row['submission_count'] ?? 0),
-            'updated' => (string) (($row['updated_at'] ?? null) ?: ($row['created_at'] ?? '')),
+            'updated'     => (string) (($row['updated_at'] ?? null) ?: ($row['created_at'] ?? '')),
         ], is_array($rows) ? $rows : []);
     }
 
@@ -62,8 +67,9 @@ final class FormRepository
             }
             $sql .= ' ORDER BY title ASC';
             $rows = $connection->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('FormRepository.choices failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return [];
         }
 
@@ -85,8 +91,9 @@ final class FormRepository
             $statement = $connection->prepare('SELECT * FROM forms WHERE id = :id LIMIT 1');
             $statement->execute(['id' => $id]);
             $row = $statement->fetch(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('FormRepository.find failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return null;
         }
 
@@ -110,8 +117,9 @@ final class FormRepository
             $statement = $connection->prepare($sql);
             $statement->execute(['identifier' => $this->normalizeIdentifier($identifier)]);
             $row = $statement->fetch(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('FormRepository.findByIdentifier failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return null;
         }
 
@@ -123,25 +131,25 @@ final class FormRepository
     {
         $connection = $this->connection();
         if (!$connection instanceof PDO) {
-            throw new \RuntimeException('No database connection available.');
+            throw new RuntimeException('No database connection available.');
         }
 
-        $id = (int) ($payload['id'] ?? 0);
+        $id         = (int) ($payload['id'] ?? 0);
         $identifier = $this->normalizeIdentifier((string) ($payload['identifier'] ?? ''));
-        $title = trim((string) ($payload['title'] ?? ''));
-        $status = $this->normalizeStatus((string) ($payload['status'] ?? 'draft'));
-        $fields = $this->normalizeFields(is_array($payload['fields'] ?? null) ? $payload['fields'] : []);
-        $settings = $this->normalizeSettings(is_array($payload['settings'] ?? null) ? $payload['settings'] : []);
+        $title      = trim((string) ($payload['title'] ?? ''));
+        $status     = $this->normalizeStatus((string) ($payload['status'] ?? 'draft'));
+        $fields     = $this->normalizeFields(is_array($payload['fields'] ?? null) ? $payload['fields'] : []);
+        $settings   = $this->normalizeSettings(is_array($payload['settings'] ?? null) ? $payload['settings'] : []);
 
         if ($title === '') {
-            throw new \InvalidArgumentException('Form title is required.');
+            throw new InvalidArgumentException('Form title is required.');
         }
 
         $params = [
-            'identifier' => $identifier,
-            'title' => $title,
-            'status' => $status,
-            'fields_json' => json_encode($fields, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            'identifier'    => $identifier,
+            'title'         => $title,
+            'status'        => $status,
+            'fields_json'   => json_encode($fields, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'settings_json' => json_encode($settings, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ];
 
@@ -157,6 +165,7 @@ final class FormRepository
                 WHERE id = :id
             SQL);
             $statement->execute($params + ['id' => $id]);
+
             return $id;
         }
 
@@ -197,7 +206,7 @@ final class FormRepository
     {
         $connection = $this->connection();
         if (!$connection instanceof PDO || $formId <= 0) {
-            throw new \RuntimeException('No form submission storage available.');
+            throw new RuntimeException('No form submission storage available.');
         }
 
         $statement = $connection->prepare(<<<SQL
@@ -205,9 +214,9 @@ final class FormRepository
             VALUES (:form_id, :payload_json, :meta_json, CURRENT_TIMESTAMP)
         SQL);
         $statement->execute([
-            'form_id' => $formId,
+            'form_id'      => $formId,
             'payload_json' => json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-            'meta_json' => json_encode($meta, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            'meta_json'    => json_encode($meta, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]);
 
         return (int) $connection->lastInsertId();
@@ -227,17 +236,18 @@ final class FormRepository
             $statement->bindValue('limit', max(1, min(200, $limit)), PDO::PARAM_INT);
             $statement->execute();
             $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('FormRepository.submissions failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return [];
         }
 
         return array_map(fn(array $row): array => [
             ...$row,
-            'id' => (int) ($row['id'] ?? 0),
+            'id'      => (int) ($row['id'] ?? 0),
             'form_id' => (int) ($row['form_id'] ?? 0),
             'payload' => $this->decodeJson((string) ($row['payload_json'] ?? '{}')),
-            'meta' => $this->decodeJson((string) ($row['meta_json'] ?? '{}')),
+            'meta'    => $this->decodeJson((string) ($row['meta_json'] ?? '{}')),
         ], is_array($rows) ? $rows : []);
     }
 
@@ -246,8 +256,8 @@ final class FormRepository
     {
         return [
             ...$row,
-            'id' => (int) ($row['id'] ?? 0),
-            'fields' => $this->decodeJson((string) ($row['fields_json'] ?? '[]')),
+            'id'       => (int) ($row['id'] ?? 0),
+            'fields'   => $this->decodeJson((string) ($row['fields_json'] ?? '[]')),
             'settings' => $this->decodeJson((string) ($row['settings_json'] ?? '{}')),
         ];
     }
@@ -258,7 +268,7 @@ final class FormRepository
         $identifier = preg_replace('/[^a-z0-9._-]+/', '-', $identifier) ?: '';
         $identifier = trim($identifier, '-._');
         if ($identifier === '') {
-            throw new \InvalidArgumentException('Form identifier cannot be empty.');
+            throw new InvalidArgumentException('Form identifier cannot be empty.');
         }
 
         return $identifier;
@@ -267,6 +277,7 @@ final class FormRepository
     private function normalizeStatus(string $status): string
     {
         $status = strtolower(trim($status));
+
         return in_array($status, ['draft', 'published', 'archived'], true) ? $status : 'draft';
     }
 
@@ -274,12 +285,12 @@ final class FormRepository
     private function normalizeSettings(array $settings): array
     {
         return [
-            'titleKey' => $this->normalizeTranslationKey((string) ($settings['titleKey'] ?? '')),
-            'submitLabel' => trim((string) ($settings['submitLabel'] ?? '')),
-            'submitLabelKey' => $this->normalizeTranslationKey((string) ($settings['submitLabelKey'] ?? '')),
-            'successMessage' => trim((string) ($settings['successMessage'] ?? '')),
+            'titleKey'          => $this->normalizeTranslationKey((string) ($settings['titleKey'] ?? '')),
+            'submitLabel'       => trim((string) ($settings['submitLabel'] ?? '')),
+            'submitLabelKey'    => $this->normalizeTranslationKey((string) ($settings['submitLabelKey'] ?? '')),
+            'successMessage'    => trim((string) ($settings['successMessage'] ?? '')),
             'successMessageKey' => $this->normalizeTranslationKey((string) ($settings['successMessageKey'] ?? '')),
-            'actions' => $this->normalizeActions(is_array($settings['actions'] ?? null) ? $settings['actions'] : []),
+            'actions'           => $this->normalizeActions(is_array($settings['actions'] ?? null) ? $settings['actions'] : []),
         ];
     }
 
@@ -305,12 +316,12 @@ final class FormRepository
                     continue;
                 }
 
-                $method = strtoupper(trim((string) ($action['method'] ?? 'POST')));
+                $method       = strtoupper(trim((string) ($action['method'] ?? 'POST')));
                 $normalized[] = [
-                    'type' => 'webhook',
-                    'enabled' => ($action['enabled'] ?? true) !== false,
-                    'url' => $url,
-                    'method' => in_array($method, ['POST', 'PUT', 'PATCH'], true) ? $method : 'POST',
+                    'type'        => 'webhook',
+                    'enabled'     => ($action['enabled'] ?? true) !== false,
+                    'url'         => $url,
+                    'method'      => in_array($method, ['POST', 'PUT', 'PATCH'], true) ? $method : 'POST',
                     'failOnError' => (bool) ($action['failOnError'] ?? false),
                 ];
             }
@@ -328,22 +339,22 @@ final class FormRepository
                 continue;
             }
 
-            $label = trim((string) ($field['label'] ?? ''));
+            $label      = trim((string) ($field['label'] ?? ''));
             $nameSource = trim((string) ($field['name'] ?? ''));
             if ($nameSource === '') {
                 $nameSource = $label !== '' ? $label : 'field-' . ($index + 1);
             }
-            $name = $this->normalizeIdentifier($nameSource);
-            $type = strtolower(trim((string) ($field['type'] ?? 'text')));
+            $name         = $this->normalizeIdentifier($nameSource);
+            $type         = strtolower(trim((string) ($field['type'] ?? 'text')));
             $normalized[] = [
-                'name' => $name,
-                'label' => $label !== '' ? $label : $name,
-                'labelKey' => $this->normalizeTranslationKey((string) ($field['labelKey'] ?? '')),
-                'type' => in_array($type, ['text', 'email', 'textarea', 'select', 'checkbox'], true) ? $type : 'text',
-                'required' => (bool) ($field['required'] ?? false),
-                'placeholder' => trim((string) ($field['placeholder'] ?? '')),
+                'name'           => $name,
+                'label'          => $label !== '' ? $label : $name,
+                'labelKey'       => $this->normalizeTranslationKey((string) ($field['labelKey'] ?? '')),
+                'type'           => in_array($type, ['text', 'email', 'textarea', 'select', 'checkbox'], true) ? $type : 'text',
+                'required'       => (bool) ($field['required'] ?? false),
+                'placeholder'    => trim((string) ($field['placeholder'] ?? '')),
                 'placeholderKey' => $this->normalizeTranslationKey((string) ($field['placeholderKey'] ?? '')),
-                'options' => array_values(array_filter(array_map('trim', is_array($field['options'] ?? null)
+                'options'        => array_values(array_filter(array_map('trim', is_array($field['options'] ?? null)
                     ? $field['options']
                     : explode("\n", (string) ($field['options'] ?? ''))))),
                 'validators' => $this->normalizeValidators($field),
@@ -360,7 +371,7 @@ final class FormRepository
     private function normalizeValidators(array $field): array
     {
         $validators = [];
-        $source = is_array($field['validators'] ?? null) ? $field['validators'] : [];
+        $source     = is_array($field['validators'] ?? null) ? $field['validators'] : [];
 
         foreach ($source as $validator) {
             if (!is_array($validator)) {
@@ -402,12 +413,14 @@ final class FormRepository
         }
 
         $seen = [];
+
         return array_values(array_filter($validators, static function (array $validator) use (&$seen): bool {
             $key = $validator['rule'] . ':' . $validator['param'];
             if (isset($seen[$key])) {
                 return false;
             }
             $seen[$key] = true;
+
             return true;
         }));
     }
@@ -425,8 +438,9 @@ final class FormRepository
     {
         try {
             $decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->warning(sprintf('FormRepository.decodeJson failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return [];
         }
 
@@ -441,8 +455,9 @@ final class FormRepository
 
         try {
             $connection = database();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             log()->error(sprintf('FormRepository.connection failed: %s', $e->getMessage()), ['exception' => $e]);
+
             return null;
         }
 

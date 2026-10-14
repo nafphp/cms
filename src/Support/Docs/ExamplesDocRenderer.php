@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Support\Docs;
 
-use Naf\CMS\Support\Docs\DocBlockRenderer;
-use Naf\CMS\Support\Docs\MarkdownTable;
-
 final class ExamplesDocRenderer implements DocBlockRenderer
 {
     public function __construct(private readonly string $examplesPath)
@@ -30,8 +27,8 @@ final class ExamplesDocRenderer implements DocBlockRenderer
                     '[' . basename($directory) . '](examples/' . basename($directory) . '/)',
                     $this->readOneLiner($directory . '/README.md'),
                 ],
-                $directories
-            )
+                $directories,
+            ),
         );
     }
 

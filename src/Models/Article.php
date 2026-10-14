@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Models;
 
+use DateTime;
+use JsonSerializable;
 use Naf\CMS\Enums\ArticleStatus;
 use Naf\CMS\Enums\Language;
 use Naf\CMS\Repositories\ArticleVersionRepository;
@@ -13,21 +15,18 @@ use Naf\CMS\Repositories\UserRepository;
 use Naf\CMS\Security\UrlPolicy;
 use Naf\ORM\Core\EntityInterface;
 use Naf\ORM\Model\AbstractModel;
-use Naf\CMS\Models\ArticleVersion;
-use Naf\CMS\Models\Category;
-use Naf\CMS\Models\Tag;
-use Naf\CMS\Models\User;
+
 use function Naf\ORM\repo;
 
-class Article extends AbstractModel implements \JsonSerializable
+class Article extends AbstractModel implements JsonSerializable
 {
-    protected ?int $author = null;
+    protected ?int $author                     = null;
     protected ?int $hide_lead_image_in_content = 1;
-    protected ?int $category_id = null;
-    protected ?string $createdAt = null;
+    protected ?int $category_id                = null;
+    protected ?string $createdAt               = null;
 
     private ?ArticleVersion $currentVersion = null;
-    private array $tags = [];
+    private array $tags                     = [];
 
     public array $pivotTables = [
         Tag::class => 'article_tags',
@@ -80,16 +79,16 @@ class Article extends AbstractModel implements \JsonSerializable
         if ($this->tags !== []) {
             return array_values(array_filter(
                 array_map(static fn(mixed $tag): string => trim((string) $tag), $this->tags),
-                static fn(string $tag): bool => $tag !== ''
+                static fn(string $tag): bool => $tag !== '',
             ));
         }
 
         return array_values(array_filter(
             array_map(
                 static fn(Tag $tag): string => trim((string) ($tag->getName() ?? '')),
-                $this->getTags()
+                $this->getTags(),
             ),
-            static fn(string $name): bool => $name !== ''
+            static fn(string $name): bool => $name !== '',
         ));
     }
 
@@ -100,7 +99,7 @@ class Article extends AbstractModel implements \JsonSerializable
     {
         return array_values(array_filter(array_map(
             static fn(ArticleVersion $version): ?string => $version->getLanguageCode(),
-            $this->getVersions()
+            $this->getVersions(),
         )));
     }
 
@@ -168,7 +167,7 @@ class Article extends AbstractModel implements \JsonSerializable
         return $this->currentVersion?->getStatus();
     }
 
-    public function getPublishedAt(): ?\DateTime
+    public function getPublishedAt(): ?DateTime
     {
         return $this->currentVersion?->getPublishedAt();
     }
@@ -185,7 +184,7 @@ class Article extends AbstractModel implements \JsonSerializable
             return null;
         }
 
-        $data = json_decode($content, true);
+        $data   = json_decode($content, true);
         $blocks = $data['blocks'] ?? [];
 
         foreach ($blocks as $block) {
@@ -217,6 +216,7 @@ class Article extends AbstractModel implements \JsonSerializable
         }
 
         $words = str_word_count(strip_tags($content));
+
         return (int) ceil($words / 200);
     }
 
@@ -235,7 +235,7 @@ class Article extends AbstractModel implements \JsonSerializable
 
     public function jsonSerialize(): array
     {
-        $author = $this->getAuthor();
+        $author     = $this->getAuthor();
         $authorName = null;
         if ($author instanceof User) {
             $authorName = trim(((string) $author->getFirstname()) . ' ' . ((string) $author->getLastname()));
@@ -245,25 +245,25 @@ class Article extends AbstractModel implements \JsonSerializable
         }
 
         return [
-            'id' => $this->id ?? null,
-            'title' => $this->getTitle(),
-            'slug' => $this->getSlug(),
-            'teaser' => $this->getTeaser(),
-            'content' => $this->getContent(),
-            'status' => $this->getStatus()?->value,
-            'language' => $this->getLanguageCode(),
-            'author' => $authorName,
+            'id'          => $this->id ?? null,
+            'title'       => $this->getTitle(),
+            'slug'        => $this->getSlug(),
+            'teaser'      => $this->getTeaser(),
+            'content'     => $this->getContent(),
+            'status'      => $this->getStatus()?->value,
+            'language'    => $this->getLanguageCode(),
+            'author'      => $authorName,
             'category_id' => $this->getCategoryId(),
-            'createdAt' => $this->createdAt,
+            'createdAt'   => $this->createdAt,
             'publishedAt' => $this->getPublishedAt()?->format('d.m.Y, H:i'),
-            'languages' => array_values(array_filter(array_map(
+            'languages'   => array_values(array_filter(array_map(
                 static fn(string $lang): string => $lang,
-                $this->getLanguages()
+                $this->getLanguages(),
             ))),
-            'versions' => $this->getVersions(),
-            'lastVersion' => $this->getVersion()?->getVersion(),
+            'versions'               => $this->getVersions(),
+            'lastVersion'            => $this->getVersion()?->getVersion(),
             'hideLeadImageInContent' => $this->shouldHideLeadImageInContent(),
-            'tags' => $this->getTagNames(),
+            'tags'                   => $this->getTagNames(),
         ];
     }
 }

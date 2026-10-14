@@ -9,18 +9,31 @@ use PHPUnit\Framework\TestCase;
 
 final class PageChartFactoryTest extends TestCase
 {
+    public function testStandaloneFactoryUsesTheHostsGlobalTranslator(): void
+    {
+        $fixture = dirname(__DIR__, 2) . '/Fixtures/page-chart-translation.php';
+        $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($fixture);
+        exec($command, $output, $exitCode);
+
+        self::assertSame(0, $exitCode);
+        self::assertSame(
+            ['translated: Publishing', 'translated: Articles'],
+            json_decode(implode("\n", $output), true, flags: JSON_THROW_ON_ERROR),
+        );
+    }
+
     public function testFactoryBuildsChartFromPageBlockProps(): void
     {
         $chart = (new PageChartFactory())->fromBlockProps([
-            'chartType' => 'line',
-            'title' => 'Publishing',
+            'chartType'   => 'line',
+            'title'       => 'Publishing',
             'metricCount' => 2,
-            'label1' => 'Draft',
-            'value1' => 3,
-            'color1' => '#3b82f6',
-            'label2' => 'Published',
-            'value2' => 9,
-            'color2' => '#22c55e',
+            'label1'      => 'Draft',
+            'value1'      => 3,
+            'color1'      => '#3b82f6',
+            'label2'      => 'Published',
+            'value2'      => 9,
+            'color2'      => '#22c55e',
         ], 'main');
 
         self::assertSame('line', $chart->type);
@@ -33,9 +46,9 @@ final class PageChartFactoryTest extends TestCase
     public function testFactoryClampsMetricCountAndHeight(): void
     {
         $chart = (new PageChartFactory())->fromBlockProps([
-            'chartType' => 'pie',
+            'chartType'   => 'pie',
             'metricCount' => 99,
-            'height' => 900,
+            'height'      => 900,
         ]);
 
         self::assertSame('pie', $chart->type);
@@ -46,11 +59,11 @@ final class PageChartFactoryTest extends TestCase
     public function testFactoryPrefersDynamicMetrics(): void
     {
         $chart = (new PageChartFactory())->fromBlockProps([
-            'chartType' => 'bar',
+            'chartType'   => 'bar',
             'metricCount' => 1,
-            'label1' => 'Legacy',
-            'value1' => 1,
-            'metrics' => [
+            'label1'      => 'Legacy',
+            'value1'      => 1,
+            'metrics'     => [
                 ['label' => 'Draft', 'value' => 3, 'color' => '#3b82f6'],
                 ['label' => 'Review', 'value' => 7, 'color' => '#f59e0b'],
                 ['label' => 'Published', 'value' => 11, 'color' => '#22c55e'],
@@ -66,12 +79,12 @@ final class PageChartFactoryTest extends TestCase
     public function testFactoryKeepsPopulatedLegacyMetricsVisible(): void
     {
         $chart = (new PageChartFactory())->fromBlockProps([
-            'chartType' => 'bar',
+            'chartType'   => 'bar',
             'metricCount' => 3,
-            'label1' => 'Draft',
-            'value1' => 3,
-            'label4' => 'Scheduled',
-            'value4' => 5,
+            'label1'      => 'Draft',
+            'value1'      => 3,
+            'label4'      => 'Scheduled',
+            'value4'      => 5,
         ]);
 
         self::assertCount(4, $chart->labels);
@@ -82,10 +95,10 @@ final class PageChartFactoryTest extends TestCase
     public function testFactoryBuildsMetricBarsChart(): void
     {
         $chart = (new PageChartFactory())->fromBlockProps([
-            'chartType' => 'metric-bars',
+            'chartType'   => 'metric-bars',
             'metricCount' => 1,
-            'label1' => 'Review',
-            'value1' => 7,
+            'label1'      => 'Review',
+            'value1'      => 7,
         ]);
 
         self::assertSame('metric-bars', $chart->type);
@@ -96,10 +109,10 @@ final class PageChartFactoryTest extends TestCase
     public function testFactoryFallsBackToBarForUnknownChartType(): void
     {
         $chart = (new PageChartFactory())->fromBlockProps([
-            'chartType' => 'radar',
+            'chartType'   => 'radar',
             'metricCount' => 1,
-            'label1' => 'Draft',
-            'value1' => 2,
+            'label1'      => 'Draft',
+            'value1'      => 2,
         ]);
 
         self::assertSame('bar', $chart->type);
@@ -109,13 +122,13 @@ final class PageChartFactoryTest extends TestCase
     public function testFactoryBuildsStableIdsFromPrefixAndProps(): void
     {
         $props = [
-            'chartType' => 'bar',
+            'chartType'   => 'bar',
             'metricCount' => 1,
-            'label1' => 'Draft',
-            'value1' => 2,
+            'label1'      => 'Draft',
+            'value1'      => 2,
         ];
 
-        $left = (new PageChartFactory())->fromBlockProps($props, 'hero');
+        $left  = (new PageChartFactory())->fromBlockProps($props, 'hero');
         $right = (new PageChartFactory())->fromBlockProps($props, 'hero');
 
         self::assertSame($left->id, $right->id);
