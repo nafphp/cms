@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "tailwindcss -i ./src/Resources/css/nafcms.css -o ./public/css/nafcms.css --watch --verbose",
     "build": "tailwindcss -i ./src/Resources/css/nafcms.css -o ./public/css/nafcms.css --minify --verbose",
-    "test:builder": "node --test \"tests/js/*.test.js\""
+    "test:builder": "node --test \"tests/js/*.test.js\"",
+    "test:assets": "node --test tests/assets/*.test.mjs"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.13",

@@ -31,8 +31,9 @@ Prefer those registration paths over adding a second router, auth layer or persi
 
 The actual Composer checks are `composer test` (`tests/run.php`), `composer analyse` and
 `composer validate --strict`; `composer check` runs analysis and tests. For PageBuilder changes
-also run `npm run test:builder`. Follow the relevant testing guidance in `CMS_GUIDE.md`. Keep registry-derived
-reference material current with `vendor/bin/naf docs:sync` from an installed host when public
+also run `npm run test:builder`. For asset/source-discovery changes, run `npm run test:assets`
+and rebuild with `npm run build`. Follow the relevant testing guidance in `CMS_GUIDE.md`.
+Keep registry-derived reference material current with `vendor/bin/naf docs:sync` from an installed host when public
 CMS registrations change. The detailed guide remains authoritative for the CMS-specific conventions.
 
 Follow the shared [PHP code style](https://github.com/nafphp/docs/blob/main/CODE_STYLE.md)

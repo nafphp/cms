@@ -4,6 +4,13 @@ All notable changes to NafCMS are documented here. This project follows [Keep a 
 
 ## [Unreleased]
 
+## [0.0.2] - 2026-10-14
+
+### Fixed
+
+- Include the package's top-level PHP templates when building Tailwind CSS. The previous source path pointed at a nonexistent directory, so newly used template-only utilities were omitted.
+- Verify template-only utility generation and exclusion of unrelated local files through the actual Tailwind CLI in CI.
+
 ## [0.0.1] - 2026-10-14
 
 ### Changed
