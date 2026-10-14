@@ -493,7 +493,7 @@ For architecture principles, audit rules, testing expectations, and contributor 
 
 ## Authentication migration
 
-Generic identity, provider and permission mechanics use `naf/auth`. See [the migration guide](docs/auth-migration.md) for the local pre-release Composer setup, existing-session compatibility and application boundaries.
+Generic identity, provider and permission mechanics use `naf/auth`. See [the migration guide](docs/auth-migration.md) for published Composer dependencies, existing-session compatibility and application boundaries.
 
 ## PHP code style
 

@@ -8,28 +8,22 @@ NafCMS delegates generic authentication and authorization to `naf/auth`.
 - Page/API authorization, navigation visibility and the admin guard use `ResourceAuthorization` to apply CMS requirements through the auth grant checks.
 - The existing password service, rate limiter, enums, ORM models, repositories, invitations and UserPrivilegePolicy stay in the CMS.
 
-The integration uses `Provider\ProviderInterface`, `Identity\IdentityInterface` and `Session\StateStoreInterface` from `Naf\Auth`. See the auth package README for the current API.
+The integration uses `Provider\ProviderInterface`, `Identity\IdentityInterface` and `Session\StateStoreInterface` from `Naf\Auth`. See the [authentication guide](https://nafphp.github.io/docs/auth/) for the current API.
 
-## Local development before the auth release
+## Published dependencies
 
-The sibling checkout is `../naf/auth`. The ignored `composer.local.json` is the CMS manifest plus a path repository. From the CMS checkout:
-
-```bash
-php -r '$package = json_decode(file_get_contents("composer.json"), true, flags: JSON_THROW_ON_ERROR); $package["repositories"] = [["type" => "path", "url" => "../naf/auth", "options" => ["symlink" => true, "versions" => ["naf/auth" => "0.1.0"]]]]; file_put_contents("composer.local.json", json_encode($package, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL);'
-cp composer.lock composer.local.lock
-COMPOSER=composer.local.json composer update naf/auth --minimal-changes
-composer test
-composer analyse
-npm run test:builder
-```
-
-The version in the path repository is a local development alias, not a published tag. Composer symlinks the auth source; the migration does not upgrade unrelated CMS dependencies. Subsequent local installs should use:
+The CMS requires the published `naf/auth` 0.2 series through its normal Composer
+manifest. Install or update the CMS in the host without sibling path repositories
+or local version aliases:
 
 ```bash
-COMPOSER=composer.local.json composer install
+composer require naf/cms --with-all-dependencies
 ```
 
-The tracked CMS `composer.lock` intentionally remains the pre-release lock. A normal install using that lock cannot satisfy the newly added auth requirement until it is refreshed. Once a real `naf/auth` 0.1 release exists, run `composer update naf/auth --minimal-changes` against the normal manifest, commit that release lock, and stop using the local manifest. Do not publish local path locks or invent a release reference.
+For a CMS contributor checkout, `composer install` uses the committed lock of
+published packages. The old `composer.local.json` and `composer.local.lock` files
+are no longer needed; stop setting the `COMPOSER` override before running the
+normal checks.
 
 ## Host integration
 
