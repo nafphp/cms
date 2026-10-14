@@ -94,6 +94,7 @@ When developing NafCMS itself, frontend assets are intentionally simple:
 ```bash
 npm install
 npm run build
+npm run test:assets
 ```
 
 Use `npm run dev` while working on Tailwind or admin UI assets.
