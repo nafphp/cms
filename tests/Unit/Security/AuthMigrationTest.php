@@ -25,9 +25,12 @@ use Naf\CMS\Services\Security\RateLimitDecision;
 use Naf\CMS\Support\UserHelper;
 use Naf\Session\Core\Session;
 use Naf\Session\Storage\DatabaseSessionHandler;
+use Nyholm\Psr7\Request;
+use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Psr\Http\Message\RequestInterface;
 use RuntimeException;
 use Tests\Support\DatabaseTestCase;
 use Tests\Support\JsonRequest;
@@ -184,6 +187,32 @@ final class AuthMigrationTest extends DatabaseTestCase
         self::assertFalse(auth()->check());
         self::assertNull(session()->get('auth'));
         self::assertNull(session()->get('userId'));
+    }
+
+    public function testLoginRejectsAnObjectParsedBodyWithoutReadingArrayOffsets(): void
+    {
+        $request = (new ServerRequest('POST', '/admin/login'))->withParsedBody((object) [
+            'username' => 'alice',
+            'password' => 'correct-password',
+        ]);
+        app()->container()->set(RequestInterface::class, $request);
+
+        $response = (new LoginUser($this->limiter))();
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertStringContainsString('Please enter username and password.', (string) $response->getBody());
+        self::assertFalse(auth()->check());
+    }
+
+    public function testLoginHandlesARequestWithoutServerRequestCapabilities(): void
+    {
+        app()->container()->set(RequestInterface::class, new Request('POST', '/admin/login'));
+
+        $response = (new LoginUser($this->limiter))();
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertStringContainsString('Please enter username and password.', (string) $response->getBody());
+        self::assertFalse(auth()->check());
     }
 
     public function testPasswordResetRevokesAPreviouslyPersistedSession(): void

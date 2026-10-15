@@ -99,7 +99,8 @@ rm "$FIXTURE_ROOT/AGENTS.md"
 (cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/naf nafcms:agents:install)
 grep -q 'managed-by: naf/cms agent-guide' "$FIXTURE_ROOT/AGENTS.md"
 (cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/naf nafcms:agents:install --update)
-(cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/naf db:migrate up)
+(cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/naf install:database)
+(cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" vendor/bin/naf install:database)
 
 (cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" -r '
     define("BASE_PATH", getcwd());

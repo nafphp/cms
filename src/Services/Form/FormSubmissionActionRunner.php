@@ -95,7 +95,12 @@ final class FormSubmissionActionRunner
         return $actions !== [] ? $actions : [['type' => 'store', 'enabled' => true]];
     }
 
-    /** @param array<string, mixed> $form @param array<string, mixed> $values @param array<string, mixed> $meta */
+    /**
+     * @param array<string, mixed> $form
+     * @param array<string, mixed> $values
+     * @param array<string, mixed> $meta
+     * @return array<array-key, mixed>
+     */
     private function store(array $form, array $values, array $meta): array
     {
         $store = $this->storeSubmission ?? static fn(int $formId, array $payload, array $submissionMeta): int
@@ -111,6 +116,7 @@ final class FormSubmissionActionRunner
      * @param array<string, mixed> $form
      * @param array<string, mixed> $values
      * @param array<string, mixed> $meta
+     * @return array<array-key, mixed>
      */
     private function webhook(array $action, array $form, array $values, array $meta): array
     {
@@ -147,7 +153,10 @@ final class FormSubmissionActionRunner
         return ['type' => 'webhook', ...$result];
     }
 
-    /** @param array<string, mixed> $payload @return array{success: bool, status: int, reason?: string} */
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{success: bool, status: int, reason?: string}
+     */
     private function defaultWebhookSender(string $url, string $method, array $payload): array
     {
         $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);

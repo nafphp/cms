@@ -41,6 +41,9 @@ final class ArticleDraftCreateTool implements ToolInterface, ScopedToolInterface
         return 'Creates a new article draft with Editor.js-style content blocks.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -65,6 +68,10 @@ final class ArticleDraftCreateTool implements ToolInterface, ScopedToolInterface
         return ['articles:write'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $payload  = $this->payload($args);

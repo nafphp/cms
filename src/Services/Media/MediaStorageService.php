@@ -46,6 +46,10 @@ final class MediaStorageService implements MediaStorageInterface
         return self::DEFAULT_ALLOWED_EXTENSIONS;
     }
 
+    /**
+     * @param EntityStorage<Media> $storage
+     * @param array<string, list<string>>|null $allowedExtensions
+     */
     public function __construct(
         private EntityStorage $storage,
         private ?string $storageRoot = null,
@@ -437,7 +441,7 @@ final class MediaStorageService implements MediaStorageInterface
             return [null, null];
         }
 
-        return [(int) ($size[0] ?? 0) ?: null, (int) ($size[1] ?? 0) ?: null];
+        return [$size[0] ?: null, $size[1] ?: null];
     }
 
     private function absolutePath(string $storagePath): ?string

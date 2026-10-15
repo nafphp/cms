@@ -9,6 +9,7 @@ use Naf\CMS\Api\ScopedNavigationApi;
 use Naf\CMS\Contracts\ScopeAwareInterface;
 use Naf\CMS\Enums\Scope;
 
+/** @method \Naf\CMS\Page\PageRegistry pages() */
 final class ScopedCms
 {
     /** @var array<string, object> */

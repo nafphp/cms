@@ -42,6 +42,9 @@ final class ThemeRepository implements ThemeSourceInterface
         return array_map(fn(array $row): array => $this->summary($this->hydrate($row)), is_array($rows) ? $rows : []);
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function find(int|string $id): ?array
     {
         $connection = $this->connection();

@@ -26,7 +26,6 @@ final class ExamplesSmokeTest extends TestCase
             $this->requireExample($directory);
         }
 
-        self::assertTrue(true);
     }
 
     public function testPageWithPermissionExampleRegistersExpectedPage(): void

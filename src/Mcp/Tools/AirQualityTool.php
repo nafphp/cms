@@ -31,6 +31,9 @@ final class AirQualityTool implements ToolInterface, ScopedToolInterface, LocalA
         return 'Returns current air quality, UV index, and pollen context for a location so local businesses can plan outdoor, health, sport, and seasonal campaigns.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -48,6 +51,10 @@ final class AirQualityTool implements ToolInterface, ScopedToolInterface, LocalA
         return ['system:read'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $location  = trim((string) ($args['location'] ?? ''));

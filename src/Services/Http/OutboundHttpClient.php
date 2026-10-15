@@ -27,7 +27,10 @@ final class OutboundHttpClient implements OutboundHttpClientInterface
         $this->transport = $transport === null ? null : Closure::fromCallable($transport);
     }
 
-    /** @param array<string, mixed> $payload @param array<string, string> $headers */
+    /**
+     * @param array<string, mixed> $payload
+     * @param array<string, string> $headers
+     */
     public function postJson(
         string $url,
         array $payload,
@@ -89,7 +92,10 @@ final class OutboundHttpClient implements OutboundHttpClientInterface
         throw new OutboundHttpDenied('Outbound redirect limit exceeded.');
     }
 
-    /** @param array<string, string> $headers @return array{status:int,headers:array<string,string>,body:string} */
+    /**
+     * @param array<string, string> $headers
+     * @return array{status:int,headers:array<string,string>,body:string}
+     */
     private function curl(OutboundHttpTarget $target, string $method, string $body, array $headers, float $timeout): array
     {
         if (!function_exists('curl_init')) {

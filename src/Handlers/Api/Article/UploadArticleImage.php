@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Naf\CMS\Handlers\Api\Article;
 
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Throwable;
 
@@ -17,7 +18,8 @@ final class UploadArticleImage
 {
     public function __invoke(): ResponseInterface
     {
-        $file = request()->getUploadedFiles()['image'] ?? null;
+        $request = request();
+        $file    = $request instanceof ServerRequestInterface ? ($request->getUploadedFiles()['image'] ?? null) : null;
         if (!$file instanceof UploadedFileInterface || $file->getError() !== UPLOAD_ERR_OK) {
             return json(['success' => 0, 'message' => 'Upload failed.'], 400);
         }

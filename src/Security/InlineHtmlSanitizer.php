@@ -90,7 +90,7 @@ final class InlineHtmlSanitizer
             return '<' . $tag . '>' . $content . '</' . $tag . '>';
         }
 
-        $href        = $tag === 'a' ? UrlPolicy::link($node->getAttribute('href')) : null;
+        $href        = UrlPolicy::link($node->getAttribute('href'));
         $title       = trim($node->getAttribute('title'));
         $targetBlank = strtolower(trim($node->getAttribute('target'))) === '_blank';
         $attributes  = '';

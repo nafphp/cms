@@ -36,6 +36,9 @@ final class ContentOverviewTool implements ToolInterface, ScopedToolInterface, L
         return 'Returns high-level CMS content counts across articles, taxonomy, pages, media, users, and audit entries.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -49,6 +52,10 @@ final class ContentOverviewTool implements ToolInterface, ScopedToolInterface, L
         return ['system:read'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $connection = $this->connection();

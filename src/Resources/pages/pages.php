@@ -11,6 +11,7 @@ use Naf\CMS\Page\PageBuilderRenderer;
 use Naf\CMS\Page\Template;
 use Naf\CMS\Repositories\PageLayoutRepository;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 use function Naf\CMS\cms;
 use function Naf\I18n\t;
@@ -122,9 +123,11 @@ return [
         ->setLayout('admin')
         ->requirePermission(Permission::PAGES_CREATE)
         ->hideFromAdminNavigation('pages')
-        ->setContent(static function () use ($templatesForBuilder, $navigationChoices, $navigationOptions, $pageLanguages, $defaultPageLanguage, $persistedValuesForBuilder): string|ResponseInterface {
-            $page = null;
-            $id   = (int) (request()->getQueryParams()['id'] ?? 0);
+        ->setContent(static function () use ($templatesForBuilder, $navigationChoices, $navigationOptions, $pageLanguages, $defaultPageLanguage, $persistedValuesForBuilder): ResponseInterface {
+            $page    = null;
+            $request = request();
+            $query   = $request instanceof ServerRequestInterface ? $request->getQueryParams() : [];
+            $id      = (int) ($query['id'] ?? 0);
             if ($id > 0) {
                 $page = cms()->pages()->find($id);
             }

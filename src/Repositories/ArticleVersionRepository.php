@@ -13,6 +13,7 @@ use function Naf\ORM\em;
 
 class ArticleVersionRepository extends AbstractRepository
 {
+    /** @return class-string<ArticleVersion> */
     protected function getEntityClass(): string
     {
         return ArticleVersion::class;

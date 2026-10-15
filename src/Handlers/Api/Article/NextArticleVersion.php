@@ -6,6 +6,7 @@ namespace Naf\CMS\Handlers\Api\Article;
 
 use Naf\CMS\Models\Article;
 use Psr\Http\Message\ResponseInterface;
+use RuntimeException;
 
 use function Naf\CMS\cms;
 use function Naf\json;
@@ -14,9 +15,14 @@ final class NextArticleVersion
 {
     public function __invoke(string $articleId, string $language): ResponseInterface
     {
+        $type = cms()->contentTypes()->requireByModel(Article::class);
+        if (!is_callable([$type, 'form'])) {
+            throw new RuntimeException('Registered article content type must provide a callable form().');
+        }
+
         return json([
             'success' => true,
-            'version' => cms()->contentTypes()->requireByModel(Article::class)->form()->nextVersion((int) $articleId, $language),
+            'version' => $type->form()->nextVersion((int) $articleId, $language),
         ]);
     }
 }

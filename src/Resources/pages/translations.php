@@ -6,6 +6,7 @@ use Naf\CMS\Contracts\SettingsServiceInterface;
 use Naf\CMS\Contracts\TranslationServiceInterface;
 use Naf\CMS\Enums\Permission;
 use Naf\CMS\Page\Page;
+use Psr\Http\Message\ServerRequestInterface;
 
 use function Naf\app;
 use function Naf\CMS\cms;
@@ -22,7 +23,9 @@ return [
         ->setAdminNavigation('Languages', parent: 'settings', icon: 'content', order: 20, key: 'settings.translations')
         ->setContent(static function () {
             $service  = app()->container()->get(TranslationServiceInterface::class);
-            $language = cms()->languages()->normalize((string) (request()->getQueryParams()['language'] ?? cms()->settings()->currentLanguage()))
+            $request  = request();
+            $query    = $request instanceof ServerRequestInterface ? $request->getQueryParams() : [];
+            $language = cms()->languages()->normalize((string) ($query['language'] ?? cms()->settings()->currentLanguage()))
                 ?? cms()->settings()->currentLanguage();
             $settingSections = app()->container()->get(SettingsServiceInterface::class)->sections('languages');
 

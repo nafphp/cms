@@ -6,7 +6,7 @@ namespace Naf\CMS\Settings;
 
 final class SettingField
 {
-    /** @var array<string, string> */
+    /** @var array<int|string, string> */
     private array $options       = [];
     private ?string $description = null;
     private mixed $defaultValue  = null;
@@ -28,13 +28,13 @@ final class SettingField
         return new self($key, $label, 'textarea');
     }
 
-    /** @param array<string, string> $options */
+    /** @param array<int|string, string> $options */
     public static function select(string $key, string $label, array $options): self
     {
         return (new self($key, $label, 'select'))->setOptions($options);
     }
 
-    /** @param array<string, string> $options */
+    /** @param array<int|string, string> $options */
     public static function multiselect(string $key, string $label, array $options): self
     {
         return (new self($key, $label, 'multiselect'))->setOptions($options);
@@ -79,13 +79,13 @@ final class SettingField
         return $this;
     }
 
-    /** @return array<string, string> */
+    /** @return array<int|string, string> */
     public function options(): array
     {
         return $this->options;
     }
 
-    /** @param array<string, string> $options */
+    /** @param array<int|string, string> $options */
     public function setOptions(array $options): self
     {
         $this->options = $options;

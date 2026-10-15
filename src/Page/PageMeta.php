@@ -6,6 +6,9 @@ namespace Naf\CMS\Page;
 
 final class PageMeta
 {
+    /**
+     * @param array<string, mixed> $extra
+     */
     public function __construct(
         public PageSeoMeta $seo = new PageSeoMeta(),
         public PageNavigationMeta $navigation = new PageNavigationMeta(),
@@ -15,6 +18,9 @@ final class PageMeta
     ) {
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public static function fromArray(array $data): self
     {
         return new self(
@@ -26,6 +32,9 @@ final class PageMeta
         );
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         return [
@@ -37,6 +46,9 @@ final class PageMeta
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private static function arrayValue(mixed $value): array
     {
         return is_array($value) ? $value : [];

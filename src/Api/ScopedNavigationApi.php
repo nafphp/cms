@@ -16,6 +16,9 @@ final class ScopedNavigationApi
     ) {
     }
 
+    /**
+     * @param NavigationItem|array<string, mixed> $item
+     */
     public function add(NavigationItem|array $item, bool $replace = false): self
     {
         $this->navigation->add($this->scopedItem($item), $replace);
@@ -24,7 +27,7 @@ final class ScopedNavigationApi
     }
 
     /**
-     * @param iterable<NavigationItem|Navigation|array> $items
+     * @param iterable<NavigationItem|Navigation|array<string, mixed>> $items
      */
     public function addMany(iterable $items, bool $replace = false): self
     {
@@ -40,6 +43,9 @@ final class ScopedNavigationApi
         return $this;
     }
 
+    /**
+     * @param Navigation|array<array-key, mixed> $navigation
+     */
     public function addNavigation(Navigation|array $navigation, bool $replace = false): self
     {
         $this->navigation->addNavigation($this->scopedNavigation($navigation), $replace);
@@ -91,6 +97,10 @@ final class ScopedNavigationApi
         return $this->navigation->allForScope($this->scope->value);
     }
 
+    /**
+     * @param NavigationItem|array<string, mixed> $item
+     * @return NavigationItem|array<string, mixed>
+     */
     private function scopedItem(NavigationItem|array $item): NavigationItem|array
     {
         if ($item instanceof NavigationItem) {
@@ -102,6 +112,10 @@ final class ScopedNavigationApi
         return $item;
     }
 
+    /**
+     * @param Navigation|array<string, mixed> $navigation
+     * @return Navigation|array<string, mixed>
+     */
     private function scopedNavigation(Navigation|array $navigation): Navigation|array
     {
         if ($navigation instanceof Navigation) {

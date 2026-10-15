@@ -183,6 +183,9 @@ final class PageRegistry
         return $this->repository()->summaries($templates);
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function find(int $id): ?array
     {
         return $this->repository()->find($id);

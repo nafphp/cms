@@ -188,7 +188,10 @@ final class TranslationFileService implements TranslationServiceInterface
         return $entries;
     }
 
-    /** @param array<string, mixed> $entries */
+    /**
+     * @param array<string, mixed> $entries
+     * @return array<array-key, mixed>
+     */
     private function normalizeEntries(array $entries): array
     {
         $normalized = [];
@@ -204,7 +207,10 @@ final class TranslationFileService implements TranslationServiceInterface
         return $normalized;
     }
 
-    /** @param array<string, string> $old @param array<string, string> $new */
+    /**
+     * @param array<string, string> $old
+     * @param array<string, string> $new
+     */
     private function auditChanges(string $language, array $old, array $new, string $file): int
     {
         $changed = 0;

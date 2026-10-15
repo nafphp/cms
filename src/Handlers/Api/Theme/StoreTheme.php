@@ -73,6 +73,7 @@ final class StoreTheme
 
     /**
      * @return array<string, string>
+     * @param array<array-key, mixed> $rows
      */
     private function surfaces(array $rows): array
     {

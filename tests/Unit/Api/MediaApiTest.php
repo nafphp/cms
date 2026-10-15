@@ -13,6 +13,7 @@ use Tests\Support\DatabaseTestCase;
 final class MediaApiTest extends DatabaseTestCase
 {
     private MediaApi $api;
+    /** @var EntityStorage<Media> */
     private EntityStorage $storage;
 
     protected function setUp(): void

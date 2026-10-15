@@ -186,6 +186,9 @@ class ArticleVersion extends AbstractModel implements JsonSerializable
         return $clone;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function jsonSerialize(): array
     {
         return [

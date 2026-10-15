@@ -9,6 +9,7 @@ use Naf\CMS\Contracts\RateLimiterInterface;
 use Naf\CMS\Security\UrlPolicy;
 use Naf\CMS\Services\Security\RateLimitDecision;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 use function Naf\Auth\auth;
 use function Naf\Form\validator;
@@ -26,10 +27,12 @@ final class LoginUser
 
     public function __invoke(): ResponseInterface
     {
-        $data      = request()->getParsedBody() ?? [];
+        $request   = request();
+        $data      = $request instanceof ServerRequestInterface ? $request->getParsedBody() : [];
+        $data      = is_array($data) ? $data : [];
         $username  = trim((string) ($data['username'] ?? ''));
         $password  = (string) ($data['password'] ?? '');
-        $ipAddress = (string) (request()->getServerParams()['REMOTE_ADDR'] ?? 'unknown');
+        $ipAddress = $request instanceof ServerRequestInterface ? (string) ($request->getServerParams()['REMOTE_ADDR'] ?? 'unknown') : 'unknown';
 
         $validator = validator()->validate($data, [
             'username' => 'required|min:3',

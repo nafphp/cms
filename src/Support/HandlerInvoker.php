@@ -19,7 +19,7 @@ final class HandlerInvoker
 
     /**
      * @param callable|array{0: class-string, 1: string}|class-string $handler
-     * @param array<int, mixed> $params
+     * @param array<int|string, mixed> $params
      */
     public static function call(callable|array|string $handler, array $params = []): mixed
     {

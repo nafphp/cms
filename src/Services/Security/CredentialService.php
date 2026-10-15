@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Services\Security;
 
-use RuntimeException;
-
 class CredentialService
 {
     private const string DUMMY_PASSWORD_HASH = '$argon2id$v=19$m=19456,t=2,p=1$NVJBQllNNGZHM2R1aGh3NA$ZU5byYnM1xYejc1P0bUASjmEqCZsX4nySM1qPBaukYg';
@@ -15,12 +13,7 @@ class CredentialService
 
     public function hashPassword(string $password): string
     {
-        $hash = password_hash($password, PASSWORD_ARGON2ID, $this->passwordOptions());
-        if ($hash === false) {
-            throw new RuntimeException('Could not hash password.');
-        }
-
-        return $hash;
+        return password_hash($password, PASSWORD_ARGON2ID, $this->passwordOptions());
     }
 
     public function verifyPassword(string $submitted, ?string $stored): PasswordVerificationResult

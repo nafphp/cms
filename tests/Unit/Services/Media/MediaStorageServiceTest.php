@@ -29,6 +29,7 @@ final class MediaStorageServiceTest extends DatabaseTestCase
     }
 
     private string $publicRoot;
+    /** @var EntityStorage<Media> */
     private EntityStorage $storage;
     private MediaStorageService $service;
 

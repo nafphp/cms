@@ -18,6 +18,9 @@ final class CoreBlockUrlPolicyTest extends TestCase
         }
     }
 
+    /**
+     * @param array<string, mixed> $props
+     */
     #[DataProvider('storedUrlViews')]
     public function testStoredActiveUrlsAreNotRenderedByCoreBlockViews(string $view, array $props): void
     {
@@ -28,6 +31,9 @@ final class CoreBlockUrlPolicyTest extends TestCase
         self::assertStringNotContainsString('data:image', strtolower($html));
     }
 
+    /**
+     * @return iterable<string, array{string, array<string, mixed>}>
+     */
     public static function storedUrlViews(): iterable
     {
         yield 'CTA link' => ['cta', ['buttonLabel' => 'Open', 'buttonUrl' => 'javascript:alert(1)']];

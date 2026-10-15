@@ -27,6 +27,9 @@ final class PageBuilderInspectTool implements ToolInterface, ScopedToolInterface
         return 'Starts the PageBuilder show mode so the user can click a visible block or nested element and return structured read-only information about it.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()

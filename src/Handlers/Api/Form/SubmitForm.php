@@ -9,6 +9,7 @@ use Naf\CMS\Services\Form\FormSubmissionGuard;
 use Naf\CMS\Services\Form\FormSubmissionValidator;
 use Naf\CMS\Services\Form\FormTextTranslator;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 use function Naf\CMS\cms;
 use function Naf\I18n\t;
@@ -19,10 +20,12 @@ final class SubmitForm
 {
     public function __invoke(string $identifier): ResponseInterface
     {
-        $rawBody   = (string) request()->getBody();
+        $request   = request();
+        $server    = $request instanceof ServerRequestInterface ? $request->getServerParams() : [];
+        $rawBody   = (string) $request->getBody();
         $payload   = json_decode($rawBody, true);
         $payload   = is_array($payload) ? $payload : [];
-        $ipAddress = (string) (request()->getServerParams()['REMOTE_ADDR'] ?? 'unknown');
+        $ipAddress = (string) ($server['REMOTE_ADDR'] ?? 'unknown');
         $guard     = new FormSubmissionGuard();
         $limit     = $guard->consume($identifier, $ipAddress);
         if (!$limit->allowed) {
@@ -63,7 +66,7 @@ final class SubmitForm
 
         $meta = [
             'ip'        => $ipAddress,
-            'userAgent' => mb_substr((string) (request()->getServerParams()['HTTP_USER_AGENT'] ?? ''), 0, 500),
+            'userAgent' => mb_substr((string) ($server['HTTP_USER_AGENT'] ?? ''), 0, 500),
         ];
 
         $actionResult = (new FormSubmissionActionRunner())->run($form, $values, $meta);

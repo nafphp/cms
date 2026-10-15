@@ -26,8 +26,10 @@ class Article extends AbstractModel implements JsonSerializable
     protected ?string $createdAt               = null;
 
     private ?ArticleVersion $currentVersion = null;
-    private array $tags                     = [];
+    /** @var array<int, string> */
+    private array $tags = [];
 
+    /** @var array<class-string<EntityInterface>, string> */
     public array $pivotTables = [
         Tag::class => 'article_tags',
     ];
@@ -103,13 +105,16 @@ class Article extends AbstractModel implements JsonSerializable
         )));
     }
 
+    /** @return Category|null */
     public function getCategory(): Category|EntityInterface|null
     {
         if ($this->category_id === null) {
             return null;
         }
 
-        return repo(CategoryRepository::class)->findOneBy('id', $this->category_id);
+        $category = repo(CategoryRepository::class)->findOneBy('id', $this->category_id);
+
+        return $category instanceof Category ? $category : null;
     }
 
     public function getCategoryId(): ?int
@@ -233,6 +238,9 @@ class Article extends AbstractModel implements JsonSerializable
         $this->tags = $tags;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function jsonSerialize(): array
     {
         $author     = $this->getAuthor();

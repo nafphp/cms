@@ -36,6 +36,9 @@ final class PageOverviewTool implements ToolInterface, ScopedToolInterface, Loca
         return 'Returns page counts by status, language, template, and optional recent pages.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -53,6 +56,10 @@ final class PageOverviewTool implements ToolInterface, ScopedToolInterface, Loca
         return ['pages:read'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $connection    = $this->connection();

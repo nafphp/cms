@@ -8,6 +8,8 @@ use Naf\CLI\Core\AbstractCommand;
 use Naf\CLI\Core\Input;
 use Naf\CLI\Core\Output;
 use Naf\Database\Commands\MigrateCommand;
+use Naf\Decorators\AutoResolvingContainer;
+use RuntimeException;
 
 use function Naf\app;
 
@@ -46,8 +48,11 @@ class InstallDatabaseCommand extends AbstractCommand
 
         $output->writeEmptyLine();
 
-        /** @var MigrateCommand $migrateCommand */
-        $migrateCommand = app()->container()->make(MigrateCommand::class);
+        $container = app()->container();
+        if (!$container instanceof AutoResolvingContainer) {
+            throw new RuntimeException('Database installation requires an auto-resolving container.');
+        }
+        $migrateCommand = $container->make(MigrateCommand::class);
         $migrateInput   = new Input(['up'], $migrateCommand->getDefinition());
 
         return $migrateCommand->run($migrateInput, $output);

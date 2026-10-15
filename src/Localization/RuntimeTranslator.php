@@ -35,6 +35,9 @@ final class RuntimeTranslator extends Translator
         $this->runtimeData = $translations->entries($this->runtimeLanguage);
     }
 
+    /**
+     * @param array<array-key, mixed> $params
+     */
     public function translate(string $key, array $params = []): string
     {
         $result       = $this->runtimeData[$key] ?? $key;

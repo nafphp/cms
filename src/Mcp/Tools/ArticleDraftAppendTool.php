@@ -49,6 +49,9 @@ final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface
         return 'Appends plain text as paragraphs to an existing article draft, resolving the article by id, title, or slug.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -68,6 +71,10 @@ final class ArticleDraftAppendTool implements ToolInterface, ScopedToolInterface
         return ['articles:write'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $language  = strtolower(trim((string) ($args['language'] ?? 'de'))) ?: 'de';

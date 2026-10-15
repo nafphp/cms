@@ -21,13 +21,13 @@ final class DeleteArticleVersion
         }
 
         $articles = cms()->content(Article::class);
-        $article  = $articles->findVersion((int) $articleId, $lang->value, (int) $version);
+        $article  = $articles->findVersion((int) $articleId, $lang, (int) $version);
         if ($article?->getVersion()?->getStatus() === ArticleStatus::PUBLISHED) {
             return json(['success' => false, 'reason' => 'Published versions cannot be deleted.'], 400);
         }
 
         return json([
-            'success' => $articles->deleteVersion((int) $articleId, $lang->value, (int) $version),
+            'success' => $articles->deleteVersion((int) $articleId, $lang, (int) $version),
         ]);
     }
 }

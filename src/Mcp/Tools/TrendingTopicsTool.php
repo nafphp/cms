@@ -30,6 +30,9 @@ final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface, Lo
         return 'Returns current public-interest or news trend signals from public sources for content ideas, campaigns, and shop planning.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -50,6 +53,10 @@ final class TrendingTopicsTool implements ToolInterface, ScopedToolInterface, Lo
         return ['system:read'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $source = strtolower(trim((string) ($args['source'] ?? 'wikipedia'))) === 'news' ? 'news' : 'wikipedia';

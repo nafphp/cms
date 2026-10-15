@@ -173,6 +173,9 @@ final class CosineToolRouter implements ToolRouterInterface
         return $selected;
     }
 
+    /**
+     * @return list<array<string, mixed>>
+     */
     private function fallbackAfterRecording(string $reason, string $input, ToolContext $context, int $limit): array
     {
         $this->recordFallback($reason, $input, $context);

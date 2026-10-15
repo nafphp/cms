@@ -126,7 +126,8 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: curl, dom, pdo_mysql
+          extensions: curl, dom, pdo_mysql, pdo_sqlite
           coverage: none
       - uses: ramsey/composer-install@v3
       - run: vendor/bin/naf db:migrate up
+      - run: NAFCMS_MYSQL_READ_TEST=1 composer test -- tests/Unit/Repositories/UserReadQueriesTest.php

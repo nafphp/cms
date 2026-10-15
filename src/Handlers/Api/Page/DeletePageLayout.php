@@ -31,7 +31,7 @@ final class DeletePageLayout
 
             return json(['success' => true]);
         } catch (Throwable $exception) {
-            error_log($exception);
+            error_log((string) $exception);
 
             return json(['success' => false, 'reason' => 'Layout could not be deleted.'], 500);
         }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Api;
 
 use Naf\CMS\Api\ContentApi;
-use Naf\CMS\Models\Article;
 use Naf\CMS\Repositories\ArticleRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use Tests\Support\NafTestCase;
@@ -14,7 +13,7 @@ final class ContentApiTest extends NafTestCase
 {
     private ArticleRepository&MockObject $repository;
 
-    /** @var ContentApi<Article> */
+    /** @var ContentApi */
     private ContentApi $contentApi;
 
     protected function setUp(): void

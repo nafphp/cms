@@ -1,6 +1,3 @@
-includes:
-  - phpstan-baseline.neon
-
 parameters:
   level: 6
   paths:
@@ -9,6 +6,8 @@ parameters:
   bootstrapFiles:
     - tests/phpstan-bootstrap.php
   scanFiles:
+    - examples/03-block-type/block_type.php
+    - views/page/blocks/_helpers/navigation.php
     - vendor/naf/auth/src/functions.php
     - vendor/naf/cli/src/functions.php
     - vendor/naf/database/src/functions.php

@@ -9,6 +9,7 @@ final readonly class OutboundHttpProfile
     /**
      * @param list<string> $developmentHosts
      * @param list<int> $allowedPorts
+     * @param list<string> $schemes
      */
     private function __construct(
         public string $name,

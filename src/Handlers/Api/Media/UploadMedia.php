@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Naf\CMS\Handlers\Api\Media;
 
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Throwable;
 
@@ -25,7 +26,8 @@ final class UploadMedia
 
         $stored     = [];
         $uploadedBy = user()?->get()?->getId();
-        $body       = request()->getParsedBody();
+        $request    = request();
+        $body       = $request instanceof ServerRequestInterface ? $request->getParsedBody() : null;
         $context    = [
             'visibility' => is_array($body) ? (string) ($body['visibility'] ?? 'public') : 'public',
             'alt_text'   => is_array($body) ? (string) ($body['alt_text'] ?? '') : '',
@@ -40,7 +42,7 @@ final class UploadMedia
             return json(['success' => false, 'reason' => $exception->getMessage()], 400);
         }
 
-        $first = $stored[0] ?? null;
+        $first = $stored[0];
 
         return json([
             'success' => true,
@@ -55,7 +57,8 @@ final class UploadMedia
      */
     private function uploadedFiles(): array
     {
-        $uploadedFiles = request()->getUploadedFiles();
+        $request       = request();
+        $uploadedFiles = $request instanceof ServerRequestInterface ? $request->getUploadedFiles() : [];
         $candidates    = [];
 
         foreach (['file', 'files', 'media', 'image'] as $field) {

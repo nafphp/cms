@@ -64,7 +64,7 @@ final class CmsTest extends TestCase
                 ->setLabel('Example'),
         );
 
-        self::assertSame('Example', $cms->navigation()->item('admin.example')?->toArray()['label']);
+        self::assertSame('Example', $cms->navigation()->item('admin.example')->toArray()['label']);
     }
 
     public function testScopedNavigationApiRegistersAdminMetadataItems(): void
@@ -78,8 +78,8 @@ final class CmsTest extends TestCase
 
         $item = $cms->scope(Scope::ADMIN)->navigation()->item('admin.scoped');
 
-        self::assertSame('Scoped Admin', $item?->toArray()['label']);
-        self::assertSame('admin', $item?->scope());
+        self::assertSame('Scoped Admin', $item->toArray()['label']);
+        self::assertSame('admin', $item->scope());
         self::assertNull($cms->scope(Scope::FRONTEND)->navigation()->item('admin.scoped'));
     }
 
@@ -94,8 +94,8 @@ final class CmsTest extends TestCase
 
         $item = $cms->scope(Scope::FRONTEND)->navigation()->item('frontend.scoped');
 
-        self::assertSame('Scoped Frontend', $item?->toArray()['label']);
-        self::assertSame('frontend', $item?->scope());
+        self::assertSame('Scoped Frontend', $item->toArray()['label']);
+        self::assertSame('frontend', $item->scope());
         self::assertNull($cms->scope(Scope::ADMIN)->navigation()->item('frontend.scoped'));
     }
 
@@ -114,7 +114,7 @@ final class CmsTest extends TestCase
             ->add(SettingSection::create('example', 'Example'))
             ->addField('example', SettingField::text('example.title', 'Title'));
 
-        self::assertSame('Title', $cms->settings()->field('example.title')?->label());
+        self::assertSame('Title', $cms->settings()->field('example.title')->label());
     }
 
     private function cmsWithNavigation(): Cms

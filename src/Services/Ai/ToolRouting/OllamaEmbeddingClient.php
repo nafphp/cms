@@ -18,7 +18,7 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
 {
     /** @var array<string, array<int, float>> */
     private array $cache = [];
-    private ?string $cacheDirectory;
+    private string $cacheDirectory;
     private OutboundHttpClient $httpClient;
     private OutboundHttpProfile $httpProfile;
 
@@ -200,7 +200,7 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
         } catch (Throwable) {
             $raw = '';
         }
-        if (!is_string($raw) || trim($raw) === '') {
+        if (trim($raw) === '') {
             if ($attempt === 1) {
                 log()->warning('ollama.embed.retry', [
                     'attempt' => $attempt,
@@ -253,17 +253,17 @@ final class OllamaEmbeddingClient implements EmbeddingClientInterface
             $normalized[] = (float) $value;
         }
 
-        return $normalized !== [] ? $normalized : null;
+        return $normalized;
     }
 
-    private function defaultCacheDirectory(): ?string
+    private function defaultCacheDirectory(): string
     {
         return RuntimePaths::cache('ai-embeddings');
     }
 
     private function cachePath(string $cacheKey): ?string
     {
-        if ($this->cacheDirectory === null || $this->cacheDirectory === '') {
+        if ($this->cacheDirectory === '') {
             return null;
         }
 

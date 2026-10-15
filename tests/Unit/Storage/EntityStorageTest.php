@@ -9,6 +9,7 @@ use Naf\CMS\Enums\ArticleStatus;
 use Naf\CMS\Models\Media;
 use Naf\CMS\Storage\Criteria;
 use Naf\CMS\Storage\EntityStorage;
+use Naf\CMS\Storage\Filter\EqualsFilter;
 use Tests\Support\DatabaseTestCase;
 
 final class EntityStorageTest extends DatabaseTestCase
@@ -204,7 +205,9 @@ final class EntityStorageTest extends DatabaseTestCase
     {
         $criteria = Criteria::create()->equals('status', ArticleStatus::PUBLISHED);
 
-        self::assertSame(ArticleStatus::PUBLISHED->value, $criteria->filters()[0]->value);
+        $filter = $criteria->filters()[0];
+        self::assertInstanceOf(EqualsFilter::class, $filter);
+        self::assertSame(ArticleStatus::PUBLISHED->value, $filter->value);
     }
 
     public function testUnknownColumnsAreRejected(): void

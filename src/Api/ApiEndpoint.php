@@ -156,6 +156,9 @@ final class ApiEndpoint
         return $this;
     }
 
+    /**
+     * @return callable|array{0: class-string, 1: string}|class-string
+     */
     public function handler(): callable|array|string
     {
         if ($this->handler === null) {

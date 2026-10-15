@@ -43,7 +43,10 @@ final class StoreForm
         }
     }
 
-    /** @param array<string, mixed> $data */
+    /**
+     * @param array<string, mixed> $data
+     * @return array<array-key, mixed>
+     */
     private function validate(array $data): array
     {
         $errors = [];

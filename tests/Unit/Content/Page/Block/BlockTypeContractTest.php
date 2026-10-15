@@ -68,8 +68,7 @@ final class BlockTypeContractTest extends TestCase
             );
 
             $builderArray = $type->toBuilderArray();
-            self::assertIsArray($builderArray);
-            $encoded = json_encode($builderArray, JSON_THROW_ON_ERROR);
+            $encoded      = json_encode($builderArray, JSON_THROW_ON_ERROR);
             self::assertIsArray(json_decode($encoded, true, flags: JSON_THROW_ON_ERROR));
         }
     }

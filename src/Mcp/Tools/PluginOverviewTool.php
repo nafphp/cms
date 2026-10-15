@@ -31,6 +31,9 @@ final class PluginOverviewTool implements ToolInterface, ScopedToolInterface, Lo
         return 'Returns loaded NAF plugins and registry counts relevant to NafCMS extensions.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -45,6 +48,10 @@ final class PluginOverviewTool implements ToolInterface, ScopedToolInterface, Lo
         return ['system:read'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $includePaths = filter_var($args['include_paths'] ?? false, FILTER_VALIDATE_BOOLEAN);

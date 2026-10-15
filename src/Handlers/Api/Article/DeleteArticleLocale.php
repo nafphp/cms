@@ -20,7 +20,7 @@ final class DeleteArticleLocale
         }
 
         return json([
-            'success' => cms()->content(Article::class)->deleteLocale((int) $articleId, $lang->value),
+            'success' => cms()->content(Article::class)->deleteLocale((int) $articleId, $lang),
         ]);
     }
 }

@@ -22,7 +22,7 @@ final class PublishArticle
 
         try {
             return json([
-                'success' => cms()->content(Article::class)->publish((int) $articleId, $lang->value),
+                'success' => cms()->content(Article::class)->publish((int) $articleId, $lang),
             ]);
         } catch (Throwable $exception) {
             return json(['success' => false, 'reason' => $exception->getMessage()], 500);

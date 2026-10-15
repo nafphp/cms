@@ -32,8 +32,10 @@ final class NavigationApi implements ScopeAwareInterface
 
     public function __construct(
         private NavigationRepository $repository,
-        private bool $loadConfiguredRegistry = true,
+        bool $loadConfiguredRegistry = true,
     ) {
+        // Navigation definitions are registered explicitly at bootstrap. Retain the old argument for callers.
+        unset($loadConfiguredRegistry);
     }
 
     /**
@@ -73,6 +75,9 @@ final class NavigationApi implements ScopeAwareInterface
         return $this->registry;
     }
 
+    /**
+     * @param NavigationItem|array<string, mixed> $item
+     */
     public function add(NavigationItem|array $item, bool $replace = false): self
     {
         $this->registry()->add($item, $replace);
@@ -81,7 +86,7 @@ final class NavigationApi implements ScopeAwareInterface
     }
 
     /**
-     * @param iterable<NavigationItem|Navigation|array> $items
+     * @param iterable<NavigationItem|Navigation|array<string, mixed>> $items
      */
     public function addMany(iterable $items, bool $replace = false): self
     {
@@ -90,6 +95,9 @@ final class NavigationApi implements ScopeAwareInterface
         return $this;
     }
 
+    /**
+     * @param Navigation|array<array-key, mixed> $navigation
+     */
     public function addNavigation(Navigation|array $navigation, bool $replace = false): self
     {
         $this->registry()->addNavigation($navigation, $replace);

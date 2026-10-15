@@ -288,7 +288,10 @@ final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
         return is_array($row) ? ['id' => (int) $row['id'], 'name' => (string) $row['name']] : null;
     }
 
-    /** @param array<int, mixed> $permissionIds @return array<int, string> */
+    /**
+     * @param array<int, mixed> $permissionIds
+     * @return list<string>
+     */
     private function permissionNamesByIds(array $permissionIds): array
     {
         $ids = $this->normalizeIds($permissionIds);
@@ -303,7 +306,10 @@ final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
         return array_map('strval', $statement->fetchAll(PDO::FETCH_COLUMN));
     }
 
-    /** @param array<int, mixed> $ids @return array<int, int> */
+    /**
+     * @param array<int, mixed> $ids
+     * @return list<int>
+     */
     private function normalizeIds(array $ids): array
     {
         return array_values(array_unique(array_filter(
@@ -350,7 +356,10 @@ final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
         return in_array($role->value, $profile['roles'], true);
     }
 
-    /** @param array<string, int|string> $parameters @return array<int, string> */
+    /**
+     * @param array<string, int|string> $parameters
+     * @return array<int, string>
+     */
     private function column(string $sql, array $parameters): array
     {
         $statement = $this->connection()->prepare($sql);
