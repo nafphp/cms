@@ -46,3 +46,8 @@ Article action regression tests cover successful publish and delete requests wit
 language codes and retain the refusal to delete published versions. Login regressions cover
 object parsed bodies and requests without server-request capabilities. A failure must be
 fixed in the owning workflow and covered there, rather than hidden in the analysis settings.
+
+Article-list and next-version APIs use the registered content type's callable `catalog()`
+and `form()` methods. A plugin can replace that type through the content registry without
+extending the concrete built-in class. Regression tests exercise both APIs with a replacement
+implementation and its services.

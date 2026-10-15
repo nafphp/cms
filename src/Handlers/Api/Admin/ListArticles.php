@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Handlers\Api\Admin;
 
-use Naf\CMS\Content\Article\ArticleContentType;
 use Naf\CMS\Models\Article;
 use Psr\Http\Message\ResponseInterface;
 use RuntimeException;
@@ -17,8 +16,8 @@ final class ListArticles
     public function __invoke(): ResponseInterface
     {
         $type = cms()->contentTypes()->requireByModel(Article::class);
-        if (!$type instanceof ArticleContentType) {
-            throw new RuntimeException('Registered article content type must be an ArticleContentType.');
+        if (!is_callable([$type, 'catalog'])) {
+            throw new RuntimeException('Registered article content type must provide a callable catalog().');
         }
 
         return json($type->catalog()->overview()['articles']);

@@ -290,7 +290,6 @@ final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
 
     /**
      * @param array<int, mixed> $permissionIds
-     * @return array<int, string>
      * @return list<string>
      */
     private function permissionNamesByIds(array $permissionIds): array
@@ -309,7 +308,6 @@ final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
 
     /**
      * @param array<int, mixed> $ids
-     * @return array<int, int>
      * @return list<int>
      */
     private function normalizeIds(array $ids): array
