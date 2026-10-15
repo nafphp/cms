@@ -36,6 +36,9 @@ final class ArticleLookupTool implements ToolInterface, ScopedToolInterface, Loc
         return 'Finds latest article versions by title, slug, language, or status so later MCP actions can target an article id.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -53,6 +56,10 @@ final class ArticleLookupTool implements ToolInterface, ScopedToolInterface, Loc
         return ['articles:read'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $connection = $this->connection();

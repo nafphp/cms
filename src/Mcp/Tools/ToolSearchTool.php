@@ -33,6 +33,9 @@ final class ToolSearchTool implements ToolInterface, ScopedToolInterface, LocalA
         ]);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()

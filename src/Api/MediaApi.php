@@ -21,6 +21,9 @@ use Psr\Http\Message\UploadedFileInterface;
  */
 final class MediaApi
 {
+    /**
+     * @param EntityStorage<Media>|null $mediaStorage
+     */
     public function __construct(
         private MediaStorageInterface $storage,
         private ?EntityStorage $mediaStorage = null,
@@ -123,6 +126,9 @@ final class MediaApi
         return $media instanceof Media ? MediaPayload::fromEntity($media) : null;
     }
 
+    /**
+     * @param array<string, mixed> $media
+     */
     public function pathFor(array $media): ?string
     {
         return $this->storage->pathFor($media);

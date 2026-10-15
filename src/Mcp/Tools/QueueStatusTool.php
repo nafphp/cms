@@ -35,6 +35,9 @@ final class QueueStatusTool implements ToolInterface, ScopedToolInterface, Local
         return 'Returns file-backed queue counts for pending, locked, and deadletter jobs.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -49,6 +52,10 @@ final class QueueStatusTool implements ToolInterface, ScopedToolInterface, Local
         return ['queue:read'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $channel  = $this->normalizeChannel($args['channel'] ?? 'default');

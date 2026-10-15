@@ -8,6 +8,7 @@ use Naf\CMS\Repositories\ThemeRepository;
 use Naf\CMS\Services\Theme\ThemeAssetWriter;
 use Naf\CMS\Theme\Theme;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 
 use function Naf\redirect;
@@ -18,7 +19,8 @@ final class StoreTheme
 {
     public function __invoke(): ResponseInterface
     {
-        $data       = request()->getParsedBody() ?? [];
+        $request    = request();
+        $data       = $request instanceof ServerRequestInterface ? $request->getParsedBody() : [];
         $data       = is_array($data) ? $data : [];
         $label      = trim((string) ($data['label'] ?? ''));
         $identifier = Theme::slug((string) ($data['identifier'] ?? $label));
@@ -54,6 +56,7 @@ final class StoreTheme
 
     /**
      * @return array<string, string>
+     * @param array<array-key, mixed> $rows
      */
     private function surfaces(array $rows): array
     {

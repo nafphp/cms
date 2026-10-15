@@ -65,6 +65,9 @@ final class PageRepository
         ], is_array($rows) ? $rows : []);
     }
 
+    /**
+     * @return array<array-key, mixed>|null
+     */
     public function find(int $id): ?array
     {
         $connection = $this->connection();
@@ -88,6 +91,9 @@ final class PageRepository
         return is_array($row) ? $this->hydrateRow($row) : null;
     }
 
+    /**
+     * @return array<array-key, mixed>|null
+     */
     public function findByPath(
         string $path,
         ?string $language = null,
@@ -248,7 +254,10 @@ final class PageRepository
         return array_values($descriptors);
     }
 
-    /** @return array<int, Page> */
+    /**
+     * @return array<int, Page>
+     * @param array<int, array<string, mixed>> $templates
+     */
     public function pagesForRouting(array $templates, bool $publishedOnly = false): array
     {
         $connection = $this->connection();
@@ -292,7 +301,10 @@ final class PageRepository
         return $pages;
     }
 
-    /** @return array<int, Page> */
+    /**
+     * @return array<int, Page>
+     * @param array<int, array<string, mixed>> $templates
+     */
     public function publishedPages(array $templates): array
     {
         return $this->pagesForRouting($templates, true);
@@ -474,7 +486,10 @@ final class PageRepository
         return $statement->rowCount() > 0;
     }
 
-    /** @param array<string, mixed> $row */
+    /**
+     * @param array<string, mixed> $row
+     * @return array<array-key, mixed>
+     */
     private function hydrateRow(array $row): array
     {
         return [
@@ -486,7 +501,10 @@ final class PageRepository
         ];
     }
 
-    /** @param array<int, array<string, mixed>> $templates */
+    /**
+     * @param array<int, array<string, mixed>> $templates
+     * @return array<string, string>
+     */
     private function templateLabels(array $templates): array
     {
         $labels = [];
@@ -526,6 +544,9 @@ final class PageRepository
         return in_array($status, ['draft', 'review', 'published', 'scheduled', 'archived'], true) ? $status : 'draft';
     }
 
+    /**
+     * @return array<array-key, mixed>
+     */
     private function decodeJson(string $json): array
     {
         try {

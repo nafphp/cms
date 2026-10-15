@@ -86,7 +86,10 @@ final class SettingsService implements SettingsServiceInterface
         return ['success' => $saved, 'errors' => []];
     }
 
-    /** @param array<string, string> $stored */
+    /**
+     * @param array<string, string> $stored
+     * @return array<string, mixed>
+     */
     private function sectionPayload(SettingSection $section, array $stored): array
     {
         $fields = [];
@@ -214,7 +217,10 @@ final class SettingsService implements SettingsServiceInterface
         return $values;
     }
 
-    /** @param array<string, string> $oldValues @param array<string, string> $newValues */
+    /**
+     * @param array<string, string> $oldValues
+     * @param array<string, string> $newValues
+     */
     private function auditChanges(array $oldValues, array $newValues): void
     {
         foreach ($newValues as $key => $newValue) {

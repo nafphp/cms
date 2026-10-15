@@ -201,7 +201,10 @@ final class FormRepository
         return $statement->rowCount() > 0;
     }
 
-    /** @param array<string, mixed> $payload */
+    /**
+     * @param array<string, mixed> $payload
+     * @param array<array-key, mixed> $meta
+     */
     public function storeSubmission(int $formId, array $payload, array $meta = []): int
     {
         $connection = $this->connection();
@@ -251,7 +254,10 @@ final class FormRepository
         ], is_array($rows) ? $rows : []);
     }
 
-    /** @param array<string, mixed> $row */
+    /**
+     * @param array<string, mixed> $row
+     * @return array<array-key, mixed>
+     */
     private function hydrateRow(array $row): array
     {
         return [
@@ -281,7 +287,10 @@ final class FormRepository
         return in_array($status, ['draft', 'published', 'archived'], true) ? $status : 'draft';
     }
 
-    /** @param array<string, mixed> $settings */
+    /**
+     * @param array<string, mixed> $settings
+     * @return array<array-key, mixed>
+     */
     private function normalizeSettings(array $settings): array
     {
         return [
@@ -294,7 +303,10 @@ final class FormRepository
         ];
     }
 
-    /** @param array<int, mixed> $actions */
+    /**
+     * @param array<int, mixed> $actions
+     * @return array<array-key, mixed>
+     */
     private function normalizeActions(array $actions): array
     {
         $normalized = [];
@@ -330,7 +342,10 @@ final class FormRepository
         return $normalized !== [] ? $normalized : [['type' => 'store', 'enabled' => true]];
     }
 
-    /** @param array<int, mixed> $fields */
+    /**
+     * @param array<int, mixed> $fields
+     * @return array<array-key, mixed>
+     */
     private function normalizeFields(array $fields): array
     {
         $normalized = [];
@@ -434,6 +449,9 @@ final class FormRepository
         return trim($key, '.-_');
     }
 
+    /**
+     * @return array<array-key, mixed>
+     */
     private function decodeJson(string $json): array
     {
         try {

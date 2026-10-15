@@ -36,6 +36,9 @@ final class UserRoleSummaryTool implements ToolInterface, ScopedToolInterface, L
         return 'Returns user, role, permission, and assignment counts for the NafCMS RBAC model.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -49,6 +52,10 @@ final class UserRoleSummaryTool implements ToolInterface, ScopedToolInterface, L
         return ['users:read'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $connection     = $this->connection();

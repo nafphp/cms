@@ -123,6 +123,9 @@ final class NavigationItem
         return $this;
     }
 
+    /**
+     * @param NavigationItem|array<string, mixed> $child
+     */
     public function addChild(NavigationItem|array $child): self
     {
         $child            = is_array($child) ? self::fromArray($child) : $child;

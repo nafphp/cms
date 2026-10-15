@@ -9,6 +9,7 @@ use Naf\CMS\Models\User;
 use Naf\CMS\Repositories\UserRepository;
 use Naf\CMS\Services\Security\PasswordPolicy;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 use function Naf\Form\validator;
 use function Naf\ORM\repo;
@@ -36,7 +37,9 @@ final class RegisterInvitedUser
             return $this->registerView($token, $invite, $stateError);
         }
 
-        $data       = request()->getParsedBody() ?? [];
+        $request    = request();
+        $data       = $request instanceof ServerRequestInterface ? $request->getParsedBody() : [];
+        $data       = is_array($data) ? $data : [];
         $validation = validator()->validate($data, [
             'email'                 => 'required',
             'username'              => 'required|min:3',

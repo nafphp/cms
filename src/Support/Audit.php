@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Naf\CMS\Support;
 
 use Naf\CMS\Contracts\AuditSinkInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 
 use function Naf\request;
@@ -44,7 +45,7 @@ final class Audit
 
         return $this->repository()->record($this->redactEntry($entry) + [
             'actor_user_id' => $actor?->id,
-            'actor_label'   => $actor?->label ?? 'System',
+            'actor_label'   => $actor->label ?? 'System',
             'ip_address'    => $this->ipAddress(),
         ]);
     }
@@ -69,7 +70,9 @@ final class Audit
     private function ipAddress(): string
     {
         try {
-            return (string) (request()->getServerParams()['REMOTE_ADDR'] ?? '');
+            $request = request();
+
+            return $request instanceof ServerRequestInterface ? (string) ($request->getServerParams()['REMOTE_ADDR'] ?? '') : '';
         } catch (Throwable) {
             return '';
         }

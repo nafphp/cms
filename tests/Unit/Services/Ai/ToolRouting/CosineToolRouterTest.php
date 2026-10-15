@@ -94,14 +94,14 @@ final class CosineToolRouterTest extends TestCase
 
 final class FakeEmbeddingClient implements EmbeddingClientInterface
 {
-    public function embed(string $text): ?array
+    public function embed(string $text): array
     {
         return $this->vector($text);
     }
 
     public function embedMany(array $texts): array
     {
-        return array_map(fn(string $text): ?array => $this->vector($text), $texts);
+        return array_map(fn(string $text): array => $this->vector($text), $texts);
     }
 
     /**
@@ -119,7 +119,7 @@ final class FakeEmbeddingClient implements EmbeddingClientInterface
 
 final class LowConfidenceEmbeddingClient implements EmbeddingClientInterface
 {
-    public function embed(string $text): ?array
+    public function embed(string $text): array
     {
         return [1.0, 0.0];
     }
@@ -132,7 +132,7 @@ final class LowConfidenceEmbeddingClient implements EmbeddingClientInterface
 
 final class ThresholdEmbeddingClient implements EmbeddingClientInterface
 {
-    public function embed(string $text): ?array
+    public function embed(string $text): array
     {
         return [1.0, 0.0];
     }

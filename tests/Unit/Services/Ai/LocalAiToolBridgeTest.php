@@ -100,11 +100,18 @@ final class LocalAiUnscopedToolFixture implements ToolInterface, LocalAiToolMeta
         return 'Unscoped fixture.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return ['type' => 'object', 'properties' => ['topic' => ['type' => 'string']]];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         return [
@@ -126,11 +133,18 @@ final class LocalAiScopedToolFixture implements ToolInterface, ScopedToolInterfa
         return 'Scoped fixture.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return ['type' => 'object', 'properties' => []];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         return ['success' => true];
@@ -154,11 +168,18 @@ final class LocalAiTransactionProbeWriteToolFixture implements ToolInterface
         return 'Creates a fixture through its own domain transaction.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return ['type' => 'object', 'properties' => ['title' => ['type' => 'string']]];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         return ['success' => true];

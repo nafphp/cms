@@ -31,6 +31,9 @@ final class WeatherForecastTool implements ToolInterface, ScopedToolInterface, L
         return 'Returns current weather and a short forecast for a location so CMS or shop owners can plan campaigns, events, and operational actions.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -49,6 +52,10 @@ final class WeatherForecastTool implements ToolInterface, ScopedToolInterface, L
         return ['system:read'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $location  = trim((string) ($args['location'] ?? ''));

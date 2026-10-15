@@ -6,6 +6,7 @@ use Naf\CMS\Enums\Permission;
 use Naf\CMS\Handlers\Page\Theme\StoreTheme;
 use Naf\CMS\Page\Page;
 use Naf\CMS\Repositories\ThemeRepository;
+use Psr\Http\Message\ServerRequestInterface;
 
 use function Naf\I18n\t;
 use function Naf\redirect;
@@ -36,12 +37,17 @@ return [
         ->requirePermission(Permission::THEMES_CODE_MANAGE)
         ->setDataHandler(StoreTheme::class, 'POST', Permission::THEMES_CREATE)
         ->hideFromAdminNavigation('themes')
-        ->setContent(static fn() => render('admin.themes.form', [
-            'title'        => t('Create theme'),
-            'pageSubtitle' => t('Define surfaces and CSS for a frontend theme.'),
-            'theme'        => null,
-            'error'        => (string) (request()->getQueryParams()['error'] ?? ''),
-        ])),
+        ->setContent(static function () {
+            $request = request();
+            $query   = $request instanceof ServerRequestInterface ? $request->getQueryParams() : [];
+
+            return render('admin.themes.form', [
+                'title'        => t('Create theme'),
+                'pageSubtitle' => t('Define surfaces and CSS for a frontend theme.'),
+                'theme'        => null,
+                'error'        => (string) ($query['error'] ?? ''),
+            ]);
+        }),
 
     Page::create('admin.themes.edit')
         ->setPath('/admin/themes/{themeId}/edit')
@@ -52,7 +58,9 @@ return [
         ->setDataHandler(StoreTheme::class, 'POST', Permission::THEMES_EDIT)
         ->hideFromAdminNavigation('themes')
         ->setContent(static function (string $themeId) use ($repository) {
-            $theme = $repository()->find((int) $themeId);
+            $request = request();
+            $query   = $request instanceof ServerRequestInterface ? $request->getQueryParams() : [];
+            $theme   = $repository()->find((int) $themeId);
             if ($theme === null) {
                 return redirect(route('admin.themes'));
             }
@@ -61,7 +69,7 @@ return [
                 'title'        => t('Edit theme'),
                 'pageSubtitle' => t('Define surfaces and CSS for a frontend theme.'),
                 'theme'        => $theme,
-                'error'        => (string) (request()->getQueryParams()['error'] ?? ''),
+                'error'        => (string) ($query['error'] ?? ''),
             ]);
         }),
 ];

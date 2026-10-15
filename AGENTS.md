@@ -39,3 +39,8 @@ CMS registrations change. The detailed guide remains authoritative for the CMS-s
 Follow the shared [PHP code style](https://github.com/nafphp/docs/blob/main/CODE_STYLE.md)
 and `.php-cs-fixer.dist.php`. Run `composer style:check`; `composer style:fix` applies the rules.
 Keep logical steps and local names readable, preserving public signatures and template output.
+
+PHPStan checks `src/` and `tests/` at level 6 without a baseline. Keep collection element
+types and EntityStorage's entity generic accurate; do not replace a confirmed diagnostic
+with an ignore or a fabricated inline type. See [quality checks](docs/quality-checks.md) for
+the analysis scope, symbol discovery and HTTP/CLI regression checks.

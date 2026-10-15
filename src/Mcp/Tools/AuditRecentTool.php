@@ -34,6 +34,9 @@ final class AuditRecentTool implements ToolInterface, ScopedToolInterface, Local
         return 'Returns recent CMS audit log events, a chronological activity log of admin actions and system changes, without exposing old/new value payloads.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -49,6 +52,10 @@ final class AuditRecentTool implements ToolInterface, ScopedToolInterface, Local
         return ['system:read'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $limit       = max(1, min(50, (int) ($args['limit'] ?? 10)));

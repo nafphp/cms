@@ -250,6 +250,9 @@ final class Page
         return $this;
     }
 
+    /**
+     * @return callable|array{0: class-string, 1: string}|class-string|null
+     */
     public function handler(): callable|array|string|null
     {
         return $this->handler;
@@ -415,6 +418,9 @@ final class Page
         return $this->meta;
     }
 
+    /**
+     * @param PageMeta|array<string, mixed> $meta
+     */
     public function setMeta(PageMeta|array $meta): self
     {
         $this->meta = is_array($meta) ? PageMeta::fromArray($meta) : $meta;

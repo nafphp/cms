@@ -97,7 +97,10 @@ final class FormApi
         return $deleted;
     }
 
-    /** @param array<string, mixed> $payload */
+    /**
+     * @param array<string, mixed> $payload
+     * @param array<string, mixed> $meta
+     */
     public function storeSubmission(int $formId, array $payload, array $meta = []): int
     {
         return $this->repository->storeSubmission($formId, $payload, $meta);

@@ -10,6 +10,7 @@ use Naf\CMS\Settings\SettingField;
 use Naf\CMS\Settings\SettingSection;
 use Naf\CMS\Settings\SettingsRegistry;
 use Naf\I18n\Core\Translator;
+use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 
 use function Naf\app;
@@ -189,7 +190,9 @@ final class Settings
     private function requestedLanguage(): ?string
     {
         try {
-            $requested = strtolower(trim((string) (request()->getQueryParams()['lang'] ?? '')));
+            $request   = request();
+            $query     = $request instanceof ServerRequestInterface ? $request->getQueryParams() : [];
+            $requested = strtolower(trim((string) ($query['lang'] ?? '')));
         } catch (Throwable) {
             return null;
         }
@@ -216,7 +219,8 @@ final class Settings
 
     public function languageUrl(string $language): string
     {
-        $query         = request()->getQueryParams();
+        $request       = request();
+        $query         = $request instanceof ServerRequestInterface ? $request->getQueryParams() : [];
         $query['lang'] = strtolower(trim($language));
         $queryString   = http_build_query($query);
         $path          = request()->getUri()->getPath();

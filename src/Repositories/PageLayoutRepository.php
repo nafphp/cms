@@ -44,6 +44,10 @@ final class PageLayoutRepository
         return array_map(fn(array $row): array => $this->hydrateRow($row), is_array($rows) ? $rows : []);
     }
 
+    /**
+     * @return array<string, mixed>|null
+     * @phpstan-impure
+     */
     public function find(int $id): ?array
     {
         $connection = $this->connection();
@@ -344,6 +348,9 @@ final class PageLayoutRepository
         return $filtered;
     }
 
+    /**
+     * @return array<array-key, mixed>
+     */
     private function decodeJson(string $json): array
     {
         try {

@@ -36,6 +36,9 @@ final class MediaSummaryTool implements ToolInterface, ScopedToolInterface, Loca
         return 'Returns media library counts, byte totals, kind counts, and optional recent media items.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -51,6 +54,10 @@ final class MediaSummaryTool implements ToolInterface, ScopedToolInterface, Loca
         return ['media:read'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $includeRecent = filter_var($args['include_recent'] ?? false, FILTER_VALIDATE_BOOLEAN);

@@ -28,6 +28,9 @@ final class AdminNavigateTool implements ToolInterface, ScopedToolInterface, Loc
         return 'Navigates the current admin UI to a safe registered NafCMS admin area such as PageBuilder, articles, forms, themes, media, users, roles, navigation, or settings.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()

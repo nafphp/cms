@@ -178,17 +178,6 @@ final class AuditLogRepository implements AuditSinkInterface
         return json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: 'null';
     }
 
-    private function decodeValue(string $value): mixed
-    {
-        try {
-            return json_decode($value, true, 512, JSON_THROW_ON_ERROR);
-        } catch (Throwable $e) {
-            log()->warning(sprintf('AuditLogRepository.decodeValue failed: %s', $e->getMessage()), ['exception' => $e]);
-
-            return $value;
-        }
-    }
-
     private function connection(): ?PDO
     {
         if ($this->connection instanceof PDO) {

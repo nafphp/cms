@@ -24,7 +24,10 @@ final class FormSubmissionGuard
         return $this->limiter->hit($key, 10, 60);
     }
 
-    /** @param array<string, mixed> $payload @return array<string, array<int, string>> */
+    /**
+     * @param array<string, mixed> $payload
+     * @return array<string, array<int, string>>
+     */
     public function validatePayload(string $rawBody, array $payload): array
     {
         $errors = [];

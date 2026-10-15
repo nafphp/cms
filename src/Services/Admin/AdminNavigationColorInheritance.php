@@ -16,6 +16,9 @@ final class AdminNavigationColorInheritance
 {
     private const SCOPE = 'admin';
 
+    /**
+     * @param array<string, string>|null $accentColors
+     */
     public function __construct(
         private ?PageRegistry $pages = null,
         private ?array $accentColors = null,

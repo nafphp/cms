@@ -19,6 +19,9 @@ final class OutboundHttpPolicyTest extends TestCase
         (new OutboundHttpPolicy())->authorize($url, OutboundHttpProfile::webhook());
     }
 
+    /**
+     * @return iterable<string, array{string}>
+     */
     public static function blockedPublicTargets(): iterable
     {
         yield 'IPv4 loopback' => ['https://127.0.0.1/hook'];

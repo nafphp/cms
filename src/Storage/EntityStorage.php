@@ -65,19 +65,16 @@ final class EntityStorage
 
     /**
      * @param array<string, mixed> $data
-     * @return EntityInterface
+     * @return T
      */
     public function make(array $data = []): EntityInterface
     {
-        /** @var EntityInterface $entity */
-        $entity = new $this->modelClass($this->filterWritableData($data, allowPrimaryKey: true));
-
-        return $entity;
+        return new $this->modelClass($this->filterWritableData($data, allowPrimaryKey: true));
     }
 
     /**
      * @param array<string, mixed> $data
-     * @return EntityInterface
+     * @return T
      * @see ContentApi for permission-aware and audited equivalents.
      */
     public function create(array $data): EntityInterface
@@ -87,7 +84,7 @@ final class EntityStorage
 
     /**
      * @param EntityInterface $entity
-     * @return EntityInterface
+     * @return T
      * @see ContentApi for permission-aware and audited equivalents.
      */
     public function save(EntityInterface $entity): EntityInterface
@@ -107,7 +104,7 @@ final class EntityStorage
 
     /**
      * @param array<string, mixed> $data
-     * @return EntityInterface|null
+     * @return T|null
      * @see ContentApi for permission-aware and audited equivalents.
      */
     public function update(int|string $id, array $data): ?EntityInterface
@@ -123,7 +120,7 @@ final class EntityStorage
     }
 
     /**
-     * @return EntityInterface|null
+     * @return T|null
      */
     public function find(int|string $id): ?EntityInterface
     {
@@ -150,7 +147,7 @@ final class EntityStorage
     }
 
     /**
-     * @return EntityInterface
+     * @return list<T>
      */
     public function search(?Criteria $criteria = null): array
     {
@@ -166,7 +163,7 @@ final class EntityStorage
     }
 
     /**
-     * @return EntityInterface
+     * @return list<T>
      */
     public function matching(Criteria $criteria): array
     {
@@ -174,7 +171,7 @@ final class EntityStorage
     }
 
     /**
-     * @return EntityInterface|null
+     * @return T|null
      */
     public function first(?Criteria $criteria = null): ?EntityInterface
     {

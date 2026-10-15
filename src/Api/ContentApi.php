@@ -12,7 +12,6 @@ use Naf\ORM\Repository\AbstractRepository;
  * content type. Domain-specific behaviour (versioning, locales, publishing,
  * drafts) lives in the corresponding domain API (e.g. ArticleApi).
  *
- * @template T of EntityInterface
  */
 final class ContentApi
 {
@@ -26,16 +25,13 @@ final class ContentApi
      */
     public function find(int $id): ?EntityInterface
     {
-        /** @var ?EntityInterface $entity */
-        $entity = $this->repository->findOneBy('id', $id);
-
-        return $entity;
+        return $this->repository->findOneBy('id', $id);
     }
 
     /**
      * @param array<string, mixed>|string $criteria
      * @param array<string, string> $orderBy
-     * @return EntityInterface
+     * @return list<EntityInterface>
      */
     public function findBy(
         array|string $criteria,
@@ -44,10 +40,7 @@ final class ContentApi
         ?int $limit = null,
         ?int $offset = null,
     ): array {
-        /** @var EntityInterface $entities */
-        $entities = $this->repository->findBy($criteria, $value, $orderBy, $limit, $offset);
-
-        return $entities;
+        return $this->repository->findBy($criteria, $value, $orderBy, $limit, $offset);
     }
 
     /**
@@ -60,20 +53,14 @@ final class ContentApi
         mixed $value = null,
         array $orderBy = [],
     ): ?EntityInterface {
-        /** @var ?EntityInterface $entity */
-        $entity = $this->repository->findOneBy($criteria, $value, $orderBy);
-
-        return $entity;
+        return $this->repository->findOneBy($criteria, $value, $orderBy);
     }
 
     /**
-     * @return EntityInterface
+     * @return list<EntityInterface>
      */
     public function findAll(): array
     {
-        /** @var EntityInterface $entities */
-        $entities = $this->repository->findAll();
-
-        return $entities;
+        return $this->repository->findAll();
     }
 }

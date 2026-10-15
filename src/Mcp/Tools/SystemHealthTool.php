@@ -51,6 +51,9 @@ final class SystemHealthTool implements ToolInterface, ScopedToolInterface, Loca
         ]);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -64,6 +67,10 @@ final class SystemHealthTool implements ToolInterface, ScopedToolInterface, Loca
         return ['system:read'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $basePath = rtrim((string) app()->getBasePath(), '/');
@@ -104,6 +111,9 @@ final class SystemHealthTool implements ToolInterface, ScopedToolInterface, Loca
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function assetStatus(): array
     {
         $status = (new AssetPublisher())->status();
@@ -117,6 +127,9 @@ final class SystemHealthTool implements ToolInterface, ScopedToolInterface, Loca
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function databaseStatus(): array
     {
         try {
@@ -140,6 +153,9 @@ final class SystemHealthTool implements ToolInterface, ScopedToolInterface, Loca
         }
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function directoryStatus(string $path): array
     {
         return [
@@ -149,6 +165,9 @@ final class SystemHealthTool implements ToolInterface, ScopedToolInterface, Loca
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function fileStatus(string $path): array
     {
         return [

@@ -16,6 +16,9 @@ final class UrlPolicyTest extends TestCase
         self::assertNull(UrlPolicy::link($url));
     }
 
+    /**
+     * @return iterable<string, array{string}>
+     */
     public static function unsafeLinks(): iterable
     {
         yield 'javascript CTA' => ['javascript:alert(1)'];

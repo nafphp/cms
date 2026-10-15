@@ -258,7 +258,11 @@ final class PageBuilderPayloadNormalizer
         return $url ?? '';
     }
 
-    /** @param array<int, string> $keys @param array<int, string> $errors */
+    /**
+     * @param array<int, string> $keys
+     * @param array<int, string> $errors
+     * @return array<array-key, mixed>|null
+     */
     private function normalizeRows(mixed $value, string $path, array $keys, int $limit, array &$errors): ?array
     {
         if (!is_array($value) || count($value) > $limit) {
@@ -278,7 +282,10 @@ final class PageBuilderPayloadNormalizer
         return $rows;
     }
 
-    /** @param array<int, string> $errors */
+    /**
+     * @param array<int, string> $errors
+     * @return array<array-key, mixed>|null
+     */
     private function normalizeMetrics(mixed $value, string $path, array &$errors): ?array
     {
         if (!is_array($value) || count($value) > 12) {

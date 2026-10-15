@@ -14,6 +14,9 @@ final class NavigationRegistry
     /** @var array<string, Navigation> */
     private array $navigations = [];
 
+    /**
+     * @param NavigationItem|array<string, mixed> $item
+     */
     public function add(NavigationItem|array $item, bool $replace = false): self
     {
         $item = is_array($item) ? NavigationItem::fromArray($item) : $item;
@@ -30,7 +33,9 @@ final class NavigationRegistry
         return $this;
     }
 
-    /** @param iterable<NavigationItem|array> $items */
+    /**
+     * @param iterable<NavigationItem|array<string, mixed>> $items
+     */
     public function addMany(iterable $items, bool $replace = false): self
     {
         foreach ($items as $item) {
@@ -45,6 +50,9 @@ final class NavigationRegistry
         return $this;
     }
 
+    /**
+     * @param Navigation|array<array-key, mixed> $navigation
+     */
     public function addNavigation(Navigation|array $navigation, bool $replace = false): self
     {
         $navigation = is_array($navigation) ? Navigation::fromArray($navigation) : $navigation;

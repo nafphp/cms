@@ -11,6 +11,7 @@ use Naf\CMS\Content\Article\Block\ImageBlock;
 use Naf\CMS\Content\Article\Block\ParagraphBlock;
 use Naf\CMS\Content\Article\BlockRegistry;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
 use stdClass;
 
 final class BlockRegistryTest extends TestCase
@@ -63,7 +64,8 @@ final class BlockRegistryTest extends TestCase
         $registry = new BlockRegistry();
 
         self::expectException(InvalidArgumentException::class);
-        $registry->register('bad', stdClass::class);
+        // Deliberately violate the declared class contract to exercise the runtime guard.
+        (new ReflectionMethod($registry, 'register'))->invoke($registry, 'bad', stdClass::class);
     }
 
     public function testAllReturnsTypeToClassMap(): void

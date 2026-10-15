@@ -9,6 +9,9 @@ use Naf\CMS\Page\PageRegistry;
 
 final class AdminNavigationService
 {
+    /**
+     * @param array<string, string>|null $accentColors
+     */
     public function __construct(
         private ?ScopedNavigationApi $navigation = null,
         private ?PageRegistry $pages = null,

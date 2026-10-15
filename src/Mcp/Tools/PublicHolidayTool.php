@@ -30,6 +30,9 @@ final class PublicHolidayTool implements ToolInterface, ScopedToolInterface, Loc
         return 'Returns public holidays for a country and year so CMS or shop owners can plan campaigns, opening hours, staffing, and publishing schedules.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -47,6 +50,10 @@ final class PublicHolidayTool implements ToolInterface, ScopedToolInterface, Loc
         return ['system:read'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $countryCode  = strtoupper(trim((string) ($args['country_code'] ?? 'DE'))) ?: 'DE';
@@ -62,7 +69,7 @@ final class PublicHolidayTool implements ToolInterface, ScopedToolInterface, Loc
             ));
             $today    = (new DateTimeImmutable('today'))->format('Y-m-d');
             $filtered = array_values(array_filter(
-                is_array($holidays) ? $holidays : [],
+                $holidays,
                 static fn(mixed $holiday): bool => is_array($holiday)
                     && (!$onlyUpcoming || (string) ($holiday['date'] ?? '') >= $today),
             ));

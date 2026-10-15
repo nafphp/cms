@@ -20,6 +20,7 @@ final readonly class ChartDataset
 
     /**
      * @param array<string, mixed> $options
+     * @param array<array-key, int|float|null> $values
      */
     public static function make(string $label, array $values, ?string $color = null, array $options = []): self
     {

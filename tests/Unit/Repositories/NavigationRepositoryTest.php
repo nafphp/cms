@@ -68,7 +68,7 @@ final class NavigationRepositoryTest extends DatabaseTestCase
             'items'      => [],
         ]);
 
-        self::assertSame('Footer', $this->repository->findByIdentifier('footer', language: 'de')?->title());
+        self::assertSame('Footer', $this->repository->findByIdentifier('footer', language: 'de')->title());
     }
 
     public function testFindByIdentifierFallsBackToExistingLanguageWhenNoDefaultExists(): void
@@ -109,8 +109,8 @@ final class NavigationRepositoryTest extends DatabaseTestCase
         ]);
 
         self::assertSame($id, $updatedId);
-        self::assertSame('Main updated', $this->repository->find($id)?->title());
-        self::assertSame('draft', $this->repository->find($id)?->status());
+        self::assertSame('Main updated', $this->repository->find($id)->title());
+        self::assertSame('draft', $this->repository->find($id)->status());
     }
 
     public function testDeleteTranslationsExceptKeepsCanonicalNavigation(): void
@@ -135,7 +135,7 @@ final class NavigationRepositoryTest extends DatabaseTestCase
 
         self::assertSame(2, $this->repository->deleteTranslationsExcept('main', keepId: $keepId));
         self::assertCount(1, $this->repository->findTranslations('main'));
-        self::assertSame('Main', $this->repository->find($keepId)?->title());
+        self::assertSame('Main', $this->repository->find($keepId)->title());
     }
 
     public function testPublishChangesStatus(): void
@@ -148,7 +148,7 @@ final class NavigationRepositoryTest extends DatabaseTestCase
         ]);
 
         self::assertTrue($this->repository->publish($id));
-        self::assertSame('published', $this->repository->find($id)?->status());
+        self::assertSame('published', $this->repository->find($id)->status());
     }
 
     public function testDeleteRemovesNavigation(): void

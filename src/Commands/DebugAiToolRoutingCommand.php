@@ -117,7 +117,7 @@ final class DebugAiToolRoutingCommand extends AbstractCommand
             'layoutId'     => $this->stringOption($input, 'layout-id'),
             'themeId'      => $this->stringOption($input, 'theme-id'),
             'capabilities' => $this->listOption($input->getOption('capability')),
-        ], static fn(mixed $value): bool => $value !== null && $value !== [] && $value !== '');
+        ], static fn(mixed $value): bool => $value !== [] && $value !== '');
     }
 
     private function writeContext(Output $output, ToolContext $context): void
@@ -184,6 +184,7 @@ final class DebugAiToolRoutingCommand extends AbstractCommand
 
     /**
      * @return array<int, string>
+     * @param string|array<array-key, mixed>|bool|null $value
      */
     private function listOption(string|array|bool|null $value): array
     {
@@ -195,6 +196,9 @@ final class DebugAiToolRoutingCommand extends AbstractCommand
         )));
     }
 
+    /**
+     * @param string|array<array-key, mixed>|bool|null $value
+     */
     private function positiveInt(string|array|bool|null $value, int $default): int
     {
         if (is_array($value)) {

@@ -22,7 +22,7 @@ final class AuditTest extends DatabaseTestCase
         $audit = new Audit(
             new AuditLogRepository($this->pdo),
             actorResolver: new class extends AuditActorResolver {
-                public function resolve(): ?AuditActorInfo
+                public function resolve(): AuditActorInfo
                 {
                     return new AuditActorInfo(42, 'Injected Editor', true);
                 }

@@ -8,6 +8,7 @@ use Naf\CMS\Enums\Permission;
 use Naf\CMS\Handlers\Page\Article\StoreArticleDraft;
 use Naf\CMS\Models\Article;
 use Naf\CMS\Page\Page;
+use Psr\Http\Message\ServerRequestInterface;
 
 use function Naf\CMS\cms;
 use function Naf\CMS\user;
@@ -63,7 +64,8 @@ return [
         ->hideFromAdminNavigation('articles')
         ->setContent(static function (string $articleId) use ($articles) {
             $service                = $articles()->form();
-            $queryParams            = request()->getQueryParams();
+            $request                = request();
+            $queryParams            = $request instanceof ServerRequestInterface ? $request->getQueryParams() : [];
             $requestedLanguage      = strtolower(trim((string) ($queryParams['language'] ?? '')));
             $requestedSourceVersion = (int) ($queryParams['source_version'] ?? 0);
 

@@ -17,6 +17,9 @@ final class ArticleCatalogService
     {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function overview(): array
     {
         return [

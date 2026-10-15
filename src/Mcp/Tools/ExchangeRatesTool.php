@@ -30,6 +30,9 @@ final class ExchangeRatesTool implements ToolInterface, ScopedToolInterface, Loc
         return 'Returns latest exchange rates and optional converted amounts for international shop pricing, ads, purchasing, and campaign planning.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -46,6 +49,10 @@ final class ExchangeRatesTool implements ToolInterface, ScopedToolInterface, Loc
         return ['system:read'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $base    = $this->currency($args['base'] ?? 'EUR', 'EUR');

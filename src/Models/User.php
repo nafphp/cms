@@ -8,6 +8,7 @@ use Naf\CMS\Enums\Permission as PermissionEnum;
 use Naf\CMS\Enums\Role as RoleEnum;
 use Naf\CMS\Repositories\RoleRepository;
 use Naf\CMS\Repositories\UserRepository;
+use Naf\ORM\Core\EntityInterface;
 use Naf\ORM\Model\AbstractModel;
 
 use function Naf\ORM\repo;
@@ -23,6 +24,7 @@ final class User extends AbstractModel
     protected ?string $password    = null;
     protected ?string $createdAt   = null;
 
+    /** @var array<class-string<EntityInterface>, string> */
     public array $pivotTables = [
         Role::class => 'user_role',
     ];

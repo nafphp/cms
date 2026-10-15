@@ -146,6 +146,9 @@ class CreateUserCommand extends AbstractCommand
         return self::SUCCESS;
     }
 
+    /**
+     * @param string|array<array-key, mixed>|bool|null $value
+     */
     private function asStringOrNull(string|array|bool|null $value): ?string
     {
         if (!is_string($value)) {

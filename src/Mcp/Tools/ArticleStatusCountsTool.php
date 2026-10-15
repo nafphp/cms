@@ -37,6 +37,9 @@ final class ArticleStatusCountsTool implements ToolInterface, ScopedToolInterfac
         return 'Returns latest article-version workflow status counts, optionally filtered by language.';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function inputSchema(): array
     {
         return Schema::object()
@@ -51,6 +54,10 @@ final class ArticleStatusCountsTool implements ToolInterface, ScopedToolInterfac
         return ['articles:read'];
     }
 
+    /**
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
     public function handle(array $args): array
     {
         $language     = $this->normalizeLanguage($args['language'] ?? 'all');

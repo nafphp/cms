@@ -19,6 +19,9 @@ final class PageNavigationMeta
     ) {
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public static function fromArray(array $data): self
     {
         return new self(
@@ -39,6 +42,9 @@ final class PageNavigationMeta
         return $this->parent ?? $this->group;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         return [

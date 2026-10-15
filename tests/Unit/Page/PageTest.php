@@ -87,9 +87,9 @@ final class PageTest extends TestCase
             ->setPath('/')
             ->setLayout($template);
 
-        self::assertSame($template, $page->pageLayout()?->template());
-        self::assertSame('page.templates.landing', $page->pageLayout()?->templateView());
-        self::assertSame('layouts.page', $page->pageLayout()?->parent());
+        self::assertSame($template, $page->pageLayout()->template());
+        self::assertSame('page.templates.landing', $page->pageLayout()->templateView());
+        self::assertSame('layouts.page', $page->pageLayout()->parent());
     }
 
     public function testPageCanUseLayoutObjectWithTemplateBackedBlocks(): void
@@ -103,7 +103,7 @@ final class PageTest extends TestCase
             ->setLayout($layout);
 
         self::assertSame($layout, $page->pageLayout());
-        self::assertSame('page.templates.landing', $page->pageLayout()?->templateView());
+        self::assertSame('page.templates.landing', $page->pageLayout()->templateView());
         self::assertSame(['headline' => 'From template'], $page->pageLayout()->blocks()['hero']->data());
         self::assertSame('frontend.blocks.main', $page->pageLayout()->blocks()['main']->template()->view());
     }
