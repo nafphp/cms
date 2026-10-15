@@ -7,6 +7,8 @@ namespace Naf\CMS\Enums;
 enum Permission: string
 {
     case ADMIN_ACCESS           = 'admin.access';
+    case SETTINGS_MANAGE        = 'settings.manage';
+    case TRANSLATIONS_MANAGE    = 'translations.manage';
     case SYSTEM_READ            = 'system.read';
     case USERS_VIEW             = 'users.view';
     case USERS_CREATE           = 'users.create';

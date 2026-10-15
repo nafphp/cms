@@ -1,5 +1,7 @@
 <?php
 
+use Naf\CMS\Support\ScriptJson;
+
 use function Naf\Form\csrf;
 use function Naf\I18n\t;
 use function Naf\route;
@@ -79,8 +81,8 @@ $permissions = is_array($permissions ?? null) ? $permissions : [];
     import prompt from "/js/lib/notifyJs/Modules/Prompt.js";
     import toast from "/js/lib/notifyJs/Modules/Toast.js";
 
-    const roles = <?= json_encode($roles, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
-    const permissions = <?= json_encode($permissions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    const roles = <?= ScriptJson::encode($roles, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    const permissions = <?= ScriptJson::encode($permissions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
 
     const routes = {
         roleCreate: '<?= s(route('api.admin.rbac.roles.create')) ?>',
@@ -93,44 +95,44 @@ $permissions = is_array($permissions ?? null) ? $permissions : [];
     };
 
     const i18n = {
-        add: <?= json_encode(t('Add')) ?>,
-        remove: <?= json_encode(t('Remove')) ?>,
-        rename: <?= json_encode(t('Rename')) ?>,
-        delete: <?= json_encode(t('Delete')) ?>,
-        save: <?= json_encode(t('Save')) ?>,
-        cancel: <?= json_encode(t('Cancel')) ?>,
-        create: <?= json_encode(t('Create')) ?>,
-        noRolesAvailable: <?= json_encode(t('No roles available.')) ?>,
-        noPermissionsAvailable: <?= json_encode(t('No permissions available.')) ?>,
-        selectRoleToManageAssignments: <?= json_encode(t('Select a role to manage assignments.')) ?>,
-        selectedRole: <?= json_encode(t('Selected role:')) ?>,
-        couldNotUpdateRolePermissions: <?= json_encode(t('Could not update role permissions.')) ?>,
-        roleSaved: <?= json_encode(t('Role saved.')) ?>,
-        dropHere: <?= json_encode(t('Drop here')) ?>,
-        createRole: <?= json_encode(t('Create role')) ?>,
-        newRoleName: <?= json_encode(t('New role name')) ?>,
-        validRoleNameRequired: <?= json_encode(t('Please enter a valid role name.')) ?>,
-        couldNotCreateRole: <?= json_encode(t('Could not create role.')) ?>,
-        invalidRoleData: <?= json_encode(t('Invalid role data.')) ?>,
-        roleCreated: <?= json_encode(t('Role created.')) ?>,
-        createPermission: <?= json_encode(t('Create permission')) ?>,
-        newPermissionName: <?= json_encode(t('New permission name')) ?>,
-        validPermissionNameRequired: <?= json_encode(t('Please enter a valid permission name.')) ?>,
-        couldNotCreatePermission: <?= json_encode(t('Could not create permission.')) ?>,
-        invalidPermissionData: <?= json_encode(t('Invalid permission data.')) ?>,
-        permissionCreated: <?= json_encode(t('Permission created.')) ?>,
-        renameRole: <?= json_encode(t('Rename role')) ?>,
-        couldNotRenameRole: <?= json_encode(t('Could not rename role.')) ?>,
-        roleRenamed: <?= json_encode(t('Role renamed.')) ?>,
-        deleteRole: <?= json_encode(t('Delete role')) ?>,
-        couldNotDeleteRole: <?= json_encode(t('Could not delete role.')) ?>,
-        roleDeleted: <?= json_encode(t('Role deleted.')) ?>,
-        renamePermission: <?= json_encode(t('Rename permission')) ?>,
-        couldNotRenamePermission: <?= json_encode(t('Could not rename permission.')) ?>,
-        permissionRenamed: <?= json_encode(t('Permission renamed.')) ?>,
-        deletePermission: <?= json_encode(t('Delete permission')) ?>,
-        couldNotDeletePermission: <?= json_encode(t('Could not delete permission.')) ?>,
-        permissionDeleted: <?= json_encode(t('Permission deleted.')) ?>,
+        add: <?= ScriptJson::encode(t('Add')) ?>,
+        remove: <?= ScriptJson::encode(t('Remove')) ?>,
+        rename: <?= ScriptJson::encode(t('Rename')) ?>,
+        delete: <?= ScriptJson::encode(t('Delete')) ?>,
+        save: <?= ScriptJson::encode(t('Save')) ?>,
+        cancel: <?= ScriptJson::encode(t('Cancel')) ?>,
+        create: <?= ScriptJson::encode(t('Create')) ?>,
+        noRolesAvailable: <?= ScriptJson::encode(t('No roles available.')) ?>,
+        noPermissionsAvailable: <?= ScriptJson::encode(t('No permissions available.')) ?>,
+        selectRoleToManageAssignments: <?= ScriptJson::encode(t('Select a role to manage assignments.')) ?>,
+        selectedRole: <?= ScriptJson::encode(t('Selected role:')) ?>,
+        couldNotUpdateRolePermissions: <?= ScriptJson::encode(t('Could not update role permissions.')) ?>,
+        roleSaved: <?= ScriptJson::encode(t('Role saved.')) ?>,
+        dropHere: <?= ScriptJson::encode(t('Drop here')) ?>,
+        createRole: <?= ScriptJson::encode(t('Create role')) ?>,
+        newRoleName: <?= ScriptJson::encode(t('New role name')) ?>,
+        validRoleNameRequired: <?= ScriptJson::encode(t('Please enter a valid role name.')) ?>,
+        couldNotCreateRole: <?= ScriptJson::encode(t('Could not create role.')) ?>,
+        invalidRoleData: <?= ScriptJson::encode(t('Invalid role data.')) ?>,
+        roleCreated: <?= ScriptJson::encode(t('Role created.')) ?>,
+        createPermission: <?= ScriptJson::encode(t('Create permission')) ?>,
+        newPermissionName: <?= ScriptJson::encode(t('New permission name')) ?>,
+        validPermissionNameRequired: <?= ScriptJson::encode(t('Please enter a valid permission name.')) ?>,
+        couldNotCreatePermission: <?= ScriptJson::encode(t('Could not create permission.')) ?>,
+        invalidPermissionData: <?= ScriptJson::encode(t('Invalid permission data.')) ?>,
+        permissionCreated: <?= ScriptJson::encode(t('Permission created.')) ?>,
+        renameRole: <?= ScriptJson::encode(t('Rename role')) ?>,
+        couldNotRenameRole: <?= ScriptJson::encode(t('Could not rename role.')) ?>,
+        roleRenamed: <?= ScriptJson::encode(t('Role renamed.')) ?>,
+        deleteRole: <?= ScriptJson::encode(t('Delete role')) ?>,
+        couldNotDeleteRole: <?= ScriptJson::encode(t('Could not delete role.')) ?>,
+        roleDeleted: <?= ScriptJson::encode(t('Role deleted.')) ?>,
+        renamePermission: <?= ScriptJson::encode(t('Rename permission')) ?>,
+        couldNotRenamePermission: <?= ScriptJson::encode(t('Could not rename permission.')) ?>,
+        permissionRenamed: <?= ScriptJson::encode(t('Permission renamed.')) ?>,
+        deletePermission: <?= ScriptJson::encode(t('Delete permission')) ?>,
+        couldNotDeletePermission: <?= ScriptJson::encode(t('Could not delete permission.')) ?>,
+        permissionDeleted: <?= ScriptJson::encode(t('Permission deleted.')) ?>,
     };
 
     let selectedRoleId = null;

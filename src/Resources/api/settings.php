@@ -10,7 +10,7 @@ use Naf\CMS\Handlers\Api\Settings\UpdateTranslations;
 
 return [
     ApiEndpoint::post('api.admin.settings.update', '/api/admin/settings')
-        ->requirePermission(Permission::ADMIN_ACCESS)
+        ->requirePermission(Permission::SETTINGS_MANAGE)
         ->setHandler(UpdateSettings::class),
 
     ApiEndpoint::get('api.admin.translations.show', '/api/admin/translations/{language}')
@@ -18,6 +18,6 @@ return [
         ->setHandler(GetTranslations::class),
 
     ApiEndpoint::post('api.admin.translations.update', '/api/admin/translations/{language}')
-        ->requirePermission(Permission::ADMIN_ACCESS)
+        ->requirePermission(Permission::TRANSLATIONS_MANAGE)
         ->setHandler(UpdateTranslations::class),
 ];

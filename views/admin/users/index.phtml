@@ -1,5 +1,7 @@
 <?php
 
+use Naf\CMS\Support\ScriptJson;
+
 use function Naf\I18n\t;
 use function Naf\route;
 use function Naf\View\s;
@@ -117,12 +119,12 @@ $roleDefinitions = is_array($roleDefinitions ?? null) ? $roleDefinitions : [];
     import toast from '/js/lib/notifyJs/Modules/Toast.js';
     import {setupActionMenus} from '/js/components/actionMenu.js';
 
-    const roles = <?= json_encode($roleDefinitions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
-    const users = <?= json_encode($users, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
-    const updateRolesUrl = <?= json_encode(route('api.admin.users.roles')) ?>;
-    const deleteUserUrl = <?= json_encode(route('api.admin.users.delete')) ?>;
-    const createInviteUrl = <?= json_encode(route('api.admin.users.invite')) ?>;
-    const i18n = <?= json_encode([
+    const roles = <?= ScriptJson::encode($roleDefinitions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    const users = <?= ScriptJson::encode($users, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    const updateRolesUrl = <?= ScriptJson::encode(route('api.admin.users.roles')) ?>;
+    const deleteUserUrl = <?= ScriptJson::encode(route('api.admin.users.delete')) ?>;
+    const createInviteUrl = <?= ScriptJson::encode(route('api.admin.users.invite')) ?>;
+    const i18n = <?= ScriptJson::encode([
         'cancel'                  => t('Cancel'),
         'couldNotCreateInvite'    => t('Could not create invite.'),
         'couldNotUpdateRoles'     => t('Could not update roles.'),

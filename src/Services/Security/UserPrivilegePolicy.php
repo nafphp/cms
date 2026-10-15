@@ -71,6 +71,11 @@ final class UserPrivilegePolicy implements UserPrivilegePolicyInterface
         $this->assertTargetWithinScope($actor, $target);
     }
 
+    public function assertProfileChange(int $actorId, int $targetId): void
+    {
+        $this->assertPasswordReset($actorId, $targetId);
+    }
+
     public function assertPasswordReset(int $actorId, int $targetId): void
     {
         $actor = $this->profile($actorId);

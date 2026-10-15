@@ -17,7 +17,7 @@ return [
         ->setPath('/admin/settings')
         ->setTitle('Settings')
         ->setLayout('admin')
-        ->requirePermission(Permission::ADMIN_ACCESS)
+        ->requirePermission(Permission::SETTINGS_MANAGE)
         ->setAdminNavigation('General', parent: 'settings', icon: 'settings', order: 10, key: 'settings.general')
         ->setContent(static fn() => render('admin.settings.index', [
             'title'        => t('Settings'),
@@ -30,6 +30,7 @@ return [
         ->setPath('/admin/settings/ai')
         ->setTitle('Local AI')
         ->setLayout('admin')
+        ->requirePermission(Permission::SETTINGS_MANAGE)
         ->requirePermission(Permission::AI_INSTRUCTIONS_MANAGE)
         ->hideFromAdminNavigation('settings.ai')
         ->setContent(static fn() => render('admin.settings.index', [
@@ -47,7 +48,7 @@ return [
         ->setPath('/admin/settings/group/{group}')
         ->setTitle('Settings')
         ->setLayout('admin')
-        ->requirePermission(Permission::ADMIN_ACCESS)
+        ->requirePermission(Permission::SETTINGS_MANAGE)
         ->hideFromAdminNavigation('settings.general')
         ->setContent(static function (string $group) {
             $group  = strtolower(trim($group));

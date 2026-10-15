@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Handlers\Api\User;
 
+use Naf\CMS\Exceptions\PrivilegedActionDenied;
 use Naf\CMS\Handlers\Support\ReadsJsonBody;
+use Naf\CMS\Handlers\Support\RejectsPrivilegedAction;
 use Naf\CMS\Repositories\UserRepository;
 use Naf\CMS\Support\AuditEntry;
 use Psr\Http\Message\ResponseInterface;
 
+use function Naf\CMS\user;
 use function Naf\json;
 use function Naf\ORM\repo;
 use function Naf\route;
@@ -16,6 +19,7 @@ use function Naf\route;
 final class UpdateUser
 {
     use ReadsJsonBody;
+    use RejectsPrivilegedAction;
 
     public function __construct(
         private readonly UserPayloadValidator $validator = new UserPayloadValidator(),
@@ -51,13 +55,18 @@ final class UpdateUser
             return json(['success' => false, 'reason' => 'Email already exists.'], 409);
         }
 
-        $updated = $repository->updateProfile(
-            $userId,
-            $username,
-            (string) ($data['firstname'] ?? ''),
-            (string) ($data['lastname'] ?? ''),
-            $email !== '' ? $email : null,
-        );
+        try {
+            $updated = $repository->updateProfileByActor(
+                (int) user()?->get()?->getId(),
+                $userId,
+                $username,
+                (string) ($data['firstname'] ?? ''),
+                (string) ($data['lastname'] ?? ''),
+                $email !== '' ? $email : null,
+            );
+        } catch (PrivilegedActionDenied $exception) {
+            return $this->privilegedActionDenied($exception, 'user.profile.update', 'user', (string) $userId);
+        }
 
         if (!$updated) {
             return json(['success' => false, 'reason' => 'Could not update user.'], 400);

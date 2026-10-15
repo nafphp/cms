@@ -1,5 +1,7 @@
 <?php
 
+use Naf\CMS\Support\ScriptJson;
+
 use function Naf\I18n\t;
 use function Naf\route;
 use function Naf\View\s;
@@ -117,10 +119,10 @@ if (!$isEdit && $selectedRoles === [] && $roleOptions !== []) {
     const form = document.getElementById('user-form');
     const isEdit = <?= $isEdit ? 'true' : 'false' ?>;
     const userId = <?= (int) ($user['id'] ?? 0) ?>;
-    const submitUrl = <?= json_encode($isEdit ? route('api.admin.users.update') : route('api.admin.users.store')) ?>;
-    const passwordUrl = <?= json_encode(route('api.admin.users.password')) ?>;
-    const usersUrl = <?= json_encode(route('admin.users')) ?>;
-    const labels = <?= json_encode([
+    const submitUrl = <?= ScriptJson::encode($isEdit ? route('api.admin.users.update') : route('api.admin.users.store')) ?>;
+    const passwordUrl = <?= ScriptJson::encode(route('api.admin.users.password')) ?>;
+    const usersUrl = <?= ScriptJson::encode(route('admin.users')) ?>;
+    const labels = <?= ScriptJson::encode([
         'cancel'                 => t('Cancel'),
         'changePassword'         => t('Change password'),
         'couldNotSaveUser'       => t('Could not save user.'),

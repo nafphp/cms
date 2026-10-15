@@ -30,10 +30,12 @@ final class PermissionsDocRenderer implements DocBlockRenderer
     private function describe(Permission $permission): string
     {
         return match ($permission) {
-            Permission::ADMIN_ACCESS   => 'Access the admin area.',
-            Permission::SYSTEM_READ    => 'Read system status and health information.',
-            Permission::MCP_TOOLS_CALL => 'Call allowed MCP tools.',
-            default                    => $this->humanize($permission->value),
+            Permission::ADMIN_ACCESS        => 'Access the admin area.',
+            Permission::SETTINGS_MANAGE     => 'Manage application and plugin settings.',
+            Permission::TRANSLATIONS_MANAGE => 'Manage translation overrides and language files.',
+            Permission::SYSTEM_READ         => 'Read system status and health information.',
+            Permission::MCP_TOOLS_CALL      => 'Call allowed MCP tools.',
+            default                         => $this->humanize($permission->value),
         };
     }
 

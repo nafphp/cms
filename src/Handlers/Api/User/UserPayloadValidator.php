@@ -27,8 +27,8 @@ final class UserPayloadValidator
         $passwordConfirmation = (string) ($data['password_confirmation'] ?? '');
         $roles                = $data['roles'] ?? [];
 
-        if (mb_strlen($username) < 3) {
-            $errors['username'][] = 'Please enter a username with at least 3 characters.';
+        if (preg_match('/^[\p{L}\p{N}._@-]{3,64}$/uD', $username) !== 1) {
+            $errors['username'][] = 'Use 3–64 letters, numbers, dots, underscores, @ or hyphens for the username.';
         }
 
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {

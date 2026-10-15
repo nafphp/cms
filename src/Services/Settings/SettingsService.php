@@ -261,7 +261,11 @@ final class SettingsService implements SettingsServiceInterface
     private function can(?string $permission): bool
     {
         if ($permission === null || $permission === '') {
-            return true;
+            $permission = Permission::SETTINGS_MANAGE->value;
+        }
+
+        if ($permission !== Permission::SETTINGS_MANAGE->value && !$this->can(Permission::SETTINGS_MANAGE->value)) {
+            return false;
         }
 
         $case = Permission::tryFrom($permission);

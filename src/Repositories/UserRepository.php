@@ -432,6 +432,19 @@ class UserRepository extends AbstractRepository
         }
     }
 
+    public function updateProfileByActor(
+        int $actorId,
+        int $userId,
+        string $username,
+        ?string $firstname,
+        ?string $lastname,
+        ?string $email = null,
+    ): bool {
+        $this->privileges()->assertProfileChange($actorId, $userId);
+
+        return $this->updateProfile($userId, $username, $firstname, $lastname, $email);
+    }
+
     public function updateProfile(
         int $userId,
         string $username,
