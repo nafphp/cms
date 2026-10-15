@@ -83,7 +83,7 @@ final class MediaStorageService implements MediaStorageInterface
 
         $detectedMime = $this->detectMimeType($file);
         $clientMime   = strtolower(trim((string) ($file->getClientMediaType() ?? '')));
-        $mimeType     = $this->resolveMimeType($extension, $detectedMime, $clientMime);
+        $mimeType     = $this->resolveMimeType($extension, $detectedMime);
 
         $storageDirectory  = $this->storageDirectory($context);
         $absoluteDirectory = $this->storageRoot() . '/' . $storageDirectory;
@@ -275,13 +275,11 @@ final class MediaStorageService implements MediaStorageInterface
         return is_string($mimeType) ? strtolower(trim($mimeType)) : '';
     }
 
-    private function resolveMimeType(string $extension, string $detectedMime, string $clientMime): string
+    private function resolveMimeType(string $extension, string $detectedMime): string
     {
         $allowed = $this->allowedExtensions()[$extension] ?? [];
-        foreach ([$detectedMime, $clientMime] as $candidate) {
-            if ($candidate !== '' && in_array($candidate, $allowed, true)) {
-                return $candidate;
-            }
+        if ($detectedMime !== '' && in_array($detectedMime, $allowed, true)) {
+            return $detectedMime;
         }
 
         throw new InvalidArgumentException(t('This file type is not allowed.'));

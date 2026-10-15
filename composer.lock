@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "34cad7ad76dd50d9e54d089f3646ba51",
+    "content-hash": "20cb252147097b90fe8b351db6cf056d",
     "packages": [
         {
             "name": "doctrine/lexer",
@@ -5991,6 +5991,7 @@
         "php": ">=8.3",
         "ext-curl": "*",
         "ext-dom": "*",
+        "ext-fileinfo": "*",
         "ext-pdo": "*"
     },
     "platform-dev": {},

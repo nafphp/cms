@@ -254,7 +254,14 @@ class UserRepository extends AbstractRepository
             return false;
         }
 
-        return $this->writePasswordHash($userId, $verifiedPassword);
+        $update = $this->pdo->prepare('UPDATE users SET password = :password WHERE id = :userId AND password = :verifiedHash');
+        $update->execute([
+            'password'     => $this->credentialService->hashPassword($verifiedPassword),
+            'userId'       => $userId,
+            'verifiedHash' => $stored,
+        ]);
+
+        return $update->rowCount() === 1;
     }
 
     /**

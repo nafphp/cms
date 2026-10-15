@@ -127,7 +127,7 @@ if [[ "$BEFORE_HASH" != "$AFTER_HASH" ]]; then
     exit 1
 fi
 
-(cd "$FIXTURE_ROOT" && "${PHP_RUN[@]}" -S "127.0.0.1:$PORT" -t public >"$FIXTURE_ROOT/server.log" 2>&1) &
+(cd "$FIXTURE_ROOT" && exec "${PHP_RUN[@]}" -S "127.0.0.1:$PORT" -t public >"$FIXTURE_ROOT/server.log" 2>&1) &
 SERVER_PID=$!
 
 for _ in {1..30}; do
@@ -143,5 +143,7 @@ if ! grep -Eq '^HTTP/(1\.[01]|2) 30[23]' <<<"$HEADERS" || ! grep -Eiq '^Location
     echo "$HEADERS" >&2
     exit 1
 fi
+
+"${PHP_RUN[@]}" "$PACKAGE_ROOT/scripts/security-http.php" "$FIXTURE_ROOT" "http://127.0.0.1:$PORT"
 
 echo "NafCMS package smoke passed in $FIXTURE_ROOT"

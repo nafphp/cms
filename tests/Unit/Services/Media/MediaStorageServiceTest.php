@@ -122,6 +122,20 @@ final class MediaStorageServiceTest extends DatabaseTestCase
         }
     }
 
+    public function testClientMimeCannotOverrideAnIncompatibleDetectedType(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        try {
+            $this->service->storeUploadedFile(
+                $this->uploadedFile('<?php echo "disposable";', 'disguised.png', 'image/png'),
+            );
+        } finally {
+            self::assertSame([], $this->storage->search());
+            self::assertSame([], $this->storedFiles());
+        }
+    }
+
     public function testDeleteRemovesMetadataAndStoredFile(): void
     {
         $media = $this->service->storeUploadedFile(

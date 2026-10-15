@@ -35,9 +35,13 @@ The CMS database provider returns `UserIdentity`, a wrapper around its ORM User.
 
 ## Existing sessions
 
-Old `userId` sessions are restored through the database provider and acquire an `auth` record containing only provider name and string identifier. Deleted users and malformed new records become guests, with both the generic record and legacy metadata removed.
+Database authentication stores a SHA-256 fingerprint of the password hash alongside the generic `auth` record. Restoration compares it with the account's current credentials. A password change or reset therefore invalidates previously issued sessions with both PHP file storage and the database handler. An old request writing its session after the reset cannot restore access.
+
+Sessions without this credential binding, including legacy `userId` sessions, require a fresh login after upgrading. Do not infer a fingerprint for an existing session: that would adopt credentials the session never verified. Deleted users and malformed records become guests, with the generic record and legacy metadata removed.
 
 New logins keep `userId` as session-table indexing metadata. Authentication and normal identity lookup use the auth manager. Logout clears both layers and retains the CMS's existing whole-session destruction behavior.
+
+The database provider passes the verified credential fingerprint to the shared CMS state store before publishing a login. A reset between verification and publication is rejected. Password rehashing uses a conditional update against the hash that was verified, so an automatic upgrade cannot overwrite a concurrent reset. Rehashing changes the credential fingerprint and requires other sessions to authenticate again.
 
 ## HTTP behavior
 
@@ -46,6 +50,7 @@ New logins keep `userId` as session-table indexing metadata. Authentication and 
 - API denials are JSON: 401 for missing authentication, 403 for insufficient permission. These intentionally replace the previous HTML redirects from API routes.
 - CMS adapters preserve `AuthException`, including its generic cause and 401/403 code.
 - The existing form/CSRF middleware and POST-only logout route remain in place.
+- Login destinations reject backslashes and control characters and use the existing internal URL policy. Absolute remembered URLs contribute only their local path and query.
 
 ## Reviewer attribution
 
