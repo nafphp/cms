@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Security;
 
+use Naf\Auth\Auth;
 use Naf\Auth\Credentials\PasswordCredentials;
 use Naf\CMS\Api\ApiAuthorization;
 use Naf\CMS\Api\ApiEndpoint;
@@ -17,10 +18,13 @@ use Naf\CMS\Handlers\Page\Auth\LoginUser;
 use Naf\CMS\Page\Page;
 use Naf\CMS\Page\PageAuthorization;
 use Naf\CMS\Repositories\UserRepository;
+use Naf\CMS\Services\Security\CmsSessionStateStore;
 use Naf\CMS\Services\Security\CredentialService;
 use Naf\CMS\Services\Security\DatabaseProvider;
 use Naf\CMS\Services\Security\RateLimitDecision;
 use Naf\CMS\Support\UserHelper;
+use Naf\Session\Core\Session;
+use Naf\Session\Storage\DatabaseSessionHandler;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
@@ -220,6 +224,34 @@ final class AuthMigrationTest extends DatabaseTestCase
 
         self::assertFalse(auth()->check());
         self::assertNull(session()->get('auth'));
+    }
+
+    public function testDelayedDatabaseSessionWriteCannotRestoreAccessAfterPasswordChange(): void
+    {
+        $this->createSchema('CREATE TABLE sessions (id TEXT PRIMARY KEY, payload TEXT, last_activity INTEGER, ip_address TEXT, user_agent TEXT, user_id INTEGER)');
+        session_write_close();
+        $_SESSION        = [];
+        $handler         = new DatabaseSessionHandler($this->pdo, 'sessions');
+        $databaseSession = new Session();
+        $databaseSession->setSessionHandler($handler);
+        $state   = new CmsSessionStateStore($databaseSession);
+        $manager = new Auth($state);
+        $manager->addProvider('database', new DatabaseProvider(new CredentialService(), $state));
+        self::assertTrue($manager->authenticate(new PasswordCredentials('alice', 'correct-password'), 'database'));
+        $identifier   = session_id();
+        $stalePayload = session_encode();
+        self::assertIsString($stalePayload);
+        session_write_close();
+        self::assertTrue(repo(UserRepository::class)->updatePassword(7, 'correct-password', 'replacement-password'));
+        self::assertTrue($handler->write($identifier, $stalePayload));
+        $_SESSION = [];
+        session_id($identifier);
+        $databaseSession->start();
+        $manager->reset();
+
+        self::assertFalse($manager->check());
+        self::assertNull($databaseSession->get('auth'));
+        self::assertNull($databaseSession->get('userId'));
     }
 
     public function testAResetBetweenVerificationAndSessionPublicationIsRejected(): void
