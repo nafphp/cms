@@ -96,8 +96,8 @@ class UserRepository extends AbstractRepository
                 COALESCE(u.firstname, '') AS firstname,
                 COALESCE(u.lastname, '') AS lastname,
                 COALESCE(u.createdAt, '') AS createdAt,
-                GROUP_CONCAT(DISTINCT r.name ORDER BY r.name SEPARATOR ',') AS role_names,
-                GROUP_CONCAT(DISTINCT p.name ORDER BY p.name SEPARATOR ',') AS permission_names
+                GROUP_CONCAT(DISTINCT r.name) AS role_names,
+                GROUP_CONCAT(DISTINCT p.name) AS permission_names
             FROM users u
             LEFT JOIN user_role ur ON ur.user_id = u.id
             LEFT JOIN roles r ON r.id = ur.role_id
@@ -140,7 +140,7 @@ class UserRepository extends AbstractRepository
                 COALESCE(u.email, '') AS email,
                 COALESCE(u.firstname, '') AS firstname,
                 COALESCE(u.lastname, '') AS lastname,
-                GROUP_CONCAT(DISTINCT r.name ORDER BY r.name SEPARATOR ',') AS role_names
+                GROUP_CONCAT(DISTINCT r.name) AS role_names
             FROM users u
             LEFT JOIN user_role ur ON ur.user_id = u.id
             LEFT JOIN roles r ON r.id = ur.role_id
@@ -819,9 +819,12 @@ class UserRepository extends AbstractRepository
      */
     private static function csvList(string $value): array
     {
-        return array_values(array_filter(array_map(
+        $items = array_values(array_filter(array_map(
             static fn(string $item): string => trim($item),
             explode(',', $value),
         )));
+        sort($items, SORT_STRING);
+
+        return $items;
     }
 }

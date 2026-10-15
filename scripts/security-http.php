@@ -78,6 +78,8 @@ $copiedSession    = client();
 check($answer[0] === 302 && $answer[1]['location'] === '/admin', 'login rejects an external backslash redirect');
 [$answer] = login($copiedSession, $base, $password);
 check($answer[0] === 302 && request($copiedSession, $base . '/admin')[0] === 200, 'a second authenticated browser session works before reset');
+$users = request($operator, $base . '/api/admin/users');
+check($users[0] === 200 && in_array('security-admin', array_column(json_decode($users[2], true, flags: JSON_THROW_ON_ERROR), 'username'), true), 'the authenticated user-list API works on SQLite');
 $payload = ['user_id' => $user->getId(), 'password' => $replacement, 'password_confirmation' => $replacement];
 check(request($operator, $base . '/api/admin/users/password', $payload, 'invalid')[0] === 400, 'password reset retains CSRF protection');
 $reset = request($operator, $base . '/api/admin/users/password', $payload, $token);

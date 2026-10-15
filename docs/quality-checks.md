@@ -34,6 +34,11 @@ scripts/package-smoke.sh
 
 The smoke script installs a fresh mirrored package into `naf/app`, runs `install:database`
 twice against its disposable SQLite database and checks the real authenticated HTTP flow.
+It also reads the protected user-list API. User list and edit-form queries use the common
+SQLite/MySQL aggregate syntax and sort role and permission names in PHP.
+The MariaDB CI job reruns the user-read tests with `NAFCMS_MYSQL_READ_TEST=1` and its
+disposable database connection settings. These tests use connection-local temporary tables;
+the normal suite continues to use in-memory SQLite and requires no Docker database.
 The repeat installation must succeed without reapplying migrations. The host's files and
 server are cleaned up after the run; no development or production database is used.
 
