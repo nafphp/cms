@@ -1,5 +1,7 @@
 <?php
 
+use Naf\CMS\Support\ScriptJson;
+
 use function Naf\I18n\t;
 use function Naf\route;
 use function Naf\View\s;
@@ -51,10 +53,10 @@ $activeGroup = (string) ($activeGroup ?? 'general');
     import toast from '/js/lib/notifyJs/Modules/Toast.js';
 
     const form = document.getElementById('settings-form');
-    const endpoint = <?= json_encode(route('api.admin.settings.update')) ?>;
+    const endpoint = <?= ScriptJson::encode(route('api.admin.settings.update')) ?>;
     const saveState = form.querySelector('[data-save-state]');
     const saveButton = form.querySelector('[data-settings-save-button]');
-    const labels = <?= json_encode([
+    const labels = <?= ScriptJson::encode([
         'couldNotSave' => t('Could not save settings.'),
         'dirty'        => t('Unsaved changes.'),
         'clean'        => t('No unsaved changes.'),

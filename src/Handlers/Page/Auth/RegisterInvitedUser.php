@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Naf\CMS\Handlers\Page\Auth;
 
 use Naf\CMS\Contracts\PasswordPolicyInterface;
+use Naf\CMS\Handlers\Api\User\UserPayloadValidator;
 use Naf\CMS\Models\User;
 use Naf\CMS\Repositories\UserRepository;
 use Naf\CMS\Services\Security\PasswordPolicy;
@@ -44,15 +45,16 @@ final class RegisterInvitedUser
             'email'                 => 'required',
             'username'              => 'required|min:3',
             'password'              => 'required',
-            'password_confirmation' => 'required|same:password',
+            'password_confirmation' => 'required',
             '_csrf'                 => 'required',
         ]);
 
         if (!$validation->isValid()) {
-            return $this->registerView($token, $invite, implode(' ', validator()->getErrorMessages()));
+            return $this->registerView($token, $invite, implode(' ', array_merge(...array_values(validator()->getErrorMessages()))));
         }
-        if (!$this->passwords->accepts((string) ($data['password'] ?? ''))) {
-            return $this->registerView($token, $invite, $this->passwords->message());
+        $errors = (new UserPayloadValidator($this->passwords))->validate($data, true, false);
+        if ($errors !== []) {
+            return $this->registerView($token, $invite, implode(' ', array_merge(...array_values($errors))));
         }
 
         $result = $repository->registerUserWithInvite(

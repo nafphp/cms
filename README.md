@@ -303,11 +303,11 @@ These sections are generated from registries and enums. Edit the source code, th
 | `admin.pages` | `/admin/pages` | `layouts.admin` | `pages.view` | yes |
 | `admin.pages.create` | `/admin/pages/create` | `layouts.admin` | `pages.create` | no |
 | `admin.roles` | `/admin/roles` | `layouts.admin` | `roles.manage` | no |
-| `admin.settings` | `/admin/settings` | `layouts.admin` | `admin.access` | no |
-| `admin.settings.ai` | `/admin/settings/ai` | `layouts.admin` | `ai.instructions.manage` | no |
-| `admin.settings.audit` | `/admin/settings/audit` | `layouts.admin` | `admin.access` | no |
-| `admin.settings.group` | `/admin/settings/group/{group}` | `layouts.admin` | `admin.access` | no |
-| `admin.translations` | `/admin/settings/translations` | `layouts.admin` | `admin.access` | no |
+| `admin.settings` | `/admin/settings` | `layouts.admin` | `settings.manage` | no |
+| `admin.settings.ai` | `/admin/settings/ai` | `layouts.admin` | `settings.manage`, `ai.instructions.manage` | no |
+| `admin.settings.audit` | `/admin/settings/audit` | `layouts.admin` | `system.read` | no |
+| `admin.settings.group` | `/admin/settings/group/{group}` | `layouts.admin` | `settings.manage` | no |
+| `admin.translations` | `/admin/settings/translations` | `layouts.admin` | `translations.manage` | no |
 | `admin.themes` | `/admin/themes` | `layouts.admin` | `themes.view` | no |
 | `admin.themes.create` | `/admin/themes/create` | `layouts.admin` | `themes.create`, `themes.code.manage` | yes |
 | `admin.themes.edit` | `/admin/themes/{themeId}/edit` | `layouts.admin` | `themes.edit`, `themes.code.manage` | yes |
@@ -362,11 +362,11 @@ These sections are generated from registries and enums. Edit the source code, th
 | `api.admin.rbac.roles.permissions` | `POST` | `/api/admin/rbac/roles/permissions` | `roles.manage`, `permissions.manage` |
 | `api.admin.rbac.roles.update` | `POST` | `/api/admin/rbac/roles/update` | `roles.manage` |
 | `api.admin.roles` | `GET` | `/api/admin/roles` | `roles.manage` |
-| `api.admin.settings.update` | `POST` | `/api/admin/settings` | `admin.access` |
+| `api.admin.settings.update` | `POST` | `/api/admin/settings` | `settings.manage` |
 | `api.admin.summary` | `GET` | `/api/admin/summary` | `admin.access` |
 | `api.admin.themes.store` | `POST` | `/api/admin/themes` | `themes.code.manage` |
 | `api.admin.translations.show` | `GET` | `/api/admin/translations/{language}` | any of `admin.access`, `pages.view`, `pages.create`, `pages.edit` |
-| `api.admin.translations.update` | `POST` | `/api/admin/translations/{language}` | `admin.access` |
+| `api.admin.translations.update` | `POST` | `/api/admin/translations/{language}` | `translations.manage` |
 | `api.admin.users` | `GET` | `/api/admin/users` | `users.view` |
 | `api.admin.users.delete` | `POST` | `/api/admin/users/delete` | `users.delete` |
 | `api.admin.users.invite` | `POST` | `/api/admin/users/invite` | `users.create`, `roles.manage` |
@@ -400,6 +400,8 @@ These sections are generated from registries and enums. Edit the source code, th
 | Permission | Description |
 | --- | --- |
 | `admin.access` | Access the admin area. |
+| `settings.manage` | Manage application and plugin settings. |
+| `translations.manage` | Manage translation overrides and language files. |
 | `system.read` | Read system status and health information. |
 | `users.view` | View users. |
 | `users.create` | Create users. |

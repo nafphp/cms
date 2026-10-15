@@ -23,6 +23,8 @@ interface UserPrivilegePolicyInterface
         Permission $userPermission = Permission::USERS_EDIT,
     ): void;
 
+    public function assertProfileChange(int $actorId, int $targetId): void;
+
     public function assertPasswordReset(int $actorId, int $targetId): void;
 
     public function assertDeletion(int $actorId, int $targetId): void;

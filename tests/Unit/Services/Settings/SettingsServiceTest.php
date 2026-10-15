@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Settings;
 
+use Naf\CMS\Enums\Permission;
 use Naf\CMS\Repositories\SettingRepository;
 use Naf\CMS\Services\Settings\SettingsService;
+use Naf\CMS\Settings\SettingField;
+use Naf\CMS\Settings\SettingSection;
 use Naf\Support\CoreFileLoader;
 use Tests\Support\DatabaseTestCase;
 
@@ -93,6 +96,21 @@ final class SettingsServiceTest extends DatabaseTestCase
         self::assertSame('config', $fields['app.short_name']['source']);
         self::assertSame('', $fields['branding.logoText']['value']);
         self::assertSame('default', $fields['branding.logoText']['source']);
+    }
+
+    public function testUnspecifiedSectionPermissionRequiresSettingsManage(): void
+    {
+        $section = SettingSection::create('audit-default', 'Audit default')
+            ->addFields([SettingField::text('audit.default', 'Value')]);
+        \Naf\CMS\cms()->settings()->add($section);
+        $service = new SettingsService(new SettingRepository($this->pdo), static fn(): bool => false);
+        $result  = $service->save(['audit.default' => 'unauthorized', 'app.name' => 'Changed']);
+        self::assertFalse($result['success']);
+        self::assertArrayHasKey('audit.default', $result['errors']);
+        self::assertSame(0, (int) $this->pdo->query('SELECT COUNT(*) FROM cms_settings')->fetchColumn());
+        $allowed = new SettingsService(new SettingRepository($this->pdo), static fn(Permission $permission): bool => $permission === Permission::SETTINGS_MANAGE);
+        self::assertTrue($allowed->save(['audit.default' => 'authorized'])['success']);
+        self::assertFalse($allowed->save(['ai.instructions' => 'unauthorized'])['success']);
     }
 
     public function testDedicatedSectionPermissionBlocksReadsAndWrites(): void

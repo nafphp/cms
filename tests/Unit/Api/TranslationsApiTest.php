@@ -33,6 +33,6 @@ final class TranslationsApiTest extends TestCase
 
         self::assertSame(UpdateTranslations::class, $byId['api.admin.translations.update']->handler());
         self::assertSame('POST', $byId['api.admin.translations.update']->method());
-        self::assertSame([Permission::ADMIN_ACCESS], $byId['api.admin.translations.update']->requiredPermissions());
+        self::assertSame([Permission::TRANSLATIONS_MANAGE], $byId['api.admin.translations.update']->requiredPermissions());
     }
 }

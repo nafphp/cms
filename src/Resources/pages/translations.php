@@ -19,7 +19,7 @@ return [
         ->setPath('/admin/settings/translations')
         ->setTitle('Languages')
         ->setLayout('admin')
-        ->requirePermission(Permission::ADMIN_ACCESS)
+        ->requirePermission(Permission::TRANSLATIONS_MANAGE)
         ->setAdminNavigation('Languages', parent: 'settings', icon: 'content', order: 20, key: 'settings.translations')
         ->setContent(static function () {
             $service  = app()->container()->get(TranslationServiceInterface::class);

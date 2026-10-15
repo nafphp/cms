@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace Tests\Unit\Repositories;
 
 use Naf\CMS\Exceptions\PrivilegedActionDenied;
+use Naf\CMS\Handlers\Api\User\UpdateUser;
+use Naf\CMS\Models\User;
 use Naf\CMS\Repositories\PermissionRepository;
 use Naf\CMS\Repositories\RoleRepository;
 use Naf\CMS\Repositories\UserRepository;
 use Naf\CMS\Services\Security\CredentialService;
+use Naf\CMS\Support\UserHelper;
 use Naf\ORM\Core\EntityManager;
 use PDO;
 use Tests\Support\DatabaseTestCase;
+use Tests\Support\JsonRequest;
 
 final class PrivilegedMutationBoundaryTest extends DatabaseTestCase
 {
@@ -56,6 +60,48 @@ final class PrivilegedMutationBoundaryTest extends DatabaseTestCase
         $this->users       = new UserRepository($this->pdo, $entityManager, new CredentialService());
         $this->roles       = new RoleRepository($this->pdo, $entityManager);
         $this->permissions = new PermissionRepository($this->pdo, $entityManager);
+    }
+
+    public function testProfileChangesCannotManageAdminsOrAdditionalPermissions(): void
+    {
+        $this->assertDenied('higher_privileged_target', fn() => $this->users->updateProfileByActor(
+            $this->userIds['manager'],
+            $this->userIds['admin'],
+            'changed',
+            'Changed',
+            'Admin',
+            'changed@example.test',
+        ));
+        self::assertSame('admin', $this->fetchOne('SELECT username FROM users WHERE id = :id', ['id' => $this->userIds['admin']])['username']);
+
+        $this->addUser('publisher', 'publisher-hash', 'publisher');
+        $this->assertDenied('higher_privileged_target', fn() => $this->users->updateProfileByActor(
+            $this->userIds['editor'],
+            $this->userIds['publisher'],
+            'changed',
+            null,
+            null,
+        ));
+        self::assertSame('publisher', $this->fetchOne('SELECT username FROM users WHERE id = :id', ['id' => $this->userIds['publisher']])['username']);
+        self::assertTrue($this->users->updateProfileByActor($this->userIds['manager'], $this->userIds['editor'], 'managed', null, null));
+        self::assertTrue($this->users->updateProfileByActor($this->userIds['manager'], $this->userIds['manager'], 'self-edit', null, null));
+        self::assertTrue($this->users->updateProfileByActor($this->userIds['admin'], $this->userIds['publisher'], 'admin-edited', null, null));
+    }
+
+    public function testProfileHandlerReturns403AndLeavesTheAdminProfileUntouched(): void
+    {
+        \Naf\CMS\user(new UserHelper(new User(['id' => $this->userIds['manager']]), [], [], true));
+        JsonRequest::bind([
+            'user_id' => $this->userIds['admin'], 'username' => 'renamed-admin', 'email' => 'changed@example.test',
+        ]);
+
+        try {
+            $response = (new UpdateUser())();
+            self::assertSame(403, $response->getStatusCode());
+            self::assertSame('admin', $this->fetchOne('SELECT username FROM users WHERE id = :id', ['id' => $this->userIds['admin']])['username']);
+        } finally {
+            \Naf\CMS\user(reset: true);
+        }
     }
 
     public function testRepositoryRejectsRoleAssignmentOutsideActorScope(): void

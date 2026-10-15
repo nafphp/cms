@@ -2,6 +2,7 @@
 
 use Naf\CMS\Localization\LanguageRegistry;
 use Naf\CMS\Services\Admin\AdminNavigationService;
+use Naf\CMS\Support\ScriptJson;
 
 use function Naf\CMS\cms;
 use function Naf\Form\csrf;
@@ -60,15 +61,15 @@ asset()->add('/js/admin/ai.js', 'module');
     </script>
     <?= asset()->render('css') ?>
     <script nonce="<?= \Naf\CMS\csp_nonce() ?>">
-        const nafCmsCsrfToken = <?= json_encode($csrfToken) ?>;
+        const nafCmsCsrfToken = <?= ScriptJson::encode($csrfToken) ?>;
         window.NafCMS = {
             ...(window.NafCMS || {}),
             csrfToken: () => nafCmsCsrfToken,
             csrfHeader: 'X-CSRF-Token',
-            adminUserKey: <?= json_encode($currentUserId > 0 ? 'user:' . $currentUserId : 'guest') ?>,
+            adminUserKey: <?= ScriptJson::encode($currentUserId > 0 ? 'user:' . $currentUserId : 'guest') ?>,
             // Same shape the server accepts, so the admin UI does not keep its
             // own copy of the expression.
-            languagePattern: <?= json_encode(LanguageRegistry::CODE_PATTERN) ?>,
+            languagePattern: <?= ScriptJson::encode(LanguageRegistry::CODE_PATTERN) ?>,
         };
     </script>
     <script nonce="<?= \Naf\CMS\csp_nonce() ?>">
@@ -77,7 +78,7 @@ asset()->add('/js/admin/ai.js', 'module');
             animation: 'pop',
             theme: {
                 ...((window.NotifyJsConfig || {}).theme || {}),
-                accent: <?= json_encode($accent) ?>,
+                accent: <?= ScriptJson::encode($accent) ?>,
             },
             overlay: {
                 mode: 'blur',

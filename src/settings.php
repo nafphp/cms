@@ -15,6 +15,7 @@ $languageOptions = array_combine(
 
 return [
     SettingSection::create('application', 'Application')
+        ->setPermission(Permission::SETTINGS_MANAGE)
         ->setDescription('Basic application identity.')
         ->setGroup('general')
         ->setOrder(10)
@@ -33,6 +34,7 @@ return [
                 ->setDefaultValue(''),
         ]),
     SettingSection::create('languages', 'Languages')
+        ->setPermission(Permission::SETTINGS_MANAGE)
         ->setDescription('Language defaults and enabled CMS languages.')
         ->setGroup('languages')
         ->setOrder(10)
