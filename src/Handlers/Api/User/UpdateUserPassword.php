@@ -8,6 +8,7 @@ use Naf\CMS\Contracts\PasswordPolicyInterface;
 use Naf\CMS\Exceptions\PrivilegedActionDenied;
 use Naf\CMS\Handlers\Support\ReadsJsonBody;
 use Naf\CMS\Handlers\Support\RejectsPrivilegedAction;
+use Naf\CMS\Models\User;
 use Naf\CMS\Repositories\UserRepository;
 use Naf\CMS\Services\Security\PasswordPolicy;
 use Naf\CMS\Support\AuditEntry;
@@ -52,7 +53,7 @@ final class UpdateUserPassword
         }
 
         $repository = repo(UserRepository::class);
-        if ($repository->findOneForForm($userId) === null) {
+        if (!$repository->findOneBy('id', $userId) instanceof User) {
             return json(['success' => false, 'reason' => 'User not found.'], 404);
         }
 

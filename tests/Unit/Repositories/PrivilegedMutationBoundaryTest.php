@@ -91,6 +91,30 @@ final class PrivilegedMutationBoundaryTest extends DatabaseTestCase
         self::assertSame('editor-hash', $this->passwordFor('editor'));
     }
 
+    public function testPasswordRehashCannotOverwriteAConcurrentReset(): void
+    {
+        $userId    = $this->userIds['editor'];
+        $oldHash   = password_hash('verified-password', PASSWORD_BCRYPT, ['cost' => 4]);
+        $resetHash = (new CredentialService())->hashPassword('replacement-password');
+        $this->pdo->prepare('UPDATE users SET password=? WHERE id=?')->execute([$oldHash, $userId]);
+        $service = new class ($this->pdo, $userId, $resetHash) extends CredentialService {
+            public function __construct(private PDO $connection, private int $userId, private string $resetHash)
+            {
+            }
+
+            public function hashPassword(string $password): string
+            {
+                $this->connection->prepare('UPDATE users SET password=? WHERE id=?')->execute([$this->resetHash, $this->userId]);
+
+                return parent::hashPassword($password);
+            }
+        };
+        $repository = new UserRepository($this->pdo, new EntityManager($this->pdo), $service);
+
+        self::assertFalse($repository->rehashAuthenticatedPassword($userId, 'verified-password'));
+        self::assertSame($resetHash, $this->passwordFor('editor'));
+    }
+
     public function testRepositoryRejectsDeletingLastAdmin(): void
     {
         $this->assertDenied('last_admin', fn() => $this->users->deleteById(

@@ -16,7 +16,7 @@ use function Naf\ORM\repo;
 
 final readonly class DatabaseProvider implements ProviderInterface
 {
-    public function __construct(private CredentialService $credentials)
+    public function __construct(private CredentialService $credentials, private ?CmsSessionStateStore $sessions = null)
     {
     }
 
@@ -42,8 +42,15 @@ final readonly class DatabaseProvider implements ProviderInterface
             return null;
         }
         if ($verification->requiresUpgrade()) {
-            $repository->rehashAuthenticatedPassword((int) $user->getId(), $credentials->password);
+            if (!$repository->rehashAuthenticatedPassword((int) $user->getId(), $credentials->password)) {
+                return null;
+            }
+            $user = $repository->findOneBy('id', (int) $user->getId());
+            if (!$user instanceof User || !$this->credentials->verifyPassword($credentials->password, $user->getPassword())->isVerified()) {
+                return null;
+            }
         }
+        $this->sessions?->verifiedPassword((string) $user->getId(), (string) $user->getPassword());
 
         return new UserIdentity($user);
     }

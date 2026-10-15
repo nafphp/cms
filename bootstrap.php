@@ -107,8 +107,10 @@ $packageRoot = __DIR__;
 
 // Boot the dependency before registration even when a host lists CMS first.
 app()->getPlugin('naf/auth')->boot();
-app()->container()->set(StateStoreInterface::class, static fn()
+app()->container()->set(CmsSessionStateStore::class, static fn()
     => new CmsSessionStateStore(\Naf\Session\session()));
+app()->container()->set(StateStoreInterface::class, static fn()
+    => app()->container()->get(CmsSessionStateStore::class));
 app()->container()->set(DatabaseProvider::class, static fn()
     => app()->container()->make(DatabaseProvider::class));
 \Naf\Auth\auth()->addProvider('database', DatabaseProvider::class);

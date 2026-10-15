@@ -6,6 +6,7 @@ namespace Naf\CMS\Handlers\Page\Auth;
 
 use Naf\Auth\Credentials\PasswordCredentials;
 use Naf\CMS\Contracts\RateLimiterInterface;
+use Naf\CMS\Security\UrlPolicy;
 use Naf\CMS\Services\Security\RateLimitDecision;
 use Psr\Http\Message\ResponseInterface;
 
@@ -63,8 +64,8 @@ final class LoginUser
      */
     private function resolveRedirectUri(array $payload): string
     {
-        $candidate = trim((string) ($payload['redirectUri'] ?? session()->getFlash('redirectUri') ?? ''));
-        if ($candidate === '') {
+        $candidate = $payload['redirectUri'] ?? session()->getFlash('redirectUri') ?? '';
+        if (!is_string($candidate) || preg_match('/[\x00-\x20\x7f\\\\]/', $candidate) === 1) {
             return '/admin';
         }
 
@@ -74,7 +75,7 @@ final class LoginUser
         }
 
         $path = $parsed['path'] ?? '/admin';
-        if ($path === '' || !str_starts_with($path, '/') || str_starts_with($path, '//')) {
+        if (UrlPolicy::internal($path) === null || !str_starts_with($path, '/')) {
             return '/admin';
         }
 

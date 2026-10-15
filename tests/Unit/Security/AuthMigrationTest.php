@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Security;
 
+use Naf\Auth\Auth;
 use Naf\Auth\Credentials\PasswordCredentials;
 use Naf\CMS\Api\ApiAuthorization;
 use Naf\CMS\Api\ApiEndpoint;
@@ -16,16 +17,25 @@ use Naf\CMS\Handlers\Api\Article\ReviewArticle;
 use Naf\CMS\Handlers\Page\Auth\LoginUser;
 use Naf\CMS\Page\Page;
 use Naf\CMS\Page\PageAuthorization;
+use Naf\CMS\Repositories\UserRepository;
+use Naf\CMS\Services\Security\CmsSessionStateStore;
 use Naf\CMS\Services\Security\CredentialService;
+use Naf\CMS\Services\Security\DatabaseProvider;
 use Naf\CMS\Services\Security\RateLimitDecision;
 use Naf\CMS\Support\UserHelper;
+use Naf\Session\Core\Session;
+use Naf\Session\Storage\DatabaseSessionHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use RuntimeException;
 use Tests\Support\DatabaseTestCase;
 use Tests\Support\JsonRequest;
 
+use function Naf\app;
 use function Naf\Auth\auth;
 use function Naf\CMS\user;
+use function Naf\ORM\repo;
 use function Naf\Session\session;
 
 #[RunTestsInSeparateProcesses]
@@ -168,14 +178,117 @@ final class AuthMigrationTest extends DatabaseTestCase
         self::assertSame('argon2id', password_get_info($new)['algoName']);
     }
 
-    public function testLegacySessionRestoresThroughDatabaseAndUpgradesRecord(): void
+    public function testLegacySessionRequiresFreshAuthentication(): void
     {
         session()->set('userId', 7);
-        self::assertTrue(auth()->check());
-        self::assertSame(7, user()->get()->getId());
-        self::assertSame(['provider' => 'database', 'identifier' => '7'], session()->get('auth'));
+        self::assertFalse(auth()->check());
+        self::assertNull(session()->get('auth'));
+        self::assertNull(session()->get('userId'));
+    }
+
+    public function testPasswordResetRevokesAPreviouslyPersistedSession(): void
+    {
+        $this->insertRow('permissions', ['id' => 2, 'name' => Permission::USERS_EDIT->value]);
+        $this->insertRow('role_permissions', ['role_id' => 1, 'permission_id' => 2]);
+        self::assertTrue(auth()->authenticate(new PasswordCredentials('alice', 'correct-password'), 'database'));
+        $identifier = session_id();
+        session_write_close();
+
+        self::assertTrue(repo(UserRepository::class)->resetPasswordByActor(7, 7, 'replacement-password'));
+        $_SESSION = [];
+        session_id($identifier);
+        session()->start();
         auth()->reset();
-        self::assertTrue(auth()->can(Permission::PAGES_EDIT));
+
+        self::assertFalse(auth()->check());
+        self::assertNull(session()->get('auth'));
+        self::assertNull(session()->get('userId'));
+        self::assertTrue(auth()->authenticate(new PasswordCredentials('alice', 'replacement-password'), 'database'));
+    }
+
+    public function testAnAuthenticationRecordWithoutCredentialBindingIsRejected(): void
+    {
+        session()->set('auth', ['provider' => 'database', 'identifier' => '7']);
+
+        self::assertFalse(auth()->check());
+        self::assertNull(session()->get('auth'));
+    }
+
+    public function testAnOldSessionPayloadCannotSurviveAPasswordChange(): void
+    {
+        self::assertTrue(auth()->authenticate(new PasswordCredentials('alice', 'correct-password'), 'database'));
+        $stalePayload = $_SESSION;
+        self::assertTrue(repo(UserRepository::class)->updatePassword(7, 'correct-password', 'replacement-password'));
+        $_SESSION = $stalePayload;
+        auth()->reset();
+
+        self::assertFalse(auth()->check());
+        self::assertNull(session()->get('auth'));
+    }
+
+    public function testDelayedDatabaseSessionWriteCannotRestoreAccessAfterPasswordChange(): void
+    {
+        $this->createSchema('CREATE TABLE sessions (id TEXT PRIMARY KEY, payload TEXT, last_activity INTEGER, ip_address TEXT, user_agent TEXT, user_id INTEGER)');
+        session_write_close();
+        $_SESSION        = [];
+        $handler         = new DatabaseSessionHandler($this->pdo, 'sessions');
+        $databaseSession = new Session();
+        $databaseSession->setSessionHandler($handler);
+        $state   = new CmsSessionStateStore($databaseSession);
+        $manager = new Auth($state);
+        $manager->addProvider('database', new DatabaseProvider(new CredentialService(), $state));
+        self::assertTrue($manager->authenticate(new PasswordCredentials('alice', 'correct-password'), 'database'));
+        $identifier   = session_id();
+        $stalePayload = session_encode();
+        self::assertIsString($stalePayload);
+        session_write_close();
+        self::assertTrue(repo(UserRepository::class)->updatePassword(7, 'correct-password', 'replacement-password'));
+        self::assertTrue($handler->write($identifier, $stalePayload));
+        $_SESSION = [];
+        session_id($identifier);
+        $databaseSession->start();
+        $manager->reset();
+
+        self::assertFalse($manager->check());
+        self::assertNull($databaseSession->get('auth'));
+        self::assertNull($databaseSession->get('userId'));
+    }
+
+    public function testAResetBetweenVerificationAndSessionPublicationIsRejected(): void
+    {
+        $identity = app()->container()->get(DatabaseProvider::class)->authenticate(new PasswordCredentials('alice', 'correct-password'));
+        self::assertNotNull($identity);
+        self::assertTrue(repo(UserRepository::class)->updatePassword(7, 'correct-password', 'replacement-password'));
+
+        try {
+            auth()->setIdentity($identity, 'database');
+            self::fail('Changed credentials were published as a fresh login.');
+        } catch (RuntimeException $exception) {
+            self::assertSame('Account credentials changed during authentication.', $exception->getMessage());
+            self::assertFalse(auth()->check());
+            self::assertNull(session()->get('auth'));
+        }
+    }
+
+    #[DataProvider('redirectTargets')]
+    public function testLoginRedirectStaysWithinTheApplication(string $target, string $expected): void
+    {
+        JsonRequest::bind(['username' => 'alice', 'password' => 'correct-password', 'redirectUri' => $target], '/admin/login');
+        $response = (new LoginUser($this->limiter))();
+
+        self::assertSame(302, $response->getStatusCode());
+        self::assertSame($expected, $response->getHeaderLine('Location'));
+    }
+
+    /** @return iterable<string, array{string, string}> */
+    public static function redirectTargets(): iterable
+    {
+        yield 'backslash authority' => ['/\\evil.example.test', '/admin'];
+        yield 'newline authority' => ["/\n/evil.example.test", '/admin'];
+        yield 'tab authority' => ["/\t/evil.example.test", '/admin'];
+        yield 'protocol relative' => ['//evil.example.test', '/admin'];
+        yield 'local path' => ['/admin/articles?page=2', '/admin/articles?page=2'];
+        yield 'absolute URI converted to local path' => ['https://cms.example.test/admin/articles?page=2', '/admin/articles?page=2'];
     }
 
     public function testDeletedIdentityRemovesNewAndLegacyState(): void
