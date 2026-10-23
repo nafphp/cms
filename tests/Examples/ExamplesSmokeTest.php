@@ -6,8 +6,10 @@ namespace Tests\Examples;
 
 use Naf\CMS\Content\ContentTypeInterface;
 use Naf\CMS\Enums\Permission;
+use Naf\CMS\Events\ContentEvent;
 use Naf\CMS\Examples\BlockType\ExampleQuoteBlockType;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
@@ -63,6 +65,17 @@ final class ExamplesSmokeTest extends TestCase
         self::assertSame('Example quote', $type->label());
     }
 
+    public function testPageTemplateExampleRegistersExpectedTemplate(): void
+    {
+        $this->requireExample(BASE_PATH . '/examples/07-page-template');
+
+        $template = cms()->pageTemplates()->require('example-split');
+
+        self::assertSame('Example split', $template->label());
+        self::assertSame('page.templates.example_split', $template->templateView());
+        self::assertSame(['site_header', 'intro', 'content', 'aside', 'site_footer'], array_keys($template->blocks()));
+    }
+
     public function testMcpToolExampleRegistersExpectedTool(): void
     {
         $this->requireExample(BASE_PATH . '/examples/04-mcp-tool');
@@ -75,6 +88,21 @@ final class ExamplesSmokeTest extends TestCase
 
         self::assertCount(1, $matches);
         self::assertSame('Returns a trivial pong response for testing MCP registration.', $matches[0]['description']);
+    }
+
+    public function testContentEventExampleLogsPublishedPage(): void
+    {
+        $this->requireExample(BASE_PATH . '/examples/08-content-events');
+        $previous = \Naf\log();
+        $logger   = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('info')->with('Example page published listener', ['pageId' => 'example-42']);
+        \Naf\app()->container()->set(LoggerInterface::class, $logger);
+
+        try {
+            ContentEvent::dispatch('page.published', 'page', 'example-42');
+        } finally {
+            \Naf\app()->container()->set(LoggerInterface::class, $previous);
+        }
     }
 
     /**

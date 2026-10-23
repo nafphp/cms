@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Contracts;
 
+/** @api */
 interface TranslationServiceInterface
 {
     /** @return array<int, array{code:string,label:string,active:bool}> */

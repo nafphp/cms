@@ -1,3 +1,5 @@
+let styledSelectId = 0;
+
 function escapeHtml(value) {
     return String(value ?? '')
         .replace(/&/g, '&amp;')
@@ -46,6 +48,7 @@ export function initStyledSelect(selectElement, options = {}) {
 
     const trigger = document.createElement('button');
     trigger.type = 'button';
+    trigger.id = `nafcms-styled-select-${++styledSelectId}`;
     trigger.className = triggerClass;
     trigger.setAttribute('aria-haspopup', 'listbox');
     trigger.setAttribute('aria-expanded', 'false');
@@ -53,6 +56,7 @@ export function initStyledSelect(selectElement, options = {}) {
     const menu = document.createElement('div');
     menu.className = `${menuClass} hidden`;
     menu.setAttribute('role', 'listbox');
+    menu.setAttribute('aria-labelledby', trigger.id);
     const compact = select.dataset.styledSelectDensity === 'compact' || options.density === 'compact';
     const menuWidthMode = select.dataset.styledSelectMenuWidth || options.menuWidth || '';
     const fitMenuToContent = menuWidthMode === contentWidthMode;

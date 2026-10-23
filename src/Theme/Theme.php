@@ -8,6 +8,7 @@ use InvalidArgumentException;
 
 /**
  * Frontend theme definition: body class, optional assets, and builder-visible surfaces.
+ * @api
  */
 final class Theme
 {

@@ -59,7 +59,7 @@ $footerSlots = $slotsForRegion('footer');
         </div>
     <?php endif; ?>
 
-    <main class="page-template-main page-template-main--custom">
+    <main id="content" tabindex="-1" class="page-template-main page-template-main--custom">
         <?php if ($mainSlots === [] && $asideSlots === []): ?>
             <section class="page-template-region page-template-custom-empty"></section>
         <?php elseif ($asideSlots !== []): ?>

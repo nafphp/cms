@@ -8,6 +8,7 @@ use LogicException;
 use Naf\CMS\Enums\Permission;
 use Naf\CMS\Enums\Role;
 
+/** @api */
 final class ApiEndpoint
 {
     private string $method               = 'GET';

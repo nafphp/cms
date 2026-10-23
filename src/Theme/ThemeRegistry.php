@@ -6,6 +6,7 @@ namespace Naf\CMS\Theme;
 
 use LogicException;
 
+/** @api */
 final class ThemeRegistry
 {
     /** @var array<string, Theme> */

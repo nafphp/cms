@@ -6,6 +6,7 @@ namespace Naf\CMS\Api;
 
 use Naf\CMS\Contracts\ScopeAwareInterface;
 use Naf\CMS\Enums\Scope;
+use Naf\CMS\Events\ContentEvent;
 use Naf\CMS\Models\SiteNavigation;
 use Naf\CMS\Navigation\Navigation;
 use Naf\CMS\Navigation\NavigationItem;
@@ -168,6 +169,13 @@ final class NavigationApi implements ScopeAwareInterface
             $this->navigationAuditSnapshot($old),
             $this->navigationAuditSnapshot($this->repository->find($savedId)),
         )->record();
+        ContentEvent::dispatch(
+            $old instanceof Navigation ? 'navigation.updated' : 'navigation.created',
+            'navigation',
+            (string) $savedId,
+            $this->navigationAuditSnapshot($old),
+            $this->navigationAuditSnapshot($this->repository->find($savedId)),
+        );
 
         return $savedId;
     }
@@ -184,6 +192,13 @@ final class NavigationApi implements ScopeAwareInterface
                 $this->navigationAuditSnapshot($old),
                 $this->navigationAuditSnapshot($this->repository->find($id)),
             )->record();
+            ContentEvent::dispatch(
+                'navigation.published',
+                'navigation',
+                (string) $id,
+                $this->navigationAuditSnapshot($old),
+                $this->navigationAuditSnapshot($this->repository->find($id)),
+            );
         }
 
         return $published;
@@ -200,6 +215,12 @@ final class NavigationApi implements ScopeAwareInterface
                 (string) $id,
                 $this->navigationAuditSnapshot($old),
             )->record();
+            ContentEvent::dispatch(
+                'navigation.deleted',
+                'navigation',
+                (string) $id,
+                $this->navigationAuditSnapshot($old),
+            );
         }
 
         return $deleted;

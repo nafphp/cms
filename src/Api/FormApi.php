@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Api;
 
+use Naf\CMS\Events\ContentEvent;
 use Naf\CMS\Models\Form;
 use Naf\CMS\Repositories\FormRepository;
 use Naf\CMS\Storage\EntityStorage;
@@ -77,6 +78,13 @@ final class FormApi
             $this->formAuditSnapshot($old),
             $this->formAuditSnapshot($this->repository->find($savedId)),
         )->record();
+        ContentEvent::dispatch(
+            $old === null ? 'form.created' : 'form.updated',
+            'form',
+            (string) $savedId,
+            $this->formAuditSnapshot($old),
+            $this->formAuditSnapshot($this->repository->find($savedId)),
+        );
 
         return $savedId;
     }
@@ -92,6 +100,12 @@ final class FormApi
                 (string) $id,
                 $this->formAuditSnapshot($old),
             )->record();
+            ContentEvent::dispatch(
+                'form.deleted',
+                'form',
+                (string) $id,
+                $this->formAuditSnapshot($old),
+            );
         }
 
         return $deleted;
@@ -103,7 +117,10 @@ final class FormApi
      */
     public function storeSubmission(int $formId, array $payload, array $meta = []): int
     {
-        return $this->repository->storeSubmission($formId, $payload, $meta);
+        $id = $this->repository->storeSubmission($formId, $payload, $meta);
+        ContentEvent::dispatch('form.submitted', 'form', $formId, null, ['submissionId' => $id, 'payload' => $payload, 'meta' => $meta]);
+
+        return $id;
     }
 
     /** @return array<int, array<string, mixed>> */

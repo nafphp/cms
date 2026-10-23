@@ -101,12 +101,15 @@ export default class Notify {
         this.isClosing = false;
         this.escapeHandler = null;
 
+        this.previousFocus = this.options.overlay?.enabled === false ? null : document.activeElement;
+        this.focusTrapHandler = null;
         this.render();
         this.decorate();
         this.applyTheme();
         this.mountOverlay();
         Object.assign(this.container.style, this.options.style || {});
         this.bindEscape();
+        this.bindFocusTrap();
         this.bind();
     }
 
@@ -220,6 +223,42 @@ export default class Notify {
         }
     }
 
+    bindFocusTrap() {
+        if (this.options.overlay?.enabled === false) {
+            return;
+        }
+        this.focusTrapHandler = (event) => {
+            if (event.key !== 'Tab' || currentTopModal() !== this) {
+                return;
+            }
+            const elements = [...this.container.querySelectorAll('a[href], button, input, select, textarea, [tabindex], [contenteditable="true"]')]
+                .filter((element) => !element.disabled && element.tabIndex >= 0
+                    && !element.closest('[hidden], [inert]') && getComputedStyle(element).display !== 'none'
+                    && getComputedStyle(element).visibility !== 'hidden');
+            const first = elements[0];
+            const last = elements[elements.length - 1];
+            if (!first) {
+                event.preventDefault();
+                this.container.tabIndex = -1;
+                this.container.focus();
+            } else if (event.shiftKey && (document.activeElement === first || !this.container.contains(document.activeElement))) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && (document.activeElement === last || !this.container.contains(document.activeElement))) {
+                event.preventDefault();
+                first.focus();
+            }
+        };
+        document.addEventListener('keydown', this.focusTrapHandler);
+    }
+
+    unbindFocusTrap() {
+        if (this.focusTrapHandler) {
+            document.removeEventListener('keydown', this.focusTrapHandler);
+            this.focusTrapHandler = null;
+        }
+    }
+
     animateRemove(container = this.container) {
         if (this.isClosing) {
             return;
@@ -227,6 +266,7 @@ export default class Notify {
 
         this.isClosing = true;
         this.unbindEscape();
+        this.unbindFocusTrap();
 
         let finished = false;
         const finish = () => {
@@ -239,6 +279,9 @@ export default class Notify {
                 container.parentNode.removeChild(container);
             }
             this.releaseOverlay();
+            if (this.previousFocus?.isConnected && (!currentTopModal() || currentTopModal().container.contains(this.previousFocus))) {
+                this.previousFocus.focus();
+            }
         };
 
         if (!(container instanceof HTMLElement)) {

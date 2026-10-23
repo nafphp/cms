@@ -5,11 +5,19 @@ declare(strict_types=1);
 namespace Naf\CMS\Content;
 
 use InvalidArgumentException;
+use Naf\CMS\Content\Page\Block\ProvidesBlockViewInterface;
 
+use function Naf\CMS\cms;
+use function Naf\log;
+
+/** @api */
 final class BlockViewRegistry
 {
     /** @var array<string, string> */
     private array $views = [];
+
+    /** @var array<string, true> */
+    private array $warned = [];
 
     public function __construct()
     {
@@ -74,7 +82,22 @@ final class BlockViewRegistry
 
     public function viewFor(string $type): string
     {
-        return $this->views[$this->normalize($type)] ?? 'page.blocks.placeholder';
+        $type = $this->normalize($type);
+        if (isset($this->views[$type])) {
+            return $this->views[$type];
+        }
+
+        $blockType = cms()->blockTypes()->get($type);
+        if ($blockType instanceof ProvidesBlockViewInterface) {
+            return $blockType->view();
+        }
+
+        if (!isset($this->warned[$type])) {
+            $this->warned[$type] = true;
+            log()->warning('No view registered for page block type', ['type' => $type]);
+        }
+
+        return 'page.blocks.placeholder';
     }
 
     /**
@@ -83,6 +106,18 @@ final class BlockViewRegistry
     public function all(): array
     {
         return $this->views;
+    }
+
+    public function has(string $type): bool
+    {
+        $type = $this->normalize($type);
+
+        return isset($this->views[$type]) || cms()->blockTypes()->get($type) instanceof ProvidesBlockViewInterface;
+    }
+
+    public function remove(string $type): void
+    {
+        unset($this->views[$this->normalize($type)]);
     }
 
     private function normalize(string $type): string

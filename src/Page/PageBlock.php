@@ -8,6 +8,7 @@ use InvalidArgumentException;
 
 /**
  * Block context inside a page layout. Rendering is delegated to its template.
+ * @api
  */
 final class PageBlock
 {

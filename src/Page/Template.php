@@ -8,6 +8,7 @@ use InvalidArgumentException;
 
 /**
  * Render description for a concrete .phtml template and its optional parent.
+ * @api
  */
 final class Template
 {

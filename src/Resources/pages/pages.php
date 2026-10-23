@@ -15,10 +15,10 @@ use Psr\Http\Message\ServerRequestInterface;
 
 use function Naf\CMS\cms;
 use function Naf\I18n\t;
+use function Naf\log;
 use function Naf\request;
 use function Naf\View\render;
-
-$templateDefinitions = Layout::definitions(require __DIR__ . '/page_templates.php');
+use function Naf\View\s;
 
 $navigationChoices   = PageBuilderBlockOptions::navigationChoices();
 $pageLanguages       = cms()->settings()->languages();
@@ -57,14 +57,38 @@ $renderPreview = static function (array $definition, ?string $layout, bool $thum
 
 $layoutRepository = static fn(): PageLayoutRepository => new PageLayoutRepository();
 
+// Resolved per request: plugins register templates after this file is loaded,
+// and the host's page_templates.php must be part of the builder's choices.
 $builderTemplateDefinitions = static fn(): array => [
-    ...$templateDefinitions,
+    ...cms()->pageTemplates()->definitions(),
     ...$layoutRepository()->templates(),
 ];
 
+// A broken template (e.g. a view calling a slot its Layout does not declare)
+// must not take the whole builder down with it: it is logged and offered with
+// an error preview instead, while every other template stays usable.
+$safePreview = static function (array $definition) use ($renderPreview): string {
+    $bufferLevel = ob_get_level();
+
+    try {
+        return $renderPreview($definition, (string) ($definition['layout'] ?? 'layouts.page_preview'));
+    } catch (Throwable $exception) {
+        while (ob_get_level() > $bufferLevel) {
+            ob_end_clean();
+        }
+
+        log()->error('Page template preview failed', [
+            'template'  => (string) ($definition['id'] ?? ''),
+            'exception' => $exception,
+        ]);
+
+        return '<p class="p-4 text-sm text-red-300">' . s(t('This template could not be rendered. Check the application log.')) . '</p>';
+    }
+};
+
 $templatesForBuilder = static fn(): array => array_map(static fn(array $definition): array => [
     ...$definition,
-    'previewHtml' => $renderPreview($definition, (string) ($definition['layout'] ?? 'layouts.page_preview')),
+    'previewHtml' => $safePreview($definition),
 ], $builderTemplateDefinitions());
 
 $navigationOptions = PageBuilderBlockOptions::navigationOptions();

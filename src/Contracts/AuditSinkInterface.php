@@ -6,6 +6,7 @@ namespace Naf\CMS\Contracts;
 
 use Naf\CMS\Support\AuditLogRecord;
 
+/** @api */
 interface AuditSinkInterface
 {
     /** @param array<string, mixed> $entry */

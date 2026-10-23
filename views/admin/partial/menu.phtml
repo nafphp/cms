@@ -1,5 +1,6 @@
 <?php
 
+use function Naf\I18n\t;
 use function Naf\route;
 use function Naf\View\s;
 
@@ -20,7 +21,7 @@ $items = is_array($items ?? null) ? $items : [];
                 </a>
             <?php endforeach; ?>
         </div>
-        <button class="admin-menu-trigger flex min-h-[42px] w-full items-center gap-3 border-l-[3px] border-transparent px-3 text-slate-400 transition hover:bg-[rgba(86,119,164,.10)] hover:text-slate-100" type="button" title="Toggle menu" aria-label="Toggle menu">
+        <button class="admin-menu-trigger flex min-h-[42px] w-full items-center gap-3 border-l-[3px] border-transparent px-3 text-slate-400 transition hover:bg-[rgba(86,119,164,.10)] hover:text-slate-100" type="button" title="<?= s(t('Toggle menu')) ?>" aria-label="<?= s(t('Toggle menu')) ?>">
             <span class="block h-4 w-4 rounded-sm border border-current" aria-hidden="true"></span>
         </button>
     </div>

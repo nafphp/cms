@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Content\Page\Block;
 
+/** @api */
 interface BlockTypeInterface
 {
     public function id(): string;

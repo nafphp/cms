@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use LogicException;
 use RuntimeException;
 
+/** @api */
 final class BlockTypeRegistry
 {
     /** @var array<string, BlockTypeInterface> */
@@ -37,6 +38,13 @@ final class BlockTypeRegistry
         foreach ($types as $type) {
             $this->add($type, $replace);
         }
+
+        return $this;
+    }
+
+    public function remove(string $id): self
+    {
+        unset($this->types[$this->normalize($id)]);
 
         return $this;
     }

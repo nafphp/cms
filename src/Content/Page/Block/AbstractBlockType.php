@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Content\Page\Block;
 
-abstract class AbstractBlockType implements BlockTypeInterface
+/** @api */
+abstract class AbstractBlockType implements BlockTypeInterface, ProvidesBlockViewInterface
 {
+    public function view(): string
+    {
+        return 'page.blocks.' . str_replace('-', '_', $this->id());
+    }
+
     public function description(): string
     {
         return '';

@@ -368,7 +368,7 @@ $fieldErrorAssets->add('/js/components/formFieldErrors.js');
         const response = await fetch(`/api/admin/articles/${articleId}/${selectedLang.value}/next`);
         if (response.ok) {
             const nextVersion = await response.json();
-            versionInfo.innerHTML = '<div>Next version</div>v' + nextVersion.version;
+            versionInfo.innerHTML = '<div>' + <?= ScriptJson::encode(t('Next version')) ?> + '</div>v' + nextVersion.version;
         }
     }
     if (articleId) getVersion();

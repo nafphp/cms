@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Settings;
 
+/** @api */
 final class SettingField
 {
     /** @var array<int|string, string> */

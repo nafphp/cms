@@ -10,6 +10,7 @@ use Naf\CMS\Enums\Permission;
 use Naf\CMS\Enums\Role;
 use Psr\Http\Message\ResponseInterface;
 
+/** @api */
 final class Page
 {
     private string $method               = 'GET';

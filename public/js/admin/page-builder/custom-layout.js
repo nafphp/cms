@@ -16,6 +16,28 @@ import {
 } from './shared.js';
 
 export const customLayoutMethods = {
+    announce(message) {
+        const announcer = this.root.querySelector('[data-builder-announcer]');
+        if (!announcer) {
+            return;
+        }
+        announcer.textContent = '';
+        window.requestAnimationFrame(() => { announcer.textContent = message; });
+    },
+
+    moveCustomSlot(id, direction) {
+        const index = this.customLayout.findIndex((slot) => slot.id === id);
+        const target = index + direction;
+        if (index < 0 || ![-1, 1].includes(direction) || target < 0 || target >= this.customLayout.length) {
+            return;
+        }
+        const restoreFocus = document.activeElement?.closest('[data-move-custom-slot]')?.dataset.moveCustomSlot === id;
+        this.reorderCustomSlot(id, this.customLayout[target].id);
+        if (restoreFocus) {
+            this.root.querySelector(`[data-move-custom-slot="${CSS.escape(id)}"][data-direction="${direction}"]`)?.focus();
+        }
+        this.announce(this.uiText('Moved to position %d of %d').replace('%d', target + 1).replace('%d', this.customLayout.length));
+    },
     syncCustomTemplateBlocks() {
         const template = this.selectedTemplate();
         if (this.isCustomTemplate(template)) {
@@ -183,6 +205,7 @@ export const customLayoutMethods = {
         this.previewTemplateId = null;
         this.persistState();
         this.render();
+        this.announce(this.uiText('Block added'));
     },
 
     addChromeSlot(type) {
@@ -219,6 +242,7 @@ export const customLayoutMethods = {
         this.previewTemplateId = null;
         this.persistState();
         this.render();
+        this.announce(this.uiText('Block added'));
     },
 
     updateCustomSlot(id, patch, {renderBlocks = true} = {}) {
@@ -274,6 +298,7 @@ export const customLayoutMethods = {
         this.previewTemplateId = null;
         this.persistState();
         this.render();
+        this.announce(this.uiText('Block removed'));
     },
 
     addLayoutChild(parentPath, type) {
@@ -293,6 +318,7 @@ export const customLayoutMethods = {
         this.renderJson();
         this.renderSettings();
         this.persistState();
+        this.announce(this.uiText('Block added'));
     },
 
     deleteLayoutChild(path) {
@@ -315,6 +341,7 @@ export const customLayoutMethods = {
         this.renderJson();
         this.renderSettings();
         this.persistState();
+        this.announce(this.uiText('Block removed'));
     },
 
     moveLayoutChild(path, direction) {
@@ -339,6 +366,7 @@ export const customLayoutMethods = {
         this.renderJson();
         this.renderSettings();
         this.persistState();
+        this.announce(this.uiText('Moved to position %d of %d').replace('%d', targetIndex + 1).replace('%d', children.length));
     },
 
     replaceSelectedLayoutType(type) {
@@ -508,12 +536,12 @@ export const customLayoutMethods = {
                             <strong class="block truncate text-sm text-slate-100">${escapeHtml(label)}</strong>
                             <span class="block truncate font-mono text-[11px] uppercase text-slate-500">${escapeHtml(type)}</span>
                         </div>
-                        <button class="grid h-8 w-8 place-items-center rounded-md border border-slate-700 text-xs text-slate-400 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-move-layout-child="${escapeHtml(path)}" data-direction="-1" aria-label="Move up">
+                        <button class="grid h-8 w-8 place-items-center rounded-md border border-slate-700 text-xs text-slate-400 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-move-layout-child="${escapeHtml(path)}" data-direction="-1" aria-label="${escapeHtml(this.uiText('Move up'))}">
                             <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="m18 15-6-6-6 6"></path>
                             </svg>
                         </button>
-                        <button class="grid h-8 w-8 place-items-center rounded-md border border-slate-700 text-xs text-slate-400 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-move-layout-child="${escapeHtml(path)}" data-direction="1" aria-label="Move down">
+                        <button class="grid h-8 w-8 place-items-center rounded-md border border-slate-700 text-xs text-slate-400 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-move-layout-child="${escapeHtml(path)}" data-direction="1" aria-label="${escapeHtml(this.uiText('Move down'))}">
                             <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="m6 9 6 6 6-6"></path>
                             </svg>

@@ -7,6 +7,7 @@ namespace Naf\CMS\Settings;
 use LogicException;
 use RuntimeException;
 
+/** @api */
 final class SettingsRegistry
 {
     /** @var array<string, SettingSection> */

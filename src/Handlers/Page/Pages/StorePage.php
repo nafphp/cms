@@ -8,7 +8,6 @@ use DomainException;
 use Naf\CMS\Handlers\Support\ReadsJsonBody;
 use Naf\CMS\Page\CustomLayoutNormalizer;
 use Naf\CMS\Page\PageBuilderPayloadNormalizer;
-use Naf\CMS\Page\PageTemplateCatalog;
 use Naf\CMS\Repositories\PageLayoutRepository;
 use Naf\CMS\Security\UrlPolicy;
 use Psr\Http\Message\ResponseInterface;
@@ -76,7 +75,7 @@ final class StorePage
         $templates = [];
 
         foreach ([
-            ...(new PageTemplateCatalog())->codeDefinitions(),
+            ...cms()->pageTemplates()->definitions(),
             ...(new PageLayoutRepository())->templates(),
         ] as $definition) {
             if (is_array($definition) && trim((string) ($definition['id'] ?? '')) !== '') {

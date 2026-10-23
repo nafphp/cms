@@ -1,0 +1,4 @@
+.example-split__columns { display: grid; gap: 1.25rem; }
+@media (min-width: 860px) {
+    .example-split__columns { grid-template-columns: minmax(0, 1fr) 18rem; }
+}

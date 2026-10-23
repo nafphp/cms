@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Naf\CMS\Api;
 
 use Naf\CMS\Contracts\MediaStorageInterface;
+use Naf\CMS\Events\ContentEvent;
 use Naf\CMS\Models\Media;
 use Naf\CMS\Services\Media\MediaPayload;
 use Naf\CMS\Storage\Criteria;
@@ -150,6 +151,13 @@ final class MediaApi
             $this->mediaAuditSnapshot($media),
             ['context' => $context],
         )->record();
+        ContentEvent::dispatch(
+            'media.uploaded',
+            'media',
+            (string) ($media['id'] ?? ''),
+            null,
+            $this->mediaAuditSnapshot($media),
+        );
 
         return $media;
     }
@@ -178,6 +186,13 @@ final class MediaApi
                 $this->mediaAuditSnapshot($old),
                 $this->mediaAuditSnapshot($media),
             )->record();
+            ContentEvent::dispatch(
+                'media.updated',
+                'media',
+                (string) $id,
+                $this->mediaAuditSnapshot($old),
+                $this->mediaAuditSnapshot($media),
+            );
         }
 
         return $media;
@@ -194,6 +209,12 @@ final class MediaApi
                 (string) $id,
                 $this->mediaAuditSnapshot($old),
             )->record();
+            ContentEvent::dispatch(
+                'media.deleted',
+                'media',
+                (string) $id,
+                $this->mediaAuditSnapshot($old),
+            );
         }
 
         return $deleted;

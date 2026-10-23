@@ -542,7 +542,7 @@ export const fieldMethods = {
             <label class="grid gap-1.5">
                 <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${escapeHtml(label)}</span>
                 <span class="flex min-h-9 overflow-hidden rounded-md border border-slate-700 bg-[#0b1017] focus-within:border-[var(--admin-page-accent)]">
-                    <input class="min-h-9 min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-sm text-slate-100 outline-none" type="text" value="${escapedValue}" data-prop-name="${escapedKey}">
+                    <input class="min-h-9 min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-sm text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-page-accent)]" type="text" value="${escapedValue}" data-prop-name="${escapedKey}">
                     <button class="inline-flex min-h-9 w-14 shrink-0 items-center justify-center border-l border-slate-700 bg-slate-900/70 px-2 text-slate-500 transition hover:bg-slate-800 hover:text-slate-300" type="button" data-translate-prop="${escapedKey}" title="${title}" aria-label="${title}">
                         ${languageIcon}
                     </button>

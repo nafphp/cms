@@ -6,6 +6,7 @@ namespace Naf\CMS\Content;
 
 use Naf\ORM\Core\EntityInterface;
 
+/** @api */
 interface ContentTypeInterface
 {
     public function id(): string;

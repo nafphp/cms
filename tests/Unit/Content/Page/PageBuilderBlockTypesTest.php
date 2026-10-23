@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Content\Page;
 
 use Naf\CMS\Content\Page\Block\AbstractBlockType;
+use Naf\CMS\Page\Layout;
+use Naf\CMS\Page\Template;
 use Naf\Core\Config;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -67,6 +69,51 @@ final class PageBuilderBlockTypesTest extends TestCase
         self::assertContains('late_plugin', $types);
     }
 
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testPageBuilderOffersTemplatesRegisteredAfterPagesWereLoaded(): void
+    {
+        $viewRoot = $this->createBuilderProbeView();
+        $app      = app();
+        $this->registerCliViewGuards();
+
+        $config                  = $app->container()->get(Config::class)->all();
+        $config['view']['paths'] = [$viewRoot, 'views', 'app/views'];
+        $app->container()->set(Config::class, new Config($config));
+
+        $request = new ServerRequest('GET', '/admin/pages/create');
+        $app->container()->set(RequestInterface::class, $request);
+        $app->container()->set(ServerRequestInterface::class, $request);
+
+        cms()->pageTemplates()->add(
+            Layout::define('late-plugin', 'Late plugin template', Template::create('default')->setParent('page'))
+                ->addBlock('site_header', 'page.blocks.empty', ['label' => 'Site header', 'region' => 'header'])
+                ->addBlock('main', 'page.blocks.empty', ['label' => 'Main', 'region' => 'main', 'size' => 'large'])
+                ->addBlock('site_footer', 'page.blocks.empty', ['label' => 'Site footer', 'region' => 'footer']),
+        );
+        cms()->pageTemplates()->add(
+            Layout::define('broken-plugin', 'Broken plugin template', Template::create('default')->setParent('page'))
+                ->addBlock('main', 'page.blocks.empty', ['label' => 'Main', 'region' => 'main']),
+        );
+
+        $page     = cms()->pages()->require('admin.pages.create');
+        $content  = $page->content();
+        $response = $content();
+
+        $payload = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertIsArray($payload);
+        self::assertIsArray($payload['templates'] ?? null);
+
+        $templates = array_column($payload['templates'], 'id');
+        self::assertContains('default', $templates);
+        self::assertContains('late-plugin', $templates);
+        self::assertContains('broken-plugin', $templates);
+
+        $previews = array_column($payload['templates'], 'previewHtml', 'id');
+        self::assertStringContainsString('could not be rendered', (string) $previews['broken-plugin']);
+        self::assertStringNotContainsString('could not be rendered', (string) $previews['late-plugin']);
+    }
+
     private function createBuilderProbeView(): string
     {
         $viewRoot  = sys_get_temp_dir() . '/nafcms-page-builder-test-' . bin2hex(random_bytes(6));
@@ -79,7 +126,7 @@ final class PageBuilderBlockTypesTest extends TestCase
             $directory . '/builder.phtml',
             <<<'PHP'
             <?php
-            echo json_encode(['contentTypes' => $contentTypes ?? null], JSON_THROW_ON_ERROR);
+            echo json_encode(['contentTypes' => $contentTypes ?? null, 'templates' => $templates ?? null], JSON_THROW_ON_ERROR);
             PHP,
         );
 

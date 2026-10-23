@@ -4,6 +4,37 @@ All notable changes to NafCMS are documented here. This project follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+
+- Content events and `CmsEvent` constants for page, article, form, media and navigation writes, including persisted form submissions and a listener example.
+- Conventional block views through `ProvidesBlockViewInterface`, with explicit mapping precedence, missing-view warnings and registry removal methods.
+- Skip-to-content links in admin, authentication and public layouts, with focusable main-content targets in all shipped page templates.
+- Host-aware `integrity:check` with view resolution, slot agreement, content-anchor and block-view checks; orphan checks remain package-only.
+- `make:block`, `make:template` and `make:plugin` commands with explicit registration instructions and protection against existing targets.
+- `@api` annotations and documentation for the stable extension surface.
+- Keyboard slot movement and polite add/remove/reorder announcements in the page builder.
+- Automated WCAG A/AA checks using axe-core, shared builder DOM fixtures and layout accessibility regression tests.
+
+- F9 switches the admin and login screens between dark and light. The choice is stored as before and follows into other open tabs; the toggle button names the shortcut. The handler cancels F9, so Edge's Immersive Reader and Firefox's Reader View do not open on these screens.
+- `cms()->pageTemplates()` registry for page-builder templates. Plugins can add, replace, or remove templates; the host's `src/Resources/pages/page_templates.php` is read last and wins by id. `Layout::fromDefinition()` rebuilds a layout from a definition array.
+
+### Fixed
+
+- The Studio host loads `src/services.php` before its custom routes.
+- Example templates provide their own published host CSS instead of relying on utilities outside the package Tailwind source scan.
+- Toasts use a persistent polite live region and no dialog roles on individual messages.
+- Modal notifyJs dialogs trap Tab focus, focus the alert confirmation button and restore the opening element after dismissal.
+- Admin and authentication boot scripts respect the system color scheme; later system changes apply while no preference is saved.
+- Admin controls that removed their outlines now expose a visible keyboard-focus ring.
+- Builder and remaining selected view strings, accessible labels and notifications use translated English keys; remove the unused role prompt.
+
+- The page builder now offers the host's and plugins' templates. It previously read only the package's template file, while saving and rendering already included the host file, so host templates rendered but could not be selected.
+
+### Changed
+
+- Require `naf/form` 0.2.4, which validates CSRF tokens for every method except GET, HEAD and OPTIONS and no longer exempts Bearer requests, and `naf/mcp` 0.2.6, which exempts its own RPC route from that check.
+- `PageTemplateCatalog` is deprecated in favour of `cms()->pageTemplates()`.
+
 ## [0.0.2] - 2026-10-14
 
 ### Fixed

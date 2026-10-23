@@ -69,7 +69,7 @@ $languageOptions   = cms()->languages()->knownOptions();
     <div class="flex flex-wrap items-center justify-between gap-3">
         <label class="flex min-h-12 w-[min(438px,100%)] items-center gap-2 rounded-lg border border-[var(--border)] bg-admin-field px-3 focus-within:border-accent focus-within:bg-admin-field-focus focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--admin-page-accent)_18%,transparent)]">
             <span class="icon-search text-sm text-slate-400" aria-hidden="true"></span>
-            <input class="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-[var(--text)] outline-none placeholder:text-slate-400" type="search" placeholder="<?= s(t('Search translations...')) ?>" data-translation-search>
+            <input class="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-[var(--text)] outline-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-[var(--admin-page-accent)]" type="search" placeholder="<?= s(t('Search translations...')) ?>" data-translation-search>
         </label>
         <button type="button" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-transparent bg-accent px-4 font-semibold text-white shadow-[0_14px_30px_color-mix(in_srgb,var(--admin-page-accent)_20%,transparent)] transition hover:-translate-y-0.5" data-add-translation><?= s(t('Add translation')) ?></button>
     </div>

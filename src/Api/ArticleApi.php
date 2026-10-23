@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Naf\CMS\Api;
 
 use InvalidArgumentException;
+use Naf\CMS\Events\ContentEvent;
 use Naf\CMS\Localization\LanguageRegistry;
 use Naf\CMS\Models\Article;
 use Naf\CMS\Models\ArticleVersion;
@@ -62,6 +63,13 @@ final class ArticleApi
             $this->articleSnapshot($result['articleId'], (string) ($data['language'] ?? '')),
             ['article_version_id' => $result['articleVersionId']],
         )->record();
+        ContentEvent::dispatch(
+            'article.created',
+            'article',
+            (string) $result['articleId'],
+            null,
+            $this->articleSnapshot($result['articleId'], (string) ($data['language'] ?? '')),
+        );
 
         return $result;
     }
@@ -84,6 +92,13 @@ final class ArticleApi
             $this->articleSnapshot($result['articleId'], (string) ($data['language'] ?? '')),
             ['article_version_id' => $result['articleVersionId']],
         )->record();
+        ContentEvent::dispatch(
+            'article.draft_saved',
+            'article',
+            (string) $result['articleId'],
+            $old,
+            $this->articleSnapshot($result['articleId'], (string) ($data['language'] ?? '')),
+        );
 
         return $result;
     }
@@ -102,6 +117,13 @@ final class ArticleApi
                 $this->articleSnapshot($id, $language),
                 ['language' => $language],
             )->record();
+            ContentEvent::dispatch(
+                'article.published',
+                'article',
+                (string) $id,
+                $old,
+                $this->articleSnapshot($id, $language),
+            );
         }
 
         return $published;
@@ -181,6 +203,13 @@ final class ArticleApi
                 'article_version_id' => $result['articleVersionId'],
             ],
         )->record();
+        ContentEvent::dispatch(
+            'article.version_restored',
+            'article',
+            (string) $articleId,
+            $this->articleVersionSnapshot($version),
+            $this->articleSnapshot($articleId, $locale),
+        );
 
         return $result;
     }
@@ -199,6 +228,13 @@ final class ArticleApi
                 null,
                 ['language' => $language],
             )->record();
+            ContentEvent::dispatch(
+                'article.locale_deleted',
+                'article',
+                (string) $articleId,
+                $old,
+                null,
+            );
         }
 
         return $deleted;
@@ -222,6 +258,13 @@ final class ArticleApi
                 null,
                 ['language' => $language, 'version' => $versionNumber],
             )->record();
+            ContentEvent::dispatch(
+                'article.version_deleted',
+                'article',
+                (string) $articleId,
+                $old,
+                null,
+            );
         }
 
         return $deleted;

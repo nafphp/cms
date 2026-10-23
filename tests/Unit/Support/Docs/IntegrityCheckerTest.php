@@ -5,157 +5,87 @@ declare(strict_types=1);
 namespace Tests\Unit\Support\Docs;
 
 use FilesystemIterator;
-use Naf\CMS\Content\Page\Block\BlockTypeInterface;
+use Naf\CMS\Content\Page\Block\AbstractBlockType;
+use Naf\CMS\Page\Layout;
+use Naf\CMS\Page\Template;
 use Naf\CMS\Support\Docs\IntegrityChecker;
-use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Tests\Support\CmsTestCase;
 
-final class IntegrityCheckerTest extends TestCase
+use function Naf\CMS\cms;
+
+final class IntegrityCheckerTest extends CmsTestCase
 {
     private string $basePath;
 
     protected function setUp(): void
     {
+        parent::setUp();
         $this->basePath = sys_get_temp_dir() . '/nafcms-integrity-' . bin2hex(random_bytes(6));
-        $this->mkdir('src/Resources/pages');
-        $this->mkdir('views/page/blocks');
-        $this->mkdir('views/page/templates');
+        mkdir($this->basePath . '/views/page/templates', 0777, true);
+        mkdir($this->basePath . '/views/page/blocks', 0777, true);
+        foreach (array_keys(cms()->pageTemplates()->all()) as $id) {
+            cms()->pageTemplates()->remove($id);
+        }
     }
 
     protected function tearDown(): void
     {
-        $this->removeDirectory($this->basePath);
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->basePath, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
+        foreach ($iterator as $file) {
+            $file->isDir() ? rmdir((string) $file) : unlink((string) $file);
+        }
+        rmdir($this->basePath);
+        parent::tearDown();
     }
 
-    public function testCheckReportsAndSortsDriftIssues(): void
+    public function testHostReportsMissingViewsAnchorAndSlotDriftWithoutOrphanChecks(): void
     {
-        $blockTypes = [
-            new class implements BlockTypeInterface {
-                public function id(): string
-                {
-                    return 'hero';
-                }
+        file_put_contents($this->basePath . '/views/page/templates/broken.phtml', "<main>\n<?= \$block('undeclared') ?>\n</main>");
+        file_put_contents($this->basePath . '/views/page/templates/orphan.phtml', '<main>Unused host view</main>');
+        cms()->pageTemplates()->add(Layout::define('broken', 'Broken', Template::create('broken'))
+            ->addBlock('missing', 'page.blocks.empty', ['accepts' => ['ghost'], 'defaultContentType' => 'phantom']));
+        cms()->pageTemplates()->add(Layout::define('missing-view', 'Missing', Template::create('missing_view')));
+        cms()->blockTypes()->add(new class extends AbstractBlockType {
+            public function id(): string
+            {
+                return 'missing-block-view';
+            }
 
-                public function label(): string
-                {
-                    return 'Hero';
-                }
+            public function label(): string
+            {
+                return 'Missing';
+            }
 
-                public function description(): string
-                {
-                    return '';
-                }
-
-                public function regions(): array
-                {
-                    return ['main'];
-                }
-
-                public function previewTitle(): string
-                {
-                    return 'Hero';
-                }
-
-                public function defaults(): array
-                {
-                    return [];
-                }
-
-                public function fields(): array
-                {
-                    return [];
-                }
-
-                public function unique(): bool
-                {
-                    return false;
-                }
-
-                public function contentTypes(): array
-                {
-                    return [];
-                }
-
-                public function templateKinds(): array
-                {
-                    return [];
-                }
-
-                public function toBuilderArray(): array
-                {
-                    return [];
-                }
-            },
-        ];
-        $this->write('src/Resources/pages/page_templates.php', <<<'PHP'
-        <?php
-
-        return [
-            [
-                'id' => 'landing',
-                'view' => 'page.templates.missing',
-                'blocks' => [
-                    [
-                        'id' => 'hero_slot',
-                        'accepts' => ['hero', 'ghost'],
-                        'defaultContentType' => 'phantom',
-                    ],
-                ],
-            ],
-        ];
-        PHP);
-        $this->write('views/page/blocks/orphan.phtml', '<div>orphan</div>');
-        $this->write('views/page/templates/orphan.phtml', '<main>orphan</main>');
-
-        $issues   = (new IntegrityChecker($this->basePath, $blockTypes))->check();
+            public function regions(): array
+            {
+                return ['main'];
+            }
+        });
+        $issues   = (new IntegrityChecker($this->basePath))->check();
         $messages = array_column($issues, 'message');
-
-        self::assertContains('BlockType "hero" maps to missing view "page.blocks.hero" (views/page/blocks/hero.phtml).', $messages);
-        self::assertContains('Block view "views/page/blocks/orphan.phtml" is not referenced by any registered BlockType.', $messages);
-        self::assertContains('Page template "landing" maps to missing view "page.templates.missing" (views/page/templates/missing.phtml).', $messages);
-        self::assertContains('Page template view "views/page/templates/orphan.phtml" is not registered in src/Resources/pages/page_templates.php.', $messages);
-        self::assertContains('Page template "landing" block "hero_slot" accepts unknown BlockType "ghost".', $messages);
-        self::assertContains('Page template "landing" block "hero_slot" defaults to unknown BlockType "phantom".', $messages);
-
+        self::assertContains('Page template "broken" is missing id="content".', $messages);
+        self::assertContains('Page template "broken" calls undeclared slot "undeclared".', $messages);
+        self::assertContains('Page template "broken" does not render declared slot "missing".', $messages);
+        self::assertContains('Page template "missing-view" maps to missing view "page.templates.missing_view".', $messages);
+        self::assertContains('BlockType "missing-block-view" has no resolvable view "page.blocks.missing_block_view".', $messages);
+        self::assertContains('Page template "broken" block "missing" accepts unknown BlockType "ghost".', $messages);
+        self::assertContains('Page template "broken" block "missing" defaults to unknown BlockType "phantom".', $messages);
+        self::assertStringNotContainsString('orphan', implode('\n', $messages));
+        $call = array_values(array_filter($issues, static fn(array $issue): bool => str_contains($issue['message'], 'calls undeclared')))[0];
+        self::assertSame(2, $call['line']);
         $sorted = $issues;
         usort($sorted, static fn(array $a, array $b): int => [$a['file'], $a['line'], $a['message']] <=> [$b['file'], $b['line'], $b['message']]);
         self::assertSame($sorted, $issues);
     }
 
-    private function mkdir(string $path): void
+    public function testHostAcceptsMatchingSlotsAndCustomTemplatesWithDynamicSlots(): void
     {
-        $directory = $this->basePath . '/' . $path;
-        if (!is_dir($directory)) {
-            mkdir($directory, 0777, true);
-        }
-    }
-
-    private function write(string $path, string $contents): void
-    {
-        $directory = dirname($path);
-        if ($directory !== '.') {
-            $this->mkdir($directory);
-        }
-
-        file_put_contents($this->basePath . '/' . $path, $contents);
-    }
-
-    private function removeDirectory(string $path): void
-    {
-        if (!is_dir($path)) {
-            return;
-        }
-
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST,
-        );
-
-        foreach ($iterator as $file) {
-            $file->isDir() ? rmdir((string) $file) : unlink((string) $file);
-        }
-
-        rmdir($path);
+        file_put_contents($this->basePath . '/views/page/templates/good.phtml', '<main id="content" tabindex="-1"><?= $block("main") ?></main>');
+        cms()->pageTemplates()->add(Layout::define('good', 'Good', Template::create('good'))->addBlock('main', 'page.blocks.empty'));
+        file_put_contents($this->basePath . '/views/page/templates/dynamic.phtml', '<main id="content"><?= $block($id) ?></main>');
+        cms()->pageTemplates()->add(Layout::define('dynamic', 'Dynamic', Template::create('dynamic'))->setKind('custom')->addBlock('anything', 'page.blocks.empty'));
+        self::assertSame([], (new IntegrityChecker($this->basePath))->check());
     }
 }

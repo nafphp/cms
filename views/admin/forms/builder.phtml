@@ -50,7 +50,7 @@ asset()->add('/js/admin/form-builder.js', 'module');
             <label class="grid gap-2">
                 <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Title')) ?></span>
                 <span class="flex min-w-0 overflow-hidden rounded-md border border-slate-300 bg-white transition focus-within:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900">
-                    <input class="min-h-11 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-slate-950 outline-none dark:text-white" name="title" placeholder="forms.contact.title" required data-translation-field data-translation-context="form.title" data-translation-fallback="<?= s(t('Contact form')) ?>">
+                    <input class="min-h-11 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-slate-950 outline-none dark:text-white focus-visible:ring-2 focus-visible:ring-[var(--admin-page-accent)]" name="title" placeholder="forms.contact.title" required data-translation-field data-translation-context="form.title" data-translation-fallback="<?= s(t('Contact form')) ?>">
                     <button class="inline-flex min-h-11 w-14 shrink-0 items-center justify-center border-l border-slate-300 bg-slate-50/70 px-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300" type="button" data-open-translation-field="title" title="<?= s(t('Translation key')) ?>" aria-label="<?= s(t('Translation key')) ?>">
                         <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
                     </button>
@@ -65,8 +65,8 @@ asset()->add('/js/admin/form-builder.js', 'module');
             <label class="grid gap-2">
                 <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Status')) ?></span>
                 <select class="min-h-11 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900 dark:text-white" name="status" data-styled-select>
-                    <option value="draft">Draft</option>
-                    <option value="published">Published</option>
+                    <option value="draft"><?= s(t('Draft')) ?></option>
+                    <option value="published"><?= s(t('Published')) ?></option>
                     <option value="archived">Archived</option>
                 </select>
             </label>
@@ -75,7 +75,7 @@ asset()->add('/js/admin/form-builder.js', 'module');
             <label class="grid gap-2">
                 <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Submit label')) ?></span>
                 <span class="flex min-w-0 overflow-hidden rounded-md border border-slate-300 bg-white transition focus-within:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900">
-                    <input class="min-h-11 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-slate-950 outline-none dark:text-white" name="submitLabel" placeholder="forms.contact.submit" data-translation-field data-translation-context="form.submitLabel" data-translation-fallback="<?= s(t('Send message')) ?>">
+                    <input class="min-h-11 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-slate-950 outline-none dark:text-white focus-visible:ring-2 focus-visible:ring-[var(--admin-page-accent)]" name="submitLabel" placeholder="forms.contact.submit" data-translation-field data-translation-context="form.submitLabel" data-translation-fallback="<?= s(t('Send message')) ?>">
                     <button class="inline-flex min-h-11 w-14 shrink-0 items-center justify-center border-l border-slate-300 bg-slate-50/70 px-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300" type="button" data-open-translation-field="submitLabel" title="<?= s(t('Translation key')) ?>" aria-label="<?= s(t('Translation key')) ?>">
                         <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
                     </button>
@@ -84,7 +84,7 @@ asset()->add('/js/admin/form-builder.js', 'module');
             <label class="grid gap-2">
                 <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"><?= s(t('Success message')) ?></span>
                 <span class="flex min-w-0 overflow-hidden rounded-md border border-slate-300 bg-white transition focus-within:border-[var(--admin-page-accent)] dark:border-slate-700 dark:bg-slate-900">
-                    <input class="min-h-11 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-slate-950 outline-none dark:text-white" name="successMessage" placeholder="forms.contact.success" data-translation-field data-translation-context="form.successMessage" data-translation-fallback="<?= s(t('Thank you. We will get back to you.')) ?>">
+                    <input class="min-h-11 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-slate-950 outline-none dark:text-white focus-visible:ring-2 focus-visible:ring-[var(--admin-page-accent)]" name="successMessage" placeholder="forms.contact.success" data-translation-field data-translation-context="form.successMessage" data-translation-fallback="<?= s(t('Thank you. We will get back to you.')) ?>">
                     <button class="inline-flex min-h-11 w-14 shrink-0 items-center justify-center border-l border-slate-300 bg-slate-50/70 px-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300" type="button" data-open-translation-field="successMessage" title="<?= s(t('Translation key')) ?>" aria-label="<?= s(t('Translation key')) ?>">
                         <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
                     </button>

@@ -21,7 +21,7 @@
         "ext-pdo": "*",
         "naf/framework": "^0.2.9",
         "naf/view": "^0.2",
-        "naf/form": "^0.2",
+        "naf/form": "^0.2.4",
         "naf/database": "^0.2",
         "naf/orm": "^0.2",
         "naf/session": "^0.2",
@@ -30,7 +30,7 @@
         "naf/queue": "^0.2",
         "naf/schedule": "^0.2",
         "naf/mail": "^0.2",
-        "naf/mcp": "^0.2",
+        "naf/mcp": "^0.2.6",
         "naf/auth": "^0.2"
     },
     "autoload": {

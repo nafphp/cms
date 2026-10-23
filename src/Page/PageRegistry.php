@@ -7,6 +7,7 @@ namespace Naf\CMS\Page;
 use LogicException;
 use Naf\CMS\Controllers\Page\PageController;
 use Naf\CMS\Enums\Permission;
+use Naf\CMS\Events\ContentEvent;
 use Naf\CMS\Repositories\PageLayoutRepository;
 use Naf\CMS\Repositories\PageRepository;
 use Naf\CMS\Support\AuditEntry;
@@ -17,6 +18,7 @@ use function Naf\CMS\user;
 use function Naf\log;
 use function Naf\route;
 
+/** @api */
 final class PageRegistry
 {
     /** @var array<string, Page> */
@@ -221,6 +223,13 @@ final class PageRegistry
                 'language' => (string) ($new['language'] ?? $payload['language'] ?? ''),
             ],
         )->record();
+        ContentEvent::dispatch(
+            $old === null ? 'page.created' : 'page.updated',
+            'page',
+            (string) $savedId,
+            $this->pageAuditSnapshot($old),
+            $this->pageAuditSnapshot($new),
+        );
 
         return $savedId;
     }
@@ -237,6 +246,13 @@ final class PageRegistry
                 $this->pageAuditSnapshot($old),
                 $this->pageAuditSnapshot($this->repository()->find($id)),
             )->record();
+            ContentEvent::dispatch(
+                'page.published',
+                'page',
+                (string) $id,
+                $this->pageAuditSnapshot($old),
+                $this->pageAuditSnapshot($this->repository()->find($id)),
+            );
         }
 
         return $published;
@@ -253,6 +269,12 @@ final class PageRegistry
                 (string) $id,
                 $this->pageAuditSnapshot($old),
             )->record();
+            ContentEvent::dispatch(
+                'page.deleted',
+                'page',
+                (string) $id,
+                $this->pageAuditSnapshot($old),
+            );
         }
 
         return $deleted;
@@ -457,7 +479,7 @@ final class PageRegistry
     private function pageTemplates(): array
     {
         return [
-            ...(new PageTemplateCatalog())->codeDefinitions(),
+            ...cms()->pageTemplates()->definitions(),
             ...(new PageLayoutRepository())->templates(),
         ];
     }

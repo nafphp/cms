@@ -9,6 +9,7 @@ use LogicException;
 use Naf\ORM\Core\EntityInterface;
 use RuntimeException;
 
+/** @api */
 final class ContentRegistry
 {
     /** @var array<string, ContentTypeInterface> */

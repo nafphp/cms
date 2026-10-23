@@ -11,6 +11,7 @@ use Naf\CMS\Theme\Theme;
  *
  * Hosts may replace the database-backed default with a design-system, file, or
  * empty source without coupling ThemeRegistry itself to persistence.
+ * @api
  */
 interface ThemeSourceInterface
 {
