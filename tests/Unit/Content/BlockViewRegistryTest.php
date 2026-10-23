@@ -88,15 +88,17 @@ final class BlockViewRegistryTest extends CmsTestCase
     {
         require_once BASE_PATH . '/examples/03-block-type/block_type.php';
         cms()->blockTypes()->add(new ExampleQuoteBlockType(), replace: true);
-        $configuration = app()->container()->get(Config::class);
-        $configuration->overlay('block-view-test', ['view:paths' => [BASE_PATH . '/examples/03-block-type/src/views']]);
+        $configuration           = app()->container()->get(Config::class);
+        $values                  = $configuration->all();
+        $values['view']['paths'] = [BASE_PATH . '/examples/03-block-type/src/views'];
+        app()->container()->set(Config::class, new Config($values));
 
         try {
             $html = \Naf\View\view(cms()->blocks()->viewFor('example_quote'), ['content' => ['props' => ['quote' => 'Plugin quote', 'source' => 'A reader']]]);
             self::assertStringContainsString('Plugin quote', $html);
             self::assertStringContainsString('A reader', $html);
         } finally {
-            $configuration->overlay('block-view-test', []);
+            app()->container()->set(Config::class, $configuration);
         }
     }
 
