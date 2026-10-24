@@ -7,10 +7,9 @@ namespace Naf\CMS\Page;
 use LogicException;
 use Naf\CMS\Controllers\Page\PageController;
 use Naf\CMS\Enums\Permission;
-use Naf\CMS\Events\ContentEvent;
 use Naf\CMS\Repositories\PageLayoutRepository;
 use Naf\CMS\Repositories\PageRepository;
-use Naf\CMS\Support\AuditEntry;
+use Naf\CMS\Support\ContentChange;
 use RuntimeException;
 
 use function Naf\CMS\cms;
@@ -211,25 +210,26 @@ final class PageRegistry
 
         $savedId = $this->repository()->save($payload);
         $new     = $this->repository()->find($savedId);
+        $before  = $this->pageAuditSnapshot($old);
+        $after   = $this->pageAuditSnapshot($new);
 
-        AuditEntry::create(
+        ContentChange::record(
             $old === null ? 'page.created' : 'page.updated',
             'page',
             (string) $savedId,
-            $this->pageAuditSnapshot($old),
-            $this->pageAuditSnapshot($new),
+            $before,
+            $after,
             [
                 'path'     => (string) ($new['path'] ?? $payload['path'] ?? ''),
                 'language' => (string) ($new['language'] ?? $payload['language'] ?? ''),
             ],
-        )->record();
-        ContentEvent::dispatch(
-            $old === null ? 'page.created' : 'page.updated',
-            'page',
-            (string) $savedId,
-            $this->pageAuditSnapshot($old),
-            $this->pageAuditSnapshot($new),
         );
+
+        // The builder publishes by saving with status "published"; publish()
+        // is not on that path, so the save itself has to report it.
+        if (ContentChange::becamePublished($before, $after)) {
+            ContentChange::record('page.published', 'page', (string) $savedId, $before, $after);
+        }
 
         return $savedId;
     }
@@ -239,14 +239,7 @@ final class PageRegistry
         $old       = $this->repository()->find($id);
         $published = $this->repository()->publish($id);
         if ($published) {
-            AuditEntry::create(
-                'page.published',
-                'page',
-                (string) $id,
-                $this->pageAuditSnapshot($old),
-                $this->pageAuditSnapshot($this->repository()->find($id)),
-            )->record();
-            ContentEvent::dispatch(
+            ContentChange::record(
                 'page.published',
                 'page',
                 (string) $id,
@@ -263,13 +256,7 @@ final class PageRegistry
         $old     = $this->repository()->find($id);
         $deleted = $this->repository()->delete($id);
         if ($deleted) {
-            AuditEntry::create(
-                'page.deleted',
-                'page',
-                (string) $id,
-                $this->pageAuditSnapshot($old),
-            )->record();
-            ContentEvent::dispatch(
+            ContentChange::record(
                 'page.deleted',
                 'page',
                 (string) $id,

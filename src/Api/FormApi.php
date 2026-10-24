@@ -8,7 +8,7 @@ use Naf\CMS\Events\ContentEvent;
 use Naf\CMS\Models\Form;
 use Naf\CMS\Repositories\FormRepository;
 use Naf\CMS\Storage\EntityStorage;
-use Naf\CMS\Support\AuditEntry;
+use Naf\CMS\Support\ContentChange;
 
 /**
  * Domain API for forms. Exposes form-specific behaviour and delegates persistence/queries to FormRepository.
@@ -71,14 +71,7 @@ final class FormApi
         $old     = $id > 0 ? $this->repository->find($id) : null;
         $savedId = $this->repository->save($payload);
 
-        AuditEntry::create(
-            $old === null ? 'form.created' : 'form.updated',
-            'form',
-            (string) $savedId,
-            $this->formAuditSnapshot($old),
-            $this->formAuditSnapshot($this->repository->find($savedId)),
-        )->record();
-        ContentEvent::dispatch(
+        ContentChange::record(
             $old === null ? 'form.created' : 'form.updated',
             'form',
             (string) $savedId,
@@ -94,13 +87,7 @@ final class FormApi
         $old     = $this->repository->find($id);
         $deleted = $this->repository->delete($id);
         if ($deleted) {
-            AuditEntry::create(
-                'form.deleted',
-                'form',
-                (string) $id,
-                $this->formAuditSnapshot($old),
-            )->record();
-            ContentEvent::dispatch(
+            ContentChange::record(
                 'form.deleted',
                 'form',
                 (string) $id,

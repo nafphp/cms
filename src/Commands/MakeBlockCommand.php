@@ -88,7 +88,7 @@ final class MakeBlockCommand extends AbstractCommand
                 $root . '/src/Blocks/' . $class . '.php'                              => $source . "\n",
                 $root . '/views/page/blocks/' . str_replace('-', '_', $id) . '.phtml' => $view . "\n",
             ]);
-            $output->writeLine('Register in src/services.php:');
+            $output->writeLine('Register in bootstrap.php before app()->run():');
             $output->writeLine('\Naf\CMS\cms()->blockTypes()->add(new \\' . $namespace . '\\' . $class . '());');
         } catch (RuntimeException $exception) {
             $output->writeLine($exception->getMessage(), 'error');

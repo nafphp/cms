@@ -1,6 +1,6 @@
 # Content Events
 
-Register listeners for successful Content API changes through `CmsEvent` constants.
+Register listeners for successful content changes with `event()->listen()` and the `CmsEvent` constants.
 `listener.php` logs the page id after publication without performing a write.
 Listeners receive before/after snapshots in a readonly `ContentEvent`.
-Listener exceptions are logged and do not undo the completed CMS change.
+Each listener runs isolated: an exception is logged, does not undo the CMS change and does not stop the other listeners.

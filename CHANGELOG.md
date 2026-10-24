@@ -20,7 +20,9 @@ All notable changes to NafCMS are documented here. This project follows [Keep a 
 
 ### Fixed
 
-- The Studio host loads `src/services.php` before its custom routes.
+- `cms.page.published`, `cms.navigation.published` and `cms.article.published` now fire on the usual publishing paths as well: saving a page or navigation with status `published`, and approving an article review with direct publication. Before, only the rarely used explicit publish actions reported a publication.
+- A page block whose declared view file is missing renders the placeholder and logs one warning instead of failing the whole page. `BlockViewRegistry::declaredView()` returns the declared view without the file check.
+- Content events are dispatched with `event()->isolated()->dispatch()`, so one failing listener is logged and no longer stops the others.
 - Example templates provide their own published host CSS instead of relying on utilities outside the package Tailwind source scan.
 - Toasts use a persistent polite live region and no dialog roles on individual messages.
 - Modal notifyJs dialogs trap Tab focus, focus the alert confirmation button and restore the opening element after dismissal.
@@ -32,6 +34,9 @@ All notable changes to NafCMS are documented here. This project follows [Keep a 
 
 ### Changed
 
+- Audit entries and content events for a change are written by one internal helper from the same snapshots.
+- Require Framework 0.2.13 for `event()->isolated()->dispatch()`.
+- Host service overrides and block registrations belong in the host's `bootstrap.php` before `app()->run()`, like in every NAF application; the separate `src/services.php` convention is gone from the docs, example 06 and `make:block`.
 - Require `naf/form` 0.2.4, which validates CSRF tokens for every method except GET, HEAD and OPTIONS and no longer exempts Bearer requests, and `naf/mcp` 0.2.6, which exempts its own RPC route from that check.
 - `PageTemplateCatalog` is deprecated in favour of `cms()->pageTemplates()`.
 

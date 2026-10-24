@@ -14,7 +14,7 @@ PHP 8.3 and 8.4 are the supported release targets and are required CI gates. Dev
 
 Prerequisites are PHP 8.3 or 8.4 with cURL, DOM, PDO, and either PDO SQLite or PDO MySQL, plus Composer 2. Node.js is needed only when changing NafCMS frontend sources, not in an installed host.
 
-The package requires Framework 0.2.9 or newer for rendering from commands and workers, and CLI 0.2.2 or newer for Composer-installed command bootstrap paths. PDO belongs to the CMS's own requirements.
+The package requires Framework 0.2.13 or newer for isolated content events and rendering from commands and workers, and CLI 0.2.2 or newer for Composer-installed command bootstrap paths. PDO belongs to the CMS's own requirements.
 
 Create a regular NAF host application, then install NafCMS as a plugin:
 
@@ -228,12 +228,14 @@ cms()->scope(Scope::ADMIN)->navigation()->add(
 
 Run `composer test` after changing examples; the smoke test loads them against the CMS registries so stale docs fail like stale code.
 
-## Services überschreiben
+## Overriding Services
 
-NafCMS bindet austauschbares Verhalten an kleine Interfaces. Ein Host lädt
-`app/src/services.php` am Anfang seiner `app/src/routes.php`; dieser Schritt
-läuft nach den Plugin-Bootstraps, sodass die Host-Bindings die Defaults
-ersetzen. Closures halten die Auflösung lazy:
+NafCMS binds replaceable behavior to small interfaces in its plugin bootstrap.
+A host replaces a binding in its own `bootstrap.php`, before `app()->run()`,
+as every NAF application registers its services. The first `app()` call boots
+all plugins, so a binding set afterwards replaces the CMS default for HTTP
+requests and for `vendor/bin/naf`, which loads the same `bootstrap.php`.
+Closures keep the resolution lazy:
 
 ```php
 use Naf\CMS\Contracts\MediaStorageInterface;
@@ -492,7 +494,7 @@ These sections are generated from registries and enums. Edit the source code, th
 | [05-complete-plugin](examples/05-complete-plugin/) | This compact example shows the explicit registration path for a Composer package of type `naf-plugin`: `bootstrap.php` registers a protected Page, API endpoint, migration path, and scoped MCP tool. NAF discovers the package's `src/views` directory by convention; the Page references that view explicitly. |
 | [06-service-override](examples/06-service-override/) | NafCMS binds replaceable behavior to contracts during the plugin bootstrap. |
 | [07-page-template](examples/07-page-template/) | Shows how a plugin adds a page-builder template through `cms()->pageTemplates()`. |
-| [08-content-events](examples/08-content-events/) | Register listeners for successful Content API changes through `CmsEvent` constants. |
+| [08-content-events](examples/08-content-events/) | Register listeners for successful content changes with `event()->listen()` and the `CmsEvent` constants. |
 <!-- /naf:auto:examples -->
 
 ## Conventions And Security
@@ -515,7 +517,11 @@ is a development dependency. Review template output and run the package checks a
 
 ## Content Events
 
-Successful Content API changes dispatch a readonly `Naf\CMS\Events\ContentEvent` after the audit boundary. Its fields are `action`, `subjectType`, `subjectId` (a string), `before` and `after`; the snapshots match the audit entry. Form submissions carry `submissionId`, `payload` and `meta` in `after`. Listener exceptions are logged without undoing the CMS action. Treat submission payloads as sensitive installation data when adding listeners.
+Successful content changes dispatch a readonly `Naf\CMS\Events\ContentEvent` together with their audit entry. Its fields are `action`, `subjectType`, `subjectId` (a string), `before` and `after`; the snapshots match the audit entry. Form submissions carry `submissionId`, `payload` and `meta` in `after`. Treat submission payloads as sensitive installation data when adding listeners.
+
+`*_PUBLISHED` fires on every way into the published state: the explicit publish actions, saving a page or navigation with status `published` (as the page builder and the navigation form do; that save reports `*_UPDATED` or `*_CREATED` first), and approving an article review with direct publication.
+
+Register listeners with `event()->listen()` and a `CmsEvent` constant. Content events are dispatched with `event()->isolated()->dispatch()`: an exception in one listener is logged with the event and the listener, the CMS change stays done, and the remaining listeners still run.
 
 ```php
 use Naf\CMS\Events\CmsEvent;
@@ -524,6 +530,7 @@ use function Naf\event;
 use function Naf\log;
 
 event()->listen(CmsEvent::PAGE_PUBLISHED, fn (ContentEvent $e) => log()->info('Page published', ['pageId' => $e->subjectId]));
+event()->listen(CmsEvent::ARTICLE_PUBLISHED, [ClearCacheListener::class, 'handle']); // built through the container
 ```
 
 | CmsEvent constant | Event name |
@@ -579,4 +586,4 @@ vendor/bin/naf make:plugin example/cards --path=../cards
 vendor/bin/naf integrity:check
 ```
 
-`make:block` uses the host's Composer PSR-4 prefix mapped to `src/`, creates a block class and a conventional view, and prints the registration for `src/services.php`. `make:template` creates a view with skip-link target and prints the matching layout definition for `src/Resources/pages/page_templates.php`. `make:plugin` creates a Composer plugin skeleton and prints the path-repository and `plugins.php` setup steps. Existing targets are never overwritten; registration stays explicit.
+`make:block` uses the host's Composer PSR-4 prefix mapped to `src/`, creates a block class and a conventional view, and prints the registration for the host's `bootstrap.php`. `make:template` creates a view with skip-link target and prints the matching layout definition for `src/Resources/pages/page_templates.php`. `make:plugin` creates a Composer plugin skeleton and prints the path-repository and `plugins.php` setup steps. Existing targets are never overwritten; registration stays explicit.

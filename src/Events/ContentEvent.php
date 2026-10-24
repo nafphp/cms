@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Events;
 
-use Throwable;
-
 use function Naf\event;
-use function Naf\log;
 
-/** @api */
+/**
+ * A completed CMS content change
+ *
+ * Listen with event()->listen() and a CmsEvent constant. The event is
+ * dispatched isolated: an exception in one listener is logged by the event
+ * manager, does not undo the CMS change and does not stop the other listeners.
+ *
+ * @api
+ */
 final readonly class ContentEvent
 {
     public function __construct(
@@ -30,10 +35,7 @@ final readonly class ContentEvent
     {
         $contentEvent = new self($action, $subjectType, (string) $subjectId, $before, $after);
 
-        try {
-            event()->dispatch($contentEvent->name(), $contentEvent);
-        } catch (Throwable $exception) {
-            log()->error('CMS content event listener failed', ['event' => $contentEvent->name(), 'exception' => $exception]);
-        }
+        // The change has already been saved; its listeners only react to it.
+        event()->isolated()->dispatch($contentEvent->name(), $contentEvent);
     }
 }

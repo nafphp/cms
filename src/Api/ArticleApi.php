@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace Naf\CMS\Api;
 
 use InvalidArgumentException;
-use Naf\CMS\Events\ContentEvent;
 use Naf\CMS\Localization\LanguageRegistry;
 use Naf\CMS\Models\Article;
 use Naf\CMS\Models\ArticleVersion;
 use Naf\CMS\Repositories\ArticleRepository;
 use Naf\CMS\Storage\EntityStorage;
-use Naf\CMS\Support\AuditEntry;
+use Naf\CMS\Support\ContentChange;
 use RuntimeException;
 use Throwable;
 
@@ -55,20 +54,13 @@ final class ArticleApi
         $data['article_id'] = 0;
         $result             = $this->articleRepository->saveDraftFromPayload($data, $authorId);
 
-        AuditEntry::create(
+        ContentChange::record(
             'article.created',
             'article',
             (string) $result['articleId'],
             null,
             $this->articleSnapshot($result['articleId'], (string) ($data['language'] ?? '')),
             ['article_version_id' => $result['articleVersionId']],
-        )->record();
-        ContentEvent::dispatch(
-            'article.created',
-            'article',
-            (string) $result['articleId'],
-            null,
-            $this->articleSnapshot($result['articleId'], (string) ($data['language'] ?? '')),
         );
 
         return $result;
@@ -84,20 +76,13 @@ final class ArticleApi
         $data['article_id'] = $id;
         $result             = $this->articleRepository->saveDraftFromPayload($data, $authorId);
 
-        AuditEntry::create(
+        ContentChange::record(
             'article.draft_saved',
             'article',
             (string) $result['articleId'],
             $old,
             $this->articleSnapshot($result['articleId'], (string) ($data['language'] ?? '')),
             ['article_version_id' => $result['articleVersionId']],
-        )->record();
-        ContentEvent::dispatch(
-            'article.draft_saved',
-            'article',
-            (string) $result['articleId'],
-            $old,
-            $this->articleSnapshot($result['articleId'], (string) ($data['language'] ?? '')),
         );
 
         return $result;
@@ -109,24 +94,55 @@ final class ArticleApi
         $old       = $this->articleSnapshot($id, $language);
         $published = $this->articleRepository->publishLatestLanguageVersion($id, $language);
         if ($published) {
-            AuditEntry::create(
+            ContentChange::record(
                 'article.published',
                 'article',
                 (string) $id,
                 $old,
                 $this->articleSnapshot($id, $language),
                 ['language' => $language],
-            )->record();
-            ContentEvent::dispatch(
-                'article.published',
-                'article',
-                (string) $id,
-                $old,
-                $this->articleSnapshot($id, $language),
             );
         }
 
         return $published;
+    }
+
+    /**
+     * Snapshot of one article language in the shape audit entries and content
+     * events carry
+     *
+     * @internal For CMS handlers that publish outside publish()
+     *
+     * @return array<string, mixed>|null
+     */
+    public function snapshot(int $id, string $locale): ?array
+    {
+        return $this->articleSnapshot($id, $this->snapshotLocale($locale));
+    }
+
+    /**
+     * Report a publication that did not go through publish()
+     *
+     * A review approval publishes the reviewed version inside its own
+     * transaction; this records the same `article.published` change that
+     * publish() records, so listeners see every publication.
+     *
+     * @internal For CMS handlers that publish outside publish()
+     *
+     * @param array<string, mixed>|null $before Snapshot taken before the change
+     */
+    public function recordPublished(int $id, string $locale, ?array $before, string $source): void
+    {
+        $language = $this->snapshotLocale($locale);
+
+        ContentChange::record(
+            'article.published',
+            'article',
+            (string) $id,
+            $before,
+            $this->articleSnapshot($id, $language),
+            ['language' => $language, 'source' => $source],
+        );
     }
 
     public function find(int $id, ?string $locale = null): ?Article
@@ -191,7 +207,7 @@ final class ArticleApi
             'publish_date'               => $version->getPublishedAt()?->format('Y-m-d H:i:s') ?? '',
         ]);
 
-        AuditEntry::create(
+        ContentChange::record(
             'article.version_restored',
             'article',
             (string) $articleId,
@@ -202,13 +218,6 @@ final class ArticleApi
                 'restored_version'   => $versionNumber,
                 'article_version_id' => $result['articleVersionId'],
             ],
-        )->record();
-        ContentEvent::dispatch(
-            'article.version_restored',
-            'article',
-            (string) $articleId,
-            $this->articleVersionSnapshot($version),
-            $this->articleSnapshot($articleId, $locale),
         );
 
         return $result;
@@ -220,20 +229,13 @@ final class ArticleApi
         $old      = $this->articleSnapshot($articleId, $language);
         $deleted  = $this->articleRepository->deleteLanguageVersions($articleId, $language);
         if ($deleted) {
-            AuditEntry::create(
+            ContentChange::record(
                 'article.locale_deleted',
                 'article',
                 (string) $articleId,
                 $old,
                 null,
                 ['language' => $language],
-            )->record();
-            ContentEvent::dispatch(
-                'article.locale_deleted',
-                'article',
-                (string) $articleId,
-                $old,
-                null,
             );
         }
 
@@ -250,20 +252,13 @@ final class ArticleApi
             $versionNumber,
         );
         if ($deleted) {
-            AuditEntry::create(
+            ContentChange::record(
                 'article.version_deleted',
                 'article',
                 (string) $articleId,
                 $old,
                 null,
                 ['language' => $language, 'version' => $versionNumber],
-            )->record();
-            ContentEvent::dispatch(
-                'article.version_deleted',
-                'article',
-                (string) $articleId,
-                $old,
-                null,
             );
         }
 
@@ -332,6 +327,15 @@ final class ArticleApi
     public function findPublishedByCategory(?int $categoryId, ?int $limit = null, array $excludeIds = []): array
     {
         return $this->articleRepository->findPublishedWithLatestVersionByCategory($categoryId, $limit, $excludeIds);
+    }
+
+    private function snapshotLocale(string $locale): string
+    {
+        try {
+            return $this->resolveLocale($locale);
+        } catch (InvalidArgumentException) {
+            return strtolower(trim($locale));
+        }
     }
 
     private function resolveLocale(string $locale): string

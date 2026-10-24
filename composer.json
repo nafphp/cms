@@ -19,7 +19,7 @@
         "ext-dom": "*",
         "ext-fileinfo": "*",
         "ext-pdo": "*",
-        "naf/framework": "^0.2.9",
+        "naf/framework": "^0.2.13",
         "naf/view": "^0.2",
         "naf/form": "^0.2.4",
         "naf/database": "^0.2",

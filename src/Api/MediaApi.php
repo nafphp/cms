@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Naf\CMS\Api;
 
 use Naf\CMS\Contracts\MediaStorageInterface;
-use Naf\CMS\Events\ContentEvent;
 use Naf\CMS\Models\Media;
 use Naf\CMS\Services\Media\MediaPayload;
 use Naf\CMS\Storage\Criteria;
 use Naf\CMS\Storage\EntityStorage;
-use Naf\CMS\Support\AuditEntry;
+use Naf\CMS\Support\ContentChange;
 use Psr\Http\Message\UploadedFileInterface;
 
 /**
@@ -143,20 +142,13 @@ final class MediaApi
     {
         $media = $this->storage->storeUploadedFile($file, $uploadedBy, $context);
 
-        AuditEntry::create(
+        ContentChange::record(
             'media.uploaded',
             'media',
             (string) ($media['id'] ?? ''),
             null,
             $this->mediaAuditSnapshot($media),
             ['context' => $context],
-        )->record();
-        ContentEvent::dispatch(
-            'media.uploaded',
-            'media',
-            (string) ($media['id'] ?? ''),
-            null,
-            $this->mediaAuditSnapshot($media),
         );
 
         return $media;
@@ -179,14 +171,7 @@ final class MediaApi
         ]);
         $media = $mediaEntity instanceof Media ? MediaPayload::fromEntity($mediaEntity) : null;
         if ($media !== null) {
-            AuditEntry::create(
-                'media.updated',
-                'media',
-                (string) $id,
-                $this->mediaAuditSnapshot($old),
-                $this->mediaAuditSnapshot($media),
-            )->record();
-            ContentEvent::dispatch(
+            ContentChange::record(
                 'media.updated',
                 'media',
                 (string) $id,
@@ -203,13 +188,7 @@ final class MediaApi
         $old     = $this->find($id);
         $deleted = $this->storage->delete($id);
         if ($deleted) {
-            AuditEntry::create(
-                'media.deleted',
-                'media',
-                (string) $id,
-                $this->mediaAuditSnapshot($old),
-            )->record();
-            ContentEvent::dispatch(
+            ContentChange::record(
                 'media.deleted',
                 'media',
                 (string) $id,

@@ -86,7 +86,7 @@ final class IntegrityChecker
             $file       = (string) $reflection->getFileName();
             $line       = $reflection->getStartLine();
 
-            $view     = $blockViews->viewFor($id);
+            $view     = $blockViews->declaredView($id) ?? 'page.blocks.placeholder';
             $viewFile = (new ViewLocator($this->basePath))->find($view);
             if ($view === 'page.blocks.placeholder' || $viewFile === null) {
                 $issues[] = $this->issue($file, $line, sprintf(
