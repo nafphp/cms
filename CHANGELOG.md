@@ -19,6 +19,7 @@ All notable changes to NafCMS are documented here. This project follows [Keep a 
 
 ### Fixed
 
+- Read the authenticated admin CSRF token in the installation smoke test so authentication-time secret rotation is supported.
 - Apply template, content-type and chrome restrictions to the custom palette as well as programmatic insertions; detect existing unique types inside containers and preserve older duplicate instances when loading pages.
 - Recheck placement after switching templates, moving a custom slot to another region or replacing its ancestor container. Existing blocks retain their exemption only in the same placement context.
 - Snapshot debounced plugin preview payloads so a response is cached under the matching type and properties.
