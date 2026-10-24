@@ -188,6 +188,20 @@ export const renderingMethods = {
                 </div>
             `;
 
+        if (!this.isEditableType(content.type)) {
+            // The server refuses changes to this block from this editor; it
+            // may stay as it is or be removed, but not be edited.
+            this.contentSettings.innerHTML = `
+                ${slotSettings}
+                ${contentIntro}
+                <p class="m-0 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm leading-6 text-amber-100" data-block-locked>
+                    ${escapeHtml(this.uiText('You do not have permission to change this block. It stays on the page as it is; you can remove it.'))}
+                </p>
+            `;
+            initStyledSelects(this.contentSettings.querySelectorAll('select[data-styled-select]'));
+            return;
+        }
+
         this.contentSettings.innerHTML = `
             ${slotSettings}
             ${['header', 'footer'].includes(content.type) ? this.renderChromeThemeSettings(content.type) : ''}

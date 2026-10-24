@@ -24,6 +24,11 @@ final class NavigationBlockType extends AbstractBlockType
         return 'Render a stored navigation tree in a matching page region.';
     }
 
+    public function chromeRegions(): array
+    {
+        return ['footer'];
+    }
+
     public function regions(): array
     {
         return ['header', 'main', 'aside', 'footer'];

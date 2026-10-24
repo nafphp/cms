@@ -6,6 +6,7 @@ namespace Naf\CMS\Handlers\Page\Pages;
 
 use DomainException;
 use Naf\CMS\Handlers\Support\ReadsJsonBody;
+use Naf\CMS\Page\BlockPlacementPolicy;
 use Naf\CMS\Page\CustomLayoutNormalizer;
 use Naf\CMS\Page\PageBuilderPayloadNormalizer;
 use Naf\CMS\Repositories\PageLayoutRepository;
@@ -14,6 +15,7 @@ use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 use function Naf\CMS\cms;
+use function Naf\CMS\user;
 use function Naf\json;
 
 final class StorePage
@@ -52,6 +54,7 @@ final class StorePage
                 'blocks'      => $this->normalizeBlocks(
                     is_array($data['blocks'] ?? null) ? $data['blocks'] : [],
                     $blockDefinitions,
+                    $this->placementPolicy($data, $template, array_key_exists('custom_layout', $meta)),
                 ),
                 'meta' => $meta,
             ]);
@@ -166,8 +169,14 @@ final class StorePage
                 }
             }
 
-            $blockErrors = [];
-            (new PageBuilderPayloadNormalizer())->normalize($data['blocks'], $templateBlocks, $blockErrors);
+            $blockErrors  = [];
+            $customLayout = $this->isCustomTemplate($template) || is_array($data['meta']['custom_layout'] ?? null);
+            (new PageBuilderPayloadNormalizer())->normalize(
+                $data['blocks'],
+                $templateBlocks,
+                $blockErrors,
+                $this->placementPolicy($data, $template, $customLayout),
+            );
             foreach ($blockErrors as $message) {
                 $errors['blocks'][] = $message;
             }
@@ -199,11 +208,31 @@ final class StorePage
      * @param array<int, array<string, mixed>> $templateBlocks
      * @return array<string, mixed>
      */
-    private function normalizeBlocks(array $blocks, array $templateBlocks): array
+    private function normalizeBlocks(array $blocks, array $templateBlocks, BlockPlacementPolicy $policy): array
     {
         $errors = [];
 
-        return (new PageBuilderPayloadNormalizer())->normalize($blocks, $templateBlocks, $errors);
+        return (new PageBuilderPayloadNormalizer())->normalize($blocks, $templateBlocks, $errors, $policy);
+    }
+
+    /**
+     * The placement rules for this save, with the page's stored blocks as the
+     * ones that may stay where they are
+     *
+     * @param array<string, mixed> $data
+     * @param array<string, mixed> $template
+     */
+    private function placementPolicy(array $data, array $template, bool $customLayout): BlockPlacementPolicy
+    {
+        $id       = (int) ($data['id'] ?? 0);
+        $existing = $id > 0 ? cms()->pages()->find($id) : null;
+
+        return BlockPlacementPolicy::forTemplate(
+            $template,
+            user(),
+            is_array($existing['blocks'] ?? null) ? $existing['blocks'] : [],
+            $customLayout,
+        );
     }
 
     /**

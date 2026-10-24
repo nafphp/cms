@@ -305,8 +305,9 @@ Follow these rules when extending HTTP behavior:
 - Core defaults live under `app/Content/Page/Block/Types`; each block type is a small PHP class implementing `BlockTypeInterface`.
 - Core block types are registered explicitly in `bootstrap.php` with individual `cms()->blockTypes()->add(new ...BlockType())` calls, following the same path plugins use. Do not reintroduce an `app/blockTypes.php` aggregator or directory scanning for block type registration.
 - A block type describes `id()`, `label()`, `regions()`, `defaults()`, and `fields()` for the admin builder.
-- A block type may return `unique() === true` when only one instance should exist in a PageBuilder custom layout. The builder must enforce uniqueness from this metadata instead of hard-coding individual block type names.
+- A block type may return `unique() === true` when only one instance should exist on a page. Saving enforces it per page; the builder stops offering further instances in custom layouts. Both read this metadata instead of hard-coding individual block type names.
 - Plugins may call `cms()->blockTypes()->add(new MyPluginBlockType())` during bootstrap.
+- Restrict the palette with `cms()->blockTypes()->only()`, `disable()` and `restrict()` (or `cms:page_builder:*` config). These rules are enforced by `BlockPlacementPolicy` when saving, never when rendering; see the README section "Restricting the block palette".
 - Keep block type metadata separate from rendering. `cms()->blockTypes()` tells the builder what can be edited; `cms()->blocks()` maps a saved type to a `.phtml` view.
 
 ### Block View Registry

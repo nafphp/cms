@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit\Content\Page;
 
 use Naf\CMS\Content\Page\Block\AbstractBlockType;
+use Naf\CMS\Enums\Permission;
 use Naf\CMS\Page\Layout;
 use Naf\CMS\Page\Template;
+use Naf\CMS\Support\UserHelper;
 use Naf\Core\Config;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -17,6 +19,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 use function Naf\app;
 use function Naf\CMS\cms;
+use function Naf\CMS\user;
 use function Naf\guard;
 
 final class PageBuilderBlockTypesTest extends TestCase
@@ -112,6 +115,40 @@ final class PageBuilderBlockTypesTest extends TestCase
         $previews = array_column($payload['templates'], 'previewHtml', 'id');
         self::assertStringContainsString('could not be rendered', (string) $previews['broken-plugin']);
         self::assertStringNotContainsString('could not be rendered', (string) $previews['late-plugin']);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testPageBuilderReceivesTheBlockRulesForTheCurrentEditor(): void
+    {
+        $viewRoot = $this->createBuilderProbeView();
+        $app      = app();
+        $this->registerCliViewGuards();
+
+        $config                  = $app->container()->get(Config::class)->all();
+        $config['view']['paths'] = [$viewRoot, 'views', 'app/views'];
+        $app->container()->set(Config::class, new Config($config));
+
+        $request = new ServerRequest('GET', '/admin/pages/create');
+        $app->container()->set(RequestInterface::class, $request);
+        $app->container()->set(ServerRequestInterface::class, $request);
+
+        cms()->blockTypes()->disable('map')->restrict('embed', Permission::THEMES_CODE_MANAGE);
+        user(new UserHelper(null, [Permission::PAGES_CREATE], [], true));
+
+        $page     = cms()->pages()->require('admin.pages.create');
+        $content  = $page->content();
+        $response = $content();
+
+        $payload = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
+        $types   = array_column($payload['contentTypes'], null, 'type');
+
+        self::assertTrue($types['text']['insertable']);
+        self::assertFalse($types['map']['insertable']);
+        self::assertTrue($types['map']['editable']);
+        self::assertFalse($types['embed']['insertable']);
+        self::assertFalse($types['embed']['editable']);
+        self::assertTrue($types['section']['container']);
     }
 
     private function createBuilderProbeView(): string

@@ -10,6 +10,13 @@ Naming convention:
 
 Use a variant field instead of a new BlockType when the render structure is identical and only styling, tone, or wording changes. Add a new BlockType when the field schema or data semantics are different enough that the builder and renderer need a distinct contract.
 
+Placement rules:
+
+- `BlockTypeRegistry` owns the palette rules: `only()`, `disable()`/`enable()`, `restrict()` and the `cms:page_builder:*` config keys. Disabled types stay registered and renderable.
+- `Naf\CMS\Page\BlockPlacementPolicy` applies them, and only when a page is saved (`StorePage`). `PageBuilderPayloadNormalizer` without a policy checks data validity only; rendering must never drop content because a rule got stricter.
+- Do not move accepts, region, unique or permission checks back into the render path, and do not inherit a slot's `accepts` into containers: custom-layout slots set `accepts` to their own type. Use `nestedAccepts` on the slot or `accepts` on the `children` field instead.
+- Container detection is "has a `children` field"; custom-layout chrome comes from `ChromeBlockTypeInterface::chromeRegions()`. Do not add type-name lists for either, in PHP or in the builder JS.
+
 Layout model:
 
 - `Stack`, `Section`, `Columns`, and `Grid` are inner-slot layout blocks. They arrange content inside one page-builder slot.

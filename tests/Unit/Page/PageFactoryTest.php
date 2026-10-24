@@ -213,4 +213,36 @@ final class PageFactoryTest extends TestCase
         self::assertStringContainsString('Normalized public copy', $html);
         self::assertSame('page.blocks.section', $page->pageLayout()?->blocks()['main']->template()->view());
     }
+
+    /**
+     * Narrowing the builder must not make content disappear from live pages:
+     * placement rules apply when saving, never when rendering.
+     */
+    public function testRenderingKeepsBlocksThatBreakTodaysPlacementRules(): void
+    {
+        \Naf\CMS\cms()->blockTypes()->disable('quote');
+
+        try {
+            $page = (new PageFactory())->fromStoredRow([
+                'id'       => 18,
+                'path'     => '/rules-changed',
+                'title'    => 'Rules changed',
+                'language' => 'en',
+                'status'   => 'published',
+                'blocks'   => ['main' => ['type' => 'quote', 'props' => ['quote' => 'Still published']]],
+            ], [
+                'id'     => 'narrowed',
+                'view'   => 'page.templates.default',
+                'blocks' => [
+                    ['id' => 'site_header', 'label' => 'Header'],
+                    ['id' => 'main', 'label' => 'Main', 'region' => 'header', 'accepts' => ['text']],
+                    ['id' => 'site_footer', 'label' => 'Footer'],
+                ],
+            ]);
+
+            self::assertStringContainsString('Still published', (new PageBuilderRenderer())->render($page));
+        } finally {
+            \Naf\CMS\cms()->blockTypes()->enable('quote');
+        }
+    }
 }

@@ -16,6 +16,7 @@ export class PageBuilder {
         this.config = JSON.parse(root.dataset.config || '{}');
         this.saveUrl = root.dataset.saveUrl || this.config.saveUrl || '/admin/pages';
         this.layoutSaveUrl = root.dataset.layoutSaveUrl || this.config.layoutSaveUrl || '/api/admin/page-layouts';
+        this.blockPreviewUrl = root.dataset.blockPreviewUrl || this.config.blockPreviewUrl || '/api/admin/pages/block-preview';
         this.overviewUrl = root.dataset.overviewUrl || this.config.overviewUrl || '/admin/pages';
         this.labelKeys = {
             ...pageBuilderLabelKeys,

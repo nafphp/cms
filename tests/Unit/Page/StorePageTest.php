@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Page;
 
 use Naf\CMS\Handlers\Page\Pages\StorePage;
+use Naf\CMS\Page\BlockPlacementPolicy;
 use Naf\CMS\Page\PageBuilderPayloadNormalizer;
 use Naf\Database\Core\Database;
 use PHPUnit\Framework\TestCase;
@@ -105,7 +106,7 @@ final class StorePageTest extends TestCase
             'not_in_layout' => ['type' => 'text', 'props' => []],
         ], [
             ['id' => 'slot_text', 'label' => 'Text', 'region' => 'main', 'size' => 'medium'],
-        ]);
+        ], BlockPlacementPolicy::forTemplate(['kind' => 'custom'], null));
 
         self::assertSame([
             'slot_text' => [

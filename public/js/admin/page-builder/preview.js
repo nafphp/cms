@@ -7,7 +7,6 @@ import {
     customLayoutSizes,
     customLayoutSurfaces,
     escapeHtml,
-    layoutBlockTypes,
     layoutClass,
     optionLabel,
     optionValue,
@@ -433,6 +432,8 @@ export const previewMethods = {
                 toolbarMarginClass,
                 hasHeaderSlot,
                 hasFooterSlot,
+                canAddHeader: this.isInsertableType(headerDefinition),
+                canAddFooter: this.isInsertableType(footerDefinition),
                 chromeButtonClass,
             })}${this.customLayoutShell(
                 blocks,
@@ -474,12 +475,12 @@ export const previewMethods = {
                         <button class="inline-flex min-h-9 items-center justify-center rounded-md border border-slate-700 px-3 text-xs font-bold text-slate-200 transition hover:border-[var(--admin-page-accent)] hover:text-white" type="button" data-save-custom-layout>
                             ${escapeHtml(this.labels.saveCustomLayout)}
                         </button>
-                        <button class="${options.chromeButtonClass(options.hasHeaderSlot)}" type="button" data-add-chrome-slot="header" ${options.hasHeaderSlot ? 'disabled aria-disabled="true"' : ''}>
+                        ${options.canAddHeader ? `<button class="${options.chromeButtonClass(options.hasHeaderSlot)}" type="button" data-add-chrome-slot="header" ${options.hasHeaderSlot ? 'disabled aria-disabled="true"' : ''}>
                             ${escapeHtml(this.labels.addHeaderBlock)}
-                        </button>
-                        <button class="${options.chromeButtonClass(options.hasFooterSlot)}" type="button" data-add-chrome-slot="footer" ${options.hasFooterSlot ? 'disabled aria-disabled="true"' : ''}>
+                        </button>` : ''}
+                        ${options.canAddFooter ? `<button class="${options.chromeButtonClass(options.hasFooterSlot)}" type="button" data-add-chrome-slot="footer" ${options.hasFooterSlot ? 'disabled aria-disabled="true"' : ''}>
                             ${escapeHtml(this.labels.addFooterBlock)}
-                        </button>
+                        </button>` : ''}
                         <button class="inline-flex min-h-9 items-center justify-center rounded-md bg-[var(--admin-page-accent)] px-3 text-xs font-bold text-white transition hover:brightness-110" type="button" data-add-custom-slot>
                             ${escapeHtml(this.labels.addCustomBlock)}
                         </button>
@@ -739,7 +740,7 @@ export const previewMethods = {
 
     containerBlockRibbon(content) {
         const type = String(content?.type || '');
-        if (!layoutBlockTypes.includes(type) && type !== 'navigation') {
+        if (!this.isContainerType(type) && type !== 'navigation') {
             return '';
         }
 
@@ -972,7 +973,7 @@ export const previewMethods = {
 
     contentMiniPreview(content, depth = 0, pickTarget = null) {
         content = content && typeof content === 'object' ? content : {type: '', props: {}};
-        if (layoutBlockTypes.includes(content.type)) {
+        if (this.isContainerType(content.type)) {
             const children = Array.isArray(content.props?.children) ? content.props.children : [];
             const childPreview = children.slice(0, 6).map((child, index) => {
                 const childPickTarget = pickTarget?.blockId
@@ -1306,7 +1307,83 @@ export const previewMethods = {
             `;
         }
 
-        return '<div class="rounded-md bg-slate-100 p-3 text-xs text-slate-500 dark:bg-slate-900">Content preview</div>';
+        return this.serverBlockPreview(content);
+    },
+
+    /*
+     * Block types the builder has no drawn preview for -- plugin and host
+     * blocks above all -- are rendered by the server with their real view and
+     * shown in a sandboxed frame. Requests wait until typing pauses, results
+     * are cached per type and props, and the last preview of a type stays
+     * visible while its next one loads.
+     */
+    serverBlockPreview(content) {
+        const type = String(content?.type || '');
+        const fallback = `<div class="rounded-md bg-slate-100 p-3 text-xs text-slate-500 dark:bg-slate-900">${escapeHtml(this.uiText('Content preview'))}</div>`;
+        if (type === '' || !this.contentTypeDefinition(type)) {
+            return fallback;
+        }
+
+        this.blockPreviews = this.blockPreviews || new Map();
+        this.lastBlockPreviewByType = this.lastBlockPreviewByType || new Map();
+        const key = JSON.stringify([type, content?.props || {}]);
+        const entry = this.blockPreviews.get(key);
+        if (!entry) {
+            this.queueBlockPreview(key, content);
+        }
+
+        const html = entry?.html || this.lastBlockPreviewByType.get(type) || '';
+        if (html === '') {
+            return entry?.failed
+                ? `<div class="rounded-md bg-slate-100 p-3 text-xs text-slate-500 dark:bg-slate-900">${escapeHtml(this.uiText('Preview unavailable'))}</div>`
+                : fallback;
+        }
+
+        return `<iframe class="page-builder-block-preview-frame block w-full rounded-md border-0" title="${escapeHtml(this.uiText(content?.label || type))}" sandbox tabindex="-1" aria-hidden="true" data-block-preview-frame srcdoc="${escapeHtml(html)}"></iframe>`;
+    },
+
+    queueBlockPreview(key, content) {
+        this.blockPreviewQueue = this.blockPreviewQueue || new Map();
+        this.blockPreviewQueue.set(key, content);
+        window.clearTimeout(this.blockPreviewTimer);
+        this.blockPreviewTimer = window.setTimeout(() => this.flushBlockPreviews(), this.blockPreviewDelay ?? 300);
+    },
+
+    async flushBlockPreviews() {
+        const queued = [...(this.blockPreviewQueue || new Map()).entries()];
+        this.blockPreviewQueue = new Map();
+        if (queued.length === 0) {
+            return;
+        }
+
+        const request = window.NafCMS?.json || fetch;
+        await Promise.all(queued.map(async ([key, content]) => {
+            this.blockPreviews.set(key, {pending: true});
+            try {
+                const response = await request(this.blockPreviewUrl, {
+                    method: 'POST',
+                    body: JSON.stringify({content: {type: content.type, label: content.label, props: content.props || {}}}),
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok || !result.success || typeof result.html !== 'string') {
+                    this.blockPreviews.set(key, {failed: true});
+                    return;
+                }
+
+                this.blockPreviews.set(key, {html: result.html});
+                this.lastBlockPreviewByType.set(String(content.type), result.html);
+            } catch (error) {
+                this.blockPreviews.set(key, {failed: true});
+            }
+        }));
+
+        // Bounded: editing props creates a new key per change.
+        while (this.blockPreviews.size > 200) {
+            this.blockPreviews.delete(this.blockPreviews.keys().next().value);
+        }
+
+        this.renderBlocks();
+        this.renderPagePreview();
     },
 
     renderMobileNavigationPreview(identifier, language = '') {

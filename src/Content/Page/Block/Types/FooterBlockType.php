@@ -24,6 +24,11 @@ final class FooterBlockType extends AbstractBlockType
         return 'Site footer with optional navigation and small imprint text.';
     }
 
+    public function chromeRegions(): array
+    {
+        return ['footer'];
+    }
+
     public function regions(): array
     {
         return ['footer'];

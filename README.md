@@ -122,6 +122,50 @@ Page templates are registered, not discovered: a template is a `.phtml` view who
 
 Builder requests carry `builderVersion: 1`. The server derives validation from each registered block type's fields: text and textarea lengths, numeric ranges, select options, booleans, media/link/embed URL policy, statistics, chart metrics, and nested children. Unknown slot IDs, block types, payload fields, and block properties are rejected with validation errors instead of being silently persisted. Payloads are limited to 256 KiB, 50 custom slots, 100 total blocks, 24 children per container, and four nested container levels. The normalized data is applied both when saving and when `PageFactory` constructs a preview or public page.
 
+### Restricting the block palette
+
+A host or plugin decides which block types editors may use. Call the registry in `bootstrap.php`, or set the same rules in the host's `app/config.php`:
+
+```php
+use Naf\CMS\Enums\Permission;
+use function Naf\CMS\cms;
+
+cms()->blockTypes()
+    ->only('text', 'heading', 'image', 'cta', 'section', 'columns') // allowlist; later registrations outside it stay hidden
+    ->disable('embed', 'map')                                       // or remove single types
+    ->restrict('form', Permission::THEMES_CODE_MANAGE);             // only editors with this permission
+```
+
+```php
+'cms' => [
+    'page_builder' => [
+        'allowed_block_types'  => ['text', 'heading', 'image'], // empty means every registered type
+        'disabled_block_types' => ['embed'],
+        'block_permissions'    => ['form' => 'themes.code.manage'], // unknown permissions close the type and log a warning
+    ],
+],
+```
+
+Code calls win over the configuration. `enable()` takes a type back unless an allowlist excludes it, and `restrict($id, null)` lifts a requirement. A plugin type can ship its own requirement by implementing `RestrictedBlockTypeInterface::requiredPermission()`; `AbstractBlockType` returns `null`.
+
+The rules decide what may be **placed**, not what may be **shown**:
+
+- Saving a page checks every block, nested ones included: availability, permission, the slot's `accepts` and region, `unique()`, `templateKinds()` and `contentTypes()`. Violations are validation errors.
+- Rendering checks only that the data is valid. Tightening the rules never removes content from published pages.
+- Blocks that were already stored stay editable where they are. A permission-restricted block can be kept unchanged or removed by editors without the permission, but not changed; moving any block counts as placing it anew.
+- Blocks inside containers are placed as `main` content. A template slot's `accepts` covers its direct block; its `nestedAccepts` limits everything inside its containers, and a `children` field's own `accepts` narrows that container further.
+- The header and footer areas of a custom layout take the types whose `ChromeBlockTypeInterface::chromeRegions()` names them (core: header; footer, navigation, text).
+
+The builder receives the same rules per editor (`insertable`, `editable`, `container`, `chromeRegions`) and only offers what the server will accept. Any type with a `children` field counts as a container. Block types without a drawn builder preview are rendered by the server through `POST /api/admin/pages/block-preview` and shown in a sandboxed frame.
+
+After changing the rules, list stored pages that no longer comply:
+
+```bash
+vendor/bin/naf page-builder:audit
+```
+
+The command exits with 1 when it finds pages; permissions are not part of the audit because they depend on the editor.
+
 The preview does not promise payload migration or backward compatibility before v0.1. It has no undo/redo, collaborative editing, or guaranteed autosave recovery; responsive controls are viewport approximations rather than per-breakpoint authoring. Deep nested layouts remain deliberately constrained, and browser-local draft state is not a substitute for a successful server save. Run the representative DOM flow with:
 
 ```bash
@@ -358,6 +402,7 @@ These sections are generated from registries and enums. Edit the source code, th
 | `api.admin.navigation.publish` | `POST` | `/api/admin/navigation/{navigationId}/publish` | `navigation.edit` |
 | `api.admin.page-layouts.store` | `POST` | `/api/admin/page-layouts` | any of `pages.create`, `pages.edit` |
 | `api.admin.page-layouts.delete` | `DELETE` | `/api/admin/page-layouts/{id}` | `pages.delete` |
+| `api.admin.pages.block-preview` | `POST` | `/api/admin/pages/block-preview` | any of `pages.create`, `pages.edit` |
 | `api.admin.pages.delete` | `POST` | `/api/admin/pages/{id}/delete` | `pages.delete` |
 | `api.admin.rbac.permissions` | `GET` | `/api/admin/rbac/permissions` | `permissions.manage` |
 | `api.admin.rbac.permissions.create` | `POST` | `/api/admin/rbac/permissions/create` | `permissions.manage` |
@@ -565,7 +610,7 @@ The following classes and interfaces carry `@api` and form the stable extension 
 
 - `Support\Cms`.
 - `Page\PageTemplateRegistry`, `Page\Layout`, `Page\Template`, `Page\PageBlock`, `Page\Page`, `Page\PageRegistry`.
-- `Content\Page\Block\BlockTypeInterface`, `AbstractBlockType`, `BlockTypeRegistry`, `ProvidesBlockViewInterface` (in the same namespace).
+- `Content\Page\Block\BlockTypeInterface`, `AbstractBlockType`, `BlockTypeRegistry`, `ProvidesBlockViewInterface`, `RestrictedBlockTypeInterface`, `ChromeBlockTypeInterface` (in the same namespace).
 - `Content\BlockViewRegistry`, `Content\ContentTypeInterface`, `Content\ContentRegistry`.
 - `Api\ApiEndpoint`, `Api\ApiRegistry`.
 - `Settings\SettingsRegistry`, `Settings\SettingSection`, `Settings\SettingField`.

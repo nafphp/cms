@@ -885,5 +885,9 @@
     "Stylesheet": "Stylesheet",
     "Surfaces": "Surfaces",
     "Update selectors": "Update selectors",
-    "template blocks": "template blocks"
+    "template blocks": "template blocks",
+    "No blocks are available inside this layout block.": "No blocks are available inside this layout block.",
+    "You do not have permission to change this block. It stays on the page as it is; you can remove it.": "You do not have permission to change this block. It stays on the page as it is; you can remove it.",
+    "Preview unavailable": "Preview unavailable",
+    "Content preview": "Content preview"
 }

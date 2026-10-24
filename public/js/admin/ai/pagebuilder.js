@@ -448,10 +448,10 @@ export const registerPageBuilderAssistantActions = () => {
         selectedBlockId: builder.selectedBlockId || '',
         selectedRegion: builder.selectedBlock?.()?.region || '',
         availableBlockModules: Array.isArray(builder.contentTypes)
-            ? builder.contentTypes.map((type) => type.type || type.id || '').filter(Boolean)
+            ? builder.contentTypes.filter((type) => type?.insertable !== false).map((type) => type.type || type.id || '').filter(Boolean)
             : [],
         availableBlockModuleDefinitions: Array.isArray(builder.contentTypes)
-            ? builder.contentTypes.map((type) => ({
+            ? builder.contentTypes.filter((type) => type?.insertable !== false).map((type) => ({
                 type: type.type || type.id || '',
                 label: typeof builder.uiText === 'function' ? builder.uiText(type.label || '') : (type.label || ''),
                 description: typeof builder.uiText === 'function' ? builder.uiText(type.description || '') : (type.description || ''),

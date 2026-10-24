@@ -74,7 +74,86 @@ export const contentModelMethods = {
     },
 
     isLayoutContent(content) {
-        return layoutBlockTypes.includes(String(content?.type || ''));
+        return this.isContainerType(content?.type);
+    },
+
+    /*
+     * A container holds child blocks. The server marks every type with a
+     * "children" field as one, so plugin containers work like the shipped
+     * ones; the list in shared.js only covers definitions the builder lacks.
+     */
+    isContainerType(type) {
+        const definition = this.contentTypeDefinition(String(type || ''));
+        if (definition && typeof definition.container === 'boolean') {
+            return definition.container;
+        }
+
+        return layoutBlockTypes.includes(String(type || ''));
+    },
+
+    /*
+     * Whether this editor may add new blocks of a type. Blocks that already
+     * exist on the page stay visible and keep their definition either way.
+     */
+    isInsertableType(type) {
+        const definition = typeof type === 'object' && type !== null ? type : this.contentTypeDefinition(String(type || ''));
+        return Boolean(definition) && definition.insertable !== false;
+    },
+
+    isEditableType(type) {
+        const definition = this.contentTypeDefinition(String(type || ''));
+        return !definition || definition.editable !== false;
+    },
+
+    /*
+     * The custom-layout header and footer areas are site chrome. Each type
+     * names the areas it may fill; older definitions without that list fall
+     * back to the previous fixed choice.
+     */
+    chromeRegionsForType(type) {
+        if (Array.isArray(type?.chromeRegions)) {
+            return type.chromeRegions;
+        }
+
+        const legacy = {header: ['header'], footer: ['footer', 'navigation', 'text']};
+        return Object.keys(legacy).filter((region) => legacy[region].includes(String(type?.type || '')));
+    },
+
+    /*
+     * Child blocks are placed as "main" content. The slot's nestedAccepts and
+     * the container field's own accepts narrow them, as on the server.
+     */
+    childTypeAllowed(type, parent, block = this.selectedBlock(), template = this.selectedTemplate()) {
+        if (!this.isInsertableType(type)) {
+            return false;
+        }
+
+        const regions = Array.isArray(type?.regions) ? type.regions : [];
+        if (regions.length > 0 && !regions.includes('main')) {
+            return false;
+        }
+
+        const templateKinds = Array.isArray(type?.templateKinds) ? type.templateKinds : [];
+        if (templateKinds.length > 0 && !templateKinds.includes(template?.kind || 'static')) {
+            return false;
+        }
+
+        const contentTypes = Array.isArray(type?.contentTypes) ? type.contentTypes : [];
+        if (contentTypes.length > 0 && !contentTypes.includes(template?.contentType || '')) {
+            return false;
+        }
+
+        const nestedAccepts = Array.isArray(block?.nestedAccepts) ? block.nestedAccepts : [];
+        if (nestedAccepts.length > 0 && !nestedAccepts.includes(type?.type)) {
+            return false;
+        }
+
+        const parentDefinition = this.contentTypeDefinition(String(parent?.type || ''));
+        const childrenField = (Array.isArray(parentDefinition?.fields) ? parentDefinition.fields : [])
+            .find((field) => field?.type === 'children');
+        const fieldAccepts = Array.isArray(childrenField?.accepts) ? childrenField.accepts : [];
+
+        return fieldAccepts.length === 0 || fieldAccepts.includes(type?.type);
     },
 
     layoutChildContainerStyle(content) {
@@ -115,13 +194,13 @@ export const contentModelMethods = {
         const acceptedTypes = Array.isArray(block?.accepts) ? block.accepts : [];
         const templateKinds = Array.isArray(type?.templateKinds) ? type.templateKinds : [];
         const contentTypes = Array.isArray(type?.contentTypes) ? type.contentTypes : [];
-        const chromeTypes = {
-            header: ['header'],
-            footer: ['footer', 'navigation', 'text'],
-        };
         const customRegion = this.usesCustomLayout(template) && typeof this.customSlotRegion === 'function'
             ? this.customSlotRegion(block)
             : '';
+
+        if (!this.isInsertableType(type)) {
+            return false;
+        }
 
         if (regions.length > 0 && !regions.includes(this.blockRegion(block))) {
             return false;
@@ -139,7 +218,7 @@ export const contentModelMethods = {
             return false;
         }
 
-        if (customRegion in chromeTypes && !chromeTypes[customRegion].includes(type?.type)) {
+        if (['header', 'footer'].includes(customRegion) && !this.chromeRegionsForType(type).includes(customRegion)) {
             return false;
         }
 
@@ -279,7 +358,7 @@ export const contentModelMethods = {
         }
 
         const definition = this.contentTypeDefinition(type);
-        if (!definition) {
+        if (!definition || !this.isInsertableType(definition)) {
             return null;
         }
 

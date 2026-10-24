@@ -9,6 +9,35 @@ Eintrag bekommt einen Nachtrag, keine Streichung.
 
 ---
 
+## 2026-10-24 — Page-Builder-Regeln gelten beim Speichern, nicht beim Rendern
+
+**Entscheidung:** Welche Blocktypen erlaubt sind (`only()`, `disable()`,
+`restrict()`, Slot-`accepts`/Region, `unique()`, `templateKinds()`,
+`contentTypes()`), prüft `BlockPlacementPolicy` ausschließlich in `StorePage`.
+`PageFactory` und die Vorschau prüfen nur, ob die Daten gültig sind.
+
+**Warum:** Wer die Regeln verschärft, will künftige Platzierungen verhindern,
+nicht veröffentlichte Inhalte verschwinden lassen. Würde das Rendern die Regeln
+anwenden, löschte ein `disable('quote')` stillschweigend Zitate von
+Live-Seiten. Welche Seiten betroffen sind, zeigt `naf page-builder:audit`.
+
+**Bestandsschutz:** Ein Block, der an derselben Stelle mit demselben Typ schon
+gespeichert war, bleibt bearbeitbar. Für Berechtigungen gilt das nur, solange
+er unverändert bleibt; Entfernen ist immer erlaubt. Verschieben zählt als neue
+Platzierung.
+
+**Verworfen:** Slot-`accepts` an Container-Kinder vererben. Custom-Layout-Slots
+setzen `accepts` auf ihren eigenen Typ (`['section']`), die Vererbung hätte
+jedes Kind darin verboten. Stattdessen: `nestedAccepts` am Slot und `accepts`
+am `children`-Feld; Kinder gelten als Region `main`.
+
+**Verworfen:** Neue Methoden in `BlockTypeInterface`. Das Interface ist `@api`;
+Berechtigung und Chrome-Bereiche kommen über die optionalen Interfaces
+`RestrictedBlockTypeInterface` und `ChromeBlockTypeInterface`, die
+`AbstractBlockType` mit neutralen Standardwerten implementiert.
+
+---
+
 ## 2026-07-30 — Kein zweiter CSRF-Listener im CMS
 
 **Entscheidung:** Das CMS verlässt sich vollständig auf den `CsrfListener` aus

@@ -19,6 +19,7 @@ use Naf\CMS\Commands\IntegrityCheckCommand;
 use Naf\CMS\Commands\MakeBlockCommand;
 use Naf\CMS\Commands\MakePluginCommand;
 use Naf\CMS\Commands\MakeTemplateCommand;
+use Naf\CMS\Commands\PageBuilderAuditCommand;
 use Naf\CMS\Commands\PublishAssetsCommand;
 use Naf\CMS\Commands\RemoveAssetsCommand;
 use Naf\CMS\Content\Page\Block\Types\ArticleContentBlockType;
@@ -150,6 +151,7 @@ command()->add(IntegrityCheckCommand::class);
 command()->add(MakeBlockCommand::class);
 command()->add(MakeTemplateCommand::class);
 command()->add(MakePluginCommand::class);
+command()->add(PageBuilderAuditCommand::class);
 
 if (realpath((string) app()->getBasePath()) === realpath($packageRoot)) {
     command()->add(DocsSyncCommand::class);

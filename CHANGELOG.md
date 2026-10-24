@@ -4,6 +4,19 @@ All notable changes to NafCMS are documented here. This project follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+
+- Restrict the page-builder palette: `cms()->blockTypes()->only()`, `disable()`, `enable()` and `restrict()`, or the `cms.page_builder` config keys `allowed_block_types`, `disabled_block_types` and `block_permissions`. Plugin types can require a permission through `RestrictedBlockTypeInterface`.
+- Saving a page checks every block, nested ones included, against availability, permission, slot `accepts` and region, `unique()`, `templateKinds()` and `contentTypes()`. Template slots can limit content inside containers with `nestedAccepts`; a `children` field's `accepts` is enforced as well.
+- `page-builder:audit` lists stored pages that no longer follow the current rules.
+- Block types without a drawn builder preview are rendered by the server (`POST /api/admin/pages/block-preview`) in a sandboxed frame.
+- `ChromeBlockTypeInterface` lets a block type name the custom-layout chrome areas (header, footer) it may fill.
+
+### Changed
+
+- Slot `accepts` and region checks moved from the shared normalizer into the save policy. Rendering checks data validity only, so stricter rules never hide content on existing pages. Blocks stored before a rule change stay editable in place.
+- The builder offers only types the current editor may add and shows a notice instead of the settings for blocks the editor may not change. Containers are detected by their `children` field instead of a fixed list, so plugin containers get the container UI.
+
 ## [0.0.3] - 2026-10-24
 
 ### Added
