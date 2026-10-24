@@ -54,7 +54,7 @@ final class StorePage
                 'blocks'      => $this->normalizeBlocks(
                     is_array($data['blocks'] ?? null) ? $data['blocks'] : [],
                     $blockDefinitions,
-                    $this->placementPolicy($data, $template, array_key_exists('custom_layout', $meta)),
+                    $this->placementPolicy($data, $template, array_key_exists('custom_layout', $meta), $blockDefinitions),
                 ),
                 'meta' => $meta,
             ]);
@@ -175,7 +175,7 @@ final class StorePage
                 $data['blocks'],
                 $templateBlocks,
                 $blockErrors,
-                $this->placementPolicy($data, $template, $customLayout),
+                $this->placementPolicy($data, $template, $customLayout, $templateBlocks),
             );
             foreach ($blockErrors as $message) {
                 $errors['blocks'][] = $message;
@@ -221,16 +221,35 @@ final class StorePage
      *
      * @param array<string, mixed> $data
      * @param array<string, mixed> $template
+     * @param array<int, array<string, mixed>> $slots
      */
-    private function placementPolicy(array $data, array $template, bool $customLayout): BlockPlacementPolicy
+    private function placementPolicy(array $data, array $template, bool $customLayout, array $slots): BlockPlacementPolicy
     {
-        $id       = (int) ($data['id'] ?? 0);
-        $existing = $id > 0 ? cms()->pages()->find($id) : null;
+        $id        = (int) ($data['id'] ?? 0);
+        $existing  = $id > 0 ? cms()->pages()->find($id) : null;
+        $retained  = [];
+        $wasCustom = is_array($existing['meta']['custom_layout'] ?? null) || $this->isCustomTemplate($template);
+        if (($existing['template_id'] ?? null) === ($data['templateId'] ?? null) && $wasCustom === $customLayout) {
+            $oldSlots   = $wasCustom ? ($existing['meta']['custom_layout'] ?? []) : ($template['blocks'] ?? []);
+            $oldRegions = [];
+            foreach (is_array($oldSlots) ? $oldSlots : [] as $slot) {
+                if (is_array($slot)) {
+                    $oldRegions[(string) ($slot['id'] ?? '')] = (string) ($slot['region'] ?? 'main');
+                }
+            }
+            foreach ($slots as $slot) {
+                $slotId = (string) ($slot['id'] ?? '');
+                if (($oldRegions[$slotId] ?? null) === (string) ($slot['region'] ?? 'main')
+                    && is_array($existing['blocks'][$slotId] ?? null)) {
+                    $retained[$slotId] = $existing['blocks'][$slotId];
+                }
+            }
+        }
 
         return BlockPlacementPolicy::forTemplate(
             $template,
             user(),
-            is_array($existing['blocks'] ?? null) ? $existing['blocks'] : [],
+            $retained,
             $customLayout,
         );
     }

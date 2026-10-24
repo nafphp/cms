@@ -43,7 +43,7 @@ final class PageBuilderPayloadNormalizer
     {
         $this->blockCount = 0;
         $this->policy     = $policy;
-        $policy?->begin();
+        $policy?->begin($blocks);
         $normalized = [];
         $slotMap    = [];
         foreach ($slots as $slot) {

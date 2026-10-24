@@ -18,7 +18,7 @@ final class PagesDocRenderer implements DocBlockRenderer
 
     public function render(): string
     {
-        $pages = cms()->pages()->all();
+        $pages = cms()->pages()->registered();
         uasort($pages, static fn(Page $a, Page $b): int => [$a->path(), $a->id()] <=> [$b->path(), $b->id()]);
 
         return MarkdownTable::render(

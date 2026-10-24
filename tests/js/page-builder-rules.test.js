@@ -206,3 +206,54 @@ test('blocks without a drawn preview are rendered by the server and cached', asy
     await new Promise((resolve) => setTimeout(resolve, 20));
     assert.match(document.querySelector('[data-page-preview]').textContent, /Preview unavailable/);
 });
+
+
+test('custom palette and programmatic insertion obey template and chrome restrictions', async () => {
+    const restrictedTypes = [
+        ...types,
+        {type: 'article-only', label: 'Article', regions: ['main'], contentTypes: ['article'], insertable: true},
+        {type: 'dynamic-only', label: 'Dynamic', regions: ['main'], templateKinds: ['dynamic'], insertable: true},
+        {type: 'not-chrome', label: 'Not chrome', regions: ['header'], chromeRegions: [], insertable: true},
+    ];
+    const builder = await startBuilder({...customConfig({templateId: 'custom'}), contentTypes: restrictedTypes});
+    const offered = pickerTypes(builder.renderCustomSlotContentOptionsHtml());
+    for (const type of ['article-only', 'dynamic-only', 'not-chrome']) {
+        assert.ok(!offered.includes(type), `${type} cannot be placed in this template`);
+        builder.addCustomSlot(type);
+    }
+    assert.equal(builder.customLayout.length, 0, 'invalid types are also refused for programmatic calls');
+});
+
+test('existing unique blocks are retained when a newer type definition marks them unique', async () => {
+    const builder = await startBuilder(customConfig({
+        id: 12, templateId: 'custom',
+        customLayout: [slot('old_header_a', 'header', 'header'), slot('old_header_b', 'header', 'header')],
+        blockContent: {old_header_a: {type: 'header', props: {}}, old_header_b: {type: 'header', props: {}}},
+        persistedValues: {title: 'Existing', path: '/existing', language: 'en', status: 'draft'},
+    }));
+    assert.deepEqual(builder.customLayout.map((item) => item.id), ['old_header_a', 'old_header_b']);
+    assert.deepEqual(Object.keys(builder.pagePayload().blocks), ['old_header_a', 'old_header_b']);
+    builder.addChromeSlot('header');
+    assert.equal(builder.customLayout.length, 2, 'new unique blocks are still refused');
+});
+
+test('debounced plugin previews snapshot props so cache keys match requests', async () => {
+    const requests = [];
+    const builder = await startBuilder(customConfig({
+        templateId: 'custom', customLayout: [], blockContent: {},
+        persistedValues: {title: 'Preview', path: '/preview', language: 'en', status: 'draft'},
+    }), async (_url, options) => {
+        const payload = JSON.parse(options.body);
+        requests.push(payload.content.props.title);
+        return {ok: true, json: async () => ({success: true, html: `<p>${payload.content.props.title}</p>`})};
+    });
+    const content = {type: 'plugin-card', label: 'Card', props: {title: 'Old'}};
+    builder.serverBlockPreview(content);
+    content.props.title = 'New';
+    builder.serverBlockPreview(content);
+    window.clearTimeout(builder.blockPreviewTimer);
+    await builder.flushBlockPreviews();
+    assert.deepEqual(requests, ['Old', 'New']);
+    assert.equal(builder.blockPreviews.get(JSON.stringify(['plugin-card', {title: 'Old'}])).html, '<p>Old</p>');
+    assert.equal(builder.blockPreviews.get(JSON.stringify(['plugin-card', {title: 'New'}])).html, '<p>New</p>');
+});

@@ -79,7 +79,6 @@ export const customLayoutMethods = {
 
     normalizeCustomLayout(layout) {
         const seen = new Set();
-        const uniqueSeen = new Set();
         return (Array.isArray(layout) ? layout : []).reduce((slots, slot) => {
             if (!slot || typeof slot !== 'object' || Array.isArray(slot)) {
                 return slots;
@@ -110,14 +109,6 @@ export const customLayoutMethods = {
                 definition.defaultContentType = defaultContentType;
             }
 
-            const uniqueType = this.uniqueTypeForSlot(definition);
-            if (uniqueType !== '') {
-                if (uniqueSeen.has(uniqueType)) {
-                    return slots;
-                }
-                uniqueSeen.add(uniqueType);
-            }
-
             slots.push(definition);
             return slots;
         }, []);
@@ -140,7 +131,13 @@ export const customLayoutMethods = {
         }
 
         const uniqueType = String(definition.type || type);
-        return this.customLayout.some((slot) => this.uniqueTypeForSlot(slot) === uniqueType);
+        const containsType = (content) => content && typeof content === 'object' && (
+            content.type === uniqueType || Object.values(content.props || {}).some((value) => (
+                Array.isArray(value) && value.some(containsType)
+            ))
+        );
+        return this.customLayout.some((slot) => this.uniqueTypeForSlot(slot) === uniqueType)
+            || Object.values(this.blockContent).some(containsType);
     },
 
     uniqueCustomSlotId(label, fallbackType = 'block') {
@@ -163,7 +160,7 @@ export const customLayoutMethods = {
 
     addCustomSlot(type) {
         const definition = this.contentTypeDefinition(type);
-        if (!definition || !this.isInsertableType(definition)) {
+        if (!definition || !this.contentTypeSupportsCustomSlot(definition)) {
             return;
         }
         this.ensureCustomLayoutFromTemplate();
@@ -209,7 +206,7 @@ export const customLayoutMethods = {
 
     addChromeSlot(type) {
         const definition = this.contentTypeDefinition(type);
-        if (!definition || !this.isInsertableType(definition)) {
+        if (!definition || !this.contentTypeSupportsCustomSlot(definition)) {
             return;
         }
         this.ensureCustomLayoutFromTemplate();
@@ -472,7 +469,7 @@ export const customLayoutMethods = {
 
     renderCustomSlotContentOptionsHtml() {
         const contentTypes = this.contentTypes.filter((type) => !['header', 'footer'].includes(String(type?.type || ''))
-            && this.isInsertableType(type));
+            && this.contentTypeSupportsCustomSlot(type));
 
         if (contentTypes.length === 0) {
             return `

@@ -195,6 +195,21 @@ final class BlockPlacementPolicyTest extends TestCase
         self::assertSame([], $this->save($edited, $slots, $existing, actor: $editor));
     }
 
+    public function testChangingAContainerDoesNotGrandfatherItsDisabledChildren(): void
+    {
+        $this->types->disable('quote');
+        $slots    = [['id' => 'main', 'region' => 'main']];
+        $existing = ['main' => $this->block('section', ['children' => [$this->block('quote')]])];
+        $changed  = ['main' => $this->block('columns', ['children' => [$this->block('quote')]])];
+
+        self::assertContains(
+            'blocks.main.props.children.0 uses block type "quote", which is not available in the page builder.',
+            $this->save($changed, $slots, $existing),
+        );
+        $this->types->enable('quote');
+        self::assertSame([], $this->save($changed, $slots, $existing), 'moving allowed content remains possible');
+    }
+
     public function testThePolicyDoesNotLeakStateBetweenPayloads(): void
     {
         $policy     = BlockPlacementPolicy::forTemplate(['kind' => 'static'], null, types: $this->types);

@@ -17,6 +17,14 @@ All notable changes to NafCMS are documented here. This project follows [Keep a 
 - Slot `accepts` and region checks moved from the shared normalizer into the save policy. Rendering checks data validity only, so stricter rules never hide content on existing pages. Blocks stored before a rule change stay editable in place.
 - The builder offers only types the current editor may add and shows a notice instead of the settings for blocks the editor may not change. Containers are detected by their `children` field instead of a fixed list, so plugin containers get the container UI.
 
+### Fixed
+
+- Apply template, content-type and chrome restrictions to the custom palette as well as programmatic insertions; detect existing unique types inside containers and preserve older duplicate instances when loading pages.
+- Recheck placement after switching templates, moving a custom slot to another region or replacing its ancestor container. Existing blocks retain their exemption only in the same placement context.
+- Snapshot debounced plugin preview payloads so a response is cached under the matching type and properties.
+- Deny malformed configured block permissions without PHP warnings or exceptions.
+- Generate page reference tables from explicit definitions, keeping installation-owned stored pages and route overrides out of package documentation.
+
 ## [0.0.3] - 2026-10-24
 
 ### Added

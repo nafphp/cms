@@ -11,6 +11,7 @@ use Naf\CMS\Support\UserHelper;
 use Naf\Core\Config;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use stdClass;
 use Tests\Support\CoreBlockTypes;
 
 use function Naf\app;
@@ -162,6 +163,25 @@ final class BlockTypeRegistryRulesTest extends TestCase
             self::assertFalse($registry->isPermitted('embed', $this->actor(...Permission::cases())));
             self::assertFalse($registry->isInsertable('embed', null));
             self::assertNull($registry->requiredPermission('embed'));
+        } finally {
+            app()->container()->set(LoggerInterface::class, $previous);
+        }
+    }
+
+    public function testMalformedPermissionValuesDenyUseWithoutBreakingTheBuilder(): void
+    {
+        $this->configure(['block_permissions' => ['embed' => ['pages.edit'], 'map' => new stdClass()]]);
+        $previous = log();
+        $logger   = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::exactly(2))->method('warning');
+        app()->container()->set(LoggerInterface::class, $logger);
+
+        try {
+            $registry = $this->registry();
+            foreach (['embed', 'map'] as $id) {
+                self::assertFalse($registry->isPermitted($id, $this->actor(...Permission::cases())));
+                self::assertFalse($registry->isPermitted($id, null));
+            }
         } finally {
             app()->container()->set(LoggerInterface::class, $previous);
         }

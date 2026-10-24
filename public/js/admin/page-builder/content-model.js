@@ -128,6 +128,9 @@ export const contentModelMethods = {
             return false;
         }
 
+        if (type?.unique === true && this.hasUniqueBlockType(type.type)) {
+            return false;
+        }
         const regions = Array.isArray(type?.regions) ? type.regions : [];
         if (regions.length > 0 && !regions.includes('main')) {
             return false;
@@ -154,6 +157,13 @@ export const contentModelMethods = {
         const fieldAccepts = Array.isArray(childrenField?.accepts) ? childrenField.accepts : [];
 
         return fieldAccepts.length === 0 || fieldAccepts.includes(type?.type);
+    },
+
+    contentTypeSupportsCustomSlot(type) {
+        if (type?.unique === true && this.hasUniqueBlockType(type.type)) {
+            return false;
+        }
+        return this.contentTypeSupportsBlock(type, {region: this.defaultRegionForContentType(type)});
     },
 
     layoutChildContainerStyle(content) {

@@ -99,11 +99,37 @@ final class StorePagePlacementTest extends DatabaseTestCase
         self::assertSame(200, $status);
     }
 
+    public function testChangingTemplatesRequiresBlocksToBePlaceableAgain(): void
+    {
+        $id = $this->storedPage(['main' => $this->quote('Existing')]);
+        cms()->blockTypes()->disable('quote');
+
+        [$status, $payload] = $this->store(['main' => $this->quote('Existing')], id: $id, templateId: 'landing');
+        self::assertSame(400, $status);
+        self::assertContains('blocks.main uses block type "quote", which is not available in the page builder.', $payload['errors']['blocks'] ?? []);
+        self::assertSame('default', cms()->pages()->find($id)['template_id']);
+    }
+
+    public function testChangingACustomSlotsRegionRechecksPlacement(): void
+    {
+        $slot   = ['id' => 'slot_quote', 'label' => 'Quote', 'region' => 'main'];
+        $blocks = ['slot_quote' => $this->quote('Existing')];
+        $id     = cms()->pages()->save([
+            'identifier'  => 'custom-placement', 'path' => '/custom-placement', 'title' => 'Custom', 'language' => 'en',
+            'template_id' => 'custom', 'blocks' => $blocks, 'meta' => ['custom_layout' => [$slot]],
+        ]);
+        [$status, $payload] = $this->store($blocks, id: $id, templateId: 'custom', meta: ['custom_layout' => [[...$slot, 'region' => 'header']]]);
+        self::assertSame(400, $status);
+        self::assertContains('blocks.slot_quote cannot use block type "quote" in region "header".', $payload['errors']['blocks'] ?? []);
+        self::assertSame('main', cms()->pages()->find($id)['meta']['custom_layout'][0]['region']);
+    }
+
     /**
      * @param array<string, mixed> $blocks
+     * @param array<string, mixed> $meta
      * @return array{0: int, 1: array<string, mixed>}
      */
-    private function store(array $blocks, int $id = 0, string $title = 'Placement'): array
+    private function store(array $blocks, int $id = 0, string $title = 'Placement', string $templateId = 'default', array $meta = []): array
     {
         JsonRequest::bind([
             'builderVersion' => PageBuilderPayloadNormalizer::VERSION,
@@ -112,9 +138,9 @@ final class StorePagePlacementTest extends DatabaseTestCase
             'path'           => $id > 0 ? '/placement-' . $id : '/placement-new-' . bin2hex(random_bytes(3)),
             'language'       => 'en',
             'status'         => 'draft',
-            'templateId'     => 'default',
+            'templateId'     => $templateId,
             'blocks'         => $blocks,
-            'meta'           => [],
+            'meta'           => $meta,
         ], '/admin/pages');
         $response = (new StorePage())();
 

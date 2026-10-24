@@ -152,7 +152,7 @@ The rules decide what may be **placed**, not what may be **shown**:
 
 - Saving a page checks every block, nested ones included: availability, permission, the slot's `accepts` and region, `unique()`, `templateKinds()` and `contentTypes()`. Violations are validation errors.
 - Rendering checks only that the data is valid. Tightening the rules never removes content from published pages.
-- Blocks that were already stored stay editable where they are. A permission-restricted block can be kept unchanged or removed by editors without the permission, but not changed; moving any block counts as placing it anew.
+- Blocks that were already stored stay editable in the same template, slot, region and container ancestry. A permission-restricted block can be kept unchanged or removed by editors without the permission, but not changed; moving any block counts as placing it anew.
 - Blocks inside containers are placed as `main` content. A template slot's `accepts` covers its direct block; its `nestedAccepts` limits everything inside its containers, and a `children` field's own `accepts` narrows that container further.
 - The header and footer areas of a custom layout take the types whose `ChromeBlockTypeInterface::chromeRegions()` names them (core: header; footer, navigation, text).
 

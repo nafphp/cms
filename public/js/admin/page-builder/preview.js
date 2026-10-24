@@ -1,5 +1,6 @@
 import {
     chartMetricColors,
+    clone,
     customLayoutMaxHeights,
     customLayoutOverflows,
     customLayoutPositions,
@@ -432,8 +433,8 @@ export const previewMethods = {
                 toolbarMarginClass,
                 hasHeaderSlot,
                 hasFooterSlot,
-                canAddHeader: this.isInsertableType(headerDefinition),
-                canAddFooter: this.isInsertableType(footerDefinition),
+                canAddHeader: this.contentTypeSupportsCustomSlot(headerDefinition),
+                canAddFooter: this.contentTypeSupportsCustomSlot(footerDefinition),
                 chromeButtonClass,
             })}${this.customLayoutShell(
                 blocks,
@@ -1344,7 +1345,7 @@ export const previewMethods = {
 
     queueBlockPreview(key, content) {
         this.blockPreviewQueue = this.blockPreviewQueue || new Map();
-        this.blockPreviewQueue.set(key, content);
+        this.blockPreviewQueue.set(key, clone(content));
         window.clearTimeout(this.blockPreviewTimer);
         this.blockPreviewTimer = window.setTimeout(() => this.flushBlockPreviews(), this.blockPreviewDelay ?? 300);
     },

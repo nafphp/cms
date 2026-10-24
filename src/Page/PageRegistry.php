@@ -22,6 +22,8 @@ final class PageRegistry
 {
     /** @var array<string, Page> */
     private array $pages = [];
+    /** @var array<string, Page> Explicit definitions, independent of stored route overrides. */
+    private array $registeredPages = [];
     /** @var array<string, string> */
     private array $routeAliases         = [];
     private ?PageRepository $repository = null;
@@ -36,7 +38,8 @@ final class PageRegistry
             throw new LogicException(sprintf('Page "%s" is already registered.', $page->id()));
         }
 
-        $this->pages[$page->id()] = $page;
+        $this->pages[$page->id()]           = $page;
+        $this->registeredPages[$page->id()] = $page;
 
         return $this;
     }
@@ -100,9 +103,19 @@ final class PageRegistry
     }
 
     /**
+     * Explicit page definitions, without loading installation-owned content.
+     *
+     * @return array<string, Page>
+     */
+    public function registered(): array
+    {
+        return $this->registeredPages;
+    }
+
+    /**
      * Every registered page, stored pages included.
      *
-     * Callers that enumerate pages (navigation targets, docs, dashboards) need
+     * Callers that enumerate pages (navigation targets, dashboards) need
      * the stored ones too, so this materializes them. Rendering a single page
      * does not go through here.
      *
@@ -379,7 +392,7 @@ final class PageRegistry
                 unset($this->pages[$collision->id()]);
             }
 
-            $this->add($page, true);
+            $this->pages[$page->id()] = $page;
         }
     }
 

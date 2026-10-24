@@ -46,14 +46,9 @@ final class BlockPlacementPolicy
         private readonly string $templateKind = 'static',
         private readonly string $templateContentType = '',
         private readonly bool $customLayout = false,
-        array $existingBlocks = [],
+        private readonly array $existingBlocks = [],
         private readonly bool $checkPermissions = true,
     ) {
-        foreach ($existingBlocks as $slotId => $content) {
-            if (is_array($content)) {
-                $this->indexExisting($content, 'blocks.' . $slotId);
-            }
-        }
     }
 
     /**
@@ -80,11 +75,20 @@ final class BlockPlacementPolicy
     }
 
     /**
-     * Start a new payload; forgets the unique block types seen so far
+     * Start a payload and retain only blocks whose ancestor types still match.
+     *
+     * @param array<string, mixed> $blocks
      */
-    public function begin(): void
+    public function begin(array $blocks): void
     {
         $this->uniqueOccurrences = [];
+        $this->existing          = [];
+        foreach ($this->existingBlocks as $slotId => $content) {
+            $incoming = $blocks[$slotId] ?? null;
+            if (is_array($content) && is_array($incoming)) {
+                $this->indexExisting($content, 'blocks.' . $slotId, $incoming);
+            }
+        }
     }
 
     /**
@@ -206,15 +210,17 @@ final class BlockPlacementPolicy
 
     /**
      * @param array<string, mixed> $content
+     * @param array<string, mixed> $incoming
      */
-    private function indexExisting(array $content, string $path): void
+    private function indexExisting(array $content, string $path, array $incoming): void
     {
         $type  = strtolower(trim((string) ($content['type'] ?? '')));
         $props = is_array($content['props'] ?? null) ? $content['props'] : [];
-        if ($type === '') {
+        if ($type === '' || $type !== strtolower(trim((string) ($incoming['type'] ?? '')))) {
             return;
         }
 
+        $incomingProps         = is_array($incoming['props'] ?? null) ? $incoming['props'] : [];
         $this->existing[$path] = ['type' => $type, 'props' => $props];
 
         // Child blocks are lists of block objects inside a prop; the paths match
@@ -224,8 +230,10 @@ final class BlockPlacementPolicy
                 continue;
             }
             foreach ($value as $index => $child) {
-                if (is_array($child) && isset($child['type'])) {
-                    $this->indexExisting($child, $path . '.props.' . $name . '.' . $index);
+                $incomingChildren = is_array($incomingProps[$name] ?? null) ? $incomingProps[$name] : [];
+                $incomingChild    = $incomingChildren[$index] ?? null;
+                if (is_array($child) && isset($child['type']) && is_array($incomingChild)) {
+                    $this->indexExisting($child, $path . '.props.' . $name . '.' . $index, $incomingChild);
                 }
             }
         }

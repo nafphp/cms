@@ -300,7 +300,7 @@ final class BlockTypeRegistry
         $configured = $this->configuredMap('block_permissions');
         if (array_key_exists($id, $configured)) {
             $value      = $configured[$id];
-            $permission = $value instanceof Permission ? $value : Permission::tryFrom((string) $value);
+            $permission = $value instanceof Permission ? $value : (is_string($value) ? Permission::tryFrom($value) : null);
             if ($permission === null && $value !== null && $value !== '') {
                 if (!isset($this->reportedPermissionValues[$id])) {
                     $this->reportedPermissionValues[$id] = true;
