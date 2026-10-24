@@ -4,6 +4,8 @@ All notable changes to NafCMS are documented here. This project follows [Keep a 
 
 ## [Unreleased]
 
+## [0.0.3] - 2026-10-24
+
 ### Added
 
 - Content events and `CmsEvent` constants for page, article, form, media and navigation writes, including persisted form submissions and a listener example.

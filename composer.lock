@@ -362,22 +362,21 @@
         },
         {
             "name": "naf/framework",
-            "version": "v0.2.10",
+            "version": "v0.2.13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nafphp/framework.git",
-                "reference": "e8f2db349ce4fb5c7d17e458145a6200bfa5cdaa"
+                "reference": "c61a7f9d95577596f5e6cc99c0188ee999716a9a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nafphp/framework/zipball/e8f2db349ce4fb5c7d17e458145a6200bfa5cdaa",
-                "reference": "e8f2db349ce4fb5c7d17e458145a6200bfa5cdaa",
+                "url": "https://api.github.com/repos/nafphp/framework/zipball/c61a7f9d95577596f5e6cc99c0188ee999716a9a",
+                "reference": "c61a7f9d95577596f5e6cc99c0188ee999716a9a",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
-                "ext-pdo": "*",
-                "nyholm/psr7": "^1.8",
+                "nyholm/psr7": "^1.8.2",
                 "nyholm/psr7-server": "^1.1",
                 "php": ">=8.3",
                 "psr/container": "^2.0",
@@ -386,6 +385,7 @@
                 "psr/log": "^3.0"
             },
             "require-dev": {
+                "phpstan/phpstan": "^2.1",
                 "phpunit/php-code-coverage": "^12.1",
                 "phpunit/phpunit": "^12.1"
             },
@@ -412,9 +412,9 @@
             "description": "NAF - the ultra-light, functional PHP framework for fast microservices and APIs.",
             "support": {
                 "issues": "https://github.com/nafphp/framework/issues",
-                "source": "https://github.com/nafphp/framework/tree/v0.2.10"
+                "source": "https://github.com/nafphp/framework/tree/v0.2.13"
             },
-            "time": "2026-10-10T22:54:22+00:00"
+            "time": "2026-10-24T10:44:00+00:00"
         },
         {
             "name": "naf/i18n",
