@@ -8,7 +8,6 @@ import {
     escapeHtml,
     hasOption,
     inputClass,
-    layoutBlockTypes,
     layoutChildContainerStyles,
     optionOptions,
     optionValue,
@@ -80,7 +79,6 @@ export const customLayoutMethods = {
 
     normalizeCustomLayout(layout) {
         const seen = new Set();
-        const uniqueSeen = new Set();
         return (Array.isArray(layout) ? layout : []).reduce((slots, slot) => {
             if (!slot || typeof slot !== 'object' || Array.isArray(slot)) {
                 return slots;
@@ -111,14 +109,6 @@ export const customLayoutMethods = {
                 definition.defaultContentType = defaultContentType;
             }
 
-            const uniqueType = this.uniqueTypeForSlot(definition);
-            if (uniqueType !== '') {
-                if (uniqueSeen.has(uniqueType)) {
-                    return slots;
-                }
-                uniqueSeen.add(uniqueType);
-            }
-
             slots.push(definition);
             return slots;
         }, []);
@@ -141,7 +131,13 @@ export const customLayoutMethods = {
         }
 
         const uniqueType = String(definition.type || type);
-        return this.customLayout.some((slot) => this.uniqueTypeForSlot(slot) === uniqueType);
+        const containsType = (content) => content && typeof content === 'object' && (
+            content.type === uniqueType || Object.values(content.props || {}).some((value) => (
+                Array.isArray(value) && value.some(containsType)
+            ))
+        );
+        return this.customLayout.some((slot) => this.uniqueTypeForSlot(slot) === uniqueType)
+            || Object.values(this.blockContent).some(containsType);
     },
 
     uniqueCustomSlotId(label, fallbackType = 'block') {
@@ -164,7 +160,7 @@ export const customLayoutMethods = {
 
     addCustomSlot(type) {
         const definition = this.contentTypeDefinition(type);
-        if (!definition) {
+        if (!definition || !this.contentTypeSupportsCustomSlot(definition)) {
             return;
         }
         this.ensureCustomLayoutFromTemplate();
@@ -210,7 +206,7 @@ export const customLayoutMethods = {
 
     addChromeSlot(type) {
         const definition = this.contentTypeDefinition(type);
-        if (!definition) {
+        if (!definition || !this.contentTypeSupportsCustomSlot(definition)) {
             return;
         }
         this.ensureCustomLayoutFromTemplate();
@@ -304,7 +300,7 @@ export const customLayoutMethods = {
     addLayoutChild(parentPath, type) {
         const parent = this.contentAtPath(parentPath);
         const definition = this.contentTypeDefinition(type);
-        if (!parent || !definition || !this.isLayoutContent(parent)) {
+        if (!parent || !definition || !this.isLayoutContent(parent) || !this.childTypeAllowed(definition, parent)) {
             return;
         }
 
@@ -372,7 +368,8 @@ export const customLayoutMethods = {
     replaceSelectedLayoutType(type) {
         const current = this.selectedContent();
         const definition = this.contentTypeDefinition(type);
-        if (!this.isLayoutContent(current) || !definition || !layoutBlockTypes.includes(definition.type) || definition.type === current.type) {
+        if (!this.isLayoutContent(current) || !definition || !this.isContainerType(definition.type) || definition.type === current.type
+            || !this.layoutTypeAllowedHere(definition)) {
             return;
         }
 
@@ -434,14 +431,29 @@ export const customLayoutMethods = {
         this.render();
     },
 
+    /*
+     * Switching a container to another container type places a new block, so
+     * the same rules apply as for adding one at the selected position.
+     */
+    layoutTypeAllowedHere(definition) {
+        if (this.selectedNestedPath === '') {
+            return this.contentTypeSupportsBlock(definition, this.selectedBlock());
+        }
+
+        const parts = this.pathIndexes(this.selectedNestedPath);
+        parts.pop();
+
+        return this.childTypeAllowed(definition, this.contentAtPath(parts.join('.')));
+    },
+
     renderLayoutTypeSwitcher(content) {
         if (!this.isLayoutContent(content)) {
             return '';
         }
 
-        const options = layoutBlockTypes
-            .map((type) => this.contentTypeDefinition(type))
-            .filter(Boolean)
+        const options = this.contentTypes
+            .filter((definition) => definition.type === content.type
+                || (this.isContainerType(definition.type) && this.layoutTypeAllowedHere(definition)))
             .map((definition) => `<option value="${escapeHtml(definition.type)}" ${definition.type === content.type ? 'selected' : ''}>${escapeHtml(this.uiText(definition.label || definition.type))}</option>`)
             .join('');
 
@@ -456,7 +468,8 @@ export const customLayoutMethods = {
     },
 
     renderCustomSlotContentOptionsHtml() {
-        const contentTypes = this.contentTypes.filter((type) => !['header', 'footer'].includes(String(type?.type || '')));
+        const contentTypes = this.contentTypes.filter((type) => !['header', 'footer'].includes(String(type?.type || ''))
+            && this.contentTypeSupportsCustomSlot(type));
 
         if (contentTypes.length === 0) {
             return `
@@ -499,9 +512,18 @@ export const customLayoutMethods = {
             `;
         }
 
-        return this.sortContentTypesByRecent(this.contentTypes).map((type) => {
+        const childTypes = this.contentTypes.filter((type) => this.childTypeAllowed(type, parent));
+        if (childTypes.length === 0) {
+            return `
+                <div class="rounded-lg border border-dashed border-slate-700 p-6 text-center text-sm text-slate-500">
+                    ${escapeHtml(this.uiText('No blocks are available inside this layout block.'))}
+                </div>
+            `;
+        }
+
+        return this.sortContentTypesByRecent(childTypes).map((type) => {
             const preview = this.compactContentPreview(type);
-            const isLayout = layoutBlockTypes.includes(type.type);
+            const isLayout = this.isContainerType(type.type);
             return `
             <button class="rounded-lg border border-slate-700 bg-[#121820] p-3 text-left text-slate-100 transition hover:border-[var(--admin-page-accent)] hover:bg-[#151d27] focus:outline-none focus:ring-2 focus:ring-[var(--admin-page-accent)]/40" style="display:grid;min-height:150px;align-content:space-between;gap:10px;" type="button" data-layout-child-content-type="${escapeHtml(type.type)}">
                 <span style="display:grid;gap:8px;">

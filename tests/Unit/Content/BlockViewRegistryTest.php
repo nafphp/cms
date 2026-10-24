@@ -17,6 +17,18 @@ use function Naf\log;
 
 final class BlockViewRegistryTest extends CmsTestCase
 {
+    /**
+     * The example file registers its type on cms() when it is first loaded.
+     * Load it before setUp() swaps in a fresh registry; otherwise that
+     * registration is lost and ExamplesSmokeTest, which loads the same file,
+     * finds nothing.
+     */
+    public static function setUpBeforeClass(): void
+    {
+        parent::setUpBeforeClass();
+        require_once BASE_PATH . '/examples/03-block-type/block_type.php';
+    }
+
     public function testDefaultsExposeProductionBlockViews(): void
     {
         $registry = new BlockViewRegistry();
@@ -86,7 +98,6 @@ final class BlockViewRegistryTest extends CmsTestCase
 
     public function testConventionViewRendersPluginContentWithoutAMapping(): void
     {
-        require_once BASE_PATH . '/examples/03-block-type/block_type.php';
         cms()->blockTypes()->add(new ExampleQuoteBlockType(), replace: true);
         $configuration           = app()->container()->get(Config::class);
         $values                  = $configuration->all();

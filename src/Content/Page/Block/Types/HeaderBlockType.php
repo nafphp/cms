@@ -24,6 +24,11 @@ final class HeaderBlockType extends AbstractBlockType
         return 'Site header with logo text and a selected navigation tree.';
     }
 
+    public function chromeRegions(): array
+    {
+        return ['header'];
+    }
+
     public function regions(): array
     {
         return ['header'];

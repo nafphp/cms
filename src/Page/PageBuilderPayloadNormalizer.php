@@ -20,21 +20,32 @@ final class PageBuilderPayloadNormalizer
 
     private int $blockCount = 0;
 
+    private ?BlockPlacementPolicy $policy = null;
+
     public function __construct(private ?BlockTypeRegistry $types = null)
     {
     }
 
     /**
+     * Normalize a builder payload
+     *
+     * Without a policy only data validity is checked: known block types,
+     * field values, URLs and size limits. That is what rendering uses. Saving
+     * passes a BlockPlacementPolicy, which adds where blocks may go and who may
+     * place them.
+     *
      * @param array<string, mixed> $blocks
      * @param array<int, array<string, mixed>> $slots
      * @param array<int, string> $errors
      * @return array<string, array<string, mixed>>
      */
-    public function normalize(array $blocks, array $slots, array &$errors = []): array
+    public function normalize(array $blocks, array $slots, array &$errors = [], ?BlockPlacementPolicy $policy = null): array
     {
         $this->blockCount = 0;
-        $normalized       = [];
-        $slotMap          = [];
+        $this->policy     = $policy;
+        $policy?->begin($blocks);
+        $normalized = [];
+        $slotMap    = [];
         foreach ($slots as $slot) {
             $id = trim((string) ($slot['id'] ?? ''));
             if ($id !== '') {
@@ -56,23 +67,58 @@ final class PageBuilderPayloadNormalizer
                 continue;
             }
 
-            $value = $this->normalizeBlock($content, $slotMap[$id], 'blocks.' . $id, 0, $errors);
+            $slot  = $slotMap[$id];
+            $value = $this->normalizeBlock(
+                $content,
+                'blocks.' . $id,
+                0,
+                $errors,
+                (string) ($slot['region'] ?? 'main'),
+                BlockPlacementPolicy::acceptsList($slot['accepts'] ?? null),
+                BlockPlacementPolicy::acceptsList($slot['nestedAccepts'] ?? null),
+            );
             if ($value !== null) {
                 $normalized[$id] = $value;
             }
         }
 
+        $policy?->finish($errors);
+        $this->policy = null;
+
         return $normalized;
     }
 
     /**
+     * Normalize a single block for a preview, checking data validity only
+     *
      * @param array<string, mixed> $content
-     * @param array<string, mixed> $slot
      * @param array<int, string> $errors
      * @return array<string, mixed>|null
      */
-    private function normalizeBlock(array $content, array $slot, string $path, int $depth, array &$errors): ?array
+    public function normalizeContent(array $content, array &$errors = []): ?array
     {
+        $this->blockCount = 0;
+        $this->policy     = null;
+
+        return $this->normalizeBlock($content, 'block', 0, $errors, 'main', null, null);
+    }
+
+    /**
+     * @param array<string, mixed> $content
+     * @param array<int, string> $errors
+     * @param array<int, string>|null $accepts       Types allowed at this position (policy only)
+     * @param array<int, string>|null $nestedAccepts Types the slot allows anywhere inside its containers (policy only)
+     * @return array<string, mixed>|null
+     */
+    private function normalizeBlock(
+        array $content,
+        string $path,
+        int $depth,
+        array &$errors,
+        string $region,
+        ?array $accepts,
+        ?array $nestedAccepts,
+    ): ?array {
         $this->blockCount++;
         if ($this->blockCount > self::MAX_BLOCKS) {
             $errors[] = sprintf('%s exceeds the limit of %d blocks.', $path, self::MAX_BLOCKS);
@@ -97,15 +143,6 @@ final class PageBuilderPayloadNormalizer
             $errors[] = sprintf('%s uses unknown block type "%s".', $path, $typeId);
 
             return null;
-        }
-
-        $accepted = is_array($slot['accepts'] ?? null) ? array_map('strval', $slot['accepts']) : [];
-        if ($accepted !== [] && !in_array($typeId, $accepted, true)) {
-            $errors[] = sprintf('%s does not accept block type "%s".', $path, $typeId);
-        }
-        $region = (string) ($slot['region'] ?? 'main');
-        if ($type->regions() !== [] && !in_array($region, $type->regions(), true)) {
-            $errors[] = sprintf('%s cannot use block type "%s" in region "%s".', $path, $typeId, $region);
         }
 
         $props = $content['props'] ?? [];
@@ -139,11 +176,13 @@ final class PageBuilderPayloadNormalizer
                 continue;
             }
 
-            $normalizedValue = $this->normalizeField($fields[$name], $value, $path . '.props.' . $name, $depth, $errors);
+            $normalizedValue = $this->normalizeField($fields[$name], $value, $path . '.props.' . $name, $depth, $errors, $nestedAccepts);
             if ($normalizedValue !== null) {
                 $normalizedProps[$name] = $normalizedValue;
             }
         }
+
+        $this->policy?->check($path, $typeId, $type, $normalizedProps, $region, $accepts, $depth === 0, $errors);
 
         return [
             'type'         => $typeId,
@@ -156,8 +195,9 @@ final class PageBuilderPayloadNormalizer
     /**
      * @param array<string, mixed> $field
      * @param array<int, string> $errors
+     * @param array<int, string>|null $nestedAccepts
      */
-    private function normalizeField(array $field, mixed $value, string $path, int $depth, array &$errors): mixed
+    private function normalizeField(array $field, mixed $value, string $path, int $depth, array &$errors, ?array $nestedAccepts = null): mixed
     {
         $type = (string) ($field['type'] ?? 'text');
         if ($type === 'checkbox') {
@@ -214,7 +254,18 @@ final class PageBuilderPayloadNormalizer
                     $errors[] = sprintf('%s.%d must be an object.', $path, $index);
                     continue;
                 }
-                $normalized = $this->normalizeBlock($child, ['region' => 'main'], $path . '.' . $index, $depth + 1, $errors);
+                // Children are content inside a container: they are placed as
+                // "main" content, limited by the slot's nestedAccepts and the
+                // container field's own accepts.
+                $normalized = $this->normalizeBlock(
+                    $child,
+                    $path . '.' . $index,
+                    $depth + 1,
+                    $errors,
+                    'main',
+                    BlockPlacementPolicy::narrowAccepts($nestedAccepts, BlockPlacementPolicy::acceptsList($field['accepts'] ?? null)),
+                    $nestedAccepts,
+                );
                 if ($normalized !== null) {
                     $children[] = $normalized;
                 }

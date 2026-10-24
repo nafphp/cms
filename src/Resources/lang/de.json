@@ -885,5 +885,9 @@
     "Stylesheet": "Stylesheet",
     "Surfaces": "Oberflächen",
     "Update selectors": "Selektoren aktualisieren",
-    "template blocks": "Template-Blöcke"
+    "template blocks": "Template-Blöcke",
+    "No blocks are available inside this layout block.": "In diesem Layout-Block sind keine Blöcke verfügbar.",
+    "You do not have permission to change this block. It stays on the page as it is; you can remove it.": "Du hast keine Berechtigung, diesen Block zu ändern. Er bleibt unverändert auf der Seite und kann entfernt werden.",
+    "Preview unavailable": "Vorschau nicht verfügbar",
+    "Content preview": "Inhaltsvorschau"
 }

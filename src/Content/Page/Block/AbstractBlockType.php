@@ -4,9 +4,21 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Content\Page\Block;
 
+use Naf\CMS\Enums\Permission;
+
 /** @api */
-abstract class AbstractBlockType implements BlockTypeInterface, ProvidesBlockViewInterface
+abstract class AbstractBlockType implements BlockTypeInterface, ProvidesBlockViewInterface, RestrictedBlockTypeInterface, ChromeBlockTypeInterface
 {
+    public function requiredPermission(): ?Permission
+    {
+        return null;
+    }
+
+    public function chromeRegions(): array
+    {
+        return [];
+    }
+
     public function view(): string
     {
         return 'page.blocks.' . str_replace('-', '_', $this->id());

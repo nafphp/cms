@@ -1869,6 +1869,14 @@ body.page-builder-live-preview .page-template-shell {
     display: none;
 }
 
+/* Server-rendered block previews: the sandboxed frame cannot report its
+   height, and clicks must reach the builder so the block can be selected. */
+.page-builder-block-preview-frame {
+    height: 14rem;
+    pointer-events: none;
+    background: #fff;
+}
+
 .page-builder-mobile-navigation-link {
     display: flex;
     min-height: 2.65rem;

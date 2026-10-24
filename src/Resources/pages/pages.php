@@ -14,6 +14,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 use function Naf\CMS\cms;
+use function Naf\CMS\user;
 use function Naf\I18n\t;
 use function Naf\log;
 use function Naf\request;
@@ -165,7 +166,7 @@ return [
             ] : [];
 
             $isEdit            = $initialState !== [];
-            $builderBlockTypes = cms()->blockTypes()->builderTypes();
+            $builderBlockTypes = cms()->blockTypes()->builderTypes(user());
             $themeRegistry     = cms()->themes();
 
             return render('admin.pages.builder', [

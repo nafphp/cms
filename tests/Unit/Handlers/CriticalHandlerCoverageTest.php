@@ -43,6 +43,7 @@ final class CriticalHandlerCoverageTest extends TestCase
         'Api/Navigation/PublishNavigation.php',
         'Api/Page/DeletePage.php',
         'Api/Page/DeletePageLayout.php',
+        'Api/Page/PreviewPageBlock.php',
         'Api/Page/StorePageLayout.php',
         'Api/Rbac/CreatePermission.php',
         'Api/Rbac/CreateRole.php',

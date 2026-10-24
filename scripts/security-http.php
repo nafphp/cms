@@ -72,14 +72,20 @@ function check(bool $condition, string $message): void
     echo "PASS $message\n";
 }
 
-$operator         = client();
-$copiedSession    = client();
-[$answer, $token] = login($operator, $base, $password, '/\\external.example.test/path');
+$operator      = client();
+$copiedSession = client();
+[$answer]      = login($operator, $base, $password, '/\\external.example.test/path');
 check($answer[0] === 302 && $answer[1]['location'] === '/admin', 'login rejects an external backslash redirect');
 [$answer] = login($copiedSession, $base, $password);
 check($answer[0] === 302 && request($copiedSession, $base . '/admin')[0] === 200, 'a second authenticated browser session works before reset');
 $users = request($operator, $base . '/api/admin/users');
 check($users[0] === 200 && in_array('security-admin', array_column(json_decode($users[2], true, flags: JSON_THROW_ON_ERROR), 'username'), true), 'the authenticated user-list API works on SQLite');
+// Authentication may rotate session secrets; use the token rendered after login.
+$dashboard = request($operator, $base . '/admin');
+if ($dashboard[0] !== 200 || preg_match('/name="_csrf" value="([^"]+)"/', $dashboard[2], $csrf) !== 1) {
+    throw new RuntimeException('The authenticated admin page supplied no CSRF token.');
+}
+$token   = $csrf[1];
 $payload = ['user_id' => $user->getId(), 'password' => $replacement, 'password_confirmation' => $replacement];
 check(request($operator, $base . '/api/admin/users/password', $payload, 'invalid')[0] === 400, 'password reset retains CSRF protection');
 $reset = request($operator, $base . '/api/admin/users/password', $payload, $token);

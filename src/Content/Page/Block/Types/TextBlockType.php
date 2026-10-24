@@ -23,6 +23,11 @@ final class TextBlockType extends AbstractBlockType
         return 'Simple copy for short intro, aside, or CTA text.';
     }
 
+    public function chromeRegions(): array
+    {
+        return ['footer'];
+    }
+
     public function regions(): array
     {
         return ['header', 'hero', 'main', 'aside', 'footer'];

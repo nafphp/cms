@@ -102,5 +102,14 @@ return [
                 'pptx' => ['application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/zip'],
             ],
         ],
+        // Page-builder rules, also available as cms()->blockTypes()->only(),
+        // disable() and restrict(). An empty allowlist means "every
+        // registered type"; permissions are Permission values such as
+        // 'themes.code.manage'. The rules apply when a page is saved.
+        'page_builder' => [
+            'allowed_block_types'  => [],
+            'disabled_block_types' => [],
+            'block_permissions'    => [],
+        ],
     ],
 ];
