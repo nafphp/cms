@@ -7,6 +7,7 @@ namespace Naf\CMS\Contracts;
 use Naf\CMS\Services\Http\OutboundHttpProfile;
 use Naf\CMS\Services\Http\OutboundHttpResponse;
 
+/** @api */
 interface OutboundHttpClientInterface
 {
     /**

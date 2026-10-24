@@ -2,6 +2,7 @@
 
 use Naf\CMS\Localization\LanguageRegistry;
 use Naf\CMS\Services\Admin\AdminNavigationService;
+use Naf\CMS\Support\ScriptJson;
 
 use function Naf\CMS\cms;
 use function Naf\Form\csrf;
@@ -51,7 +52,8 @@ asset()->add('/js/admin/ai.js', 'module');
                 storedMenuState = localStorage.getItem('nafcms:admin-menu-state');
                 storedAiChatState = localStorage.getItem('nafcms:local-ai-chat:open');
             } catch (e) {}
-            const useDark = storedTheme !== 'light';
+            const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches === true;
+            const useDark = storedTheme === 'dark' || (storedTheme !== 'light' && prefersDark);
             root.classList.toggle('dark', useDark);
             root.classList.toggle('admin-menu-collapsed', storedMenuState === 'closed');
             root.classList.toggle('local-ai-chat-open', storedAiChatState === 'open');
@@ -60,15 +62,15 @@ asset()->add('/js/admin/ai.js', 'module');
     </script>
     <?= asset()->render('css') ?>
     <script nonce="<?= \Naf\CMS\csp_nonce() ?>">
-        const nafCmsCsrfToken = <?= json_encode($csrfToken) ?>;
+        const nafCmsCsrfToken = <?= ScriptJson::encode($csrfToken) ?>;
         window.NafCMS = {
             ...(window.NafCMS || {}),
             csrfToken: () => nafCmsCsrfToken,
             csrfHeader: 'X-CSRF-Token',
-            adminUserKey: <?= json_encode($currentUserId > 0 ? 'user:' . $currentUserId : 'guest') ?>,
+            adminUserKey: <?= ScriptJson::encode($currentUserId > 0 ? 'user:' . $currentUserId : 'guest') ?>,
             // Same shape the server accepts, so the admin UI does not keep its
             // own copy of the expression.
-            languagePattern: <?= json_encode(LanguageRegistry::CODE_PATTERN) ?>,
+            languagePattern: <?= ScriptJson::encode(LanguageRegistry::CODE_PATTERN) ?>,
         };
     </script>
     <script nonce="<?= \Naf\CMS\csp_nonce() ?>">
@@ -77,7 +79,7 @@ asset()->add('/js/admin/ai.js', 'module');
             animation: 'pop',
             theme: {
                 ...((window.NotifyJsConfig || {}).theme || {}),
-                accent: <?= json_encode($accent) ?>,
+                accent: <?= ScriptJson::encode($accent) ?>,
             },
             overlay: {
                 mode: 'blur',
@@ -89,6 +91,7 @@ asset()->add('/js/admin/ai.js', 'module');
     </script>
 </head>
 	<body class="admin-app min-h-screen text-[var(--admin-text)] [background:radial-gradient(circle_at_11%_15%,color-mix(in_srgb,var(--admin-page-accent)_10%,transparent),transparent_30rem),linear-gradient(115deg,#f8fafe_0%,#eef3f9_44%,#f9fbff_100%)] dark:[background:radial-gradient(circle_at_11%_15%,color-mix(in_srgb,var(--admin-page-accent)_17%,transparent),transparent_30rem),linear-gradient(115deg,#070b12_0%,#0b1220_42%,#10182a_100%)]" style="--admin-page-accent: <?= s($accent) ?>;">
+<a class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-slate-900" href="#content"><?= s(t('Skip to content')) ?></a>
 	<div class="admin-layout group grid min-h-screen grid-cols-1 transition-[grid-template-columns] duration-200 admin:grid-cols-[260px_minmax(0,1fr)] admin:[&.is-menu-collapsed]:grid-cols-[86px_minmax(0,1fr)]">
 	        <?= view('components.admin.layout.sidebar', ['items' => $navItems]) ?>
 	    <script nonce="<?= \Naf\CMS\csp_nonce() ?>">
@@ -169,7 +172,7 @@ asset()->add('/js/admin/ai.js', 'module');
             'subtitle' => (string) ($pageSubtitle ?? ''),
         ]) ?>
 
-        <main class="px-6 pb-[18px] pt-[22px] admin:px-[22px] admin:pb-3.5 admin:pt-5">
+        <main id="content" tabindex="-1" class="px-6 pb-[18px] pt-[22px] admin:px-[22px] admin:pb-3.5 admin:pt-5">
             <?php $adminTop = trim((string) $this->renderBlock('adminTop')); ?>
             <?php if ($adminTop !== ''): ?>
                 <section class="mb-[18px] min-h-0 rounded-lg border border-slate-300/60 bg-white/95 px-4 py-3 shadow-[0_16px_34px_rgba(15,23,42,.08)] dark:border-[rgba(118,142,177,.34)] dark:bg-[rgba(15,24,40,.95)] dark:shadow-[0_34px_90px_rgba(0,0,0,.26)]">

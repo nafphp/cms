@@ -105,6 +105,6 @@ if (!is_string($csrfToken) || $csrfToken === '') {
             <p class="hidden text-sm text-[var(--page-muted)]" data-public-form-state></p>
         </form>
     <?php else: ?>
-        <div class="rounded-md border border-dashed border-[var(--page-border)] p-5 text-sm text-[var(--page-muted)]">No published form selected.</div>
+        <div class="rounded-md border border-dashed border-[var(--page-border)] p-5 text-sm text-[var(--page-muted)]"><?= s(t('No published form selected.')) ?></div>
     <?php endif; ?>
 </section>

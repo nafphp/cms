@@ -13,6 +13,7 @@ class Alert extends Notify{
     bind() {
 
         const buttonOk = this.container.querySelector('.confirm');
+        buttonOk.focus();
 
         this.enterHandler = (e) => {
 
@@ -43,7 +44,7 @@ class Alert extends Notify{
                 <div class="notify alert">
                     <div class="message">${this.message}</div>
                     <div class="container single">
-                        <div class="button confirm">${this.options.confirmButtonText}</div>
+                        <button type="button" class="button confirm">${this.options.confirmButtonText}</button>
                     </div>
                 </div>`;
 

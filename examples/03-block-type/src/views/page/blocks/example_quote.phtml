@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+use function Naf\View\s;
+
+$props  = is_array($content['props'] ?? null) ? $content['props'] : [];
+$quote  = (string) ($props['quote'] ?? $quote ?? '');
+$source = (string) ($props['source'] ?? $source ?? '');
+
+?>
+<figure class="page-block">
+    <blockquote><?= s($quote ?? '') ?></blockquote>
+    <figcaption><?= s($source ?? '') ?></figcaption>
+</figure>

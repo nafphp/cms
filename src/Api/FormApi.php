@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Api;
 
+use Naf\CMS\Events\ContentEvent;
 use Naf\CMS\Models\Form;
 use Naf\CMS\Repositories\FormRepository;
 use Naf\CMS\Storage\EntityStorage;
-use Naf\CMS\Support\AuditEntry;
+use Naf\CMS\Support\ContentChange;
 
 /**
  * Domain API for forms. Exposes form-specific behaviour and delegates persistence/queries to FormRepository.
@@ -70,13 +71,13 @@ final class FormApi
         $old     = $id > 0 ? $this->repository->find($id) : null;
         $savedId = $this->repository->save($payload);
 
-        AuditEntry::create(
+        ContentChange::record(
             $old === null ? 'form.created' : 'form.updated',
             'form',
             (string) $savedId,
             $this->formAuditSnapshot($old),
             $this->formAuditSnapshot($this->repository->find($savedId)),
-        )->record();
+        );
 
         return $savedId;
     }
@@ -86,12 +87,12 @@ final class FormApi
         $old     = $this->repository->find($id);
         $deleted = $this->repository->delete($id);
         if ($deleted) {
-            AuditEntry::create(
+            ContentChange::record(
                 'form.deleted',
                 'form',
                 (string) $id,
                 $this->formAuditSnapshot($old),
-            )->record();
+            );
         }
 
         return $deleted;
@@ -103,7 +104,10 @@ final class FormApi
      */
     public function storeSubmission(int $formId, array $payload, array $meta = []): int
     {
-        return $this->repository->storeSubmission($formId, $payload, $meta);
+        $id = $this->repository->storeSubmission($formId, $payload, $meta);
+        ContentEvent::dispatch('form.submitted', 'form', $formId, null, ['submissionId' => $id, 'payload' => $payload, 'meta' => $meta]);
+
+        return $id;
     }
 
     /** @return array<int, array<string, mixed>> */

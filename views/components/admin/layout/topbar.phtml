@@ -39,7 +39,7 @@ $currentLanguage = $settings->currentLanguage();
                     <?php endforeach; ?>
                 </div>
             </details>
-            <button id="darkmode-toggle" class="inline-flex min-h-[30px] w-[30px] items-center justify-center rounded-full text-[15px] text-[var(--muted)]" type="button" aria-label="<?= s(t('Toggle dark mode')) ?>">
+            <button id="darkmode-toggle" class="inline-flex min-h-[30px] w-[30px] items-center justify-center rounded-full text-[15px] text-[var(--muted)]" type="button" aria-label="<?= s(t('Toggle dark mode')) ?>" title="<?= s(t('Toggle dark mode')) ?> (F9)" aria-keyshortcuts="F9" data-color-scheme-toggle>
                 <svg class="h-[18px] w-[18px] dark:hidden" viewBox="0 0 24 24" aria-hidden="true">
                     <path fill="currentColor" d="M21.75 15.5a9 9 0 0 1-11.25-11.25 9 9 0 1 0 11.25 11.25z"/>
                 </svg>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Contracts;
 
+/** @api */
 interface SettingsServiceInterface
 {
     /** @return array<int, array<string, mixed>> */

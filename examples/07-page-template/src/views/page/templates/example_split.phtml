@@ -1,0 +1,22 @@
+<?php
+
+/** @var callable(string): string $block */
+
+?>
+<div class="page-template-shell">
+    <?= $block('site_header') ?>
+    <main id="content" tabindex="-1" class="page-template-main">
+        <section class="page-template-region">
+            <?= $block('intro') ?>
+        </section>
+        <div class="example-split__columns">
+            <section class="page-template-region">
+                <?= $block('content') ?>
+            </section>
+            <aside class="page-template-region">
+                <?= $block('aside') ?>
+            </aside>
+        </div>
+    </main>
+    <?= $block('site_footer') ?>
+</div>

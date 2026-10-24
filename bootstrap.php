@@ -16,6 +16,9 @@ use Naf\CMS\Commands\FakeDataCommand;
 use Naf\CMS\Commands\InstallAgentGuideCommand;
 use Naf\CMS\Commands\InstallDatabaseCommand;
 use Naf\CMS\Commands\IntegrityCheckCommand;
+use Naf\CMS\Commands\MakeBlockCommand;
+use Naf\CMS\Commands\MakePluginCommand;
+use Naf\CMS\Commands\MakeTemplateCommand;
 use Naf\CMS\Commands\PublishAssetsCommand;
 use Naf\CMS\Commands\RemoveAssetsCommand;
 use Naf\CMS\Content\Page\Block\Types\ArticleContentBlockType;
@@ -143,11 +146,15 @@ command()->add(DebugAiToolRoutingCommand::class);
 command()->add(PublishAssetsCommand::class);
 command()->add(CheckAssetsCommand::class);
 command()->add(RemoveAssetsCommand::class);
+command()->add(IntegrityCheckCommand::class);
+command()->add(MakeBlockCommand::class);
+command()->add(MakeTemplateCommand::class);
+command()->add(MakePluginCommand::class);
 
 if (realpath((string) app()->getBasePath()) === realpath($packageRoot)) {
     command()->add(DocsSyncCommand::class);
     command()->add(DocsCheckCommand::class);
-    command()->add(IntegrityCheckCommand::class);
+
 }
 
 cms()->blockTypes()->add(new ArticleContentBlockType());

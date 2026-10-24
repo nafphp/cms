@@ -12,6 +12,7 @@ use Naf\CMS\Enums\Permission;
  * Every method either returns silently or throws PrivilegedActionDenied. They are
  * assertions, not predicates: a host replacing this interface must throw to deny,
  * because callers treat a normal return as "allowed".
+ * @api
  */
 interface UserPrivilegePolicyInterface
 {
@@ -22,6 +23,8 @@ interface UserPrivilegePolicyInterface
         array $roleNames,
         Permission $userPermission = Permission::USERS_EDIT,
     ): void;
+
+    public function assertProfileChange(int $actorId, int $targetId): void;
 
     public function assertPasswordReset(int $actorId, int $targetId): void;
 

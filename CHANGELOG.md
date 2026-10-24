@@ -4,6 +4,44 @@ All notable changes to NafCMS are documented here. This project follows [Keep a 
 
 ## [Unreleased]
 
+## [0.0.3] - 2026-10-24
+
+### Added
+
+- Content events and `CmsEvent` constants for page, article, form, media and navigation writes, including persisted form submissions and a listener example.
+- Conventional block views through `ProvidesBlockViewInterface`, with explicit mapping precedence, missing-view warnings and registry removal methods.
+- Skip-to-content links in admin, authentication and public layouts, with focusable main-content targets in all shipped page templates.
+- Host-aware `integrity:check` with view resolution, slot agreement, content-anchor and block-view checks; orphan checks remain package-only.
+- `make:block`, `make:template` and `make:plugin` commands with explicit registration instructions and protection against existing targets.
+- `@api` annotations and documentation for the stable extension surface.
+- Keyboard slot movement and polite add/remove/reorder announcements in the page builder.
+- Automated WCAG A/AA checks using axe-core, shared builder DOM fixtures and layout accessibility regression tests.
+
+- F9 switches the admin and login screens between dark and light. The choice is stored as before and follows into other open tabs; the toggle button names the shortcut. The handler cancels F9, so Edge's Immersive Reader and Firefox's Reader View do not open on these screens.
+- `cms()->pageTemplates()` registry for page-builder templates. Plugins can add, replace, or remove templates; the host's `src/Resources/pages/page_templates.php` is read last and wins by id. `Layout::fromDefinition()` rebuilds a layout from a definition array.
+
+### Fixed
+
+- `cms.page.published`, `cms.navigation.published` and `cms.article.published` now fire on the usual publishing paths as well: saving a page or navigation with status `published`, and approving an article review with direct publication. Before, only the rarely used explicit publish actions reported a publication.
+- A page block whose declared view file is missing renders the placeholder and logs one warning instead of failing the whole page. `BlockViewRegistry::declaredView()` returns the declared view without the file check.
+- Content events are dispatched with `event()->isolated()->dispatch()`, so one failing listener is logged and no longer stops the others.
+- Example templates provide their own published host CSS instead of relying on utilities outside the package Tailwind source scan.
+- Toasts use a persistent polite live region and no dialog roles on individual messages.
+- Modal notifyJs dialogs trap Tab focus, focus the alert confirmation button and restore the opening element after dismissal.
+- Admin and authentication boot scripts respect the system color scheme; later system changes apply while no preference is saved.
+- Admin controls that removed their outlines now expose a visible keyboard-focus ring.
+- Builder and remaining selected view strings, accessible labels and notifications use translated English keys; remove the unused role prompt.
+
+- The page builder now offers the host's and plugins' templates. It previously read only the package's template file, while saving and rendering already included the host file, so host templates rendered but could not be selected.
+
+### Changed
+
+- Audit entries and content events for a change are written by one internal helper from the same snapshots.
+- Require Framework 0.2.13 for `event()->isolated()->dispatch()`.
+- Host service overrides and block registrations belong in the host's `bootstrap.php` before `app()->run()`, like in every NAF application; the separate `src/services.php` convention is gone from the docs, example 06 and `make:block`.
+- Require `naf/form` 0.2.4, which validates CSRF tokens for every method except GET, HEAD and OPTIONS and no longer exempts Bearer requests, and `naf/mcp` 0.2.6, which exempts its own RPC route from that check.
+- `PageTemplateCatalog` is deprecated in favour of `cms()->pageTemplates()`.
+
 ## [0.0.2] - 2026-10-14
 
 ### Fixed

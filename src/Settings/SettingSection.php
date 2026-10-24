@@ -7,6 +7,7 @@ namespace Naf\CMS\Settings;
 use BackedEnum;
 use LogicException;
 
+/** @api */
 final class SettingSection
 {
     /** @var array<string, SettingField> */

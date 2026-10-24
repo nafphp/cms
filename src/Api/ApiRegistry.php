@@ -10,6 +10,7 @@ use RuntimeException;
 
 use function Naf\route;
 
+/** @api */
 final class ApiRegistry
 {
     /** @var array<string, ApiEndpoint> */

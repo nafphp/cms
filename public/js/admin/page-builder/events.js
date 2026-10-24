@@ -136,6 +136,13 @@ export const eventMethods = {
             return;
         }
 
+        const moveCustomSlot = event.target.closest('[data-move-custom-slot]');
+        if (moveCustomSlot) {
+            event.preventDefault();
+            this.moveCustomSlot(moveCustomSlot.dataset.moveCustomSlot || '', Number(moveCustomSlot.dataset.direction || 0));
+            return;
+        }
+
         const moveLayoutChild = event.target.closest('[data-move-layout-child]');
         if (moveLayoutChild) {
             event.preventDefault();
@@ -550,7 +557,7 @@ export const eventMethods = {
             <div class="page-builder-theme-prompt__surface-row" data-theme-editor-surface-row>
                 <input value="${escapeHtml(label)}" placeholder="Label" data-theme-editor-surface-label>
                 <input value="${escapeHtml(key)}" placeholder="key" data-theme-editor-surface-key>
-                <button type="button" data-theme-editor-remove-surface aria-label="Remove">×</button>
+                <button type="button" data-theme-editor-remove-surface aria-label="${escapeHtml(this.uiText('Remove'))}">×</button>
             </div>
         `;
     },
@@ -584,7 +591,7 @@ export const eventMethods = {
         const container = promptInstance.container?.querySelector('.page-builder-theme-prompt');
         const payload = this.themeEditorPayload(container, themeId);
         if (payload.label === '' || payload.identifier === '') {
-            toast('Theme title and identifier are required.');
+            toast(this.uiText('Theme title and identifier are required.'));
             return;
         }
 
@@ -610,7 +617,7 @@ export const eventMethods = {
             this.applySavedTheme(result.theme, themeId);
             promptInstance.promise.resolve(true);
             promptInstance.remove();
-            toast('Theme saved.');
+            toast(this.uiText('Theme saved.'));
         } catch (error) {
             notifyAlert(escapeHtml(error.message || 'Theme could not be saved.'));
             if (status) {

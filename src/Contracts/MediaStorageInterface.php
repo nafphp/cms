@@ -6,6 +6,7 @@ namespace Naf\CMS\Contracts;
 
 use Psr\Http\Message\UploadedFileInterface;
 
+/** @api */
 interface MediaStorageInterface
 {
     /**

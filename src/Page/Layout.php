@@ -8,6 +8,7 @@ use LogicException;
 
 /**
  * Page-level composition: one layout template plus the blocks rendered into it.
+ * @api
  */
 final class Layout
 {
@@ -231,6 +232,47 @@ final class Layout
             ),
             ...$this->metadata,
         ], static fn(mixed $value): bool => $value !== null);
+    }
+
+    /**
+     * Rebuild a layout from a definition array as produced by definition().
+     *
+     * Slot blocks render through `page.blocks.empty`, the same placeholder the
+     * shipped templates use; the builder replaces them with stored content.
+     *
+     * @param array<string, mixed> $definition
+     */
+    public static function fromDefinition(array $definition): self
+    {
+        $view     = isset($definition['view']) ? (string) $definition['view'] : null;
+        $template = Template::create($view)->setParent(
+            isset($definition['layout']) ? (string) $definition['layout'] : null,
+        );
+
+        $layout = self::create($template)
+            ->setId(isset($definition['id']) ? (string) $definition['id'] : null)
+            ->setLabel(isset($definition['label']) ? (string) $definition['label'] : null)
+            ->setDescription(isset($definition['description']) ? (string) $definition['description'] : null)
+            ->setKind((string) ($definition['kind'] ?? 'static'));
+
+        foreach (is_array($definition['blocks'] ?? null) ? $definition['blocks'] : [] as $block) {
+            if (!is_array($block) || trim((string) ($block['id'] ?? '')) === '') {
+                continue;
+            }
+
+            $data = $block;
+            unset($data['id'], $data['deletable']);
+            $layout->addBlock((string) $block['id'], 'page.blocks.empty', $data);
+        }
+
+        $reserved = ['id', 'label', 'kind', 'layout', 'view', 'description', 'blocks'];
+        foreach ($definition as $key => $value) {
+            if (is_string($key) && !in_array($key, $reserved, true)) {
+                $layout->setMetadata($key, $value);
+            }
+        }
+
+        return $layout;
     }
 
     /**

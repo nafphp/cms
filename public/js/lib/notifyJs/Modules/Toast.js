@@ -18,6 +18,10 @@ class Toast extends Notify {
         }), promise);
     }
 
+    decorate() {
+        this.container.classList.add(`notify-animation-${this.animation}`);
+    }
+
     bind() {
         // Nothing to do
     }
@@ -50,15 +54,21 @@ class Toast extends Notify {
 
 }
 
-export default function toast(message, options) {
-
+export function ensureToastRegion() {
     let wrap = document.querySelector('.notify-toast-container');
-
     if (!(wrap instanceof HTMLDivElement)) {
-        const wrapTemplate = `<div class="notify-toast-container"></div>`;
-        wrap = (new DOMParser()).parseFromString(wrapTemplate, 'text/html').body.firstElementChild;
+        wrap = document.createElement('div');
+        wrap.className = 'notify-toast-container';
+        wrap.setAttribute('role', 'status');
+        wrap.setAttribute('aria-live', 'polite');
+        wrap.setAttribute('aria-atomic', 'false');
         document.body.appendChild(wrap);
     }
+    return wrap;
+}
+
+export default function toast(message, options) {
+    const wrap = ensureToastRegion();
 
     if (typeof message === 'string') {
         return new Toast(message, {...options, targetContainer: wrap});

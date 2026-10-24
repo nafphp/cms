@@ -15,7 +15,7 @@ return [
         ->setPath('/admin/settings/audit')
         ->setTitle('Audit log')
         ->setLayout('admin')
-        ->requirePermission(Permission::ADMIN_ACCESS)
+        ->requirePermission(Permission::SYSTEM_READ)
         ->setAdminNavigation('Audit log', parent: 'settings', icon: 'stats', order: 30, key: 'settings.audit')
         ->setContent(static fn() => render('admin.settings.audit', [
             'title'        => t('Audit log'),

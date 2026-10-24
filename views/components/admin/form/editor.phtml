@@ -1,5 +1,6 @@
 <?php
 
+use Naf\CMS\Support\ScriptJson;
 use Naf\View\Core\Asset;
 
 use function Naf\View\s;
@@ -13,14 +14,14 @@ $assets->add('/js/editor.js');
 
 ?>
 <label class="hidden" for="editorjs"><?= s($label) ?>:</label>
-<div id="editorjs" aria-placeholder="<?= s($label) ?>" class="prose prose-base min-h-[407px] max-w-none rounded-xl border border-[var(--border)] bg-admin-field px-3.5 py-[18px] text-[var(--text)] outline-none transition dark:prose-invert"></div>
+<div id="editorjs" aria-placeholder="<?= s($label) ?>" class="prose prose-base min-h-[407px] max-w-none rounded-xl border border-[var(--border)] bg-admin-field px-3.5 py-[18px] text-[var(--text)] outline-none transition dark:prose-invert focus-visible:ring-2 focus-visible:ring-[var(--admin-page-accent)]"></div>
 <input type="hidden" name="<?= s($name) ?>" value="">
 
 <?= $assets->render('js') ?>
 <script nonce="<?= \Naf\CMS\csp_nonce() ?>">
     const editor = new EditorJS({
         holder: 'editorjs',
-        placeholder: <?= json_encode($label) ?>,
+        placeholder: <?= ScriptJson::encode($label) ?>,
         tools: {
             header: Header,
             list: List,
@@ -33,7 +34,7 @@ $assets->add('/js/editor.js');
                 config: {
                     field: 'file',
                     endpoints: {
-                        byFile: <?= json_encode($uploadUrl) ?>,
+                        byFile: <?= ScriptJson::encode($uploadUrl) ?>,
                         byUrl: '/editor/fetch/image'
                     },
                     additionalRequestHeaders: {

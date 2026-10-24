@@ -10,6 +10,7 @@ use function Naf\View\s;
 $settings        = cms()->settings();
 $currentLanguage = $settings->currentLanguage();
 asset()->add('/css/nafcms.css');
+asset()->add('/js/color-scheme.js', 'module');
 
 ?>
 <!doctype html>
@@ -25,7 +26,8 @@ asset()->add('/css/nafcms.css');
             try {
                 storedTheme = localStorage.getItem('theme');
             } catch (e) {}
-            const useDark = storedTheme !== 'light';
+            const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches === true;
+            const useDark = storedTheme === 'dark' || (storedTheme !== 'light' && prefersDark);
             root.classList.toggle('dark', useDark);
             root.style.colorScheme = useDark ? 'dark' : 'light';
         })();
@@ -33,8 +35,10 @@ asset()->add('/css/nafcms.css');
     <?= asset()->render('css') ?>
 </head>
 <body class="grid min-h-screen place-items-center bg-slate-50 p-8 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-<main class="flex min-h-screen items-center justify-center px-4">
+<a class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-slate-900" href="#content"><?= s(t('Skip to content')) ?></a>
+<main id="content" tabindex="-1" class="flex min-h-screen items-center justify-center px-4">
     <?= $this->renderBlock('content') ?>
 </main>
+<?= asset()->render('js') ?>
 </body>
 </html>

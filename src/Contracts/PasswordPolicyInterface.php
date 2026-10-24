@@ -10,6 +10,7 @@ namespace Naf\CMS\Contracts;
  * The shipped implementation only enforces a length range. Hosts with their own
  * requirements — character classes, breach lists, an external identity provider —
  * bind their own implementation for this interface.
+ * @api
  */
 interface PasswordPolicyInterface
 {

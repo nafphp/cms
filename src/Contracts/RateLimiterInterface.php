@@ -6,6 +6,7 @@ namespace Naf\CMS\Contracts;
 
 use Naf\CMS\Services\Security\RateLimitDecision;
 
+/** @api */
 interface RateLimiterInterface
 {
     public function inspect(string $username, string $ipAddress): RateLimitDecision;

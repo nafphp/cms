@@ -13,6 +13,7 @@ use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
+use function Naf\CMS\cms;
 use function Naf\CMS\user;
 use function Naf\Database\database;
 use function Naf\json;
@@ -80,6 +81,11 @@ final class ReviewArticle
                 $newStatus = ArticleStatus::DECLINED->value;
             }
 
+            // Publishing here bypasses ArticleApi::publish(), so take the
+            // "before" snapshot now and report the publication after commit.
+            $publishesNow = $newStatus === ArticleStatus::PUBLISHED->value && $currentStatus !== ArticleStatus::PUBLISHED->value;
+            $before       = $publishesNow ? cms()->articles()->snapshot($articleIdValue, $languageValue) : null;
+
             $connection->beginTransaction();
 
             try {
@@ -130,6 +136,10 @@ final class ReviewArticle
                 ],
                 ['has_comment' => $comment !== null && $comment !== ''],
             )->record();
+
+            if ($publishesNow) {
+                cms()->articles()->recordPublished($articleIdValue, $languageValue, $before, 'review');
+            }
 
             return ['success' => true, 'action' => $action, 'newStatus' => $newStatus];
         });

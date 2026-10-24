@@ -1,5 +1,7 @@
 <?php
 
+use Naf\CMS\Support\ScriptJson;
+
 use function Naf\CMS\cms;
 use function Naf\I18n\t;
 use function Naf\route;
@@ -100,9 +102,9 @@ foreach ($languages as $language) {
     import {initNavigationForm} from '/js/admin/navigation-form.js';
 
     initNavigationForm({
-        languageLabels: <?= json_encode($languageLabels, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>,
-        languageOptions: <?= json_encode($languageLabels, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>,
-        labels: <?= json_encode([
+        languageLabels: <?= ScriptJson::encode($languageLabels, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>,
+        languageOptions: <?= ScriptJson::encode($languageLabels, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>,
+        labels: <?= ScriptJson::encode([
             'addChild'                   => t('Add child'),
             'cancel'                     => t('Cancel'),
             'couldNotSave'               => t('Could not save navigation.'),

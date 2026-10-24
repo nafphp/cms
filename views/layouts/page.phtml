@@ -5,6 +5,7 @@ use Naf\CMS\Page\Template;
 use Naf\CMS\Security\UrlPolicy;
 
 use function Naf\CMS\cms;
+use function Naf\I18n\t;
 use function Naf\View\asset;
 use function Naf\View\s;
 
@@ -154,6 +155,7 @@ foreach ([...$template->scripts(), ...$theme->scripts(), ...$page->scripts()] as
     <?php endforeach; ?>
 </head>
 <body<?= $attributeString($bodyAttributes) ?>>
+<a class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-slate-900" href="#content"><?= s(t('Skip to content')) ?></a>
     <?= $this->renderBlock('content', $content ?? '') ?>
     <?= asset()->render('js') ?>
     <?php foreach ($scriptTags as $script): ?>

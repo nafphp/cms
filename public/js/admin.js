@@ -1,9 +1,11 @@
-import prompt from './lib/notifyJs/Modules/Prompt.js';
-import toast from './lib/notifyJs/Modules/Toast.js';
+import toast, {ensureToastRegion} from './lib/notifyJs/Modules/Toast.js';
+import { initColorScheme } from './components/colorScheme.js';
 import { initDatePickers } from './components/datePicker.js';
 import { initMultiSelects } from './components/multiSelect.js';
 import { initStyledSelects } from './components/styledSelect.js';
 import { initPageBuilders } from './admin/page-builder.js';
+
+ensureToastRegion();
 
 const nativeFetch = window.fetch.bind(window);
 const configuredCsrfToken = window.NafCMS?.csrfToken;
@@ -538,15 +540,6 @@ document.querySelectorAll('.admin-menu-group[data-menu-key]').forEach((group) =>
     });
 });
 
-document.getElementById('darkmode-toggle')?.addEventListener('click', () => {
-    root.classList.toggle('dark');
-    const theme = root.classList.contains('dark') ? 'dark' : 'light';
-    try {
-        localStorage.setItem('theme', theme);
-    } catch (error) {}
-    root.style.colorScheme = theme;
-});
-
 document.querySelectorAll('[data-toast]').forEach((element) => {
     element.addEventListener('click', () => {
         toast(element.getAttribute('data-toast') || 'Done');
@@ -561,25 +554,8 @@ try {
     }
 } catch (error) {}
 
+initColorScheme();
 initStyledSelects('select[data-styled-select]');
 initMultiSelects('select[data-multiselect]');
 initDatePickers('[data-date-picker]');
 initPageBuilders();
-
-document.querySelectorAll('[data-open-role-prompt]').forEach((element) => {
-    element.addEventListener('click', () => {
-        prompt(`
-            <div>Create role</div>
-            <div class="notify-form">
-                <label class="notify-field">
-                    <span class="notify-field-label">Role name</span>
-                    <input type="text" placeholder="publisher">
-                </label>
-            </div>
-        `, {
-            confirmButtonText: 'Create',
-            cancelButtonText: 'Cancel',
-            showCancelButton: true,
-        });
-    });
-});

@@ -12,7 +12,7 @@ use Naf\CMS\Navigation\NavigationItem;
 use Naf\CMS\Navigation\NavigationRegistry;
 use Naf\CMS\Repositories\NavigationRepository;
 use Naf\CMS\Storage\EntityStorage;
-use Naf\CMS\Support\AuditEntry;
+use Naf\CMS\Support\ContentChange;
 
 use function Naf\I18n\t;
 
@@ -160,14 +160,21 @@ final class NavigationApi implements ScopeAwareInterface
         $id      = (int) ($payload['id'] ?? 0);
         $old     = $id > 0 ? $this->repository->find($id) : null;
         $savedId = $this->repository->save($payload);
+        $before  = $this->navigationAuditSnapshot($old);
+        $after   = $this->navigationAuditSnapshot($this->repository->find($savedId));
 
-        AuditEntry::create(
+        ContentChange::record(
             $old instanceof Navigation ? 'navigation.updated' : 'navigation.created',
             'navigation',
             (string) $savedId,
-            $this->navigationAuditSnapshot($old),
-            $this->navigationAuditSnapshot($this->repository->find($savedId)),
-        )->record();
+            $before,
+            $after,
+        );
+
+        // The navigation form publishes by saving with status "published".
+        if (ContentChange::becamePublished($before, $after)) {
+            ContentChange::record('navigation.published', 'navigation', (string) $savedId, $before, $after);
+        }
 
         return $savedId;
     }
@@ -177,13 +184,13 @@ final class NavigationApi implements ScopeAwareInterface
         $old       = $this->repository->find($id);
         $published = $this->repository->publish($id);
         if ($published) {
-            AuditEntry::create(
+            ContentChange::record(
                 'navigation.published',
                 'navigation',
                 (string) $id,
                 $this->navigationAuditSnapshot($old),
                 $this->navigationAuditSnapshot($this->repository->find($id)),
-            )->record();
+            );
         }
 
         return $published;
@@ -194,12 +201,12 @@ final class NavigationApi implements ScopeAwareInterface
         $old     = $this->repository->find($id);
         $deleted = $this->repository->delete($id);
         if ($deleted) {
-            AuditEntry::create(
+            ContentChange::record(
                 'navigation.deleted',
                 'navigation',
                 (string) $id,
                 $this->navigationAuditSnapshot($old),
-            )->record();
+            );
         }
 
         return $deleted;

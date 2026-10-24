@@ -378,15 +378,21 @@ export const previewMethods = {
 
     customSlotControls(block) {
         return `
-            <button class="page-builder-slot-hitbox" type="button" data-edit-block="${escapeHtml(block.id)}" aria-label="Edit slot"></button>
+            <button class="page-builder-slot-hitbox" type="button" data-edit-block="${escapeHtml(block.id)}" aria-label="${escapeHtml(this.uiText('Edit slot'))}"></button>
             <div class="page-builder-slot-controls">
-                <button class="page-builder-slot-controls__tab" type="button" draggable="true" data-custom-slot-drag="${escapeHtml(block.id)}" data-edit-block="${escapeHtml(block.id)}" aria-label="Reorder slot">
+                <button class="page-builder-slot-controls__tab" type="button" draggable="true" data-custom-slot-drag="${escapeHtml(block.id)}" data-edit-block="${escapeHtml(block.id)}" aria-label="${escapeHtml(this.uiText('Reorder slot'))}">
                     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                         <path d="M8 6h.01"></path><path d="M16 6h.01"></path>
                         <path d="M8 12h.01"></path><path d="M16 12h.01"></path>
                         <path d="M8 18h.01"></path><path d="M16 18h.01"></path>
                     </svg>
                     <span>${escapeHtml(block.label || 'Slot')}</span>
+                </button>
+                <button class="page-builder-slot-controls__tab" type="button" data-move-custom-slot="${escapeHtml(block.id)}" data-direction="-1" aria-label="${escapeHtml(this.uiText('Move slot up'))}">
+                    <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"></path></svg>
+                </button>
+                <button class="page-builder-slot-controls__tab" type="button" data-move-custom-slot="${escapeHtml(block.id)}" data-direction="1" aria-label="${escapeHtml(this.uiText('Move slot down'))}">
+                    <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
                 </button>
             </div>
         `;
@@ -654,7 +660,7 @@ export const previewMethods = {
             : 'Clear block';
         const controls = interactive ? `
             <div class="page-builder-block-controls pointer-events-auto absolute flex translate-y-1 items-center gap-2 opacity-0 transition group-hover/page-block:translate-y-0 group-hover/page-block:opacity-100 group-focus-within/page-block:translate-y-0 group-focus-within/page-block:opacity-100">
-                ${content ? `<button class="grid h-8 w-8 place-items-center rounded-md border border-slate-700 bg-slate-950/80 text-xs text-[var(--admin-page-accent)] transition hover:border-[var(--admin-page-accent)]" type="button" data-edit-block="${escapeHtml(block.id)}" aria-label="Edit block">✎</button>` : ''}
+                ${content ? `<button class="grid h-8 w-8 place-items-center rounded-md border border-slate-700 bg-slate-950/80 text-xs text-[var(--admin-page-accent)] transition hover:border-[var(--admin-page-accent)]" type="button" data-edit-block="${escapeHtml(block.id)}" aria-label="${escapeHtml(this.uiText('Edit block'))}">✎</button>` : ''}
                 ${content && deletable ? `
                     <button class="grid h-8 w-8 place-items-center rounded-md border border-rose-900/70 bg-slate-950/80 text-rose-400 transition hover:border-rose-500 hover:bg-rose-950/50" type="button" ${deleteAttr} aria-label="${escapeHtml(deleteLabel)}" title="${escapeHtml(deleteLabel)}">
                         <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -677,7 +683,7 @@ export const previewMethods = {
         if (content) {
             return `
                 <article class="${frameClass}" ${actionAttr} data-ai-pick-block-id="${escapeHtml(block.id)}" data-ai-pick-path="" tabindex="${interactive ? '0' : '-1'}">
-                    ${interactive ? `<button class="page-builder-block-hitbox" type="button" data-edit-block="${escapeHtml(block.id)}" aria-label="Edit block"></button>` : ''}
+                    ${interactive ? `<button class="page-builder-block-hitbox" type="button" data-edit-block="${escapeHtml(block.id)}" aria-label="${escapeHtml(this.uiText('Edit block'))}"></button>` : ''}
                     ${controls}
                     ${interactive ? this.containerBlockRibbon(content) : ''}
                     ${this.contentMiniPreview(content, 0, {blockId: block.id, path: ''})}
@@ -810,7 +816,7 @@ export const previewMethods = {
             : 'page-navigation__link text-sm font-semibold';
 
         return `
-            <nav class="${className}" aria-label="Navigation preview">
+            <nav class="${className}" aria-label="${escapeHtml(this.uiText('Navigation preview'))}">
                 ${items.map((item) => `<span class="${itemClass}">${escapeHtml(item.label || item.title || item.key || 'Item')}</span>`).join('')}
             </nav>
         `;

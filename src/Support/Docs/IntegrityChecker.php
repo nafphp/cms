@@ -6,8 +6,8 @@ namespace Naf\CMS\Support\Docs;
 
 use Naf\CMS\Content\BlockViewRegistry;
 use Naf\CMS\Content\Page\Block\BlockTypeInterface;
-use Naf\CMS\Page\Layout;
 use Naf\CMS\Support\RuntimePaths;
+use Naf\CMS\Support\ViewLocator;
 use ReflectionObject;
 
 use function Naf\CMS\cms;
@@ -36,9 +36,9 @@ final class IntegrityChecker
     {
         $issues       = [];
         $blockTypes   = $this->blockTypes();
-        $blockViews   = new BlockViewRegistry();
+        $blockViews   = cms()->blocks();
         $templateFile = RuntimePaths::resource($this->basePath, 'pages/page_templates.php');
-        $templates    = $this->pageTemplates($templateFile);
+        $templates    = cms()->pageTemplates()->definitions();
 
         $issues = [
             ...$issues,
@@ -79,7 +79,6 @@ final class IntegrityChecker
     private function checkBlockViews(array $blockTypes, BlockViewRegistry $blockViews): array
     {
         $issues          = [];
-        $mappings        = $blockViews->all();
         $referencedViews = [];
 
         foreach ($blockTypes as $id => $type) {
@@ -87,30 +86,21 @@ final class IntegrityChecker
             $file       = (string) $reflection->getFileName();
             $line       = $reflection->getStartLine();
 
-            if (!isset($mappings[$id])) {
+            $view     = $blockViews->declaredView($id) ?? 'page.blocks.placeholder';
+            $viewFile = (new ViewLocator($this->basePath))->find($view);
+            if ($view === 'page.blocks.placeholder' || $viewFile === null) {
                 $issues[] = $this->issue($file, $line, sprintf(
-                    'BlockType "%s" is registered but has no explicit BlockViewRegistry mapping.',
-                    $id,
-                ));
-                continue;
-            }
-
-            $view                       = $mappings[$id];
-            $viewFile                   = $this->viewFile($view);
-            $referencedViews[$viewFile] = true;
-
-            if (!is_file($viewFile)) {
-                $registryFile = $this->basePath . '/src/Content/BlockViewRegistry.php';
-                $issues[]     = $this->issue($registryFile, $this->lineOf($registryFile, $id), sprintf(
-                    'BlockType "%s" maps to missing view "%s" (%s).',
+                    'BlockType "%s" has no resolvable view "%s".',
                     $id,
                     $view,
-                    $this->relative($viewFile),
                 ));
+            }
+            if ($viewFile !== null) {
+                $referencedViews[$viewFile] = true;
             }
         }
 
-        foreach ($this->blockViewFiles() as $viewFile) {
+        foreach ($this->isPackageRoot() ? $this->blockViewFiles() : [] as $viewFile) {
             if (!isset($referencedViews[$viewFile])) {
                 $issues[] = $this->issue($viewFile, 1, sprintf(
                     'Block view "%s" is not referenced by any registered BlockType.',
@@ -142,19 +132,42 @@ final class IntegrityChecker
                 continue;
             }
 
-            $viewFile                   = $this->viewFile($view);
-            $registeredViews[$viewFile] = $id;
-            if (!is_file($viewFile)) {
-                $issues[] = $this->issue($templateFile, $this->lineOf($templateFile, $view), sprintf(
-                    'Page template "%s" maps to missing view "%s" (%s).',
+            $viewFile = (new ViewLocator($this->basePath))->find($view);
+            if ($viewFile === null) {
+                $issues[] = $this->issue($templateFile, 1, sprintf(
+                    'Page template "%s" maps to missing view "%s".',
                     $id,
                     $view,
-                    $this->relative($viewFile),
                 ));
+                continue;
+            }
+
+            $registeredViews[$viewFile] = $id;
+            $source                     = (string) file_get_contents($viewFile);
+            if (preg_match('/\bid\s*=\s*[\'"]content[\'"]/', $source) !== 1) {
+                $issues[] = $this->issue($viewFile, 1, sprintf('Page template "%s" is missing id="content".', $id));
+            }
+
+            if (($template['kind'] ?? '') === 'custom') {
+                continue;
+            }
+
+            preg_match_all('/\$block\(\s*([\'"])(.*?)\1\s*\)/', $source, $matches, PREG_OFFSET_CAPTURE);
+            $declared = array_column(is_array($template['blocks'] ?? null) ? $template['blocks'] : [], 'id');
+            $called   = [];
+            foreach ($matches[2] as $index => [$slot, $offset]) {
+                $called[] = $slot;
+                if (!in_array($slot, $declared, true)) {
+                    $line     = substr_count(substr($source, 0, $matches[0][$index][1]), "\n") + 1;
+                    $issues[] = $this->issue($viewFile, $line, sprintf('Page template "%s" calls undeclared slot "%s".', $id, $slot));
+                }
+            }
+            foreach (array_diff($declared, $called) as $slot) {
+                $issues[] = $this->issue($viewFile, 1, sprintf('Page template "%s" does not render declared slot "%s".', $id, $slot));
             }
         }
 
-        foreach ($this->templateViewFiles() as $viewFile) {
+        foreach ($this->isPackageRoot() ? $this->templateViewFiles() : [] as $viewFile) {
             if (!isset($registeredViews[$viewFile])) {
                 $issues[] = $this->issue($viewFile, 1, sprintf(
                     'Page template view "%s" is not registered in %s.',
@@ -215,20 +228,6 @@ final class IntegrityChecker
     }
 
     /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function pageTemplates(string $templateFile): array
-    {
-        if (!is_file($templateFile)) {
-            return [];
-        }
-
-        $templates = require $templateFile;
-
-        return is_array($templates) ? Layout::definitions($templates) : [];
-    }
-
-    /**
      * @return array<int, string>
      */
     private function blockViewFiles(): array
@@ -248,11 +247,9 @@ final class IntegrityChecker
         return glob(RuntimePaths::views($this->basePath, 'page/templates') . '/*.phtml') ?: [];
     }
 
-    private function viewFile(string $view): string
+    private function isPackageRoot(): bool
     {
-        $path = str_replace('.', '/', trim($view, '/'));
-
-        return RuntimePaths::views($this->basePath, $path . '.phtml');
+        return realpath($this->basePath) === realpath(RuntimePaths::packageRoot());
     }
 
     /**

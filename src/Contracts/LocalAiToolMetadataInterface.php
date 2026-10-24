@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Naf\CMS\Contracts;
 
-/** Optional self-description consumed by LocalAiToolCatalog and the admin assistant. */
+/**
+ * Optional self-description consumed by LocalAiToolCatalog and the admin assistant.
+ *
+ * @api
+ */
 interface LocalAiToolMetadataInterface
 {
     /**

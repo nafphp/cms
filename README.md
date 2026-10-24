@@ -14,7 +14,7 @@ PHP 8.3 and 8.4 are the supported release targets and are required CI gates. Dev
 
 Prerequisites are PHP 8.3 or 8.4 with cURL, DOM, PDO, and either PDO SQLite or PDO MySQL, plus Composer 2. Node.js is needed only when changing NafCMS frontend sources, not in an installed host.
 
-The package requires Framework 0.2.9 or newer for rendering from commands and workers, and CLI 0.2.2 or newer for Composer-installed command bootstrap paths. PDO belongs to the CMS's own requirements.
+The package requires Framework 0.2.13 or newer for isolated content events and rendering from commands and workers, and CLI 0.2.2 or newer for Composer-installed command bootstrap paths. PDO belongs to the CMS's own requirements.
 
 Create a regular NAF host application, then install NafCMS as a plugin:
 
@@ -114,7 +114,11 @@ The smoke script needs network access to create the temporary official `naf/app`
 
 ## Sitebuilder Preview
 
+Host and plugin templates and blocks must bring their own CSS: the CMS Tailwind build scans only package sources. NAF has no asset publishing for plugins. Copy custom stylesheets into the host's `public/css/` and attach them with `Layout::addStylesheet('/css/example-split.css')`, as shown in [example 07](examples/07-page-template/).
+
 The v0.0.1 Sitebuilder is an explicitly experimental preview. The supported built-in templates are Default, Landing page, Editorial index, Two column, Feature grid, Article detail, Full bleed, and Custom layout. The supported block registry includes the shipped text, heading, hero, media/image, embed/map, navigation/header/footer, CTA, feature, quote, form, articles/article, chart/stats, and nested section/stack/columns/grid block types. Plugin block types participate only when they provide the same field metadata contract.
+
+Page templates are registered, not discovered: a template is a `.phtml` view whose `$block('slot')` calls match the slot ids of a `Layout` definition. Plugins add templates with `cms()->pageTemplates()->add(Layout::define(...))` (see [07-page-template](examples/07-page-template/)); a host adds or overrides templates by id in its `src/Resources/pages/page_templates.php`, which is read last and always wins. `cms()->pageTemplates()->remove('id')` hides a shipped template. User-built layouts from the builder's custom layout mode are stored in the `page_layouts` table and are independent of this registry.
 
 Builder requests carry `builderVersion: 1`. The server derives validation from each registered block type's fields: text and textarea lengths, numeric ranges, select options, booleans, media/link/embed URL policy, statistics, chart metrics, and nested children. Unknown slot IDs, block types, payload fields, and block properties are rejected with validation errors instead of being silently persisted. Payloads are limited to 256 KiB, 50 custom slots, 100 total blocks, 24 children per container, and four nested container levels. The normalized data is applied both when saving and when `PageFactory` constructs a preview or public page.
 
@@ -224,12 +228,14 @@ cms()->scope(Scope::ADMIN)->navigation()->add(
 
 Run `composer test` after changing examples; the smoke test loads them against the CMS registries so stale docs fail like stale code.
 
-## Services überschreiben
+## Overriding Services
 
-NafCMS bindet austauschbares Verhalten an kleine Interfaces. Ein Host lädt
-`app/src/services.php` am Anfang seiner `app/src/routes.php`; dieser Schritt
-läuft nach den Plugin-Bootstraps, sodass die Host-Bindings die Defaults
-ersetzen. Closures halten die Auflösung lazy:
+NafCMS binds replaceable behavior to small interfaces in its plugin bootstrap.
+A host replaces a binding in its own `bootstrap.php`, before `app()->run()`,
+as every NAF application registers its services. The first `app()` call boots
+all plugins, so a binding set afterwards replaces the CMS default for HTTP
+requests and for `vendor/bin/naf`, which loads the same `bootstrap.php`.
+Closures keep the resolution lazy:
 
 ```php
 use Naf\CMS\Contracts\MediaStorageInterface;
@@ -269,6 +275,7 @@ These sections are generated from registries and enums. Edit the source code, th
 | `cms()->visualizations()` | Registered chart definitions and rendering. |
 | `cms()->blocks()` | Page-builder block type to view mappings. |
 | `cms()->blockTypes()` | Page-builder block metadata for the admin builder. |
+| `cms()->pageTemplates()` | Code-defined page-builder templates from the package, plugins, and host. |
 | `cms()->themes()` | Frontend theme assets and builder-visible surfaces. |
 | `cms()->languages()` | Enabled, available, and discovered language codes. |
 | `cms()->settings()` | Resolved runtime settings and admin-editable setting metadata. |
@@ -303,11 +310,11 @@ These sections are generated from registries and enums. Edit the source code, th
 | `admin.pages` | `/admin/pages` | `layouts.admin` | `pages.view` | yes |
 | `admin.pages.create` | `/admin/pages/create` | `layouts.admin` | `pages.create` | no |
 | `admin.roles` | `/admin/roles` | `layouts.admin` | `roles.manage` | no |
-| `admin.settings` | `/admin/settings` | `layouts.admin` | `admin.access` | no |
-| `admin.settings.ai` | `/admin/settings/ai` | `layouts.admin` | `ai.instructions.manage` | no |
-| `admin.settings.audit` | `/admin/settings/audit` | `layouts.admin` | `admin.access` | no |
-| `admin.settings.group` | `/admin/settings/group/{group}` | `layouts.admin` | `admin.access` | no |
-| `admin.translations` | `/admin/settings/translations` | `layouts.admin` | `admin.access` | no |
+| `admin.settings` | `/admin/settings` | `layouts.admin` | `settings.manage` | no |
+| `admin.settings.ai` | `/admin/settings/ai` | `layouts.admin` | `settings.manage`, `ai.instructions.manage` | no |
+| `admin.settings.audit` | `/admin/settings/audit` | `layouts.admin` | `system.read` | no |
+| `admin.settings.group` | `/admin/settings/group/{group}` | `layouts.admin` | `settings.manage` | no |
+| `admin.translations` | `/admin/settings/translations` | `layouts.admin` | `translations.manage` | no |
 | `admin.themes` | `/admin/themes` | `layouts.admin` | `themes.view` | no |
 | `admin.themes.create` | `/admin/themes/create` | `layouts.admin` | `themes.create`, `themes.code.manage` | yes |
 | `admin.themes.edit` | `/admin/themes/{themeId}/edit` | `layouts.admin` | `themes.edit`, `themes.code.manage` | yes |
@@ -362,11 +369,11 @@ These sections are generated from registries and enums. Edit the source code, th
 | `api.admin.rbac.roles.permissions` | `POST` | `/api/admin/rbac/roles/permissions` | `roles.manage`, `permissions.manage` |
 | `api.admin.rbac.roles.update` | `POST` | `/api/admin/rbac/roles/update` | `roles.manage` |
 | `api.admin.roles` | `GET` | `/api/admin/roles` | `roles.manage` |
-| `api.admin.settings.update` | `POST` | `/api/admin/settings` | `admin.access` |
+| `api.admin.settings.update` | `POST` | `/api/admin/settings` | `settings.manage` |
 | `api.admin.summary` | `GET` | `/api/admin/summary` | `admin.access` |
 | `api.admin.themes.store` | `POST` | `/api/admin/themes` | `themes.code.manage` |
 | `api.admin.translations.show` | `GET` | `/api/admin/translations/{language}` | any of `admin.access`, `pages.view`, `pages.create`, `pages.edit` |
-| `api.admin.translations.update` | `POST` | `/api/admin/translations/{language}` | `admin.access` |
+| `api.admin.translations.update` | `POST` | `/api/admin/translations/{language}` | `translations.manage` |
 | `api.admin.users` | `GET` | `/api/admin/users` | `users.view` |
 | `api.admin.users.delete` | `POST` | `/api/admin/users/delete` | `users.delete` |
 | `api.admin.users.invite` | `POST` | `/api/admin/users/invite` | `users.create`, `roles.manage` |
@@ -400,6 +407,8 @@ These sections are generated from registries and enums. Edit the source code, th
 | Permission | Description |
 | --- | --- |
 | `admin.access` | Access the admin area. |
+| `settings.manage` | Manage application and plugin settings. |
+| `translations.manage` | Manage translation overrides and language files. |
 | `system.read` | Read system status and health information. |
 | `users.view` | View users. |
 | `users.create` | Create users. |
@@ -484,6 +493,8 @@ These sections are generated from registries and enums. Edit the source code, th
 | [04-mcp-tool](examples/04-mcp-tool/) | Shows the small class pattern used by NafCMS MCP tools. |
 | [05-complete-plugin](examples/05-complete-plugin/) | This compact example shows the explicit registration path for a Composer package of type `naf-plugin`: `bootstrap.php` registers a protected Page, API endpoint, migration path, and scoped MCP tool. NAF discovers the package's `src/views` directory by convention; the Page references that view explicitly. |
 | [06-service-override](examples/06-service-override/) | NafCMS binds replaceable behavior to contracts during the plugin bootstrap. |
+| [07-page-template](examples/07-page-template/) | Shows how a plugin adds a page-builder template through `cms()->pageTemplates()`. |
+| [08-content-events](examples/08-content-events/) | Register listeners for successful content changes with `event()->listen()` and the `CmsEvent` constants. |
 <!-- /naf:auto:examples -->
 
 ## Conventions And Security
@@ -502,3 +513,77 @@ Source, tests and PHP templates follow the shared [NAF code style](https://githu
 (PER Coding Style 3.0 with the Nafinity readability rules). After `composer install`, run
 `composer style:check` to verify formatting or `composer style:fix` to apply it. The formatter
 is a development dependency. Review template output and run the package checks after changes.
+
+
+## Content Events
+
+Successful content changes dispatch a readonly `Naf\CMS\Events\ContentEvent` together with their audit entry. Its fields are `action`, `subjectType`, `subjectId` (a string), `before` and `after`; the snapshots match the audit entry. Form submissions carry `submissionId`, `payload` and `meta` in `after`. Treat submission payloads as sensitive installation data when adding listeners.
+
+`*_PUBLISHED` fires on every way into the published state: the explicit publish actions, saving a page or navigation with status `published` (as the page builder and the navigation form do; that save reports `*_UPDATED` or `*_CREATED` first), and approving an article review with direct publication.
+
+Register listeners with `event()->listen()` and a `CmsEvent` constant. Content events are dispatched with `event()->isolated()->dispatch()`: an exception in one listener is logged with the event and the listener, the CMS change stays done, and the remaining listeners still run.
+
+```php
+use Naf\CMS\Events\CmsEvent;
+use Naf\CMS\Events\ContentEvent;
+use function Naf\event;
+use function Naf\log;
+
+event()->listen(CmsEvent::PAGE_PUBLISHED, fn (ContentEvent $e) => log()->info('Page published', ['pageId' => $e->subjectId]));
+event()->listen(CmsEvent::ARTICLE_PUBLISHED, [ClearCacheListener::class, 'handle']); // built through the container
+```
+
+| CmsEvent constant | Event name |
+| --- | --- |
+| `PAGE_CREATED` | `cms.page.created` |
+| `PAGE_UPDATED` | `cms.page.updated` |
+| `PAGE_PUBLISHED` | `cms.page.published` |
+| `PAGE_DELETED` | `cms.page.deleted` |
+| `ARTICLE_CREATED` | `cms.article.created` |
+| `ARTICLE_DRAFT_SAVED` | `cms.article.draft_saved` |
+| `ARTICLE_PUBLISHED` | `cms.article.published` |
+| `ARTICLE_VERSION_RESTORED` | `cms.article.version_restored` |
+| `ARTICLE_LOCALE_DELETED` | `cms.article.locale_deleted` |
+| `ARTICLE_VERSION_DELETED` | `cms.article.version_deleted` |
+| `FORM_CREATED` | `cms.form.created` |
+| `FORM_UPDATED` | `cms.form.updated` |
+| `FORM_DELETED` | `cms.form.deleted` |
+| `FORM_SUBMITTED` | `cms.form.submitted` |
+| `MEDIA_UPLOADED` | `cms.media.uploaded` |
+| `MEDIA_UPDATED` | `cms.media.updated` |
+| `MEDIA_DELETED` | `cms.media.deleted` |
+| `NAVIGATION_CREATED` | `cms.navigation.created` |
+| `NAVIGATION_UPDATED` | `cms.navigation.updated` |
+| `NAVIGATION_PUBLISHED` | `cms.navigation.published` |
+| `NAVIGATION_DELETED` | `cms.navigation.deleted` |
+
+See [example 08](examples/08-content-events/) for a copyable listener.
+
+## Stable extension points
+
+The following classes and interfaces carry `@api` and form the stable extension surface:
+
+- `Support\Cms`.
+- `Page\PageTemplateRegistry`, `Page\Layout`, `Page\Template`, `Page\PageBlock`, `Page\Page`, `Page\PageRegistry`.
+- `Content\Page\Block\BlockTypeInterface`, `AbstractBlockType`, `BlockTypeRegistry`, `ProvidesBlockViewInterface` (in the same namespace).
+- `Content\BlockViewRegistry`, `Content\ContentTypeInterface`, `Content\ContentRegistry`.
+- `Api\ApiEndpoint`, `Api\ApiRegistry`.
+- `Settings\SettingsRegistry`, `Settings\SettingSection`, `Settings\SettingField`.
+- `Theme\Theme`, `Theme\ThemeRegistry`.
+- All contracts under `Naf\CMS\Contracts`.
+- `Events\ContentEvent`, `Events\CmsEvent`.
+
+Everything else is internal and may change before 0.1.
+
+## Scaffolding extensions
+
+Run these commands from an installed host:
+
+```sh
+vendor/bin/naf make:block example-card
+vendor/bin/naf make:template split-page
+vendor/bin/naf make:plugin example/cards --path=../cards
+vendor/bin/naf integrity:check
+```
+
+`make:block` uses the host's Composer PSR-4 prefix mapped to `src/`, creates a block class and a conventional view, and prints the registration for the host's `bootstrap.php`. `make:template` creates a view with skip-link target and prints the matching layout definition for `src/Resources/pages/page_templates.php`. `make:plugin` creates a Composer plugin skeleton and prints the path-repository and `plugins.php` setup steps. Existing targets are never overwritten; registration stays explicit.

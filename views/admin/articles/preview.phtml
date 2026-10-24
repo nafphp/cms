@@ -1,6 +1,7 @@
 <?php
 
 use Naf\CMS\Services\Content\ArticleRenderer;
+use Naf\CMS\Support\ScriptJson;
 
 use function Naf\Form\csrf;
 use function Naf\I18n\t;
@@ -115,7 +116,7 @@ $csrfToken     = csrf()->generate();
             return;
         }
 
-        const response = await (window.NafCMS?.fetch || fetch)(<?= json_encode(route('api.admin.articles.review', [
+        const response = await (window.NafCMS?.fetch || fetch)(<?= ScriptJson::encode(route('api.admin.articles.review', [
             'articleId' => $article->articleId(),
             'language'  => $article->language(),
         ])) ?>, {
@@ -134,7 +135,7 @@ $csrfToken     = csrf()->generate();
 
         const payload = await response.json().catch(() => ({}));
         if (!response.ok || payload.success === false) {
-            toast(payload.reason || <?= json_encode(t('Review could not be saved.')) ?>);
+            toast(payload.reason || <?= ScriptJson::encode(t('Review could not be saved.')) ?>);
             return;
         }
 

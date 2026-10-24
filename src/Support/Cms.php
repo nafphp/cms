@@ -21,12 +21,14 @@ use Naf\CMS\Models\Form;
 use Naf\CMS\Models\Media;
 use Naf\CMS\Models\SiteNavigation;
 use Naf\CMS\Page\PageRegistry;
+use Naf\CMS\Page\PageTemplateRegistry;
 use Naf\CMS\Storage\EntityStorage;
 use Naf\CMS\Theme\ThemeRegistry;
 use Naf\CMS\Visualization\VisualizationRegistry;
 
 use function Naf\app;
 
+/** @api */
 final class Cms
 {
     private ?ApiRegistry $apiRegistry                     = null;
@@ -37,6 +39,7 @@ final class Cms
     private ?LanguageRegistry $languageRegistry           = null;
     private ?BlockViewRegistry $blockViewRegistry         = null;
     private ?BlockTypeRegistry $blockTypeRegistry         = null;
+    private ?PageTemplateRegistry $pageTemplateRegistry   = null;
     private ?ThemeRegistry $themeRegistry                 = null;
 
     public function scope(Scope|string|null $scope = null): ScopedCms
@@ -94,6 +97,14 @@ final class Cms
     public function blockTypes(): BlockTypeRegistry
     {
         return $this->blockTypeRegistry ??= new BlockTypeRegistry();
+    }
+
+    public function pageTemplates(): PageTemplateRegistry
+    {
+        return $this->pageTemplateRegistry ??= new PageTemplateRegistry(
+            RuntimePaths::packageResource('pages/page_templates.php'),
+            $this->hostPageTemplateFile(),
+        );
     }
 
     public function themes(): ThemeRegistry
@@ -160,5 +171,14 @@ final class Cms
             'No content type registered for "%s". Register one through cms()->contentTypes()->add(...).',
             $class,
         ));
+    }
+
+    private function hostPageTemplateFile(): ?string
+    {
+        $hostRoot = app()->getBasePath();
+
+        return is_string($hostRoot) && $hostRoot !== ''
+            ? RuntimePaths::hostResource('pages/page_templates.php')
+            : null;
     }
 }
